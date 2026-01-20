@@ -1,0 +1,103 @@
+
+=== SIMULATING 10 GAMES ===
+[Luka] P:148.5 S:159.4 D:107.4 -> SHOOT
+[Luka] P:148.5 S:159.4 D:107.4 -> PASS
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[SCORING MYSTERY] Jokic Scored! Value: 2. Text: Jokic scores!
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Luka] P:148.5 S:159.4 D:107.4 -> SHOOT
+[SCORING MYSTERY] Jokic Scored! Value: 2. Text: Jokic scores!
+[Luka] P:148.5 S:159.4 D:107.4 -> PASS
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[SCORING MYSTERY] Jokic Scored! Value: 2. Text: Jokic scores!
+[SCORING MYSTERY] Jokic Scored! Value: 2. Text: Jokic scores!
+[Luka] P:148.5 S:159.4 D:107.4 -> SHOOT
+[Luka] P:148.5 S:159.4 D:107.4 -> SHOOT
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Luka] P:148.5 S:159.4 D:107.4 -> SHOOT
+[SCORING MYSTERY] Jokic Scored! Value: 2. Text: Jokic scores!
+[SCORING MYSTERY] Jokic Scored! Value: 2. Text: Jokic scores!
+[Luka] P:148.5 S:159.4 D:107.4 -> PASS
+[SCORING MYSTERY] Jokic Scored! Value: 2. Text: Jokic scores!
+[Luka] P:148.5 S:159.4 D:107.4 -> SHOOT
+[Luka] P:148.5 S:159.4 D:107.4 -> PASS
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Luka] P:148.5 S:159.4 D:107.4 -> PASS
+[SCORING MYSTERY] Jokic Scored! Value: 2. Text: Jokic scores!
+[Luka] P:148.5 S:159.4 D:107.4 -> SHOOT
+[Luka] P:148.5 S:159.4 D:107.4 -> SHOOT
+[Luka] P:148.5 S:159.4 D:107.4 -> SHOOT
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Luka] P:148.5 S:159.4 D:107.4 -> SHOOT
+[SCORING MYSTERY] Jokic Scored! Value: 2. Text: Jokic scores!
+[Luka] P:148.5 S:159.4 D:107.4 -> PASS
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[SCORING MYSTERY] Jokic Scored! Value: 2. Text: Jokic scores!
+[Luka] P:148.5 S:159.4 D:107.4 -> SHOOT
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Luka] P:148.5 S:159.4 D:107.4 -> PASS
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Luka] P:148.5 S:159.4 D:107.4 -> SHOOT
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Luka] P:148.5 S:159.4 D:107.4 -> PASS
+[Luka] P:148.5 S:159.4 D:107.4 -> PASS
+[SCORING MYSTERY] Jokic Scored! Value: 2. Text: Jokic scores!
+[Luka] P:148.5 S:159.4 D:107.4 -> SHOOT
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[SCORING MYSTERY] Jokic Scored! Value: 2. Text: Jokic scores!
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Luka] P:148.5 S:159.4 D:107.4 -> PASS
+[SCORING MYSTERY] Jokic Scored! Value: 2. Text: Jokic scores!
+[SCORING MYSTERY] Jokic Scored! Value: 2. Text: Jokic scores!
+[Luka] P:148.5 S:159.4 D:107.4 -> PASS
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Luka] P:148.5 S:159.4 D:107.4 -> SHOOT
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Luka] P:148.5 S:159.4 D:107.4 -> SHOOT
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Luka] P:148.5 S:159.4 D:107.4 -> SHOOT
+[Luka] P:148.5 S:159.4 D:107.4 -> SHOOT
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Luka] P:148.5 S:159.4 D:107.4 -> PASS
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Luka] P:148.5 S:159.4 D:107.4 -> SHOOT
+[SCORING MYSTERY] Jokic Scored! Value: 2. Text: Jokic scores!
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Luka] P:148.5 S:159.4 D:107.4 -> PASS
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[Luka] P:148.5 S:159.4 D:107.4 -> SHOOT
+[Nikola] P:463.3 S:24.3 D:139.6 -> PASS
+[SCORING MYSTERY] Jokic Scored! Value: 2. Text: Jokic scores!
+
+Avg Score: WST 99.0 - EST 95.0
+
+--- SEASON AVERAGES (Sorted by PPG) ---
+NAME                | PPG   | RPG   | APG  | BPG  | FG%   | FT%   | FGA  | FTA
+Jokic               |  74.0 |  20.0 | 24.0 |  0.0 |  59.3 | 100.0 | 54.0 | 10.0
+Doncic              |  50.0 |  12.0 | 12.0 |  0.0 |  62.5 |  83.3 | 32.0 | 12.0
+Wembanyama          |  50.0 |  12.0 |  2.0 |  2.0 |  50.0 |  70.0 | 36.0 | 20.0
+Gilgeous-Alexander  |  48.0 |   6.0 |  0.0 |  0.0 |  61.1 | 100.0 | 36.0 |  4.0
+Maxey               |  32.0 |  18.0 |  0.0 |  0.0 |  50.0 | 100.0 | 24.0 |  4.0
+Mitchell            |  24.0 |   6.0 |  0.0 |  0.0 |  44.4 |  75.0 | 18.0 |  8.0
+Scorer              |  24.0 |  10.0 |  0.0 |  0.0 |  66.7 |   0.0 | 18.0 |  0.0
+Def                 |  20.0 |   2.0 |  0.0 |  0.0 |  62.5 |   0.0 | 16.0 |  2.0
+Gobert              |  18.0 |  12.0 |  0.0 |  4.0 |  50.0 |  75.0 | 12.0 |  8.0
+Cunningham          |  12.0 |   8.0 | 20.0 |  0.0 |  60.0 |   0.0 | 10.0 |  0.0
+Sarr                |  12.0 |   6.0 |  0.0 |  2.0 |  50.0 | 100.0 |  8.0 |  4.0
+Ayton               |   8.0 |   8.0 |  0.0 |  0.0 |  33.3 | 100.0 |  6.0 |  4.0
+Wing                |   8.0 |   4.0 |  0.0 |  0.0 |  11.1 | 100.0 | 18.0 |  4.0
+Giddey              |   8.0 |   4.0 | 16.0 |  0.0 |  50.0 |   0.0 |  8.0 |  0.0
+Def                 |   4.0 |   8.0 |  0.0 |  0.0 |  14.3 |   0.0 | 14.0 |  0.0
+Wing                |   4.0 |   2.0 |  0.0 |  0.0 |  33.3 |   0.0 |  6.0 |  0.0
+Guard               |   0.0 |   4.0 |  8.0 |  0.0 |   0.0 |   0.0 |  2.0 |  0.0
+Big                 |   0.0 |   6.0 |  0.0 |  0.0 |   0.0 |   0.0 |  0.0 |  0.0
+Guard               |   0.0 |   8.0 | 14.0 |  0.0 |   0.0 |   0.0 |  2.0 |  0.0
+Big                 |   0.0 |   4.0 |  0.0 |  0.0 |   0.0 |   0.0 |  2.0 |  0.0
