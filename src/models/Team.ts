@@ -46,6 +46,9 @@ export interface Team {
         }[];
     };
 
+    // Luxury Tax Repeater Status
+    consecutiveTaxYears?: number;
+
     // Roster logic
     rosterIds: string[];
 

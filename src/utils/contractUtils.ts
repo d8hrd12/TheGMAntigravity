@@ -83,8 +83,11 @@ export const calculateContractAmount = (player: Player, salaryCap: number = 1400
         }
     }
 
-    // Random Variance (5-10%)
-    const variance = 0.95 + Math.random() * 0.1;
+    // Stable Random Variance based on Player ID
+    // We want some variability across players, but stability for the same player
+    const seed = player.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const stableRand = (Math.abs(Math.sin(seed)) * 10000) % 1;
+    const variance = 0.95 + stableRand * 0.1;
     amount *= variance;
 
     // Safety Clamps
@@ -99,6 +102,55 @@ export const calculateContractAmount = (player: Player, salaryCap: number = 1400
     amount = Math.max(minSalary, Math.min(amount, maxSalary));
 
     return { amount: Math.floor(amount), years, type, explanation };
+};
+
+export const calculateExpectedRoleValue = (ovr: number): number => {
+    if (ovr >= 85) return 4; // Star
+    if (ovr >= 78) return 3; // Starter
+    if (ovr >= 74) return 2; // Rotation
+    if (ovr >= 70) return 1; // Bench
+    return 0; // Prospect
+};
+
+export const calculateAdjustedDemand = (
+    player: Player,
+    marketAmount: number,
+    marketYears: number,
+    offeredRole: string,
+    offeredYears: number,
+    isIncumbent: boolean = false
+) => {
+    // Loyalty Modifier
+    let loyaltyMod = 1.0;
+    if ((player.loveForTheGame || 0) > 15 && isIncumbent) loyaltyMod -= 0.1; // 10% discount for loyalty
+    if (player.morale > 90 && isIncumbent) loyaltyMod -= 0.05; // 5% discount for happiness
+
+    // Home Discount: 10% for being the incumbent team
+    const homeDiscountMod = isIncumbent ? 0.90 : 1.0;
+
+    // Role Modifier
+    const ovr = calculateOverall(player);
+    const expectedRoleVal = calculateExpectedRoleValue(ovr);
+
+    let offeredRoleVal = 0;
+    if (offeredRole === 'Star') offeredRoleVal = 4;
+    else if (offeredRole === 'Starter') offeredRoleVal = 3;
+    else if (offeredRole === 'Rotation') offeredRoleVal = 2;
+    else if (offeredRole === 'Bench') offeredRoleVal = 1;
+
+    let roleMod = 1.0;
+    if (offeredRoleVal > expectedRoleVal) roleMod = 0.95; // 5% discount for promotion
+    if (offeredRoleVal < expectedRoleVal) roleMod = 1.15; // 15% tax for demotion
+
+    // Years Modifier (Flexibility)
+    let yearsMod = 1.0;
+    const yearDiff = Math.abs(offeredYears - marketYears);
+    if (yearDiff > 0) {
+        // Charging a 2% "friction" tax per year of difference from their preferred length
+        yearsMod += (yearDiff * 0.02);
+    }
+
+    return marketAmount * loyaltyMod * homeDiscountMod * roleMod * yearsMod;
 };
 
 export const generateContract = (player: Player, startYear: number, salaryCap: number = 140000000): Contract => {

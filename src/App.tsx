@@ -48,7 +48,6 @@ import { PayrollConfirmationModal } from './features/ui/PayrollConfirmationModal
 import { LeagueHistoryView } from './features/history/LeagueHistoryView';
 import { TrainingView } from './features/training/TrainingView';
 import { GMOverview } from './features/gm/GMOverview';
-import { GMSkillTree } from './features/gm/GMSkillTree';
 import { NewsFeedView } from './features/news/NewsFeedView';
 import { PulseFeed } from './features/news/PulseFeed';
 import { LiveGameView } from './features/simulation/LiveGameView';
@@ -90,7 +89,7 @@ const lightenColor = (col: string, amt: number) => {
   return (usePound ? "#" : "") + (g | (b << 8) | (r << 16)).toString(16).padStart(6, '0');
 }
 
-function Dashboard({ onSelectGame, onShowResults, onSelectPlayer, onEnterPlayoffs, onSaveExitTrigger, onStartSeasonTrigger, onStartTrainingTrigger, onShowMessage }: {
+function Dashboard({ onSelectGame, onShowResults, onSelectPlayer, onEnterPlayoffs, onSaveExitTrigger, onStartSeasonTrigger, onStartTrainingTrigger, onSaveTrigger, onShowMessage }: {
   onSelectGame: (game: MatchResult) => void,
   onShowResults: () => void,
   onSelectPlayer: (playerId: string) => void,
@@ -98,6 +97,7 @@ function Dashboard({ onSelectGame, onShowResults, onSelectPlayer, onEnterPlayoff
   onSaveExitTrigger: () => void,
   onStartSeasonTrigger: () => void,
   onStartTrainingTrigger: () => void,
+  onSaveTrigger: () => void,
   onShowMessage: (title: string, msg: string, type: 'error' | 'info' | 'success') => void
 }) {
   const { teams, players, contracts, date, advanceDay, games, triggerDraft, seasonPhase, startRegularSeason, simulateToTradeDeadline, simulateToPlayoffs, userTeamId, awardsHistory, draftClass, retiredPlayersHistory, signPlayerWithContract, executeTrade, currentSaveSlot, startLiveGameFn, dailyMatchups, socialMediaPosts } = useGame();
@@ -642,29 +642,53 @@ function Dashboard({ onSelectGame, onShowResults, onSelectPlayer, onEnterPlayoff
         {currentSaveSlot ? `Slot ${currentSaveSlot} • ${date.getFullYear()}` : 'Unsaved Career'}
       </div>
 
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onSaveExitTrigger();
-        }}
-        style={{
-          background: 'var(--surface-active)',
-          border: '1px solid var(--border)',
-          color: 'var(--text)',
-          padding: '8px 16px',
-          borderRadius: '20px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          fontSize: '0.9rem',
-          fontWeight: 600
-        }}
-      >
-        <LogOut size={16} color="var(--text-secondary)" />
-        Save & Exit
-      </button>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button
+          onClick={onSaveTrigger}
+          style={{
+            background: 'rgba(255, 255, 255, 0.2)',
+            border: '1px solid var(--border)',
+            color: 'var(--text)',
+            padding: '8px 16px',
+            borderRadius: '20px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '0.9rem',
+            fontWeight: 600,
+            backdropFilter: 'blur(10px)'
+          }}
+        >
+          <Save size={16} color="var(--text-secondary)" />
+          Save
+        </button>
+
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onSaveExitTrigger();
+          }}
+          style={{
+            background: 'var(--surface-active)',
+            border: '1px solid var(--border)',
+            color: 'var(--text)',
+            padding: '8px 16px',
+            borderRadius: '20px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '0.9rem',
+            fontWeight: 600
+          }}
+        >
+          <LogOut size={16} color="var(--text-secondary)" />
+          Save & Exit
+        </button>
+      </div>
+
     </div>
   );
 
@@ -698,17 +722,14 @@ function Dashboard({ onSelectGame, onShowResults, onSelectPlayer, onEnterPlayoff
 
 
 function AppContent() {
-  const { isInitialized, teams, players, executeTrade, draftClass, draftOrder, handleDraftPick, simulateNextPick, simulateToUserPick, endDraft, signFreeAgent, negotiateContract, signPlayerWithContract, endFreeAgency, games, seasonPhase, contracts, updateRotation, updateCoachSettings, updateRotationSchedule, acceptTradeOffer, rejectTradeOffer, tradeOffer, userTeamId, isSimulating, isProcessing, date, tradeHistory, salaryCap, awardsHistory, retiredPlayersHistory, stopSimulation, advanceDay, currentSaveSlot, saveGame, startRegularSeason, news, liveGameData, startLiveGameFn, endLiveGameFn, tutorialFlags, setHasSeenNewsTutorial, gmProfile } = useGame();
-
-
-
-
+  const { isInitialized, teams, players, executeTrade, draftClass, draftOrder, handleDraftPick, simulateNextPick, simulateToUserPick, endDraft, signFreeAgent, negotiateContract, signPlayerWithContract, endFreeAgency, games, seasonPhase, contracts, updateRotation, updateCoachSettings, updateRotationSchedule, acceptTradeOffer, rejectTradeOffer, tradeOffer, userTeamId, isSimulating, isProcessing, date, tradeHistory, salaryCap, awardsHistory, retiredPlayersHistory, stopSimulation, advanceDay, currentSaveSlot, saveGame, startRegularSeason, news, liveGameData, startLiveGameFn, endLiveGameFn, tutorialFlags, setHasSeenNewsTutorial, gmProfile, simTarget } = useGame();
 
   // Unified Navigation State
   interface NavState {
     view: 'dashboard' | 'standings' | 'trade' | 'stats' | 'leaders' | 'results' | 'playoffs' | 'rotation' | 'transactions' | 'strategy' | 'financials' | 'team_management' | 'team_history' | 'league_history' | 'match' | 'scouting' | 'training' | 'gm_overview' | 'gm_skill_tree';
     selectedPlayerId: string | null;
     selectedGame: MatchResult | null;
+
     initialAiPlayerId: string | undefined;
     currentNegotiation: string | null;
     shopPlayerId: string | null;
@@ -1155,6 +1176,7 @@ function AppContent() {
             }}
             onCancel={() => setCurrentNegotiation(null)}
             onSelectPlayer={(id) => setSelectedPlayerId(id)}
+            salaryCap={salaryCap}
           />
         }
       }
@@ -1186,33 +1208,11 @@ function AppContent() {
       return (
         <div style={{ paddingBottom: '80px', minHeight: '100%', background: 'var(--background)' }}>
           <GMOverview />
-          <div style={{ position: 'fixed', bottom: '80px', right: '20px' }}>
-            <button
-              onClick={() => setView('gm_skill_tree')}
-              className="btn-primary"
-              style={{ borderRadius: '50px', padding: '15px 30px' }}
-            >
-              Skill Tree
-            </button>
-          </div>
           {/* <Navbar /> */}
         </div>
       );
     }
 
-    if (view === 'gm_skill_tree') {
-      return (
-        <div style={{ paddingBottom: '80px', minHeight: '100%', background: 'var(--background)' }}>
-          <div style={{ padding: '10px 20px', display: 'flex', alignItems: 'center' }}>
-            <button onClick={() => setView('gm_overview')} style={{ background: 'none', border: 'none', color: 'var(--text)', fontSize: '1.2rem', cursor: 'pointer' }}>
-              &larr; Back
-            </button>
-          </div>
-          <GMSkillTree />
-          {/* <Navbar /> */}
-        </div>
-      );
-    }
 
     // Live Game Overlay
     if (liveGameData) {
@@ -1261,6 +1261,15 @@ function AppContent() {
             onStartTrainingTrigger={() => setView('training')}
             onSaveExitTrigger={() => setShowExitModal(true)}
             onShowMessage={(t, m, y) => setModalMessage({ title: t, msg: m, type: y })}
+            onSaveTrigger={async () => {
+              if (currentSaveSlot) {
+                await saveGame(currentSaveSlot);
+                setModalMessage({ title: 'Success', msg: 'Game saved successfully!', type: 'success' });
+              } else {
+                setModalMessage({ title: 'Error', msg: 'No active save slot found.', type: 'error' });
+              }
+            }}
+
           />
         </>
       );
@@ -1279,8 +1288,6 @@ function AppContent() {
     <>
       <div className="safe-area-top-bar" />
       <div className="app-container">
-
-
 
         {renderContent()}
         {tradeOffer && (
@@ -1372,36 +1379,43 @@ function AppContent() {
           )}
         </nav>
       )}
-      {isSimulating && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 2000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)' }}>
-          <div className="loader" style={{ width: '40px', height: '40px', border: '4px solid rgba(255,255,255,0.3)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-          <h3 style={{ marginTop: '20px', color: '#fff' }}>Simulating Season...</h3>
+      {(isSimulating || simTarget !== 'none') && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 20000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)' }}>
+          <div className="loader" style={{ width: '50px', height: '50px', border: '5px solid rgba(255,255,255,0.3)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+          <h3 style={{ marginTop: '20px', color: '#fff', fontSize: '1.5rem', fontWeight: '800' }}>Simulating Season...</h3>
           {/* Show User Record */}
           {teams.find(t => t.id === userTeamId) && (
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fff', margin: '10px 0' }}>
+            <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#fff', margin: '15px 0' }}>
               {teams.find(t => t.id === userTeamId)!.wins} - {teams.find(t => t.id === userTeamId)!.losses}
             </div>
           )}
-          <p style={{ color: '#aaa' }}>{seasonPhase === 'regular_season' ? 'Playing Games' : 'Playoffs In Progress'}</p>
+          <p style={{ color: '#ccc', fontSize: '1.1rem' }}>{seasonPhase === 'regular_season' ? 'Simulating Games...' : 'Playoffs In Progress'}</p>
           <button
-            onClick={stopSimulation}
+            onClick={() => {
+              console.log("Stop Multi-Day Sim Clicked");
+              stopSimulation();
+            }}
             style={{
-              marginTop: '20px',
-              padding: '10px 20px',
-              background: '#e74c3c', // Red for stop
+              marginTop: '25px',
+              padding: '10px 24px',
+              background: '#e74c3c',
               color: '#fff',
               border: 'none',
-              borderRadius: '20px',
+              borderRadius: '50px',
               cursor: 'pointer',
-              fontWeight: 'bold',
-              fontSize: '0.9rem',
+              fontWeight: '600',
+              fontSize: '1rem',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              boxShadow: '0 4px 6px rgba(0,0,0,0.2)'
+              boxShadow: '0 4px 12px rgba(231, 76, 60, 0.4)', // Red glow
+              pointerEvents: 'auto',
+              zIndex: 20001,
+              transition: 'transform 0.2s, background 0.2s'
             }}
           >
-            <span style={{ fontSize: '1.2rem' }}>■</span> Stop
+            <div style={{ width: '12px', height: '12px', background: 'white', borderRadius: '2px' }} />
+            Stop Simulation
           </button>
         </div>
       )}
@@ -1449,8 +1463,11 @@ function AppContent() {
         />
       )}
     </>
-  )
-}
+  );
+};
+
+
+
 
 function App() {
   console.log('App rendering');

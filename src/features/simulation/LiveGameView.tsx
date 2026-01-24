@@ -726,7 +726,23 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 20000, backdropFilter: 'blur(3px)' }}>
                     <div className="loader" style={{ width: '40px', height: '40px', border: '4px solid rgba(255,255,255,0.3)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
                     <h2 style={{ color: 'white', marginTop: '20px' }}>Simulating match...</h2>
-                    <p style={{ color: 'rgba(255,255,255,0.8)' }}>Calculating final scores and stats</p>
+                    <p style={{ color: 'rgba(255,255,255,0.8)', marginBottom: '20px' }}>Calculating final scores and stats</p>
+                    <button
+                        onClick={() => engineRef.current?.stopSimulation()}
+                        style={{
+                            background: 'rgba(255, 255, 255, 0.2)',
+                            color: 'white',
+                            border: '1px solid rgba(255, 255, 255, 0.5)',
+                            padding: '8px 24px',
+                            borderRadius: '20px',
+                            cursor: 'pointer',
+                            fontSize: '1rem',
+                            fontWeight: 'bold',
+                            backdropFilter: 'blur(5px)'
+                        }}
+                    >
+                        Stop
+                    </button>
                 </div>
             )}
         </div>

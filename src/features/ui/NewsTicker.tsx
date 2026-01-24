@@ -19,18 +19,45 @@ export const NewsTicker: React.FC<NewsTickerProps> = ({ players, news, onClick, 
     };
 
     const ptsLeader = getLeader('points');
-    const recentNews = news.slice(0, 5).map(s => `NEWS: ${s.headline}`);
+
+    // Filter for high-priority news first (Trades, Injuries, Rumors)
+    const priorityTypes = ['TRADE', 'INJURY', 'RUMOR', 'TRANSACTION', 'AWARD'];
+    const importantNews = news.filter(s => priorityTypes.includes(s.type));
+    const otherNews = news.filter(s => !priorityTypes.includes(s.type));
+
+    // Interleave: 3 Important, 2 Other (e.g., game results)
+    const displayNews = [
+        ...importantNews.slice(0, 3),
+        ...otherNews.slice(0, 2)
+    ].sort((a, b) => b.date.getTime() - a.date.getTime()) // Re-sort by date to keep flow natural
+        .slice(0, 5); // Keep top 5 total
+
+    // Fallback if no important news
+    const finalNewsList = displayNews.length > 0 ? displayNews : news.slice(0, 5);
+
+    const formatHeadline = (s: NewsStory) => {
+        switch (s.type) {
+            case 'TRADE': return `🔄 TRADE: ${s.headline}`;
+            case 'INJURY': return `🏥 INJURY: ${s.headline}`;
+            case 'RUMOR': return `👀 RUMOR: ${s.headline}`;
+            case 'TRANSACTION': return `✍️ SIGNING: ${s.headline}`;
+            case 'AWARD': return `🏆 AWARD: ${s.headline}`;
+            default: return `NEWS: ${s.headline}`;
+        }
+    };
+
+    const recentNewsStrings = finalNewsList.map(s => formatHeadline(s));
 
     let items: string[] = [];
 
-    if (!ptsLeader && recentNews.length === 0) {
+    if (!ptsLeader && recentNewsStrings.length === 0) {
         items = ["Welcome to TheGM! Season Tip-Off approaches...", "Trade Deadline: Game 40", "Upcoming: Draft Class 2026"];
     } else {
         const stats = ptsLeader ? [
             `PTS Leader: ${ptsLeader.lastName} (${(ptsLeader.seasonStats.points / ptsLeader.seasonStats.gamesPlayed).toFixed(1)})`
         ] : [];
 
-        items = [...recentNews, ...stats];
+        items = [...recentNewsStrings, ...stats];
     }
 
     const [isFlashing, setIsFlashing] = React.useState(false);

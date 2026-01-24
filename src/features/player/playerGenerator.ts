@@ -3,7 +3,7 @@ import type { Player, PlayerAttributes } from '../../models/Player';
 
 import { generateUUID } from '../../utils/uuid';
 import { getRandomArchetype } from './archetypes';
-import { calculateOverall } from '../../utils/playerUtils';
+import { calculateOverall, calculateSecondaryPosition } from '../../utils/playerUtils';
 
 const FIRST_NAMES = [
     'James', 'John', 'Robert', 'Michael', 'William', 'David', 'Richard', 'Joseph', 'Thomas', 'Charles',
@@ -166,15 +166,45 @@ export function generatePlayer(forcedPosition?: Position, forcedTier?: 'star' | 
     const age = tier === 'prospect' ? randomInt(18, 22) : randomInt(20, 35);
     const overall = calculateOverall(current, position);
 
-    return {
+    // Height Logic based on Position (cm) for Dual Position Logic to work
+    let height = 190;
+    let weight = 90;
+
+    switch (position) {
+        case 'PG':
+            height = randomInt(185, 196); // 6'1" - 6'5"
+            weight = randomInt(80, 95);
+            break;
+        case 'SG':
+            height = randomInt(193, 203); // 6'4" - 6'8"
+            weight = randomInt(90, 105);
+            break;
+        case 'SF':
+            height = randomInt(198, 208); // 6'6" - 6'10"
+            weight = randomInt(95, 110);
+            break;
+        case 'PF':
+            height = randomInt(203, 213); // 6'8" - 7'0"
+            weight = randomInt(105, 120);
+            break;
+        case 'C':
+            height = randomInt(208, 224); // 6'10" - 7'4"
+            weight = randomInt(110, 130);
+            break;
+    }
+
+    // Occasional Outliers (5% chance)
+    if (Math.random() > 0.95) height += randomInt(-5, 5);
+
+    const player: Player = {
         id: generateUUID(),
         firstName: FIRST_NAMES[randomInt(0, FIRST_NAMES.length - 1)],
         lastName: LAST_NAMES[randomInt(0, LAST_NAMES.length - 1)],
         position,
         age,
         jerseyNumber: randomInt(0, 99),
-        height: 190 + randomInt(-10, 20),
-        weight: 90 + randomInt(-10, 20),
+        height,
+        weight,
         personality: PERSONALITIES[randomInt(0, PERSONALITIES.length - 1)],
         attributes: current,
         archetype: finalArchetype,
@@ -194,4 +224,9 @@ export function generatePlayer(forcedPosition?: Position, forcedTier?: 'star' | 
         loveForTheGame: randomInt(1, 20),
         overall
     };
+
+    // Calculate Secondary Position
+    player.secondaryPosition = calculateSecondaryPosition(player);
+
+    return player;
 }

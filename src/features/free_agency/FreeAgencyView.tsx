@@ -2,6 +2,7 @@ import React from 'react';
 import type { Player } from '../../models/Player';
 import type { Team } from '../../models/Team';
 import { calculateContractAmount } from '../../utils/contractUtils';
+import { calculateOverall } from '../../utils/playerUtils';
 
 import { useGame } from '../../store/GameContext';
 
@@ -16,7 +17,7 @@ interface FreeAgencyViewProps {
 export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ players, team, onSign, onFinish, onSelectPlayer }) => {
     const { salaryCap } = useGame();
     const [filterPos, setFilterPos] = React.useState<'All' | 'PG' | 'SG' | 'SF' | 'PF' | 'C'>('All');
-    const [sortBy, setSortBy] = React.useState<'OVR' | 'PRICE' | 'AGE'>('OVR');
+    const [sortBy, setSortBy] = React.useState<'OVR' | 'PRICE' | 'AGE' | 'PPG' | 'RPG' | 'APG'>('OVR');
     const [showAffordableOnly, setShowAffordableOnly] = React.useState(false);
 
     // Helper to estimate contract cost for display (Moved up for filter usage)
@@ -34,13 +35,28 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ players, team, o
 
     // Sort
     const sortedFreeAgents = [...filteredAgents].sort((a, b) => {
-        const ovrA = (a.attributes.finishing + a.attributes.threePointShot + a.attributes.perimeterDefense) / 3; // Simplified proxy OVR
-        const ovrB = (b.attributes.finishing + b.attributes.threePointShot + b.attributes.perimeterDefense) / 3;
+        const ovrA = calculateOverall(a);
+        const ovrB = calculateOverall(b);
         const priceA = calculateCost(a);
         const priceB = calculateCost(b);
 
         if (sortBy === 'PRICE') return priceB - priceA;
         if (sortBy === 'AGE') return a.age - b.age; // Youngest first
+
+        // Stat Sorting
+        const getStatVal = (p: Player, type: 'PPG' | 'RPG' | 'APG') => {
+            const s = p.seasonStats.gamesPlayed > 0 ? p.seasonStats : (p.careerStats.length > 0 ? p.careerStats[p.careerStats.length - 1] : null);
+            if (!s || s.gamesPlayed === 0) return 0;
+            if (type === 'PPG') return s.points / s.gamesPlayed;
+            if (type === 'RPG') return s.rebounds / s.gamesPlayed;
+            if (type === 'APG') return s.assists / s.gamesPlayed;
+            return 0;
+        };
+
+        if (sortBy === 'PPG') return getStatVal(b, 'PPG') - getStatVal(a, 'PPG');
+        if (sortBy === 'RPG') return getStatVal(b, 'RPG') - getStatVal(a, 'RPG');
+        if (sortBy === 'APG') return getStatVal(b, 'APG') - getStatVal(a, 'APG');
+
         return ovrB - ovrA; // Default OVR
     });
 
@@ -224,6 +240,9 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ players, team, o
                             <option value="OVR">Sort: Rating</option>
                             <option value="PRICE">Sort: Price</option>
                             <option value="AGE">Sort: Age</option>
+                            <option value="PPG">Sort: PPG</option>
+                            <option value="RPG">Sort: RPG</option>
+                            <option value="APG">Sort: APG</option>
                         </select>
                     </div>
 
@@ -291,7 +310,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ players, team, o
                                     <div style={{ textAlign: 'right' }}>
                                         <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>OVR</div>
                                         <div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>
-                                            {Math.floor((player.attributes.finishing + player.attributes.threePointShot + player.attributes.perimeterDefense) / 3)}
+                                            {calculateOverall(player)}
                                         </div>
                                     </div>
                                 </div>

@@ -6,7 +6,7 @@ import type { TeamStrategy } from './TacticsTypes';
 import { PACE_MULTIPLIERS, FOCUS_BONUSES } from './TacticsTypes';
 import type { ActionType } from './ActionTypes';
 import { CommentaryEngine } from './CommentaryEngine';
-import { calculateTendencies } from '../../utils/playerUtils';
+import { calculateTendencies, calculateOverall } from '../../utils/playerUtils';
 
 export type Territory = '3PT' | 'MID_RANGE' | 'FINISHING';
 
@@ -192,6 +192,16 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
                     possessionId: currentTime
                 });
                 // Bonus 15%
+                // Suggestion 3: 40% chance to continue passing instead of shooting
+                if (Math.random() < 0.4) {
+                    lastPasser = handler;
+                    handler = finalTarget;
+                    territory = getReceiverTerritory(handler);
+                    passes++;
+                    currentTime -= 1;
+                    continue;
+                }
+
                 const res = resolveShot(finalTarget, handler, ctx, events, currentTime - 1, 15);
                 if (res.endType === 'TURNOVER' && res.events.some(e => e.id?.includes('cap_defer'))) {
                     // Capped -> Recycle
@@ -233,6 +243,16 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
                     gameTime: currentTime,
                     possessionId: currentTime
                 });
+                // Suggestion 3: 40% chance to continue passing instead of shooting (Screen & Roll -> Kick out/Swing)
+                if (Math.random() < 0.4) {
+                    lastPasser = handler;
+                    handler = screener;
+                    territory = 'FINISHING';
+                    passes++;
+                    currentTime -= 1;
+                    continue;
+                }
+
                 const res = resolveShot(screener, handler, ctx, events, currentTime - 2, 10, true);
                 if (res.endType === 'TURNOVER' && res.events.some(e => e.id?.includes('cap_defer'))) {
                     handler = screener;
@@ -716,20 +736,25 @@ function checkUsageCap(handler: Player, ctx: PossessionContext): boolean {
 
     const fga = stats.fgAttempted;
     const qtr = ctx.quarter;
-    const scoreRating = getScorerRating(handler);
+    const ovr = calculateOverall(handler);
 
-    // HARD CAP (22) - Lowered from 25 to flatten PPG leaders towards 30-34
-    if (fga >= 22) {
+    // PROGRESSIVE HARD CAPS by OVR
+    let hardCap = 25; // Superstars
+    if (ovr < 75) hardCap = 15;      // Strict Role Player Cap
+    else if (ovr < 78) hardCap = 18; // Low Starter Cap
+    else if (ovr < 85) hardCap = 22; // High Starter Cap
+
+    if (fga >= hardCap) {
         if (stats.consecutiveFieldGoalsMade >= 7) return true; // Heater Rule
         return false; // Stop
     }
 
-    // PACING (Soft Caps) - Tightened to spread usage better
-    // Q1: ~6, Q2: ~11, Q3: ~16
-    let paceLimit = 100;
-    if (qtr === 1) paceLimit = 6;
-    else if (qtr === 2) paceLimit = 11;
-    else if (qtr === 3) paceLimit = 16;
+    // PROGRESSIVE PACING (Soft Caps)
+    // Q1: 25%, Q2: 50%, Q3: 75% of Hard Cap
+    let paceLimit = hardCap;
+    if (qtr === 1) paceLimit = Math.floor(hardCap * 0.25);
+    else if (qtr === 2) paceLimit = Math.floor(hardCap * 0.50);
+    else if (qtr === 3) paceLimit = Math.floor(hardCap * 0.75);
 
     if (qtr < 4 && fga >= paceLimit) {
         // Exception: Minor Heater (5+)
@@ -955,20 +980,20 @@ export function resolveShot(shooter: Player, assister: Player | undefined, ctx: 
     if (driveDunkChance) {
         // INSIDE: High Percentage
         const skillBonus = (shotRating - 70) * 0.5;
-        chance = 65 + skillBonus + bonusPercent;
+        chance = 58 + skillBonus + bonusPercent; // Was 65 (Suggestion 3 compensation)
         if (chance < 40) chance = 40;
         if (chance > 95) chance = 95;
     } else if (isThree) {
         // 3PT: Lower Percentage
         // Round 5 Cap: Max 50%.
         const skillBonus = (shotRating - 70) * 0.8; // Moderated slope
-        chance = 28 + skillBonus + bonusPercent; // Base 28%
+        chance = 25 + skillBonus + bonusPercent; // Was 28 (Suggestion 3 compensation)
         if (chance < 20) chance = 20;
         if (chance > 50) chance = 50; // Hard Cap at 50%
     } else {
         // MID-RANGE: Middle Percentage
         const skillBonus = (shotRating - 70) * 0.6;
-        chance = 40 + skillBonus + bonusPercent;
+        chance = 36 + skillBonus + bonusPercent; // Was 40 (Suggestion 3 compensation)
         if (chance < 30) chance = 30;
         if (chance > 70) chance = 70;
     }
@@ -982,8 +1007,25 @@ export function resolveShot(shooter: Player, assister: Player | undefined, ctx: 
         else if (assister.attributes.playmaking > 80) chance += 5;
     }
 
-    // GLOBAL NERF: 20% reduction to final percentage (User Request: "another 10% decrease")
-    chance *= 0.8;
+    // GLOBAL NERF: 10% reduction to final percentage (Suggestion 3 - Was 20% to reduce miss volume)
+    chance *= 0.9;
+
+    // SAGGING OFF (Defense vs Non-Shooters)
+    // If player can't shoot 3s, the defense camps the paint.
+    if ((driveDunkChance || !isThree) && attr.threePointShot < 60) {
+        const sagPenalty = (60 - attr.threePointShot) / 2; // Up to -15% penalty
+        chance -= sagPenalty;
+        if (Math.random() < 0.1) { // Visual feedback via event text
+            events.push({
+                id: `evt_${Date.now()}_sag_penalty`,
+                type: 'action',
+                text: `Defense sags off ${shooter.lastName}, forcing a tough interior look.`,
+                teamId: ctx.defenseTeam.id,
+                gameTime: time,
+                possessionId: time
+            });
+        }
+    }
 
     // CAP CHANCE
     if (chance > 95) chance = 95;
@@ -1108,6 +1150,32 @@ function resolveFreeThrows(shooter: Player, count: number, ctx: PossessionContex
 }
 
 export function resolveRebound(ctx: PossessionContext, events: GameEvent[], time: number): PossessionResult {
+    // SUGGESTION 1: Team Rebound / Dead Ball (25% chance)
+    // "awards no individual stat, awards to team - prevents inflation"
+    if (Math.random() < 0.25) {
+        const isDef = Math.random() < 0.8; // 80% go to defense usually on loose balls
+        const team = isDef ? ctx.defenseTeam : ctx.offenseTeam;
+
+        events.push({
+            id: `evt_${Date.now()}_team_reb`,
+            type: 'rebound',
+            subType: isDef ? 'defensive' : 'offensive',
+            text: `Loose ball gathered by ${team.abbreviation} (Team Rebound).`,
+            teamId: team.id,
+            playerId: '', // Empty ID = Team Stat
+            gameTime: time,
+            possessionId: time
+        });
+
+        return {
+            events,
+            points: 0,
+            endType: 'MISS',
+            duration: ctx.timeRemaining - time,
+            keepPossession: !isDef
+        };
+    }
+
     // NEW LOGIC: Simultaneous Dice Roll
     // Everyone rolls. 
     // Def Needs: 100 - DefReb

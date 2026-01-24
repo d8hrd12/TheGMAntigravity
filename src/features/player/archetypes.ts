@@ -1,5 +1,5 @@
 
-import type { PlayerAttributes, Position } from '../../models/Player';
+import type { Position, PlayerAttributes } from '../../models/Player';
 import type { Player } from '../../models/Player';
 
 // Extract the Tendencies type from Player for re-use

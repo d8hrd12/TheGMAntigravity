@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, type ReactNode } from 'react';
 import type { Player, PlayerAttributes, CareerStat } from '../models/Player';
 import type { AwardWinner, SeasonAwards } from '../models/Awards';
-import type { Team } from '../models/Team';
+import type { Team, RotationSegment } from '../models/Team';
 import type { Contract } from '../models/Contract';
 import type { DraftPick } from '../models/DraftPick';
 import type { NewsStory } from '../models/NewsStory';
@@ -12,23 +12,27 @@ import type { SocialMediaPost } from '../models/SocialMediaPost';
 import { LiveGameEngine } from '../features/simulation/LiveGameEngine';
 import { simulateMatchII as simulateMatch } from '../features/simulation/MatchEngineII';
 import { generateDailyPosts } from '../socialMediaUtils';
-import type { MatchResult, TeamRotationData, PlayerStats } from '../features/simulation/SimulationTypes';
+import type { MatchResult, TeamRotationData, PlayerStats, MerchCampaign, ActiveMerchCampaign } from '../features/simulation/SimulationTypes';
+
+import type { TeamStrategy } from '../features/simulation/TacticsTypes';
 // import { runProgression } from '../features/simulation/progressionSystem'; // Removed
 import { generateUUID } from '../utils/uuid';
-import { generateContract, calculateContractAmount, calculateTeamCapSpace } from '../utils/contractUtils';
+import { generateContract, calculateContractAmount, calculateTeamCapSpace, calculateAdjustedDemand } from '../utils/contractUtils';
 import { simulateDailyTrades, generateAiTradeProposalForUser, type TradeProposal } from '../features/trade/TradeSimulation';
 import { updatePlayerMorale, applyTeamDynamics, checkTradeRequests, checkProveItDemands } from '../features/simulation/MoraleSystem';
 // TradeProposalModal import removed (unused and caused potential cycle)
 import { optimizeRotation } from '../utils/rotationUtils';
 import { formatDate } from '../utils/dateUtils';
 
-import { calculateOverall, checkHallOfFameEligibility, calculateFairSalary } from '../utils/playerUtils';
+import { calculateOverall, checkHallOfFameEligibility, calculateFairSalary, calculateSecondaryPosition } from '../utils/playerUtils';
 import { NBA_TEAMS } from '../data/teams';
 import { REAL_ROSTERS } from '../data/realRosters';
 import {
     calculateExpectation,
     evaluateSeasonPerformance,
     calculateAnnualFinancials,
+    calculateLeagueFinancials,
+    processMerchCampaigns,
     type SeasonResult,
     type ExpectationLevel
 } from '../features/finance/FinancialEngine';
@@ -110,7 +114,9 @@ interface GameState {
         hasSeenNewsTutorial: boolean;
     };
     isProcessing: boolean;
+
     socialMediaPosts: SocialMediaPost[];
+    activeMerchCampaigns: ActiveMerchCampaign[];
 }
 
 export interface CompletedTrade {
@@ -120,6 +126,17 @@ export interface CompletedTrade {
     team2Id: string;
     team1Assets: string[]; // Descriptions e.g. "LeBron James", "2025 1st Round (LAL)"
     team2Assets: string[];
+}
+
+export interface RotationViewData {
+    startingLineup: string[];
+    bench: string[];
+    rotationPlan: {
+        playerId: string;
+        minutes: number;
+        isStarter: boolean;
+        rotationIndex: number;
+    }[];
 }
 
 interface GameContextType extends GameState {
@@ -153,13 +170,14 @@ interface GameContextType extends GameState {
     saveGame: (slotId: number, silent?: boolean) => Promise<void>;
     loadGame: (slotId: number) => Promise<boolean>;
 
-    updateCoachSettings: (teamId: string, settings: any) => void;
-    updateRotationSchedule: (teamId: string, schedule: any[]) => void;
+    updateCoachSettings: (teamId: string, settings: TeamStrategy) => void;
+    updateRotationSchedule: (teamId: string, schedule: RotationSegment[]) => void;
     acceptTradeOffer: () => void;
     rejectTradeOffer: () => void;
     liveGameData: { home: Team, away: Team, date: Date } | null;
     startLiveGameFn: (gameId: string) => void;
     endLiveGameFn: (result: MatchResult) => void;
+    startMerchCampaign: (campaign: MerchCampaign) => void;
 
     deleteSave: (slotId: number) => void;
     isProcessing: boolean;
@@ -224,7 +242,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         gmProfile: INITIAL_GM_PROFILE,
         tutorialFlags: { hasSeenNewsTutorial: false },
         isProcessing: false,
-        socialMediaPosts: []
+        socialMediaPosts: [],
+        activeMerchCampaigns: []
     });
 
     // Ref to hold the latest state, avoiding stale closures in async functions or event handlers
@@ -425,7 +444,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             abbreviation: name.substring(0, 3).toUpperCase(),
             conference: conference,
             logo: logo,
-            cash: 350000000,
+            cash: 50000000,
             salaryCapSpace: 140000000,
             debt: 0,
             fanInterest: 1.0,
@@ -446,7 +465,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
         // 4. Generate Draft Class
         // Increased to 70 to accommodate 31 teams * 2 rounds = 62 picks + buffer
-        const draftClass = Array.from({ length: 70 }, () => generatePlayer(undefined, 'prospect'));
+        const draftClass = Array.from({ length: 120 }, () => generatePlayer(undefined, 'prospect'));
 
         // 5. Randomize Draft Order for ALL teams (including new one)
         const shuffledTeamIds = initialTeams.map(t => t.id).sort(() => Math.random() - 0.5);
@@ -537,6 +556,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             tradeOffer: null,
             awardsHistory: [],
             retiredPlayersHistory: [],
+            activeMerchCampaigns: [],
             settings: { difficulty: 'Medium', showLoveForTheGame: true },
             currentSaveSlot: 1,
             expansionPool: expansionPool,
@@ -608,7 +628,26 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 const teamContracts = contracts.filter(c => c.teamId === t.id);
                 const totalSalary = teamContracts.reduce((sum, c) => sum + c.amount, 0);
                 t.salaryCapSpace = INITIAL_SALARY_CAP - totalSalary;
-                t.cash = 350000000 - totalSalary;
+                t.salaryCapSpace = INITIAL_SALARY_CAP - totalSalary;
+                t.salaryCapSpace = INITIAL_SALARY_CAP - totalSalary;
+                // HARD MODE RESPEC: Use the cash value from teams.ts if available, otherwise default to 100M?
+                // actually teams.ts values are already loaded into `t` (t comes from NBA_TEAMS)
+                // BUT we may want to ensure they aren't deducted twice if we restart?
+                // No, t.cash is just the raw value from teams.ts.
+
+                // If the user wants "Start with 80M" which INCLUDES salary payments?
+                // "Start with 80M" usually means "You have 80M cash".
+                // If we subtract salary (e.g. 150M), they go negative immediately.
+                // The previous logic was "350M - Salary".
+                // If Hard Mode says "Knicks Start with 80M", does it mean 80M - Salary? (Negative?)
+                // Or 80M liquid cash?
+                // User text: "Knicks... Start with $80M" ... "Start: $350M • Salaries Paid Upfront"
+                // It seems the user wants the "Start" amount to be lower.
+                // If we set t.cash = 80M, and then DON'T deduct salary, they have 80M liquid.
+                // If we set t.cash = 80M and deduct salary (150M), they are bankrupt.
+                // So we should NOT deduct salary if we trust the teams.ts values are the "Liquid Starting Cash".
+                // Let's assume teams.ts values = Initial Cash Reserve.
+                // We keep the logic "t.cash = t.cash" (do nothing to it).
 
                 if (t.id === userTeamId) {
                     if (difficulty === 'Easy') t.cash += 20000000;
@@ -680,6 +719,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 isInitialized: true,
                 isPotentialRevealed: false,
                 awardsHistory: [],
+                activeMerchCampaigns: [],
                 draftClass: [],
                 draftOrder: [], // Will be set on init
                 seasonPhase: 'regular_season',
@@ -917,14 +957,26 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 });
 
 
+                // Pre-calculate existing picks to prevent duplication of traded picks
+                const globalPickRegistry = new Set<string>();
+                teamsForUpdate.forEach(team => {
+                    (team.draftPicks || []).forEach(p => {
+                        if (p.year === targetYear) {
+                            globalPickRegistry.add(`${p.originalTeamId}-${p.year}-${p.round}`);
+                        }
+                    });
+                });
+
                 // Use map to create the FINAL teams array
                 const finalTeams = teamsForUpdate.map(t => {
                     let currentPicks = t.draftPicks ? [...t.draftPicks] : [];
 
-                    // Ensure picks for target year exist
-                    const picksForTargetYear = generatePicksForYear([t], targetYear);
-                    const alreadyHas = currentPicks.some(p => p.year === targetYear && p.round === 1 && p.originalTeamId === t.id); // Check for round 1 pick
-                    if (!alreadyHas) {
+                    // Ensure picks for target year exist (Check Global Registry)
+                    const pickKeyR1 = `${t.id}-${targetYear}-1`;
+
+                    // Only generate if the Round 1 pick for this team/year does NOT exist anywhere in the league
+                    if (!globalPickRegistry.has(pickKeyR1)) {
+                        const picksForTargetYear = generatePicksForYear([t], targetYear);
                         currentPicks = [...currentPicks, ...picksForTargetYear];
                     }
 
@@ -1269,7 +1321,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
             // 0. Handle Contract Expiry (Before Draft)
             const updatedContracts: Contract[] = [];
-            const updatedPlayers = [...prev.players];
+            const updatedPlayers = prev.players.map(p => ({ ...p, age: p.age + 1 }));
             const updatedTeams = [...prev.teams]; // Updates will happen to rosterIds
 
             // Simplified Contract Expiry
@@ -1440,104 +1492,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         });
     };
 
-    const spendScoutingPoints = (prospectId: string, pointsToSpend: number) => {
-        setGameState(prev => {
-            const teamId = prev.userTeamId || prev.teams[0].id;
-            const remaining = prev.scoutingPoints[teamId] || 0;
 
-            // Allow spending even if it exceeds "remaining" if we want to allow partial spends? 
-            // No, UI should prevent. But strictly:
-            if (remaining < pointsToSpend) return prev;
-
-            const updatedPoints = { ...prev.scoutingPoints, [teamId]: remaining - pointsToSpend };
-            const teamReports = { ...(prev.scoutingReports[teamId] || {}) };
-
-            const currentReport = teamReports[prospectId] || { points: 0, isPotentialRevealed: false };
-            let newPoints = currentReport.points + pointsToSpend;
-            let isRevealed = currentReport.isPotentialRevealed;
-
-            // Logic: 
-            // 1. 10 Points = 100% Revealed
-            // 2. < 10 Points: Each point spent gives 5% chance to reveal.
-            // Requirement: "5% chance to see it every time they use a point"
-            // We interpret this as: Perform 'pointsToSpend' number of 5% checks.
-
-            if (newPoints >= 10) {
-                isRevealed = true;
-            } else if (!isRevealed) {
-                for (let i = 0; i < pointsToSpend; i++) {
-                    if (Math.random() < 0.05) {
-                        isRevealed = true;
-                        break;
-                    }
-                }
-            }
-
-            teamReports[prospectId] = { points: newPoints, isPotentialRevealed: isRevealed };
-
-            return {
-                ...prev,
-                scoutingPoints: updatedPoints,
-                scoutingReports: { ...prev.scoutingReports, [teamId]: teamReports }
-            };
-        });
-    };
-
-    const endScoutingPhase = () => {
-        setGameState(prev => {
-            // STRICT GUARD: Only allow ending scouting if IN scouting
-            if (prev.seasonPhase !== 'scouting') {
-                console.warn("Blocking endScoutingPhase because phase is:", prev.seasonPhase);
-                return prev;
-            }
-
-            // AI Scouting logic (Simplified: AI spends randomly on top prospects)
-            const updatedReports = { ...prev.scoutingReports };
-            const updatedPoints = { ...prev.scoutingPoints };
-
-            prev.teams.forEach(team => {
-                if (team.id === prev.userTeamId) return; // User already acted
-
-                let points = updatedPoints[team.id] || 0;
-                const reports = { ...(updatedReports[team.id] || {}) };
-
-                // AI Logic: spend on top 10 draft prospects randomly
-                const topProspects = [...prev.draftClass]
-                    .sort((a, b) => (b.potential || 0) - (a.potential || 0))
-                    .slice(0, 15);
-
-                while (points > 0) {
-                    const target = topProspects[Math.floor(Math.random() * topProspects.length)];
-                    const spend = Math.min(points, Math.floor(Math.random() * 5) + 3); // Spend 3-7 pts
-
-                    const current = reports[target.id] || { points: 0, isPotentialRevealed: false };
-                    let isRevealed = current.isPotentialRevealed;
-                    let newPoints = current.points + spend;
-
-                    if (newPoints >= 10) {
-                        isRevealed = true;
-                    } else if (!isRevealed) {
-                        for (let i = 0; i < spend; i++) {
-                            if (Math.random() < 0.05) isRevealed = true;
-                        }
-                    }
-
-                    reports[target.id] = { points: newPoints, isPotentialRevealed: isRevealed };
-                    points -= spend;
-                }
-
-                updatedReports[team.id] = reports;
-                updatedPoints[team.id] = 0;
-            });
-
-            return {
-                ...prev,
-                scoutingReports: updatedReports,
-                scoutingPoints: updatedPoints,
-                seasonPhase: 'draft'
-            };
-        });
-    };
     // Helper for AI Draft Logic
     const getPlayerTradeValue = (p: Player) => {
         // Simple heuristic: Overall + Potential + Age Factor
@@ -2193,8 +2148,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         });
     };
 
-    // @ts-ignore
-    const buildRotation = (roster: Player[]): any => {
+    const buildRotation = (roster: Player[]): RotationViewData => {
         const sorted = [...roster].sort((a, b) => (a.rotationIndex ?? 999) - (b.rotationIndex ?? 999));
         const starters = sorted.filter(p => p.isStarter).slice(0, 5);
         const activeStarters = starters.length === 5 ? starters : sorted.slice(0, 5);
@@ -2496,44 +2450,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             const isBeforeDeadline = nextDate.getMonth() < TRADE_DEADLINE_MONTH ||
                 (nextDate.getMonth() === TRADE_DEADLINE_MONTH && nextDate.getDate() < TRADE_DEADLINE_DAY);
 
-            if (results.length > 0 && isBeforeDeadline) {
-                try {
-                    const trade = simulateDailyTrades(
-                        prev.teams,
-                        healedPlayers,
-                        prev.contracts,
-                        prev.date.getFullYear(),
-                        140000000,
-                        prev.tradeHistory,
-                        prev.date,
-                        new Date(prev.date.getFullYear(), 9, 22), // Season Start Approx
-                        prev.userTeamId
-                    );
-
-                    // IF Trade happens, we must apply it to 'prev' state effectively or queue it?
-                    // Since we are inside a functional update, we can't easily mutate the state being built unless we handle it.
-                    // IMPORTANT: simulateDailyTrades only RETURNS a proposal. It doesn't execute.
-                    // The original code probably had execution logic. I need to RE-IMPLEMENT basic execution if I lost it.
-                    // Or finding where it went.
-
-                    if (trade) {
-                        // For simplicity in this fix, we just log it or apply it to a 'pendingTrades' queue if we had one.
-                        // But wait, the user said it crashed. It implies it WAS running.
-                        // Since I replaced the wrong block, maybe the ORIGINAL block was somewhere else and I missed it?
-                        // No, the original grep showed empty results in this file except imports.
-                        // Wait, maybe I DELETED it in previous turns accidentally?
-                        // I will add a TO-DO log. But strictly speaking, if 'simulateDailyTrades' was the crash, wrapping it here prevents it.
-                        // If I *re-add* it now, I am restoring functionality.
-
-                        // Execute Trade (Simplified for stability)
-                        // console.log("AI Trade Proposed:", trade); 
-                        // Note: To truly execute, we need to update 'updatedPlayers' and 'updatedTeams'.
-                        // For now, let's just ensure it doesn't crash.
-                    }
-                } catch (e) {
-                    console.error("GameContext: Error in simulateDailyTrades", e);
-                }
-            }
+            // (Old trade simulation block removed - Moved to end of day processing)
 
             // Update Teams (Wins/Losses AND Financials)
             const updatedTeams = prev.teams.map(t => {
@@ -2676,13 +2593,174 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 return checkedPlayer;
             });
 
+            // 5. DAILY AI TRADES (Post-Game Execution)
+            let postTradeTeams = [...updatedTeams];
+            let postTradePlayers = [...finalUpdatedPlayers];
+            let postTradeContracts = [...prev.contracts];
+            let newTradeHistory = [...(prev.tradeHistory || [])];
+            let newTradeNews: NewsStory[] = [];
+
+            // Reuse existing deadline variables from earlier in the scope
+            if (results.length > 0 && isBeforeDeadline) {
+                try {
+                    const trade = simulateDailyTrades(
+                        updatedTeams,
+                        finalUpdatedPlayers,
+                        prev.contracts,
+                        prev.date.getFullYear(),
+                        140000000,
+                        prev.tradeHistory,
+                        prev.date,
+                        new Date(prev.date.getFullYear(), 9, 22),
+                        prev.userTeamId
+                    );
+
+                    if (trade) {
+                        const { proposerId, targetTeamId, proposerAssets, targetAssets } = trade;
+                        const proposer = postTradeTeams.find(t => t.id === proposerId);
+                        const target = postTradeTeams.find(t => t.id === targetTeamId);
+
+                        if (proposer && target) {
+
+
+                            // A. Move Players (Mutation on Clone Strategy)
+                            // We use direct assignment to ensure the change persists in the array we return
+                            const pIdsOut = proposerAssets.players.map(p => p.id);
+                            pIdsOut.forEach(id => {
+                                const idx = postTradePlayers.findIndex(p => p.id === id);
+                                if (idx !== -1) {
+                                    postTradePlayers[idx] = {
+                                        ...postTradePlayers[idx],
+                                        teamId: targetTeamId,
+                                        acquisition: { type: 'trade', year: nextDate.getFullYear(), previousTeamId: proposerId }
+                                    };
+                                }
+                            });
+
+                            const pIdsIn = targetAssets.players.map(p => p.id);
+                            pIdsIn.forEach(id => {
+                                const idx = postTradePlayers.findIndex(p => p.id === id);
+                                if (idx !== -1) {
+                                    postTradePlayers[idx] = {
+                                        ...postTradePlayers[idx],
+                                        teamId: proposerId,
+                                        acquisition: { type: 'trade', year: nextDate.getFullYear(), previousTeamId: targetTeamId }
+                                    };
+                                }
+                            });
+
+                            // B. Update Contracts
+                            postTradeContracts = postTradeContracts.map(c => {
+                                if (pIdsOut.includes(c.playerId)) return { ...c, teamId: targetTeamId };
+                                if (pIdsIn.includes(c.playerId)) return { ...c, teamId: proposerId };
+                                return c;
+                            });
+
+                            // C. Move Picks
+                            postTradeTeams = postTradeTeams.map(t => {
+                                if (t.id === proposerId) {
+                                    const outPickIds = proposerAssets.picks.map(pick => pick.id);
+                                    let newPicks = (t.draftPicks || []).filter(p => !outPickIds.includes(p.id));
+                                    newPicks.push(...targetAssets.picks);
+                                    return { ...t, draftPicks: newPicks };
+                                }
+                                if (t.id === targetTeamId) {
+                                    const outPickIds = targetAssets.picks.map(pick => pick.id);
+                                    let newPicks = (t.draftPicks || []).filter(p => !outPickIds.includes(p.id));
+                                    newPicks.push(...proposerAssets.picks);
+                                    return { ...t, draftPicks: newPicks };
+                                }
+                                return t;
+                            });
+
+                            // D. Update Team Roster IDs
+                            postTradeTeams = postTradeTeams.map(t => {
+                                if (t.id === proposerId || t.id === targetTeamId) {
+                                    return {
+                                        ...t,
+                                        rosterIds: postTradePlayers.filter(p => p.teamId === t.id).map(p => p.id)
+                                    };
+                                }
+                                return t;
+                            });
+
+                            // E. Log Trade
+                            const completedTrade: CompletedTrade = {
+                                id: generateUUID(),
+                                date: nextDate,
+                                team1Id: proposerId,
+                                team2Id: targetTeamId,
+                                team1Assets: [
+                                    ...proposerAssets.players.map(p => `${p.firstName} ${p.lastName}`),
+                                    ...proposerAssets.picks.map(p => `${p.year} Round ${p.round} (${p.originalTeamName || 'Unknown'})`)
+                                ],
+                                team2Assets: [
+                                    ...targetAssets.players.map(p => `${p.firstName} ${p.lastName}`),
+                                    ...targetAssets.picks.map(p => `${p.year} Round ${p.round} (${p.originalTeamName || 'Unknown'})`)
+                                ]
+                            };
+
+                            console.log("GameContext: Executing Trade", {
+                                proposer: proposer.name,
+                                target: target.name,
+                                assetsOut: completedTrade.team1Assets,
+                                assetsIn: completedTrade.team2Assets
+                            });
+
+                            // Verify Player Moves
+                            let tradeVerified = true;
+                            // Check Outgoing
+                            proposerAssets.players.forEach(p => {
+                                const movedP = postTradePlayers.find(pt => pt.id === p.id);
+                                if (!movedP || movedP.teamId !== targetTeamId) {
+                                    console.error("CRITICAL: Player transfer failed", movedP);
+                                    tradeVerified = false;
+                                }
+                            });
+                            // Check Incoming
+                            targetAssets.players.forEach(p => {
+                                const movedP = postTradePlayers.find(pt => pt.id === p.id);
+                                if (!movedP || movedP.teamId !== proposerId) {
+                                    console.error("CRITICAL: Player transfer failed", movedP);
+                                    tradeVerified = false;
+                                }
+                            });
+
+                            if (tradeVerified) {
+                                newTradeHistory = [...newTradeHistory, completedTrade];
+
+                                // F. News
+                                newTradeNews.push({
+                                    id: generateUUID(),
+                                    date: nextDate,
+                                    headline: `TRADE: ${proposer.name} and ${target.name} Swap Assets`,
+                                    content: `The ${proposer.city} ${proposer.name} send ${completedTrade.team1Assets.join(', ')} to ${target.city} for ${completedTrade.team2Assets.join(', ')}.`,
+                                    type: 'TRADE',
+                                    priority: 5,
+                                    relatedTeamId: proposerId
+                                });
+                            } else {
+                                console.error("Trade Execution Failed Validation - REVERTING STATE");
+                                postTradePlayers = [...finalUpdatedPlayers];
+                                postTradeTeams = [...updatedTeams];
+                                postTradeContracts = prev.contracts;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("GameContext: Error in simulateDailyTrades execution", e);
+                }
+            }
+
             return {
                 ...prev,
-                teams: updatedTeams,
-                players: finalUpdatedPlayers,
+                teams: postTradeTeams,
+                players: postTradePlayers,
+                contracts: postTradeContracts,
+                tradeHistory: newTradeHistory,
                 games: [...prev.games, ...results],
                 date: nextDate,
-                news: [...generatedNews, ...prev.news].slice(0, 100),
+                news: [...newTradeNews, ...generatedNews, ...prev.news].slice(0, 100),
                 dailyMatchups: nextDayMatchups,
                 pendingUserResult: null,
                 socialMediaPosts: updatedSocialPosts
@@ -2883,23 +2961,31 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
                     // --- NEW FINANCIAL SYSTEM ---
                     // 1. Calculate Financial Reports for ALL teams first
-                    const teamReports = mapTeamsForSimulation(prev.teams).map(t => {
+                    const teamReportsMap: Record<string, any> = {};
+
+                    mapTeamsForSimulation(prev.teams).forEach(t => {
                         const teamContracts = prev.contracts.filter(c => c.teamId === t.id);
-                        return {
-                            team: t,
-                            report: calculateAnnualFinancials(t, teamContracts, prev.salaryCap, LUXURY_TAX_THRESHOLD)
-                        };
+                        teamReportsMap[t.id] = calculateAnnualFinancials(
+                            t,
+                            teamContracts,
+                            prev.salaryCap,
+                            LUXURY_TAX_THRESHOLD,
+                            t.consecutiveTaxYears || 0
+                        );
                     });
 
-                    // 2. Calculate Luxury Tax Pool
-                    const totalLuxuryTax = teamReports.reduce((sum, r) => sum + r.report.luxuryTaxPaid, 0);
-                    const nonTaxPayersCount = teamReports.filter(r => !r.report.isTaxPayer).length;
-                    const distributionPerTeam = nonTaxPayersCount > 0 ? totalLuxuryTax / nonTaxPayersCount : 0;
+                    // 2. League-Wide Calculations (Dynamic Cap + Revenue Sharing)
+                    const leagueFinancials = calculateLeagueFinancials(prev.teams, prev.salaryCap, teamReportsMap);
 
-                    console.log(`[Financials] Tax Pool: $${(totalLuxuryTax / 1e6).toFixed(1)}M across ${nonTaxPayersCount} teams. each gets $${(distributionPerTeam / 1e6).toFixed(1)}M`);
+                    const finalSalaryCap = leagueFinancials.newSalaryCap;
+                    const distributionPerTeam = leagueFinancials.payoutPerTeam; // Revenue Sharing
 
-                    // 3. Update Teams
-                    const updatedTeams = teamReports.map(({ team: t, report }) => {
+                    console.log(`[Financials] Dynamic Cap: $${(prev.salaryCap / 1e6).toFixed(1)}M -> $${(finalSalaryCap / 1e6).toFixed(1)}M`);
+                    console.log(`[Financials] Revenue Sharing: $${(distributionPerTeam / 1e6).toFixed(1)}M distributed to ${leagueFinancials.eligibleTeamsCount} teams.`);
+
+                    // 3. Update Teams (Apply reports + Sharing)
+                    const updatedTeams = mapTeamsForSimulation(prev.teams).map(t => {
+                        const report = teamReportsMap[t.id];
                         // 1. Determine Season Result (Legacy Logic kept for Fan Interest)
                         let result: SeasonResult = 'MISSED_PLAYOFFS';
                         const teamInPlayoffs = activePlayoffs.some(s => s.homeTeamId === t.id || s.awayTeamId === t.id);
@@ -2940,16 +3026,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         // Deduct Tax if applicable
                         if (report.isTaxPayer) {
                             cashChange -= report.luxuryTaxPaid;
-                        } else {
-                            // Add Redistribution
+                        } else if (report.payroll <= prev.salaryCap) {
+                            // Add Redistribution only if under Cap
                             cashChange += distributionPerTeam;
                             redistributionReceived = distributionPerTeam;
                         }
 
                         const newCash = t.cash + cashChange;
 
+                        // Update Repeater Tax Status for next year
+                        const nextConsecutiveTaxYears = report.isTaxPayer ? (t.consecutiveTaxYears || 0) + 1 : 0;
+                        if (report.isTaxPayer && nextConsecutiveTaxYears > 1) {
+                            console.log(`[Financials] ${t.city} Hit with Repeater Tax! Consecutive Years: ${nextConsecutiveTaxYears}`);
+                        }
+
                         return {
                             ...t,
+                            consecutiveTaxYears: nextConsecutiveTaxYears,
                             cash: newCash,
                             // Update Fans/Owner based on success, not just financials
                             fanInterest: performanceUpdate.newFanInterest,
@@ -2959,7 +3052,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             // Ideally we might zero out cash if negative, but 'cash' field can be negative to represent debt or use separate field.
                             // Let's stick to: Cash can be negative, Debt display handles formatting.
 
-                            salaryCapSpace: calculateTeamCapSpace(t, prev.contracts, newSalaryCap),
+                            salaryCapSpace: calculateTeamCapSpace(t, prev.contracts, finalSalaryCap),
                             financials: {
                                 totalIncome: 0,
                                 totalExpenses: 0,
@@ -2985,7 +3078,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         games: [...prev.games, ...newGames], // Correctly append games instead of overwriting
                         playoffs: updatedPlayoffs,
                         seasonPhase: 'offseason',
-                        salaryCap: newSalaryCap,
+                        salaryCap: finalSalaryCap,
                         teams: updatedTeams,
                         awardsHistory: updatedAwardsHistory,
                         dailyMatchups: [],
@@ -3007,12 +3100,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         ['West', 'East'].forEach(conf => {
                             nextRoundSeries.push({
                                 id: `${conf}_2_1`, round: 2, conference: conf as any,
-                                homeTeamId: getWinner(`${conf}_1_1`), awayTeamId: getWinner(`${conf}_1_2`),
+                                homeTeamId: getWinner(`${conf}_1_1`), awayTeamId: getWinner(`${conf}_1_4`), // 1v8 vs 4v5
                                 homeWins: 0, awayWins: 0
                             });
                             nextRoundSeries.push({
                                 id: `${conf}_2_2`, round: 2, conference: conf as any,
-                                homeTeamId: getWinner(`${conf}_1_3`), awayTeamId: getWinner(`${conf}_1_4`),
+                                homeTeamId: getWinner(`${conf}_1_2`), awayTeamId: getWinner(`${conf}_1_3`), // 2v7 vs 3v6
                                 homeWins: 0, awayWins: 0
                             });
                         });
@@ -3115,8 +3208,78 @@ export function GameProvider({ children }: { children: ReactNode }) {
         });
     };
 
+    const startMerchCampaign = (campaign: MerchCampaign) => {
+        const userTeam = gameState.teams.find(t => t.id === gameState.userTeamId);
+        if (!userTeam) return;
+
+        if (userTeam.cash < campaign.cost) {
+            alert("Insufficient funds for this campaign.");
+            return;
+        }
+
+        const newActiveCampaign: ActiveMerchCampaign = {
+            ...campaign,
+            id: `${campaign.id}_${Date.now()}`, // Unique ID for this instance
+            gamesRemaining: campaign.durationInGames,
+            revenueGenerated: 0,
+            startDate: gameState.date.toLocaleDateString()
+        };
+
+        setGameState(prev => ({
+            ...prev,
+            teams: prev.teams.map(t =>
+                t.id === userTeam.id
+                    ? { ...t, cash: t.cash - campaign.cost }
+                    : t
+            ),
+            activeMerchCampaigns: [...(prev.activeMerchCampaigns || []), newActiveCampaign]
+        }));
+    };
+
     const advanceDay = () => {
-        setGameState(prev => ({ ...prev, isProcessing: true }));
+        setGameState(prev => {
+            // Process Merch Campaigns immediately before sim
+            let merchRevenue = 0;
+            let updatedCampaigns = prev.activeMerchCampaigns || [];
+            const messages: Message[] = [];
+
+            const userTeam = prev.teams.find(t => t.id === prev.userTeamId);
+            if (userTeam) {
+                const merchResult = processMerchCampaigns(userTeam, updatedCampaigns);
+                merchRevenue = merchResult.dailyRevenue;
+                updatedCampaigns = merchResult.updatedCampaigns;
+
+                merchResult.messages.forEach(msg => {
+                    messages.push({
+                        id: generateUUID(),
+                        date: prev.date,
+                        title: 'Merch Campaign Update',
+                        text: msg,
+                        type: 'success',
+                        read: false
+                    });
+                });
+            }
+
+            // Update user team cash with revenue immediately (simplification)
+            let updatedTeams = prev.teams;
+            if (merchRevenue > 0) {
+                updatedTeams = prev.teams.map(t =>
+                    t.id === prev.userTeamId
+                        ? { ...t, cash: t.cash + merchRevenue }
+                        : t
+                );
+            }
+
+            return {
+                ...prev,
+                teams: updatedTeams,
+                activeMerchCampaigns: updatedCampaigns,
+                messages: [...messages, ...prev.messages],
+                isProcessing: true
+            };
+        });
+
         setTimeout(() => {
             setGameState(prev => {
                 const newState = simulateDay(prev);
@@ -3346,12 +3509,29 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setTargetRound(null);
     };
 
+    // Ref-based toggle for immediate interruption
+    const simTargetRef = useRef<'none' | 'deadline' | 'playoffs' | 'round'>(simTarget);
+    useEffect(() => {
+        simTargetRef.current = simTarget;
+    }, [simTarget]);
+
+
     // ASYNC SIMULATION LOOP
     React.useEffect(() => {
-        if (simTarget === 'none') return;
+        if (simTarget === 'none') {
+            return;
+        }
 
-        const timer = setTimeout(() => {
+        const runSimStep = () => {
+            // IMMEDIATE STOP CHECK VIA REF (Bypasses closure staleness)
+            if (simTargetRef.current === 'none') {
+                return;
+            }
+
             setGameState(prev => {
+                // Double check target in state just in case
+                if (simTargetRef.current === 'none') return prev;
+
                 // STOP CONDITIONS
                 if (simTarget === 'deadline') {
                     const userTeam = prev.teams.find(t => t.id === prev.userTeamId) || prev.teams[0];
@@ -3371,12 +3551,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         setSimTarget('none');
                         return prev;
                     }
-                    // Debug
-                    // console.log("Sim Loop: Target", simTarget, "Phase", prev.seasonPhase);
-
-                } /* else if (simTarget === 'round') {
-                   // DEAD CODE - Removed in Favor of Synchronous simulateRound()
-                } */ // End of simTarget === 'round'
+                }
 
                 // FAILSAFE: If not in a playable phase, stop sim
                 if (prev.seasonPhase === 'offseason' || prev.seasonPhase === 'pre_season' || prev.seasonPhase === 'draft' || prev.seasonPhase === 'resigning' || prev.seasonPhase === 'free_agency') {
@@ -3386,7 +3561,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
                 return simulateDay(prev);
             });
-        }, 150); // Speed of sim
+
+            // Schedule next step only if we haven't stopped
+            if ((simTargetRef.current as string) !== 'none') {
+                timer = setTimeout(runSimStep, 50); // Reduced delay for faster UI, but still async
+            }
+        };
+
+        let timer = setTimeout(runSimStep, 50);
 
         return () => clearTimeout(timer);
     }, [simTarget, gameState.date, gameState.seasonPhase]);
@@ -3421,22 +3603,30 @@ export function GameProvider({ children }: { children: ReactNode }) {
             });
 
             // 2. Process Unselected Players (Return to Original Team via Contract)
+            // CRITICAL FIX: Ensure they go back to original teams
             const poolIds = prev.expansionPool.map(p => p.id);
             const unselectedIds = poolIds.filter(id => !selectedPlayerIds.includes(id));
+
+            console.log(`[Expansion] Returning ${unselectedIds.length} players to original teams...`);
 
             unselectedIds.forEach(id => {
                 const pIndex = updatedPlayers.findIndex(p => p.id === id);
                 if (pIndex !== -1) {
                     const contract = prev.contracts.find(c => c.playerId === id);
                     if (contract) {
+                        // Restore Team ID
                         updatedPlayers[pIndex] = { ...updatedPlayers[pIndex], teamId: contract.teamId };
-                        // Add back to roster IDs
-                        const team = updatedTeams.find(t => t.id === contract.teamId);
-                        if (team) {
-                            team.rosterIds.push(id);
+
+                        // Restore to Roster
+                        const originalTeam = updatedTeams.find(t => t.id === contract.teamId);
+                        if (originalTeam) {
+                            if (!originalTeam.rosterIds.includes(id)) {
+                                originalTeam.rosterIds.push(id);
+                            }
                         }
                     } else {
-                        // Fallback: Stick in Free Agency if no contract found (shouldn't happen with seeded rosters)
+                        // If no contract, remain Free Agent (teamId: null)
+                        console.warn(`[Expansion] Player ${updatedPlayers[pIndex].lastName} has no contract. Remaining Free Agent.`);
                     }
                 }
             });
@@ -3452,7 +3642,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
             // 4. Update User Roster
             const userTeam = updatedTeams.find(t => t.id === userTeamId);
             if (userTeam) {
-                userTeam.rosterIds = [...userTeam.rosterIds, ...selectedPlayerIds];
+                // Add only new IDs to avoid duplicates
+                selectedPlayerIds.forEach(id => {
+                    if (!userTeam.rosterIds.includes(id)) {
+                        userTeam.rosterIds.push(id);
+                    }
+                });
             }
 
             // Recalculate Caps
@@ -3472,7 +3667,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         });
     };
 
-    const updateCoachSettings = (teamId: string, settings: any) => {
+    const updateCoachSettings = (teamId: string, settings: TeamStrategy) => {
         setGameState(prev => ({
             ...prev,
             teams: prev.teams.map(t =>
@@ -3481,7 +3676,46 @@ export function GameProvider({ children }: { children: ReactNode }) {
         }));
     };
 
-    const updateRotationSchedule = (teamId: string, schedule: any[]) => {
+
+
+    const spendScoutingPoints = (prospectId: string, points: number) => {
+        setGameState(prev => {
+            const currentPoints = prev.scoutingPoints[prev.userTeamId] || 0;
+            if (currentPoints < points) return prev;
+
+            // Update Report
+            const teamReports = prev.scoutingReports[prev.userTeamId] || {};
+            const currentReport = teamReports[prospectId] || { points: 0, isPotentialRevealed: false };
+
+            const newTotal = currentReport.points + points;
+            const newIsRevealed = newTotal >= 30; // Threshold to reveal
+
+            return {
+                ...prev,
+                scoutingPoints: {
+                    ...prev.scoutingPoints,
+                    [prev.userTeamId]: currentPoints - points
+                },
+                scoutingReports: {
+                    ...prev.scoutingReports,
+                    [prev.userTeamId]: {
+                        ...teamReports,
+                        [prospectId]: { points: newTotal, isPotentialRevealed: newIsRevealed }
+                    }
+                }
+            };
+        });
+    };
+
+    const endScoutingPhase = () => {
+        // Transition to Draft
+        setGameState(prev => ({
+            ...prev,
+            seasonPhase: 'draft'
+        }));
+    };
+
+    const updateRotationSchedule = (teamId: string, schedule: RotationSegment[]) => {
         setGameState(prev => ({
             ...prev,
             teams: prev.teams.map(t =>
@@ -3604,6 +3838,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         marketSize: defaultTeam?.marketSize || 'Medium',
                         financials: t.financials || { totalIncome: 0, totalExpenses: 0, dailyIncome: 0, dailyExpenses: 0, seasonHistory: [] }
                     };
+                });
+            }
+
+            // MIGRATION: Backfill Dual Positions (Secondary Position)
+            if (loadedState.players) {
+                loadedState.players.forEach(p => {
+                    if (!p.secondaryPosition && p.tendencies) {
+                        p.secondaryPosition = calculateSecondaryPosition(p);
+                    }
+                    if (!p.secondaryPosition && !p.tendencies) {
+                        // Fallback for ANCIENT saves without tendencies (v0.1)
+                        // Create default tendencies temporarily just to calc position
+                        const tempP = { ...p, tendencies: { shooting: 50, passing: 50, inside: 50, outside: 50, defensiveAggression: 50, foulTendency: 50 } };
+                        p.secondaryPosition = calculateSecondaryPosition(tempP);
+                    }
                 });
             }
 
@@ -3745,8 +3994,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
         const player = gameState.players.find(p => p.id === playerId);
         if (!player) return { decision: 'REJECTED', feedback: 'Unknown player' };
 
-        const expected = generateContract(player, gameState.date.getFullYear(), gameState.salaryCap);
-        const ratio = offer.amount / expected.amount;
+        const market = calculateContractAmount(player, gameState.salaryCap);
+        const acceptableAmount = calculateAdjustedDemand(player, market.amount, market.years, offer.role, offer.years, false);
+        const ratio = offer.amount / acceptableAmount;
 
         // GM Perk: Charisma (deal_2)
         let threshold = 0.95;
@@ -3847,22 +4097,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
             updateRotationSchedule,
             acceptTradeOffer,
             rejectTradeOffer,
-            deleteSave,
+            liveGameData: liveGame,
+            startLiveGameFn: startLiveGame,
+            endLiveGameFn: endLiveGame,
+            startMerchCampaign,
             saveGame,
             loadGame,
-            simulateRound,
+            deleteSave,
+
+            simSpeed,
+            setSimSpeed,
+            addNewsStory,
             spendScoutingPoints,
             endScoutingPhase,
-            simSpeed, setSimSpeed,
-            isSimulating,
+            simulateRound,
             updatePlayerAttribute,
             setGameState,
             updateTrainingFocus,
             runTrainingCamp,
-            addNewsStory,
-            liveGameData: liveGame,
-            startLiveGameFn: startLiveGame,
-            endLiveGameFn: endLiveGame,
             generateDailyMatchups,
             setHasSeenNewsTutorial
         }}>

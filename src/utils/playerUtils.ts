@@ -1,4 +1,4 @@
-import type { Player, PlayerAttributes } from "../models/Player";
+import type { Player, PlayerAttributes, Position } from "../models/Player";
 
 
 const POSITION_WEIGHTS: Record<string, Record<keyof PlayerAttributes, number>> = {
@@ -158,8 +158,8 @@ export const calculateFairSalary = (ovr: number): number => {
 export const calculateTendencies = (player: Player, minutes: number = 0, teammates: Player[] = []): Player['tendencies'] => {
     const attr = player.attributes;
 
-    // 1. Determine "Point Allocation Budget" based on Role
-    // Star (>30m): 155 Points (e.g. 90/65 or 80/75)
+    // 1. Determine "Point Allocation Budget" based on Role & Talent
+    // Star (>30m): 155 Points 
     // Starter (>20m): 135 Points
     // Role (<20m): 100 Points
     // Bench End: 80 Points
@@ -167,6 +167,13 @@ export const calculateTendencies = (player: Player, minutes: number = 0, teammat
     if (minutes >= 30) budget = 155;
     else if (minutes >= 20) budget = 135;
     else if (minutes < 15) budget = 80;
+
+    // Talent-Based Scaling: Adjust budget based on OVR relative to league average (approx 76-78)
+    const ovr = calculateOverall(player);
+    if (ovr > 88) budget += 20;      // Superstars get extra usage
+    else if (ovr > 84) budget += 10; // Stars get extra usage
+    else if (ovr < 75) budget -= 15; // Role players lose usage
+    else if (ovr < 70) budget -= 30; // Bench players lose significant usage
 
     // 2. Base Skill Ratings
     const shootSkill = (attr.finishing + attr.midRange + attr.threePointShot) / 3;
@@ -243,4 +250,39 @@ export const calculateTendencies = (player: Player, minutes: number = 0, teammat
         inside: finalInside,
         outside: finalOutside
     };
+};
+
+export const calculateSecondaryPosition = (player: Player): Position | undefined => {
+    const { position, height, tendencies } = player;
+
+    // 1. Tall SF -> PF
+    if (position === 'SF') {
+        if (height >= 206) return 'PF';
+    }
+
+    // 2. Short C -> PF
+    if (position === 'C') {
+        if (height <= 208) return 'PF';
+    }
+
+    // 3. Tall SG -> SF
+    if (position === 'SG') {
+        if (height >= 198) return 'SF';
+    }
+
+    // 4. Scoring PG -> SG
+    if (position === 'PG') {
+        // If they shoot way more than they pass
+        if (tendencies.shooting > tendencies.passing + 15) return 'SG';
+        // Or if they are tall for a PG
+        if (height >= 193) return 'SG';
+    }
+
+    // 5. Short PF -> SF ? (Optional, but logical)
+    if (position === 'PF') {
+        if (height <= 201) return 'SF';
+        if (player.attributes.threePointShot > 80) return 'SF'; // Stretch 4
+    }
+
+    return undefined;
 };

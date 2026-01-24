@@ -73,7 +73,7 @@ export class LiveGameEngine {
             this.matchResult = existingResult;
         } else {
             this.matchResult = simulateMatch({
-                homeTeam: home, awayTeam: away, homeRoster, awayRoster, date, userTeamId
+                homeTeam: home, awayTeam: away, homeRoster, awayRoster, date, userTeamId, isInteractive: true
             });
         }
         this.allEvents = this.matchResult!.events;
@@ -272,6 +272,15 @@ export class LiveGameEngine {
         };
 
         requestAnimationFrame(processChunk);
+    }
+
+    stopSimulation() {
+        if (!this.state.isSimulating) return;
+
+        this.state.isSimulating = false;
+        this.state.isPaused = true;
+        this.state.playbackMode = 'LIVE';
+        this.notify();
     }
 
     getResults(): MatchResult {

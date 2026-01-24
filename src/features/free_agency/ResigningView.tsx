@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../../store/GameContext';
-import { calculateContractAmount } from '../../utils/contractUtils';
+import { calculateContractAmount, calculateAdjustedDemand } from '../../utils/contractUtils';
 import type { Player } from '../../models/Player';
 import { calculateOverall } from '../../utils/playerUtils';
 
@@ -29,16 +29,18 @@ export const ResigningView: React.FC<ResigningViewProps> = ({ onSelectPlayer, on
     const [offerYears, setOfferYears] = useState<number>(1);
     const [offerRole, setOfferRole] = useState<'Star' | 'Starter' | 'Rotation' | 'Bench' | 'Prospect'>('Rotation');
     const [playerResponse, setPlayerResponse] = useState<string | null>(null);
+    const [askingDetails, setAskingDetails] = useState<{ amount: number; years: number; explanation: string } | null>(null);
 
     // Reset when selecting a new player
     useEffect(() => {
         if (negotiatingPlayer) {
             const market = calculateContractAmount(negotiatingPlayer, salaryCap);
+            setAskingDetails(market);
             setOfferAmount(market.amount);
             setOfferYears(market.years);
 
             // Set default role expectation based on explanation or OVR
-            const ovr = calculateOverall(negotiatingPlayer.attributes);
+            const ovr = calculateOverall(negotiatingPlayer);
             if (ovr >= 85) setOfferRole('Star');
             else if (ovr >= 78) setOfferRole('Starter');
             else if (ovr >= 74) setOfferRole('Rotation');
@@ -56,46 +58,13 @@ export const ResigningView: React.FC<ResigningViewProps> = ({ onSelectPlayer, on
         if (negotiatingPlayer?.id === playerId) setNegotiatingPlayer(null);
     };
 
+
+
     const handleSubmitOffer = () => {
-        if (!negotiatingPlayer) return;
+        if (!negotiatingPlayer || !askingDetails) return;
 
-        const market = calculateContractAmount(negotiatingPlayer, salaryCap);
-
-        // 1. Logic Check
-        // Calculate "Value" of the deal vs "Ask"
-        const totalValueOffer = offerAmount * offerYears;
-        const totalValueAsk = market.amount * market.years;
-
-        // Loyalty Modifier
-        let loyaltyMod = 1.0;
-        if ((negotiatingPlayer.loveForTheGame || 0) > 15) loyaltyMod -= 0.1; // 10% discount
-        if (negotiatingPlayer.morale > 90) loyaltyMod -= 0.05; // 5% discount
-
-        // Home Discount: 10% for being the incumbent team
-        const homeDiscountMod = 0.90;
-
-        // Role Modifier
-        // If we offer a better role than their OVR suggests, they might take less money
-        // If we offer a WORSE role, they demand more money
-        const ovr = calculateOverall(negotiatingPlayer.attributes);
-        let expectedRoleVal = 0; // Bench
-        if (ovr >= 85) expectedRoleVal = 4; // Star
-        else if (ovr >= 78) expectedRoleVal = 3; // Starter
-        else if (ovr >= 74) expectedRoleVal = 2; // Rotation
-        else if (ovr >= 70) expectedRoleVal = 1; // Bench
-        else expectedRoleVal = 0; // Prospect
-
-        let offeredRoleVal = 0;
-        if (offerRole === 'Star') offeredRoleVal = 4;
-        else if (offerRole === 'Starter') offeredRoleVal = 3;
-        else if (offerRole === 'Rotation') offeredRoleVal = 2;
-        else if (offerRole === 'Bench') offeredRoleVal = 1;
-
-        let roleMod = 1.0;
-        if (offeredRoleVal > expectedRoleVal) roleMod = 0.95; // 5% discount for promotion
-        if (offeredRoleVal < expectedRoleVal) roleMod = 1.15; // 15% tax for demotion
-
-        const acceptableAmount = market.amount * loyaltyMod * homeDiscountMod * roleMod;
+        const market = askingDetails;
+        const acceptableAmount = calculateAdjustedDemand(negotiatingPlayer, market.amount, market.years, offerRole, offerYears, true);
 
         // Years Check - Flexibility
         // Allow +/- 1 year if the money is right
@@ -185,7 +154,7 @@ export const ResigningView: React.FC<ResigningViewProps> = ({ onSelectPlayer, on
                     {visiblePlayers.length === 0 && !negotiatingPlayer && <p>No players left to resign.</p>}
 
                     {visiblePlayers.map(player => {
-                        const ovr = calculateOverall(player.attributes);
+                        const ovr = calculateOverall(player);
                         return (
                             <div
                                 key={player.id}
@@ -280,11 +249,13 @@ export const ResigningView: React.FC<ResigningViewProps> = ({ onSelectPlayer, on
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px', background: 'var(--background)', padding: '10px', borderRadius: '8px' }}>
                                 <div>
                                     <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Asking Salary</div>
-                                    <div style={{ fontWeight: 'bold' }}>${(calculateContractAmount(negotiatingPlayer).amount / 1000000).toFixed(2)}M</div>
+                                    <div style={{ fontWeight: 'bold' }}>
+                                        ${askingDetails ? (calculateAdjustedDemand(negotiatingPlayer, askingDetails.amount, askingDetails.years, offerRole, offerYears, true) / 1000000).toFixed(2) : '0.00'}M
+                                    </div>
                                 </div>
                                 <div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Asking Years</div>
-                                    <div style={{ fontWeight: 'bold' }}>{calculateContractAmount(negotiatingPlayer).years} Years</div>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Preferred Length</div>
+                                    <div style={{ fontWeight: 'bold' }}>{askingDetails?.years || 1} Years</div>
                                 </div>
                             </div>
 
@@ -373,7 +344,7 @@ export const ResigningView: React.FC<ResigningViewProps> = ({ onSelectPlayer, on
 
                             <div style={{ marginBottom: '20px', padding: '10px', background: 'var(--background)', borderRadius: '8px', fontSize: '0.8rem' }}>
                                 <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Agent's Note:</div>
-                                "{calculateContractAmount(negotiatingPlayer, salaryCap).explanation}"
+                                "{askingDetails?.explanation || 'No notes.'}"
                             </div>
 
                             <div style={{ display: 'flex', gap: '10px' }}>

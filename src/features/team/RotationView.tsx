@@ -18,7 +18,7 @@ interface RotationViewProps {
 export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBack, onSave, onSelectPlayer }) => {
     const [roster, setRoster] = useState<Player[]>([]);
     const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
-    const [selectedStrategy, setSelectedStrategy] = useState<RotationStrategy>('Standard');
+    const [selectedStrategy, setSelectedStrategy] = useState<RotationStrategy>(50);
     const isFirstRun = React.useRef(true);
     const lastSavedRoster = React.useRef<string>('');
 
@@ -45,7 +45,7 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
             setSelectedStrategy('Custom'); // Assuming it's already customized
         } else {
             // Apply initial optimization only if no valid state
-            const optimized = optimizeRotation(teamPlayers, 'Standard');
+            const optimized = optimizeRotation(teamPlayers, 50);
             setRoster(optimized);
         }
 
@@ -146,29 +146,37 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                 </div>
             </div>
 
-            <div style={{ marginBottom: '15px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-                {(['Standard', 'Heavy Starters', 'Deep Bench'] as RotationStrategy[]).map(s => {
-                    const isActive = selectedStrategy === s;
-                    return (
-                        <button
-                            key={s}
-                            onClick={() => applyStrategy(s)}
-                            style={{
-                                padding: '10px 4px',
-                                background: isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
-                                color: isActive ? 'white' : '#aaa',
-                                border: isActive ? '1px solid var(--primary-light)' : '1px solid transparent',
-                                borderRadius: '8px',
-                                fontSize: '0.8rem',
-                                fontWeight: isActive ? 'bold' : 'normal',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            {s}
-                        </button>
-                    )
-                })}
+            {/* Rotation Strategy Slider */}
+            <div className="glass-panel" style={{ marginBottom: '15px', padding: '15px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 'bold' }}>Rotation Depth</span>
+                    <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>
+                        {typeof selectedStrategy === 'number' ? selectedStrategy : (selectedStrategy === 'Custom' ? 'Custom' : 50)}
+                    </span>
+                </div>
+
+                <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="5"
+                    value={typeof selectedStrategy === 'number' ? selectedStrategy : (selectedStrategy === 'Custom' ? 50 : 50)}
+                    onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        applyStrategy(val);
+                    }}
+                    style={{
+                        width: '100%',
+                        accentColor: 'var(--primary)',
+                        cursor: 'pointer'
+                    }}
+                />
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#888' }}>
+                    <span>Deep Bench (0)</span>
+                    <span>Standard (50)</span>
+                    <span>Heavy Starters (100)</span>
+                </div>
             </div>
 
             <div className="glass-panel" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', padding: '10px', fontSize: '0.85rem' }}>
@@ -245,7 +253,7 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                                         </div>
                                         {isStarter && <span style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: 'bold' }}>START</span>}
                                     </td>
-                                    <td style={{ padding: '8px', textAlign: 'center', color: '#ccc' }}>{player.position}</td>
+                                    <td style={{ padding: '8px', textAlign: 'center', color: '#ccc' }}>{player.position}{player.secondaryPosition ? `/${player.secondaryPosition}` : ''}</td>
                                     <td style={{ padding: '8px', textAlign: 'center', fontWeight: 'bold', color: '#fff' }}>{calculateOverall(player)}</td>
                                     <td style={{ padding: '8px', textAlign: 'center' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', width: '100%' }}>

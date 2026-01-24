@@ -1,6 +1,7 @@
 import type { Team } from '../../models/Team';
 import type { Contract } from '../../models/Contract';
 import type { Player } from '../../models/Player';
+import type { MerchCampaign, ActiveMerchCampaign } from '../simulation/SimulationTypes';
 
 // --- Types ---
 export type PayrollStatus = 'UNDER_CAP' | 'OVER_CAP' | 'OVER_LUXURY_TAX';
@@ -16,6 +17,9 @@ interface FinancialUpdate {
     messages: string[]; // Notifications for the user
 }
 
+
+
+
 // --- Constants ---
 const SALARY_CAP = 140000000;
 const LUXURY_TAX_THRESHOLD = 170000000;
@@ -30,6 +34,112 @@ export const getPayrollStatus = (payroll: number): PayrollStatus => {
     if (payroll > LUXURY_TAX_THRESHOLD) return 'OVER_LUXURY_TAX';
     if (payroll > SALARY_CAP) return 'OVER_CAP';
     return 'UNDER_CAP';
+};
+
+export const AVAILABLE_MERCH_CAMPAIGNS: MerchCampaign[] = [
+    {
+        id: 'basic_jersey',
+        name: 'Standard Jersey Drop',
+        type: 'JERSEY',
+        cost: 500000,
+        durationInGames: 5,
+        minFanInterest: 0,
+        baseRoi: 1.2,
+        riskFactor: 0.1,
+        description: 'Release a new batch of standard home/away jerseys. Reliable income.'
+    },
+    {
+        id: 'bobblehead_night',
+        name: 'Star Player Bobblehead Night',
+        type: 'bobblehead',
+        cost: 150000,
+        durationInGames: 1,
+        minFanInterest: 40,
+        baseRoi: 1.8,
+        riskFactor: 0.3,
+        description: 'One-night event. High potential return if attendance is high.'
+    },
+    {
+        id: 'city_edition',
+        name: 'City Edition Launch',
+        type: 'JERSEY',
+        cost: 2000000,
+        durationInGames: 10,
+        minFanInterest: 60,
+        baseRoi: 2.5,
+        riskFactor: 0.4,
+        description: 'High-risk, high-reward exclusive jersey campaign. Needs strong fan base.'
+    },
+    {
+        id: 'retro_night',
+        name: 'Throwback Retro Night',
+        type: 'LOCAL_EVENT',
+        cost: 750000,
+        durationInGames: 3,
+        minFanInterest: 50,
+        baseRoi: 1.5,
+        riskFactor: 0.2,
+        description: 'Celebrate the franchise history. Appeals to loyal fans.'
+    },
+    {
+        id: 'autograph_signing',
+        name: 'Team Autograph Session',
+        type: 'LOCAL_EVENT',
+        cost: 50000,
+        durationInGames: 1,
+        minFanInterest: 30,
+        baseRoi: 1.3,
+        riskFactor: 0.05,
+        description: 'Small community event to boost local engagement.'
+    }
+];
+
+export const processMerchCampaigns = (
+    team: Team,
+    activeCampaigns: ActiveMerchCampaign[]
+): { updatedCampaigns: ActiveMerchCampaign[], dailyRevenue: number, messages: string[] } => {
+    let dailyRevenue = 0;
+    const messages: string[] = [];
+    const updatedCampaigns: ActiveMerchCampaign[] = [];
+
+    activeCampaigns.forEach(campaign => {
+        if (campaign.gamesRemaining > 0) {
+            // Calculate daily revenue
+            // Formula: (Cost * ROI) / Duration * Modifiers
+            // Modifiers: Fan Interest, Market Size, Random Fluctuation
+
+            const marketMod = team.marketSize === 'Large' ? 1.2 : team.marketSize === 'Medium' ? 1.0 : 0.8;
+            const fanMod = team.fanInterest / 50; // 0.6 to 2.0 typically
+            const randomFlux = 0.8 + (Math.random() * 0.4); // 0.8 to 1.2
+
+            // Check for "Flop" based on risk
+            let performanceMod = 1.0;
+            if (Math.random() < campaign.riskFactor * 0.1) {
+                // 10% of the risk factor chance to heavily underperform
+                performanceMod = 0.5;
+                messages.push(`Merch flop: ${campaign.name} is seeing poor sales.`);
+            }
+
+            const projectedTotalRevenue = campaign.cost * campaign.baseRoi;
+            const baseDailyRevenue = projectedTotalRevenue / campaign.durationInGames;
+
+            const actualDailyRevenue = baseDailyRevenue * marketMod * fanMod * randomFlux * performanceMod;
+
+            dailyRevenue += actualDailyRevenue;
+
+            updatedCampaigns.push({
+                ...campaign,
+                gamesRemaining: campaign.gamesRemaining - 1,
+                revenueGenerated: campaign.revenueGenerated + actualDailyRevenue
+            });
+
+            if (campaign.gamesRemaining - 1 === 0) {
+                messages.push(`Campaign Finished: ${campaign.name} generated $${Math.floor(campaign.revenueGenerated + actualDailyRevenue).toLocaleString()}`);
+            }
+        }
+    });
+
+    return { updatedCampaigns, dailyRevenue, messages };
 };
 
 export const calculateExpectation = (team: Team, roster: Player[], allTeams: Team[], teamContracts: Contract[]): ExpectationLevel => {
@@ -194,7 +304,8 @@ export const calculateAnnualFinancials = (
     team: Team,
     contracts: Contract[],
     salaryCap: number,
-    luxuryTaxThreshold: number
+    luxuryTaxThreshold: number,
+    consecutiveTaxYears: number = 0
 ): AnnualFinancialReport => {
     // 1. Guaranteed Income (85% of Salary Cap)
     const guaranteedIncome = salaryCap * 0.85;
@@ -225,8 +336,15 @@ export const calculateAnnualFinancials = (
 
     let luxuryTaxPaid = 0;
     if (payroll > luxuryTaxThreshold) {
-        // Simple Tax: $1.50 for every $1 over
-        luxuryTaxPaid = (payroll - luxuryTaxThreshold) * 1.5;
+        // Repeater Tax Rates:
+        // Year 1 (0 consecutive prev years): 1.50
+        // Year 2 (1 consecutive prev year): 2.75
+        // Year 3+ (2+ consecutive prev years): 4.50
+        let taxRate = 1.5;
+        if (consecutiveTaxYears >= 2) taxRate = 4.5;
+        else if (consecutiveTaxYears === 1) taxRate = 2.75;
+
+        luxuryTaxPaid = (payroll - luxuryTaxThreshold) * taxRate;
     }
 
     const totalExpenses = payroll + luxuryTaxPaid;
@@ -240,5 +358,86 @@ export const calculateAnnualFinancials = (
         luxuryTaxPaid,
         netIncome,
         isTaxPayer: luxuryTaxPaid > 0
+    };
+};
+
+
+// --- LEAGUE ECONOMY LOGIC ---
+
+export interface LeagueFinancialResult {
+    newSalaryCap: number;
+    totalLeagueRevenue: number;
+    averageRevenue: number;
+    taxCollected: number;
+    revenueSharingPot: number;
+    payoutPerTeam: number;
+    eligibleTeamsCount: number;
+}
+
+export const calculateLeagueFinancials = (
+    teams: Team[],
+    currentCap: number,
+    annualReports: Record<string, AnnualFinancialReport> // teamId -> Report
+): LeagueFinancialResult => {
+    // 1. Calculate Total Revenue & Tax
+    let totalLeagueRevenue = 0;
+    let taxCollected = 0;
+    const eligibleTeams: string[] = [];
+
+    teams.forEach(t => {
+        const report = annualReports[t.id];
+        if (report) {
+            totalLeagueRevenue += report.totalRevenue;
+            taxCollected += report.luxuryTaxPaid;
+
+            // Revenue Sharing Eligibility:
+            // Must NOT be a Tax Payer
+            // Must be in bottom 50% of Revenue? Or just all non-taxpayers?
+            // "Small Market" usually means low revenue.
+            // Let's protect the bottom 15 revenue teams specifically to mimic "Small Market" aid.
+            // But usually, the rule is just "Non-Taxpayers get the Tax".
+            // User requested: "Small teams... never have money".
+            // Hybrid: Distribute Tax to ALL Non-Taxpayers.
+            // PLUS: Distribute a "Shared Pool" from top earners? (Too complex for now).
+            // Let's stick to TAX DISTRIBUTION + Cap Floor padding.
+
+            if (!report.isTaxPayer) {
+                eligibleTeams.push(t.id);
+            }
+        }
+    });
+
+    const averageRevenue = totalLeagueRevenue / (teams.length || 1);
+
+    // 2. Calculate New Salary Cap
+    // Rule: Cap is ~48% of Basketball Related Income (BRI).
+    // roughly 48% of Avg Team Revenue.
+    let targetCap = averageRevenue * 0.48;
+
+    // Smoothing: Don't let cap jump more than 10% in one year.
+    const maxIncrease = currentCap * 1.10;
+    const maxDecrease = currentCap * 0.95; // Don't crash hard
+
+    // Clamp
+    let newSalaryCap = Math.max(maxDecrease, Math.min(targetCap, maxIncrease));
+
+    // Round to nearest 100k
+    newSalaryCap = Math.round(newSalaryCap / 100000) * 100000;
+
+    // 3. Revenue Sharing Calculation
+    // Pot = 50% of Luxury Tax Collected (Owners keep 50%, 50% to needy teams)
+    // PLUS 1% of Total League Revenue (Shared Pool conceptualized)
+    const revenueSharingPot = (taxCollected * 0.50) + (totalLeagueRevenue * 0.01);
+
+    const payoutPerTeam = eligibleTeams.length > 0 ? (revenueSharingPot / eligibleTeams.length) : 0;
+
+    return {
+        newSalaryCap,
+        totalLeagueRevenue,
+        averageRevenue,
+        taxCollected,
+        revenueSharingPot,
+        payoutPerTeam,
+        eligibleTeamsCount: eligibleTeams.length
     };
 };

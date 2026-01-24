@@ -1,7 +1,7 @@
 import type { Contract } from '../../models/Contract';
 import type { Player, Position, PlayerAttributes } from '../../models/Player';
 import type { Team } from '../../models/Team';
-import { calculateOverall, calculateFairSalary } from '../../utils/playerUtils';
+import { calculateOverall, calculateFairSalary, calculateSecondaryPosition } from '../../utils/playerUtils';
 import { PERSONALITIES } from '../player/playerGenerator';
 
 // Helper to parse CSV line respecting quotes
@@ -174,6 +174,9 @@ export const importNbaPlayers = async (teams: Team[], existingPlayers: Player[])
                     defensiveAggression: 50, foulTendency: 50
                 }
             };
+
+            // Calculate Secondary Position
+            player.secondaryPosition = calculateSecondaryPosition(player);
 
             // Refine Position based on CSV
             if (!['PG', 'SG', 'SF', 'PF', 'C'].includes(player.position)) {

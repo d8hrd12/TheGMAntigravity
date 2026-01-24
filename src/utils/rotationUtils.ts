@@ -18,7 +18,14 @@ import { calculateOverall } from './playerUtils';
  * - Medium Players (Rotation): 20-25 minutes.
  * - Bench/Bad (<70): 0-10 minutes.
  */
-export type RotationStrategy = 'Standard' | 'Heavy Starters' | 'Deep Bench' | 'Custom';
+export type RotationStrategy = 'Standard' | 'Heavy Starters' | 'Deep Bench' | 'Custom' | number;
+
+/**
+ * Helper to interpolate between two values based on a factor (0-1)
+ */
+const lerp = (start: number, end: number, factor: number): number => {
+    return start + (end - start) * factor;
+};
 
 export const optimizeRotation = (roster: Player[], strategy: RotationStrategy = 'Standard'): Player[] => {
     // Clone roster
@@ -39,7 +46,6 @@ export const optimizeRotation = (roster: Player[], strategy: RotationStrategy = 
     })).sort((a, b) => b.calculatedOvr - a.calculatedOvr);
 
     // Identify Stars (90+)
-    // If no 90+, take the top 1 player as a "Force Star" to ensure someone plays high mins
     let stars = playersWithOvr.filter(p => p.calculatedOvr >= 90);
     if (stars.length === 0 && playersWithOvr.length > 0) {
         stars = [playersWithOvr[0]];
@@ -48,25 +54,14 @@ export const optimizeRotation = (roster: Player[], strategy: RotationStrategy = 
     const starIds = new Set(stars.map(s => s.id));
 
     // Identify Remaining Starters (Best available for remaining positions)
-    // We strictly need 5 starters total.
-    // Positions priority: C, PF, SF, SG, PG
     const positions: Position[] = ['C', 'PF', 'SF', 'SG', 'PG'];
     const finalStarters: (typeof playersWithOvr[0])[] = [];
     const usedIds = new Set<string>();
 
     positions.forEach(pos => {
-        // Priority 1: It's a Star and plays this position
         let best = stars.find(s => s.position === pos && !usedIds.has(s.id));
-
-        if (!best) {
-            // Priority 2: Best remaining player for this position
-            best = playersWithOvr.find(p => p.position === pos && !usedIds.has(p.id));
-        }
-
-        if (!best) {
-            // Priority 3: Best available player regardless of position (approximate match)
-            best = playersWithOvr.find(p => !usedIds.has(p.id));
-        }
+        if (!best) best = playersWithOvr.find(p => p.position === pos && !usedIds.has(p.id));
+        if (!best) best = playersWithOvr.find(p => !usedIds.has(p.id));
 
         if (best) {
             finalStarters.push(best);
@@ -74,25 +69,29 @@ export const optimizeRotation = (roster: Player[], strategy: RotationStrategy = 
         }
     });
 
-    // 2. Define Distribution Curve based on Strategy
-    let starterMins = 35;
-    let starMins = 38;
-    let benchCurve = [20, 16, 12, 10, 5]; // Default
-
-    if (strategy === 'Heavy Starters') {
-        starterMins = 38;
-        starMins = 42;
-        benchCurve = [15, 12, 10, 8, 5]; // Tighter rotation
+    // 2. Define Distribution Curve based on Strategy (Numeric)
+    // Map string strategies to numbers for backward compatibility
+    let sliderValue = 50; // Default Standard
+    if (typeof strategy === 'number') {
+        sliderValue = Math.max(0, Math.min(100, strategy));
+    } else if (strategy === 'Heavy Starters') {
+        sliderValue = 100;
     } else if (strategy === 'Deep Bench') {
-        starterMins = 28;
-        starMins = 32;
-        benchCurve = [24, 22, 18, 16, 12]; // Deeper rotation
-    } else {
-        // Standard
-        starterMins = 34;
-        starMins = 36;
-        benchCurve = [22, 18, 14, 12, 4];
+        sliderValue = 0;
     }
+
+    const factor = sliderValue / 100; // 0 to 1
+
+    // Interpolate Parameters
+    // Deep Bench (0) -> Heavy Starters (100)
+    const starterMins = Math.round(lerp(28, 38, factor));
+    const starMins = Math.round(lerp(32, 42, factor));
+
+    // Bench Curves
+    const benchDeep = [24, 22, 18, 16, 12];
+    const benchHeavy = [15, 12, 10, 8, 5];
+
+    const benchCurve = benchDeep.map((val, i) => Math.round(lerp(val, benchHeavy[i], factor)));
 
     // 3. Allocating Minutes
     let totalMinutesUsed = 0;
@@ -112,7 +111,6 @@ export const optimizeRotation = (roster: Player[], strategy: RotationStrategy = 
     });
 
     // 4. Bench Allocation
-    // Remaining minutes = 240 - totalMinutesUsed
     const benchPool = playersWithOvr.filter(p => !usedIds.has(p.id));
     let minutesRemaining = 240 - totalMinutesUsed;
 
@@ -121,13 +119,9 @@ export const optimizeRotation = (roster: Player[], strategy: RotationStrategy = 
         if (originalIndex === -1) return;
 
         let allocated = 0;
-
         if (minutesRemaining > 0 && idx < benchCurve.length) {
             allocated = Math.min(minutesRemaining, benchCurve[idx]);
         }
-
-        // Override for Bad Players (<70) cap? 
-        // For new strategy system, maybe rely purely on curve.
 
         players[originalIndex].minutes = allocated;
         players[originalIndex].rotationIndex = 5 + idx;
@@ -140,13 +134,30 @@ export const optimizeRotation = (roster: Player[], strategy: RotationStrategy = 
         let safety = 0;
         // Distribute round-robin to starters first then top bench
         while (minutesRemaining > 0 && safety < 1000) {
-            const targetIdx = players.find(p => p.rotationIndex === (i % 8)); // Top 8 rotation
+            const targetIdx = players.find(p => p.rotationIndex === (i % 8));
             if (targetIdx && targetIdx.minutes < 48) {
                 targetIdx.minutes++;
                 minutesRemaining--;
             }
             i++;
             safety++;
+        }
+    }
+
+    // Safety check for over-allocation (rare with this logic but possible if math rounds up too much)
+    // If total > 240, shave off from bench bottom up
+    let totalCheck = players.reduce((sum, p) => sum + (p.minutes || 0), 0);
+    while (totalCheck > 240) {
+        // Find player with minutes > 0, start from bottom of rotation
+        const victim = players
+            .filter(p => (p.minutes || 0) > 0)
+            .sort((a, b) => (b.rotationIndex ?? 0) - (a.rotationIndex ?? 0))[0];
+
+        if (victim) {
+            victim.minutes--;
+            totalCheck--;
+        } else {
+            break;
         }
     }
 

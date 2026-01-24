@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Player, PlayerAttributes } from '../../models/Player';
 import type { Team } from '../../models/Team';
+import { calculateOverall } from '../../utils/playerUtils';
 
 interface LeaguePlayersViewProps {
     players: Player[];
@@ -23,8 +24,8 @@ export const LeaguePlayersView: React.FC<LeaguePlayersViewProps> = ({ players, t
 
     // Sorting: by OVR descending by default
     const sortedPlayers = [...filteredPlayers].sort((a, b) => {
-        const ovrA = (a.attributes.finishing + a.attributes.threePointShot + a.attributes.perimeterDefense) / 3;
-        const ovrB = (b.attributes.finishing + b.attributes.threePointShot + b.attributes.perimeterDefense) / 3;
+        const ovrA = calculateOverall(a);
+        const ovrB = calculateOverall(b);
         return ovrB - ovrA;
     });
 
@@ -79,9 +80,9 @@ export const LeaguePlayersView: React.FC<LeaguePlayersViewProps> = ({ players, t
                         </tr>
                     </thead>
                     <tbody>
-                        {sortedPlayers.slice(0, 100).map(p => { // Limit to 100 for performance if list (pagination ideal)
+                        {sortedPlayers.slice(0, 100).map(p => {
                             const team = teams.find(t => t.id === p.teamId);
-                            const ovr = Math.floor((p.attributes.finishing + p.attributes.threePointShot + p.attributes.perimeterDefense) / 3);
+                            const ovr = calculateOverall(p);
                             return (
                                 <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                     <td style={{ padding: '10px', fontWeight: 'bold', position: 'sticky', left: 0, background: 'var(--surface-glass)', color: 'var(--text)' }}>{p.firstName} {p.lastName}</td>

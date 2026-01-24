@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { Player } from '../../models/Player';
 import type { Team } from '../../models/Team';
-import { calculateContractAmount } from '../../utils/contractUtils';
+import { calculateContractAmount, calculateAdjustedDemand } from '../../utils/contractUtils';
+import { calculateOverall } from '../../utils/playerUtils';
 
 interface NegotiationViewProps {
     player: Player;
@@ -10,13 +11,14 @@ interface NegotiationViewProps {
     onSign: (offer: { amount: number; years: number; role: 'Star' | 'Starter' | 'Rotation' | 'Bench' | 'Prospect' }) => void;
     onCancel: () => void;
     onSelectPlayer?: (playerId: string) => void;
+    salaryCap: number;
 }
 
-export const NegotiationView: React.FC<NegotiationViewProps> = ({ player, team, onNegotiate, onSign, onCancel, onSelectPlayer }) => {
-    // Calculate asking price
-    const asking = useMemo(() => calculateContractAmount(player), [player]);
+export const NegotiationView: React.FC<NegotiationViewProps> = ({ player, team, onNegotiate, onSign, onCancel, onSelectPlayer, salaryCap }) => {
+    // Calculate base market value once
+    const asking = useMemo(() => calculateContractAmount(player, salaryCap), [player, salaryCap]);
 
-    // Initial State defaults (Pre-fill with asking price for convenience)
+    // Initial State defaults
     const [salary, setSalary] = useState(asking.amount);
     const [years, setYears] = useState(asking.years);
     const [role, setRole] = useState<'Star' | 'Starter' | 'Rotation' | 'Bench' | 'Prospect'>('Rotation');
@@ -24,6 +26,16 @@ export const NegotiationView: React.FC<NegotiationViewProps> = ({ player, team, 
     // Feedback State
     const [feedback, setFeedback] = useState<string | null>(null);
     const [lastDecision, setLastDecision] = useState<'ACCEPTED' | 'REJECTED' | 'INSULTED' | null>(null);
+
+    // Set initial role based on OVR
+    useEffect(() => {
+        const ovr = calculateOverall(player);
+        if (ovr >= 85) setRole('Star');
+        else if (ovr >= 78) setRole('Starter');
+        else if (ovr >= 74) setRole('Rotation');
+        else if (ovr >= 70) setRole('Bench');
+        else setRole('Prospect');
+    }, [player]);
 
     const formatMoney = (amount: number) => {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
@@ -67,7 +79,7 @@ export const NegotiationView: React.FC<NegotiationViewProps> = ({ player, team, 
                 <div style={{ marginTop: '15px', padding: '10px', background: 'var(--surface)', borderRadius: '8px', border: '1px solid var(--border)', display: 'inline-block' }}>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Asking For</div>
                     <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#2ecc71' }}>
-                        {formatMoney(asking.amount)} / {asking.years} Yr{asking.years > 1 ? 's' : ''}
+                        {formatMoney(calculateAdjustedDemand(player, asking.amount, asking.years, role, years, false))} / {years} Yr{years > 1 ? 's' : ''}
                     </div>
                 </div>
             </div>
@@ -81,11 +93,9 @@ export const NegotiationView: React.FC<NegotiationViewProps> = ({ player, team, 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <input
                             type="range"
-                            min="500000"
-                            max={Math.max(team.salaryCapSpace, asking.amount * 1.5)} // Allow slight overpay even if cap tight (though validation might block) - actually strict cap is better.
-                            // Better max logic: If cap space is huge, limit range. If cap space is small but player wants more, show it.
-                            // Let's use max of (CapSpace, Asking * 1.2) so user can try to offer more if they have space.
-                            step="100000"
+                            min="1000000"
+                            max="60000000"
+                            step="500000"
                             value={salary}
                             onChange={(e) => setSalary(Number(e.target.value))}
                             style={{ flex: 1 }}
@@ -143,6 +153,9 @@ export const NegotiationView: React.FC<NegotiationViewProps> = ({ player, team, 
                                 {r}
                             </button>
                         ))}
+                    </div>
+                    <div style={{ marginTop: '10px', fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                        * Offering a larger role can help lower salary demands.
                     </div>
                 </div>
 

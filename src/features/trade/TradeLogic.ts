@@ -63,6 +63,11 @@ export function getPlayerTradeValue(
 
     let value = currentOvr;
 
+    // E. STAR SCALING (Exponential Value for Elites)
+    if (currentOvr >= 94) value *= 2.0;      // Mega Stars (SGA, Luka, Jokic)
+    else if (currentOvr >= 90) value *= 1.5; // Superstars (Lillard, KD)
+    else if (currentOvr >= 85) value *= 1.1; // All-Stars
+
     // A. STATE-BASED ADJUSTMENTS
     switch (teamState) {
         case 'Rebuilding':
@@ -124,13 +129,22 @@ export function getDraftPickValue(pick: DraftPick, currentYear: number, receivin
 
     if (pick.round === 1) {
         if (isFuture) {
-            baseValue = 50 - ((pick.year - currentYear) * 5);
+            const yearsOut = pick.year - currentYear;
+            // "Mystery Premium" Curve:
+            // Year 1-2: Value drops as certainty increases (Teams are locked in)
+            // Year 3-4+: Value rises as "Lottery Ticket" potential increases
+            if (yearsOut <= 2) {
+                baseValue = 60 - (yearsOut * 10); // 1yr: 50, 2yr: 40
+            } else {
+                // Mystery Boost
+                baseValue = 40 + ((yearsOut - 2) * 8); // 3yr: 48, 4yr: 56
+            }
         } else {
             baseValue = 60;
         }
     } else {
-        baseValue = 15;
-        if (isFuture) baseValue = 10;
+        baseValue = 3; // Drastically devalued (Was 15)
+        if (isFuture) baseValue = 1; // Was 10
     }
 
     if (receivingTeam) {
@@ -215,6 +229,21 @@ export function evaluateTrade(
 
     if (!checkFinance(userTeam, aiOutgoing, userOutgoing)) return { accepted: false, message: "Salary cap validation failed for your team." };
     if (!checkFinance(aiTeam, userOutgoing, aiOutgoing)) return { accepted: false, message: "The other team cannot afford this trade." };
+
+    // 1.5 FRANCHISE CORNERSTONE CHECK
+    // Replaced hardcoded OVR > 92 with Dynamic Score: OVR + (30 - Age)
+    // Goal: Protect 22yo 88 OVR (Score 96) as much as 26yo 92 OVR (Score 96).
+    const isCornerstone = (p: Player) => {
+        const ovr = p.overall || calculateOverall(p);
+        const score = ovr + (30 - p.age);
+        return score >= 96 && p.age < 30; // Strict cutoff
+    };
+
+    const untouchable = aiAssets.players.find(p => isCornerstone(p));
+
+    if (untouchable) {
+        return { accepted: false, message: `${untouchable.lastName} is a Franchise Cornerstone. We are building around him, not trading him.` };
+    }
 
     // 2. VALUE ANALYSIS
     const aiRoster = allPlayers.filter(p => p.teamId === aiTeam.id && !aiAssets.players.find(ap => ap.id === p.id));
@@ -375,6 +404,9 @@ export function generateTradeOffers(
             // Safety: Don't trade a significantly better player for a worse one
             if (a.player.overall > currentOvr + 4 && aiStrategy !== 'Rebuilding') return false;
             if (a.player.overall >= 88 && currentOvr < 85) return false; // Never trade an 88+ for <85
+
+            // NEVER shop an untouchable player
+            if (a.player.overall >= 92 && a.player.age < 27) return false;
 
             return Math.abs(a.value - valueToDistribute) < valueToDistribute * 0.1;
         });

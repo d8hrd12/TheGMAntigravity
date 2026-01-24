@@ -195,7 +195,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                                 }}>
                                     #{player.jerseyNumber !== undefined ? player.jerseyNumber : '??'}
                                 </span>
-                                <span>{player.position}</span>
+                                <span>{player.position}{player.secondaryPosition ? ` / ${player.secondaryPosition}` : ''}</span>
                                 <span style={{ opacity: 0.5 }}>|</span>
                                 <span
                                     onClick={() => team && onTeamClick && onTeamClick(team.id)}

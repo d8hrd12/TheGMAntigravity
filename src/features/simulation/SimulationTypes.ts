@@ -211,4 +211,23 @@ export interface MatchInput {
     awayRotation?: TeamRotationData[];
     date: Date;
     userTeamId?: string; // To enforce strict rotation
+    isInteractive?: boolean;
+}
+
+export interface MerchCampaign {
+    id: string;
+    name: string;
+    type: 'JERSEY' | 'bobblehead' | 'SOCIAL' | 'LOCAL_EVENT';
+    cost: number;
+    durationInGames: number;
+    minFanInterest: number;
+    baseRoi: number; // 1.5 means 50% profit
+    riskFactor: number; // 0-1, chance of failure
+    description: string;
+}
+
+export interface ActiveMerchCampaign extends MerchCampaign {
+    gamesRemaining: number;
+    revenueGenerated: number;
+    startDate: string;
 }

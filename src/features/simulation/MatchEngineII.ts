@@ -130,36 +130,19 @@ function generateRotationFromMinutes(teamId: string, roster: Player[]): TeamRota
     }));
 }
 
-function generateDefaultRotation(teamId: string, roster: Player[]): TeamRotationData[] {
+function generateNoSubsRotation(teamId: string, roster: Player[]): TeamRotationData[] {
+    const starters = roster.filter(p => p.isStarter).map(p => p.id);
+    const activeIds = starters.length === 5 ? starters : roster.slice(0, 5).map(p => p.id);
     const schedule: TeamRotationData[] = [];
-    const starters = roster.slice(0, 5).map(p => p.id);
-    const bench = roster.slice(5, 10).map(p => p.id); // 6th-10th men
-    // Fallback if roster is small
-    const validBench = bench.length === 5 ? bench : starters;
-
-    // Pattern:
-    // Q1: St (12-4), Bn (4-0) -> St 8m
-    // Q2: Bn (12-8), St (8-0) -> St 8m
-    // Q3: St (12-4), Bn (4-0) -> St 8m
-    // Q4: St (12-0)           -> St 12m
-    // Total Starters: 36m. Bench: 12m. Better.
-
-    // Q1
-    schedule.push({ id: `q1_st`, quarter: 1, startMinute: 12, endMinute: 4, playerIds: starters });
-    schedule.push({ id: `q1_bn`, quarter: 1, startMinute: 4, endMinute: 0, playerIds: validBench });
-
-    // Q2
-    schedule.push({ id: `q2_bn`, quarter: 2, startMinute: 12, endMinute: 8, playerIds: validBench });
-    schedule.push({ id: `q2_st`, quarter: 2, startMinute: 8, endMinute: 0, playerIds: starters });
-
-    // Q3
-    schedule.push({ id: `q3_st`, quarter: 3, startMinute: 12, endMinute: 4, playerIds: starters });
-    schedule.push({ id: `q3_bn`, quarter: 3, startMinute: 4, endMinute: 0, playerIds: validBench });
-
-    // Q4 (Crunch Time)
-    schedule.push({ id: `q4_st`, quarter: 4, startMinute: 12, endMinute: 0, playerIds: starters });
-
+    for (let q = 1; q <= 4; q++) {
+        schedule.push({ id: `nosubs_${teamId}_q${q}`, quarter: q as any, startMinute: 12, endMinute: 0, playerIds: activeIds });
+    }
     return schedule;
+}
+
+function generateDefaultRotation(teamId: string, roster: Player[]): TeamRotationData[] {
+    // Better logic: use minute-based if possible, else pattern
+    return generateRotationFromMinutes(teamId, roster);
 }
 
 function getLineupForTime(schedule: TeamRotationData[], roster: Player[], quarter: number, minuteOfQuarter: number): Player[] {
@@ -198,9 +181,11 @@ export function simulateMatchII(input: MatchInput): MatchResult {
 
     let homeSchedule: TeamRotationData[];
     if (userTeamId && homeTeam.id === userTeamId) {
-        // Preference: 1. Manual Schedule, 2. Dynamic Minute-Based, 3. Star-Heavy Default
         if (homeTeam.rotationSchedule && homeTeam.rotationSchedule.length > 0) {
             homeSchedule = homeTeam.rotationSchedule;
+        } else if (input.isInteractive) {
+            // USER REQUEST: No auto-subs in PLAY mode if no schedule set.
+            homeSchedule = generateNoSubsRotation(homeTeam.id, homeRoster);
         } else {
             homeSchedule = generateRotationFromMinutes(homeTeam.id, homeRoster);
         }
@@ -212,6 +197,8 @@ export function simulateMatchII(input: MatchInput): MatchResult {
     if (userTeamId && awayTeam.id === userTeamId) {
         if (awayTeam.rotationSchedule && awayTeam.rotationSchedule.length > 0) {
             awaySchedule = awayTeam.rotationSchedule;
+        } else if (input.isInteractive) {
+            awaySchedule = generateNoSubsRotation(awayTeam.id, awayRoster);
         } else {
             awaySchedule = generateRotationFromMinutes(awayTeam.id, awayRoster);
         }
@@ -274,6 +261,20 @@ export function simulateMatchII(input: MatchInput): MatchResult {
             awayTargetLineup.map(p => p.id)
         );
 
+        // EMIT POSSESSION START (Required for UI lineups to update)
+        allEvents.push({
+            type: 'possession_start' as any,
+            text: `Possession: ${possessionTeam.abbreviation}`,
+            gameTime: timeRemaining,
+            possessionId: timeRemaining,
+            teamId: possessionTeam.id,
+            playerId: '',
+            data: {
+                homeLineup: homeTargetLineup.map(p => p.id),
+                awayLineup: awayTargetLineup.map(p => p.id)
+            }
+        });
+
         // Run Possession
         const result = simulatePossession(ctx);
 
@@ -306,17 +307,35 @@ export function simulateMatchII(input: MatchInput): MatchResult {
         if (!result.keepPossession || timeRemaining <= nextBoundary) {
             possessionTeam = isHomeOffense ? awayTeam : homeTeam;
         }
+
+        // OVERTIME CHECK
+        if (timeRemaining <= 0 && homeScore === awayScore) {
+            // Game is tied at 0:00!
+            // Add 5 minutes (300 seconds)
+            timeRemaining = 300;
+            currentQuarter++; // Encodes OT1 as 5, OT2 as 6, etc.
+
+            allEvents.push({
+                type: 'quarter_end' as any,
+                text: `End of Regulation - TIED at ${homeScore}, going to OVERTIME!`,
+                gameTime: 0,
+                possessionId: 0,
+                teamId: '',
+                playerId: '',
+                data: { quarter: currentQuarter - 1 }
+            });
+        }
     }
 
     // Final Final Event
     allEvents.push({
         type: 'quarter_end' as any,
-        text: "End of Game",
+        text: `End of Game - Final Score: ${homeTeam.abbreviation} ${homeScore} - ${awayTeam.abbreviation} ${awayScore}`,
         gameTime: 0,
         possessionId: 0,
         teamId: '',
         playerId: '',
-        data: { quarter: 4 }
+        data: { quarter: currentQuarter }
     });
 
     // 3. Finalize

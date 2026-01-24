@@ -57,6 +57,7 @@ export interface Player {
     firstName: string;
     lastName: string;
     position: Position;
+    secondaryPosition?: Position;
     age: number;
     height: number; // in cm
     weight: number; // in kg
