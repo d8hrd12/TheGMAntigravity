@@ -117,7 +117,7 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
         if (defenseResult) return defenseResult;
 
         // 2. Decide Action
-        const action = decideAction(handler, ctx, territory);
+        const action = decideAction(handler, ctx, territory, passes);
 
         // 3. Resolution
         if (action === 'PASS') {
@@ -586,7 +586,7 @@ export function selectReceiver(handler: Player, ctx: PossessionContext): Player 
 }
 
 
-export function decideAction(handler: Player, ctx: PossessionContext, territory: Territory = '3PT'): ActionType {
+export function decideAction(handler: Player, ctx: PossessionContext, territory: Territory = '3PT', passes: number = 0): ActionType {
     // 1. FLOW OFFENSE CHECK (Coaching System)
     // "Not every possession allows the handler to Iso".
     // We enforce ball movement on a percentage of plays regardless of who has the ball.
@@ -670,6 +670,11 @@ export function decideAction(handler: Player, ctx: PossessionContext, territory:
         const defender = ctx.defenseLineup.find(p => p.position === handler.position) || ctx.defenseLineup[0];
         const perimeterDef = defender.attributes.perimeterDefense;
 
+        // BALL MOVEMENT BONUS:
+        // Each pass shifts the defense, granting a bonus to the "Open Look" check.
+        // +4 per pass. 3 passes = +12 to Attribute Check.
+        const movementBonus = passes * 4;
+
         // Determine MODE based on Inside/Outside Tendencies
         // Normalize range
         const totalPref = t.inside + t.outside; // e.g. 70 + 90 = 160
@@ -678,7 +683,7 @@ export function decideAction(handler: Player, ctx: PossessionContext, territory:
         if (Math.random() < outsideRatio) {
             // TARGET: PERIMETER (Shoot 3/Mid)
             // Physics Check: Can he get the shot off?
-            const attRating = handler.attributes.threePointShot;
+            const attRating = handler.attributes.threePointShot + movementBonus;
 
             // "Weak Defense" Bonus (Att > Def)
             if (attRating > perimeterDef) {
@@ -695,7 +700,7 @@ export function decideAction(handler: Player, ctx: PossessionContext, territory:
 
         // TARGET: DRIVE (Inside)
         // Physics Check: Blow-by
-        const driveRating = (handler.attributes.playmaking + handler.attributes.ballHandling) / 2;
+        const driveRating = ((handler.attributes.playmaking + handler.attributes.ballHandling) / 2) + movementBonus;
 
         if (driveRating > perimeterDef) {
             // Beat the perimeter defender.
@@ -767,8 +772,8 @@ function checkUsageCap(handler: Player, ctx: PossessionContext): boolean {
 
 function checkPassingOptions(handler: Player, ctx: PossessionContext): ActionType | null {
     // 3b) Pick and Roll Check (Priority)
-    // "Requirements are ball handler iq > 70 and playmaking > 80"
-    if (handler.attributes.basketballIQ > 70 && handler.attributes.playmaking > 80) {
+    // "Requirements are ball handler iq > 60 and playmaking > 65" (Previously 70/80 - too strict)
+    if (handler.attributes.basketballIQ > 60 && handler.attributes.playmaking > 65) {
         // Check for Big
         const hasBig = ctx.offenseLineup.some(p => (p.position === 'C' || p.position === 'PF') && p.id !== handler.id);
         if (hasBig) {
