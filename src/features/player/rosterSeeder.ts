@@ -167,11 +167,39 @@ export function seedRealRosters(teams: Team[]): { players: Player[], contracts: 
         if (realPlayers) {
             realPlayers.forEach(def => {
                 const position = normalizePosition(def.pos);
-                // Use imported attributes or fallback to OVR-based generation
-                const attrs = def.attributes || generateAttributesForOvr(def.ovr, position, def.archetype);
-                if (!attrs.freeThrow) attrs.freeThrow = def.ovr; // Fallback
+                // Map Real Player Attributes to Model
+                const rawAttrs = def.attributes || generateAttributesForOvr(def.ovr, position, def.archetype);
+
+                // MAPPING LOGIC
+                const attrs: PlayerAttributes = {
+                    finishing: rawAttrs.finishing || Math.round((rawAttrs.layup + rawAttrs.drivingDunk + rawAttrs.standingDunk + rawAttrs.insideShot) / 4) || 60,
+                    midRange: rawAttrs.midRange || rawAttrs.midRangeShot || 60,
+                    threePointShot: rawAttrs.threePointShot || 60,
+                    freeThrow: rawAttrs.freeThrow || 70, // Default if missing
+                    playmaking: rawAttrs.playmaking || rawAttrs.passing || 60,
+                    ballHandling: rawAttrs.ballHandling || 60,
+                    basketballIQ: rawAttrs.basketballIQ || rawAttrs.iq || 60,
+                    interiorDefense: rawAttrs.interiorDefense || 50,
+                    perimeterDefense: rawAttrs.perimeterDefense || 50,
+                    stealing: rawAttrs.stealing || rawAttrs.steal || 50,
+                    blocking: rawAttrs.blocking || rawAttrs.block || 50,
+                    offensiveRebound: rawAttrs.offensiveRebound || 50,
+                    defensiveRebound: rawAttrs.defensiveRebound || 50,
+                    athleticism: rawAttrs.athleticism || Math.round((rawAttrs.speed + rawAttrs.agility + rawAttrs.vertical + rawAttrs.strength) / 4) || 60
+                };
+
+                if (!attrs.freeThrow && def.ovr) attrs.freeThrow = def.ovr; // Fallback
+
                 const physicals = generatePhysicals(position);
                 const tendencies = deriveTendenciesFromAttributes(attrs, position);
+
+                // Generate Attribute Potentials for Real Players
+                const attributePotentials = { ...attrs };
+                const growthRoom = Math.max(0, 27 - def.age) * 2; // Simple age-based room
+                (Object.keys(attributePotentials) as Array<keyof PlayerAttributes>).forEach(k => {
+                    const noise = Math.floor(Math.random() * 5);
+                    attributePotentials[k] = Math.min(99, attrs[k] + growthRoom + noise);
+                });
 
                 const player: Player = {
                     id: generateUUID(),
@@ -183,6 +211,7 @@ export function seedRealRosters(teams: Team[]): { players: Player[], contracts: 
                     weight: physicals.weight,
                     personality: PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)],
                     attributes: attrs,
+                    attributePotentials: attributePotentials,
                     archetype: deriveArchetypeName(attrs, tendencies, position),
                     tendencies: tendencies,
                     morale: 90,

@@ -13,6 +13,7 @@ import { BackButton } from '../ui/BackButton';
 import { TeamSelect } from '../ui/TeamSelect';
 
 import { MidSeasonFreeAgents } from './MidSeasonFreeAgents';
+import { TradingBlockView } from './TradingBlockView';
 
 interface TradeViewProps {
     userTeam: Team;
@@ -45,6 +46,7 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
     };
 
     const [selectedTeamId, setSelectedTeamId] = useState<string>(getInitialTeamId() || '');
+    const [viewMode, setViewMode] = useState<'trade' | 'block' | 'free_agents'>('trade');
 
     // Parse Initial Selections
     const getInitialUserPlayers = (): string[] => {
@@ -226,192 +228,246 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
     return (
         <div style={{ minHeight: '100vh', padding: '10px', display: 'flex', flexDirection: 'column' }}>
 
-            <div style={{ marginBottom: '15px' }}>
-                <label>Trading Partner: </label>
-                <TeamSelect
-                    teams={teams}
-                    selectedTeamId={selectedTeamId}
-                    onChange={(id) => { setSelectedTeamId(id); setAiSelected([]); setAiPickSelected([]); setFeedback(null); }}
-                    excludeTeamId={userTeam.id}
-                    style={{ marginLeft: '10px' }}
-                />
-            </div>
-
-            <div style={{ display: 'flex', gap: '10px', flex: 1, overflow: 'hidden' }}>
-                {/* User Team Col */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', border: '1px solid #eee', borderRadius: '8px', padding: '10px' }}>
-                    <h3 style={{ borderBottom: '2px solid var(--primary)', paddingBottom: '5px' }}>{userTeam.abbreviation} Assets</h3>
-                    <TradeFinancialHelper team={userTeam} selectedPlayerIds={userSelected} incomingSalary={userIncoming} title={userTeam.abbreviation} />
-                    <div style={{ overflowY: 'auto', flex: 1 }}>
-                        <h4 style={{ margin: '5px 0', fontSize: '0.9rem', color: '#666' }}>Players</h4>
-                        {userRoster.map(p => {
-                            const contract = getPlayerContract(p.id);
-                            return (
-                                <div key={p.id}
-                                    onClick={() => toggleUserPlayer(p.id)}
-                                    style={{
-                                        padding: '8px',
-                                        borderBottom: '1px solid #f0f0f0',
-                                        background: userSelected.includes(p.id) ? '#fff3e0' : 'transparent',
-                                        cursor: 'pointer',
-                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                                    }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <div
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onSelectPlayer(p.id);
-                                            }}
-                                            style={{
-                                                padding: '4px',
-                                                borderRadius: '50%',
-                                                cursor: 'pointer',
-                                                color: '#666',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                zIndex: 5
-                                            }}
-                                        >
-                                            <Info size={16} />
-                                        </div>
-                                        <div>
-                                            <div style={{ fontWeight: 'bold' }}>{p.firstName} {p.lastName}</div>
-                                            <div style={{ fontSize: '0.8rem', color: '#666' }}>
-                                                {p.position} • {p.age}yo • <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{calculateOverall(p)} OVR</span>
-                                            </div>
-                                            {contract && (
-                                                <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '2px' }}>
-                                                    {formatMoney(contract.amount)} / {contract.yearsLeft}y
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(getPlayerTradeValue(p, opponentTeam, contracts, aiRoster))}</div>
-                                </div>
-                            );
-                        })}
-                        <h4 style={{ margin: '10px 0 5px 0', fontSize: '0.9rem', color: '#666' }}>Draft Picks</h4>
-                        {(userTeam.draftPicks || []).map(p => (
-                            <div key={p.id}
-                                onClick={() => toggleUserPick(p.id)}
-                                style={{
-                                    padding: '8px',
-                                    borderBottom: '1px solid #f0f0f0',
-                                    background: userPickSelected.includes(p.id) ? '#fff3e0' : 'transparent',
-                                    cursor: 'pointer',
-                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                                }}>
-                                <div>
-                                    <div style={{ fontWeight: 'bold' }}>{p.year} Round {p.round}</div>
-                                    <div style={{ fontSize: '0.8rem', color: '#666' }}>From: {p.originalTeamName || 'Unknown'}</div>
-                                </div>
-                                <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(getDraftPickValue(p, currentYear, opponentTeam || null))}</div>
-                            </div>
-                        ))}
-                    </div>
+            <div style={{ marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <div style={{ display: 'flex', background: '#e0e0e0', borderRadius: '8px', padding: '4px' }}>
+                    <button
+                        onClick={() => setViewMode('trade')}
+                        style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', background: viewMode === 'trade' ? 'white' : 'transparent', fontWeight: 'bold' }}
+                    >
+                        Propose Trade
+                    </button>
+                    <button
+                        onClick={() => setViewMode('block')}
+                        style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', background: viewMode === 'block' ? 'white' : 'transparent', fontWeight: 'bold' }}
+                    >
+                        Trading Block
+                    </button>
+                    <button
+                        onClick={() => setViewMode('free_agents')}
+                        style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', background: viewMode === 'free_agents' ? 'white' : 'transparent', fontWeight: 'bold' }}
+                    >
+                        Mid-Season FA
+                    </button>
                 </div>
 
-                {/* AI Team Col */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', border: '1px solid #eee', borderRadius: '8px', padding: '10px' }}>
-                    <h3 style={{ borderBottom: '2px solid #333', paddingBottom: '5px' }}>{opponentTeam?.abbreviation} Assets</h3>
-                    {opponentTeam && <TradeFinancialHelper team={opponentTeam} selectedPlayerIds={aiSelected} incomingSalary={aiIncoming} title={opponentTeam.abbreviation} />}
-                    <div style={{ overflowY: 'auto', flex: 1 }}>
-                        <h4 style={{ margin: '5px 0', fontSize: '0.9rem', color: '#666' }}>Players</h4>
-                        {aiRoster.map(p => {
-                            const contract = getPlayerContract(p.id);
-                            return (
-                                <div key={p.id}
-                                    onClick={() => toggleAiPlayer(p.id)}
-                                    style={{
-                                        padding: '8px',
-                                        borderBottom: '1px solid #f0f0f0',
-                                        background: aiSelected.includes(p.id) ? '#eee' : 'transparent',
-                                        cursor: 'pointer',
-                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                                    }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <div
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onSelectPlayer(p.id);
-                                            }}
-                                            style={{
-                                                padding: '4px',
-                                                borderRadius: '50%',
-                                                cursor: 'pointer',
-                                                color: '#666',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                zIndex: 5
-                                            }}
-                                        >
-                                            <Info size={16} />
-                                        </div>
-                                        <div>
-                                            <div style={{ fontWeight: 'bold' }}>{p.firstName} {p.lastName}</div>
-                                            <div style={{ fontSize: '0.8rem', color: '#666' }}>
-                                                {p.position} • {p.age}yo • <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{calculateOverall(p)} OVR</span>
-                                            </div>
-                                            {contract && (
-                                                <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '2px' }}>
-                                                    {formatMoney(contract.amount)} / {contract.yearsLeft}y
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(getPlayerTradeValue(p, opponentTeam, contracts, aiRoster))}</div>
-                                </div>
-                            );
-                        })}
-                        <h4 style={{ margin: '10px 0 5px 0', fontSize: '0.9rem', color: '#666' }}>Draft Picks</h4>
-                        {(opponentTeam?.draftPicks || []).map(p => (
-                            <div key={p.id}
-                                onClick={() => toggleAiPick(p.id)}
-                                style={{
-                                    padding: '8px',
-                                    borderBottom: '1px solid #f0f0f0',
-                                    background: aiPickSelected.includes(p.id) ? '#eee' : 'transparent',
-                                    cursor: 'pointer',
-                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                                }}>
-                                <div>
-                                    <div style={{ fontWeight: 'bold' }}>{p.year} Round {p.round}</div>
-                                    <div style={{ fontSize: '0.8rem', color: '#666' }}>From: {p.originalTeamName || 'Unknown'}</div>
-                                </div>
-                                <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(getDraftPickValue(p, currentYear, opponentTeam || null))}</div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                {feedback && (
-                    <div style={{
-                        marginBottom: '10px',
-                        padding: '10px',
-                        background: feedback.includes('accept') || feedback.includes('Completed') ? '#d4edda' : '#f8d7da',
-                        color: feedback.includes('accept') || feedback.includes('Completed') ? '#155724' : '#721c24',
-                        borderRadius: '4px'
-                    }}>
-                        {feedback}
-                    </div>
+                {viewMode === 'trade' && (
+                    <>
+                        <label>Trading Partner: </label>
+                        <TeamSelect
+                            teams={teams}
+                            selectedTeamId={selectedTeamId}
+                            onChange={(id) => { setSelectedTeamId(id); setAiSelected([]); setAiPickSelected([]); setFeedback(null); }}
+                            excludeTeamId={userTeam.id}
+                            style={{ marginLeft: '10px' }}
+                        />
+                    </>
                 )}
-                <button
-                    onClick={handlePropose}
-                    disabled={userSelected.length === 0 && aiSelected.length === 0 && userPickSelected.length === 0 && aiPickSelected.length === 0}
-                    style={{
-                        padding: '15px 40px',
-                        background: 'var(--primary)',
-                        color: 'white',
-                        fontSize: '1.2rem',
-                        border: 'none',
-                        borderRadius: '50px',
-                        opacity: (userSelected.length === 0 && aiSelected.length === 0 && userPickSelected.length === 0 && aiPickSelected.length === 0) ? 0.5 : 1
-                    }}>
-                    Propose Trade
-                </button>
             </div>
+
+            {viewMode === 'block' && (
+                <TradingBlockView
+                    teams={teams}
+                    players={players}
+                    userTeamId={userTeam.id}
+                    onClose={() => setViewMode('trade')}
+                    onInitiateTrade={(targetTeamId, targetPlayerId) => {
+                        setSelectedTeamId(targetTeamId);
+                        if (targetPlayerId) {
+                            setAiSelected([targetPlayerId]);
+                        } else {
+                            setAiSelected([]);
+                        }
+                        setViewMode('trade');
+                    }}
+                />
+            )}
+
+            {viewMode === 'free_agents' && (
+                <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#888' }}>
+                    Mid Season FA Not Implemented Yet
+                </div>
+            )}
+
+            {viewMode === 'trade' && (
+                <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', gap: '10px', flex: 1, overflow: 'hidden' }}>
+                        {/* User Team Col */}
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', border: '1px solid #eee', borderRadius: '8px', padding: '10px' }}>
+                            <h3 style={{ borderBottom: '2px solid var(--primary)', paddingBottom: '5px' }}>{userTeam.abbreviation} Assets</h3>
+                            <TradeFinancialHelper team={userTeam} selectedPlayerIds={userSelected} incomingSalary={userIncoming} title={userTeam.abbreviation} />
+                            <div style={{ overflowY: 'auto', flex: 1 }}>
+                                <h4 style={{ margin: '5px 0', fontSize: '0.9rem', color: '#666' }}>Players</h4>
+                                {userRoster.map(p => {
+                                    const contract = getPlayerContract(p.id);
+                                    return (
+                                        <div key={p.id}
+                                            onClick={() => toggleUserPlayer(p.id)}
+                                            style={{
+                                                padding: '8px',
+                                                borderBottom: '1px solid #f0f0f0',
+                                                background: userSelected.includes(p.id) ? '#fff3e0' : 'transparent',
+                                                cursor: 'pointer',
+                                                display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                            }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <div
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onSelectPlayer(p.id);
+                                                    }}
+                                                    style={{
+                                                        padding: '4px',
+                                                        borderRadius: '50%',
+                                                        cursor: 'pointer',
+                                                        color: '#666',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        zIndex: 5
+                                                    }}
+                                                >
+                                                    <Info size={16} />
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontWeight: 'bold' }}>{p.firstName} {p.lastName}</div>
+                                                    <div style={{ fontSize: '0.8rem', color: '#666' }}>
+                                                        {p.position} • {p.age}yo • <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{calculateOverall(p)} OVR</span>
+                                                    </div>
+                                                    {contract && (
+                                                        <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '2px' }}>
+                                                            {formatMoney(contract.amount)} / {contract.yearsLeft}y
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(getPlayerTradeValue(p, opponentTeam, contracts, aiRoster))}</div>
+                                        </div>
+                                    );
+                                })}
+                                <h4 style={{ margin: '10px 0 5px 0', fontSize: '0.9rem', color: '#666' }}>Draft Picks</h4>
+                                {(userTeam.draftPicks || []).map(p => (
+                                    <div key={p.id}
+                                        onClick={() => toggleUserPick(p.id)}
+                                        style={{
+                                            padding: '8px',
+                                            borderBottom: '1px solid #f0f0f0',
+                                            background: userPickSelected.includes(p.id) ? '#fff3e0' : 'transparent',
+                                            cursor: 'pointer',
+                                            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                        }}>
+                                        <div>
+                                            <div style={{ fontWeight: 'bold' }}>{p.year} Round {p.round}</div>
+                                            <div style={{ fontSize: '0.8rem', color: '#666' }}>From: {p.originalTeamName || 'Unknown'}</div>
+                                        </div>
+                                        <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(getDraftPickValue(p, currentYear, opponentTeam || null))}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* AI Team Col */}
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', border: '1px solid #eee', borderRadius: '8px', padding: '10px' }}>
+                            <h3 style={{ borderBottom: '2px solid #333', paddingBottom: '5px' }}>{opponentTeam?.abbreviation} Assets</h3>
+                            {opponentTeam && <TradeFinancialHelper team={opponentTeam} selectedPlayerIds={aiSelected} incomingSalary={aiIncoming} title={opponentTeam.abbreviation} />}
+                            <div style={{ overflowY: 'auto', flex: 1 }}>
+                                <h4 style={{ margin: '5px 0', fontSize: '0.9rem', color: '#666' }}>Players</h4>
+                                {aiRoster.map(p => {
+                                    const contract = getPlayerContract(p.id);
+                                    return (
+                                        <div key={p.id}
+                                            onClick={() => toggleAiPlayer(p.id)}
+                                            style={{
+                                                padding: '8px',
+                                                borderBottom: '1px solid #f0f0f0',
+                                                background: aiSelected.includes(p.id) ? '#eee' : 'transparent',
+                                                cursor: 'pointer',
+                                                display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                            }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <div
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onSelectPlayer(p.id);
+                                                    }}
+                                                    style={{
+                                                        padding: '4px',
+                                                        borderRadius: '50%',
+                                                        cursor: 'pointer',
+                                                        color: '#666',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        zIndex: 5
+                                                    }}
+                                                >
+                                                    <Info size={16} />
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontWeight: 'bold' }}>{p.firstName} {p.lastName}</div>
+                                                    <div style={{ fontSize: '0.8rem', color: '#666' }}>
+                                                        {p.position} • {p.age}yo • <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{calculateOverall(p)} OVR</span>
+                                                    </div>
+                                                    {contract && (
+                                                        <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '2px' }}>
+                                                            {formatMoney(contract.amount)} / {contract.yearsLeft}y
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(getPlayerTradeValue(p, opponentTeam, contracts, aiRoster))}</div>
+                                        </div>
+                                    );
+                                })}
+                                <h4 style={{ margin: '10px 0 5px 0', fontSize: '0.9rem', color: '#666' }}>Draft Picks</h4>
+                                {(opponentTeam?.draftPicks || []).map(p => (
+                                    <div key={p.id}
+                                        onClick={() => toggleAiPick(p.id)}
+                                        style={{
+                                            padding: '8px',
+                                            borderBottom: '1px solid #f0f0f0',
+                                            background: aiPickSelected.includes(p.id) ? '#d1e7dd' : 'transparent', // clearly distinct green tint
+                                            borderLeft: aiPickSelected.includes(p.id) ? '4px solid #198754' : '4px solid transparent',
+                                            cursor: 'pointer',
+                                            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                        }}>
+                                        <div>
+                                            <div style={{ fontWeight: 'bold' }}>{p.year} Round {p.round}</div>
+                                            <div style={{ fontSize: '0.8rem', color: '#666' }}>From: {p.originalTeamName || 'Unknown'}</div>
+                                        </div>
+                                        <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(getDraftPickValue(p, currentYear, opponentTeam || null))}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                        {feedback && (
+                            <div style={{
+                                marginBottom: '10px',
+                                padding: '10px',
+                                background: feedback.includes('accept') || feedback.includes('Completed') ? '#d4edda' : '#f8d7da',
+                                color: feedback.includes('accept') || feedback.includes('Completed') ? '#155724' : '#721c24',
+                                borderRadius: '4px'
+                            }}>
+                                {feedback}
+                            </div>
+                        )}
+                        <button
+                            onClick={handlePropose}
+                            disabled={userSelected.length === 0 && aiSelected.length === 0 && userPickSelected.length === 0 && aiPickSelected.length === 0}
+                            style={{
+                                padding: '15px 40px',
+                                background: 'var(--primary)',
+                                color: 'white',
+                                fontSize: '1.2rem',
+                                border: 'none',
+                                borderRadius: '50px',
+                                opacity: (userSelected.length === 0 && aiSelected.length === 0 && userPickSelected.length === 0 && aiPickSelected.length === 0) ? 0.5 : 1
+                            }}>
+                            Propose Trade
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

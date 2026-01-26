@@ -36,6 +36,12 @@ export function SaveLoadView({ mode, onClose }: SaveLoadViewProps) {
     }, []);
 
     const handleAction = async (slotId: number) => {
+        if (mode === 'save' && slots[slotId]) {
+            if (!confirm(`Overwrite existing save in Slot ${slotId}?`)) {
+                return;
+            }
+        }
+
         setIsLoading(true);
         try {
             if (mode === 'save') {
@@ -51,6 +57,7 @@ export function SaveLoadView({ mode, onClose }: SaveLoadViewProps) {
             }
         } catch (e) {
             console.error(e);
+            // Alert is handled in GameContext, but we ensure loading stops
         } finally {
             setIsLoading(false);
         }

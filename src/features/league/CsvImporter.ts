@@ -153,6 +153,8 @@ export const importNbaPlayers = async (teams: Team[], existingPlayers: Player[])
                 weight: parseInt(row.weight_kg) || 95,
                 personality: PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)],
                 attributes: attributes,
+                attributePotentials: { ...attributes }, // Default potentials to current stats + some room ideally, but simple Clone for now is safe foundation
+                archetype: 'Balanced', // Default for CSV import if we don't have enough data to derive properly yet, or we can use the helper if we import it
                 overall: parseInt(row.overall) || 75,
                 teamId: teamId,
                 minutes: 0,
