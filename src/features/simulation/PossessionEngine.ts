@@ -940,6 +940,33 @@ export function resolveShot(shooter: Player, assister: Player | undefined, ctx: 
     let shotRating = isThree ? attr.threePointShot : attr.midRange;
     if (driveDunkChance) shotRating = attr.finishing;
 
+    // ASSIST DECAY (User Request: "Lower assists a bit")
+    // Not every pass leading to a score is an assist. NBA Rule: "Basketball Move" wipes assist.
+    // We simulate this based on Shot Type.
+    if (assister) {
+        let keepAssistChance = 1.0;
+
+        if (driveDunkChance) {
+            keepAssistChance = 0.4; // Drives are mostly ISO (60% unassisted)
+        } else if (!isThree) {
+            keepAssistChance = 0.5; // Mid-range is often Pull-up (50% unassisted)
+        } else {
+            keepAssistChance = 0.95; // 3PT is mostly Catch & Shoot (5% unassisted)
+        }
+
+        // Context Modifiers
+        // Bad passes force receiver to ISO -> Wipes assist
+        if (assister.attributes.playmaking < 60) keepAssistChance -= 0.3;
+
+        // Elite passes lead directly to score -> Keeps assist
+        if (assister.attributes.playmaking > 85) keepAssistChance += 0.2;
+
+        // Roll
+        if (Math.random() > keepAssistChance) {
+            assister = undefined; // Assist Wiped (Self-Created Score)
+        }
+    }
+
     // --- FOUL LOGIC ---
     // TUNING: Reduced Foul Rates to increase FGA flow (User Request: 90-100 FGA)
     let foulChance = 0.05; // Was 0.12
