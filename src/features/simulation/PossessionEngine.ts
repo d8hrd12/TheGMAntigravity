@@ -1034,9 +1034,13 @@ export function resolveShot(shooter: Player, assister: Player | undefined, ctx: 
     if (shooter.overall > 90) chance += 5;
 
     // DIMER BONUS (Creative Assist)
+    // Smoothed bonus to help "OK" playmakers contribute
     if (assister) {
-        if (assister.attributes.playmaking > 90) chance += 10;
-        else if (assister.attributes.playmaking > 80) chance += 5;
+        // Scale: 60 PM -> 0%, 80 PM -> 6%, 100 PM -> 12%
+        // Formula: (PM - 60) * 0.3
+        const pm = assister.attributes.playmaking;
+        const bonus = Math.max(0, (pm - 60) * 0.3);
+        chance += bonus;
     }
 
     // GLOBAL NERF: 10% reduction to final percentage (Suggestion 3 - Was 20% to reduce miss volume)

@@ -216,6 +216,12 @@ export const calculateTendencies = (player: Player, minutes: number = 0, teammat
         wPass = passSkill; // Ignore bias if incompetent
     }
 
+    // LOW PLAYMAKING PENALTY: Override everything for pure scorers (<60)
+    // This ensures they barely create assists (1-2 APG)
+    if (attr.playmaking < 60) {
+        wPass = passSkill * 0.15; // 15% of skill (CRUSHED)
+    }
+
     // Normalize weights
     wShoot = Math.max(10, wShoot);
     wPass = Math.max(10, wPass);
