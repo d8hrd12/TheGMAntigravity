@@ -185,7 +185,8 @@ export const calculateTendencies = (player: Player, minutes: number = 0, teammat
 
     // 2. Base Skill Ratings
     const shootSkill = (attr.finishing + attr.midRange + attr.threePointShot) / 3;
-    const passSkill = (attr.playmaking + attr.basketballIQ + attr.ballHandling) / 3;
+    // Playmaking is the PRIMARY factor (60%), IQ helps (30%), ball handling minor (10%)
+    const passSkill = (attr.playmaking * 0.6) + (attr.basketballIQ * 0.3) + (attr.ballHandling * 0.1);
 
     // 3. Team Context Adjustment
     // "In a team full of scorers pass more... No scorers lean on scoring"
