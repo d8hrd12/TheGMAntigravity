@@ -127,7 +127,7 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
                 if (Math.random() < risk * 0.1) return createTurnover(handler, ctx, events, currentTime);
             }
 
-            const receiver = selectReceiver(handler, ctx);
+            const receiver = selectReceiver(handler, ctx, lastPasser);
 
             // TERRITORY RESET (User Request: Wings always receive in 3PT)
             // "Wings (SG/SF) always receive ball in '3PT' territory."
@@ -535,7 +535,7 @@ function selectBallHandler(lineup: Player[], strategy: TeamStrategy): Player {
     return bestPlayer;
 }
 
-export function selectReceiver(handler: Player, ctx: PossessionContext): Player {
+export function selectReceiver(handler: Player, ctx: PossessionContext, lastPasser?: Player): Player {
     const teammates = ctx.offenseLineup.filter(p => p.id !== handler.id);
 
     // HIERARCHY AWARENESS
@@ -570,6 +570,12 @@ export function selectReceiver(handler: Player, ctx: PossessionContext): Player 
         let weightA = sA ? sA.maxThreat : 70;
         let weightB = sB ? sB.maxThreat : 70;
 
+        // PING-PONG PREVENTION
+        // Heavily penalize passing back to the player who just passed to you
+        // This prevents A→B→A loops (star passes to role player, role player passes back)
+        if (lastPasser && a.id === lastPasser.id) weightA -= 200;
+        if (lastPasser && b.id === lastPasser.id) weightB -= 200;
+
         // HIERARCHY BONUS (The "Feed the Star" Rule) - MASSIVELY NERFED
         // Shifting 10% more production to role players by softening this bonus.
         if (a.id === rank1Id) weightA += 5; // Was 10.
@@ -601,7 +607,7 @@ export function decideAction(handler: Player, ctx: PossessionContext, territory:
     // We enforce ball movement on a percentage of plays regardless of who has the ball.
     // Exception: Late Clock (< 6 seconds).
     const isLateClock = (ctx.shotClock || 24) < 6;
-    const flowPassChance = 0.45; // Increased from 40% to force even more ball movement
+    const flowPassChance = 0.25; // Reduced from 45% to allow tendencies to matter more
 
     // If not late clock, roll for System Compliance
     if (!isLateClock && Math.random() < flowPassChance) {
@@ -638,8 +644,13 @@ export function decideAction(handler: Player, ctx: PossessionContext, territory:
     let intent: 'SCORE' | 'PASS' = 'PASS';
 
     if (wantsToScore && wantsToPass) {
-        // Dual threat scenario: 50/50 split to keep production balanced.
-        intent = Math.random() < 0.5 ? 'SCORE' : 'PASS';
+        // Dual threat scenario: Weight by tendency strength instead of 50/50
+        // Example: 83 passing vs 72 shooting → 53.5% pass, 46.5% score
+        const scoreWeight = t.shooting * shootBias;
+        const passWeight = t.passing * passBias;
+        const totalWeight = scoreWeight + passWeight;
+
+        intent = Math.random() < (passWeight / totalWeight) ? 'PASS' : 'SCORE';
     } else if (wantsToScore) {
         intent = 'SCORE';
     } else if (wantsToPass) {
