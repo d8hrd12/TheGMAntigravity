@@ -1272,8 +1272,9 @@ export function resolveRebound(ctx: PossessionContext, events: GameEvent[], time
     ctx.offenseLineup.forEach(p => {
         let skill = p.attributes.offensiveRebound;
 
-        // COMPRESSION + OFFENSE DIFFICULTY (increased from 0.85 to 1.0, +20 instead of +15)
-        let threshold = ((100 - skill) * 1.0 + 15) + 20;
+        // COMPRESSION + OFFENSE DIFFICULTY (Reduced from +20 to +10 to allow Off Rebels to win)
+        // This forces teams to have GOOD defensive rebounders, otherwise they lose the board.
+        let threshold = ((100 - skill) * 1.0 + 15) + 10;
 
         // O-REBOUND CAP (lowered from 6 to 4 for faster pace)
         if (ctx.getStats) {
