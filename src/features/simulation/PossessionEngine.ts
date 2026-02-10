@@ -1269,15 +1269,16 @@ export function resolveRebound(ctx: PossessionContext, events: GameEvent[], time
         const stats = ctx.getStats(winner.player.id);
         const totalRebs = stats ? (stats.defensiveRebounds + stats.offensiveRebounds) : 0;
 
-        // If capped (>10) and we have a runner-up
-        if (totalRebs > 10 && candidates.length > 1) {
-            const runnerUp = candidates[1];
-            // Check if runner-up is a teammate (same team)
-            if (winner.isDef === runnerUp.isDef) {
-                // Give it to the runner-up!
-                // This simulates the center boxing out and the guard cleaning up,
-                // or just general stat distribution.
-                winner = runnerUp;
+        // If capped (>10), look for ANY teammate to take it (Westbrook/Jokic rule)
+        if (totalRebs > 10) {
+            // Find best teammate (skip index 0 which is winner)
+            const teammate = candidates.find((c, i) => i > 0 && c.isDef === winner.isDef);
+
+            if (teammate) {
+                // Give it to the teammate!
+                // This prevents elite rebounders from hoarding stats once they hit their cap.
+                // The TEAM still secures the rebound, but the STAT is distributed.
+                winner = teammate;
             }
         }
     }
