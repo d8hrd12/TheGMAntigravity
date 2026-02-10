@@ -160,7 +160,7 @@ export function generatePlayer(forcedPosition?: Position, forcedTier?: 'star' | 
         if (rand <= 0.25) tier = 'bench';
     }
 
-    const { current, potential: potentialAttrs, archetype } = generateAttributes(position, tier);
+    const { current, archetype } = generateAttributes(position, tier);
     const tendencies = deriveTendenciesFromAttributes(current, position);
     const finalArchetype = deriveArchetypeName(current, tendencies, position);
     const age = tier === 'prospect' ? randomInt(18, 22) : randomInt(20, 35);
@@ -207,7 +207,6 @@ export function generatePlayer(forcedPosition?: Position, forcedTier?: 'star' | 
         weight,
         personality: PERSONALITIES[randomInt(0, PERSONALITIES.length - 1)],
         attributes: current,
-        attributePotentials: potentialAttrs, // Saved here!
         archetype: finalArchetype,
         tendencies,
         morale: 80,

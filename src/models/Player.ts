@@ -65,18 +65,6 @@ export interface Player {
 
     attributes: PlayerAttributes;
     previousAttributes?: PlayerAttributes; // For tracking progression
-    attributePotentials?: PlayerAttributes; // The ceiling for each individual stat
-    archetype: string;
-
-    // Tendencies (Behavioral) - v2 Model
-    tendencies: {
-        shooting: number; // 45-100: Calculated from Skills + Role
-        passing: number;  // 45-100: Calculated from Skills + Role
-        inside: number;   // 45-100: Derived from Shooting Ratio
-        outside: number;  // 45-100: Derived from Shooting Ratio
-        defensiveAggression: number;
-        foulTendency: number;
-    };
 
     // Dynamic
     morale: number; // 0-100
@@ -91,11 +79,26 @@ export interface Player {
     jerseyNumber: number;
     teamId: string | null;
 
+    // Tendencies (Behavioral) - v2 Model
+    tendencies: {
+        shooting: number; // 45-100: Calculated from Skills + Role
+        passing: number;  // 45-100: Calculated from Skills + Role
+        inside: number;   // 45-100: Derived from Shooting Ratio
+        outside: number;  // 45-100: Derived from Shooting Ratio
+
+        // Legacy/Detail (Optional - Can keep or derive)
+        // For now, minimal set as requested. We can expand if needed.
+        // We will keep 'defensiveAggression' etc as they don't conflict.
+        defensiveAggression: number;
+        foulTendency: number;
+    };
+
     // Rotation / Coaching
     minutes: number; // Target minutes per game (0-48)
     isStarter: boolean;
     rotationIndex?: number; // 0-based index for rotation order
     potential: number;
+    archetype?: string;
     loveForTheGame: number;
     badges?: Record<string, 'bronze' | 'silver' | 'gold' | 'hall_of_fame'>;
     isHallOfFame?: boolean;

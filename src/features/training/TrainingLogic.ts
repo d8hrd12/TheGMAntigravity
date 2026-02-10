@@ -104,28 +104,11 @@ export const calculateProgression = (player: Player, focus: TrainingFocus): { up
             const portion = (weight / totalWeight) * attributePool;
 
             // Apply noise
-            let actualGain = portion * ((Math.random() * 0.5) + 0.75);
-
-            // CAP LOGIC
-            // If we have specific attribute potentials, enforce them
-            const currentVal = newAttributes[attr] || 50;
-            let cap = 99;
-
-            if (player.attributePotentials && player.attributePotentials[attr]) {
-                cap = player.attributePotentials[attr]!;
-            } else {
-                // Legacy Fallback: Cap at Current + 15 (Simulating natural ceiling)
-                cap = Math.min(99, currentVal + 15);
-            }
-
-            // SOFT CAP: If exceeding potential, slash gains by 90%
-            if (currentVal >= cap) {
-                actualGain *= 0.1;
-                // Hard Cap at Cap + 5 (Absolute maximum breakthrough)
-                if (currentVal >= cap + 5) actualGain = 0;
-            }
+            const actualGain = portion * ((Math.random() * 0.5) + 0.75);
 
             if (actualGain > 0) {
+                const currentVal = newAttributes[attr] || 50; // default safety
+                // Cap at 99
                 newAttributes[attr] = Math.min(99, currentVal + actualGain);
             }
         });

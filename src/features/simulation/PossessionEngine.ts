@@ -103,7 +103,9 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
         // OR Is this a "Swing Pass" (Routine ball movement)?
         // User Request: "Safe Swing" -> Routine 'PASS' bypass defense roll.
         // If passes > 0, we assume ball is swinging.
-        // MODIFIED: We reduced the massive immunity. Swings are safer, but not immune.
+        // We apply massive bonus to OFFENSE (Target goes UP).
+        // Mod -60 (from before) made Target 135 (Safe).
+        // Let's apply -75 for swings.
         let defenseModifier = 0;
         if (safePass) defenseModifier = -60;
         else if (passes > 0) defenseModifier = -75; // Safe Swing
@@ -115,37 +117,30 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
         if (defenseResult) return defenseResult;
 
         // 2. Decide Action
-        const nextAction = decideAction(handler, ctx, territory, passes);
+        const action = decideAction(handler, ctx, territory);
 
-        // 3. Resolution (Legacy Logic Restored)
-        // Turnover Check (Bad Pass) - Only applies to low playmaking
-        if (nextAction === 'PASS') {
+        // 3. Resolution
+        if (action === 'PASS') {
+            // Turnover Check (Bad Pass)
             if (handler.attributes.playmaking < 60) {
                 const risk = (70 - handler.attributes.playmaking) / 100;
                 if (Math.random() < risk * 0.1) return createTurnover(handler, ctx, events, currentTime);
             }
-        }
 
-        if (nextAction === 'PASS') {
             const receiver = selectReceiver(handler, ctx);
-            if (!receiver) {
-                // No receiver found, handler must shoot
-                const res = resolveShot(handler, lastPasser, ctx, events, currentTime);
-                if (res.endType === 'TURNOVER' && res.events.some(e => e.id?.includes('cap_defer'))) {
-                    // Capped -> Recycle
-                    passes++;
-                    handler = selectReceiver(handler, ctx); // Try to find another receiver
-                    safePass = true; // Safety Valve
-                    if (passes >= MAX_PASSES) return res; // Fallback
-                    continue;
-                }
-                return res;
+
+            // TERRITORY RESET (User Request: Wings always receive in 3PT)
+            // "Wings (SG/SF) always receive ball in '3PT' territory."
+            if (receiver.position === 'SG' || receiver.position === 'SF' || receiver.position === 'PG') {
+                territory = '3PT';
+            } else {
+                territory = getReceiverTerritory(receiver);
             }
 
             events.push({
-                id: `evt_${Date.now()}_pass`,
+                id: `evt_${Date.now()}_pass_${passes}`,
                 type: 'action',
-                text: `${handler.lastName} passes to ${receiver.lastName}.`,
+                text: `${handler.lastName} passes to ${receiver.lastName} (${territory}).`,
                 teamId: ctx.offenseTeam.id,
                 gameTime: currentTime,
                 possessionId: currentTime
@@ -157,7 +152,7 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
             currentTime -= 1; // Passes take time
             // Loop continues...
 
-        } else if (nextAction === 'KICK_OUT') {
+        } else if (action === 'KICK_OUT') {
             // Logic: Pick One SG/SF (3pt) and One C/PF (Fin).
             // High IQ > 70 chooses BEST. Low IQ chooses RANDOM.
             // Target gets +15% Boost.
@@ -231,7 +226,7 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
                 return res;
             }
 
-        } else if (nextAction === 'PICK_AND_ROLL') {
+        } else if (action === 'PICK_AND_ROLL') {
             // Terminating Action
             const screeners = ctx.offenseLineup.filter(p => p.position === 'C' || p.position === 'PF');
             let screener = screeners[0];
@@ -279,7 +274,7 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
                 return res;
             }
 
-        } else if (nextAction === 'DRIVE') {
+        } else if (action === 'DRIVE') {
             // Successful Drive -> Layup/Dunk
             const res = resolveShot(handler, lastPasser, ctx, events, currentTime - 1, 0, true);
             if (res.endType === 'TURNOVER' && res.events.some(e => e.id?.includes('cap_defer'))) {
@@ -318,7 +313,11 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
  */
 function attemptDefenseRoll(defender: Player, handler: Player, ctx: PossessionContext, events: GameEvent[], time: number, modifier: number = 0): PossessionResult | null {
     // 1. The Roll
-
+    // SAFE PASS EXIT (User Request: "Safe Swing")
+    // If the modifier is massive (e.g. -75), it means the pass is routine.
+    // We shouldn't even risk a Foul (Roll < 20).
+    // Safe means Safe.
+    if (modifier <= -50) return null;
 
     // 1. The Roll
     const roll = Math.floor(Math.random() * 100); // 0-99 (Close enough to d100)
@@ -587,7 +586,7 @@ export function selectReceiver(handler: Player, ctx: PossessionContext): Player 
 }
 
 
-export function decideAction(handler: Player, ctx: PossessionContext, territory: Territory = '3PT', passes: number = 0): ActionType {
+export function decideAction(handler: Player, ctx: PossessionContext, territory: Territory = '3PT'): ActionType {
     // 1. FLOW OFFENSE CHECK (Coaching System)
     // "Not every possession allows the handler to Iso".
     // We enforce ball movement on a percentage of plays regardless of who has the ball.
@@ -671,11 +670,6 @@ export function decideAction(handler: Player, ctx: PossessionContext, territory:
         const defender = ctx.defenseLineup.find(p => p.position === handler.position) || ctx.defenseLineup[0];
         const perimeterDef = defender.attributes.perimeterDefense;
 
-        // BALL MOVEMENT BONUS:
-        // Each pass shifts the defense, granting a bonus to the "Open Look" check.
-        // +4 per pass. 3 passes = +12 to Attribute Check.
-        const movementBonus = passes * 4;
-
         // Determine MODE based on Inside/Outside Tendencies
         // Normalize range
         const totalPref = t.inside + t.outside; // e.g. 70 + 90 = 160
@@ -684,7 +678,7 @@ export function decideAction(handler: Player, ctx: PossessionContext, territory:
         if (Math.random() < outsideRatio) {
             // TARGET: PERIMETER (Shoot 3/Mid)
             // Physics Check: Can he get the shot off?
-            const attRating = handler.attributes.threePointShot + movementBonus;
+            const attRating = handler.attributes.threePointShot;
 
             // "Weak Defense" Bonus (Att > Def)
             if (attRating > perimeterDef) {
@@ -701,7 +695,7 @@ export function decideAction(handler: Player, ctx: PossessionContext, territory:
 
         // TARGET: DRIVE (Inside)
         // Physics Check: Blow-by
-        const driveRating = ((handler.attributes.playmaking + handler.attributes.ballHandling) / 2) + movementBonus;
+        const driveRating = (handler.attributes.playmaking + handler.attributes.ballHandling) / 2;
 
         if (driveRating > perimeterDef) {
             // Beat the perimeter defender.
@@ -773,8 +767,8 @@ function checkUsageCap(handler: Player, ctx: PossessionContext): boolean {
 
 function checkPassingOptions(handler: Player, ctx: PossessionContext): ActionType | null {
     // 3b) Pick and Roll Check (Priority)
-    // "Requirements are ball handler iq > 60 and playmaking > 65" (Previously 70/80 - too strict)
-    if (handler.attributes.basketballIQ > 60 && handler.attributes.playmaking > 65) {
+    // "Requirements are ball handler iq > 70 and playmaking > 80"
+    if (handler.attributes.basketballIQ > 70 && handler.attributes.playmaking > 80) {
         // Check for Big
         const hasBig = ctx.offenseLineup.some(p => (p.position === 'C' || p.position === 'PF') && p.id !== handler.id);
         if (hasBig) {
@@ -1156,9 +1150,9 @@ function resolveFreeThrows(shooter: Player, count: number, ctx: PossessionContex
 }
 
 export function resolveRebound(ctx: PossessionContext, events: GameEvent[], time: number): PossessionResult {
-    // SUGGESTION 1: Team Rebound / Dead Ball (35% chance - Increased from 25% to soak up extra misses)
+    // SUGGESTION 1: Team Rebound / Dead Ball (25% chance)
     // "awards no individual stat, awards to team - prevents inflation"
-    if (Math.random() < 0.35) {
+    if (Math.random() < 0.25) {
         const isDef = Math.random() < 0.8; // 80% go to defense usually on loose balls
         const team = isDef ? ctx.defenseTeam : ctx.offenseTeam;
 

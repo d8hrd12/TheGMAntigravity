@@ -66,8 +66,5 @@ export interface Team {
 
     // Strategy
     tactics?: import('../features/simulation/TacticsTypes').TeamStrategy;
-
-    // Trading
-    tradingBlock?: { playerId: string; askingPriceDescription: string }[];
-    teamNeeds?: string[]; // e.g. "Rebounding", "Playmaker", "Draft Picks"
+    // coachSettings?: CoachStrategy; // DEPRECATED
 }

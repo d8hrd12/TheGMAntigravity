@@ -6,8 +6,6 @@ import type { Contract } from '../models/Contract';
 import type { DraftPick } from '../models/DraftPick';
 import type { NewsStory } from '../models/NewsStory';
 import { generatePlayer } from '../features/player/playerGenerator';
-import { generateMockDraftClass } from '../features/draft/DraftClassGenerator';
-import { updateLeagueTradingBlocks } from '../features/trade/TradeBlockLogic';
 import { seedRealRosters } from '../features/player/rosterSeeder';
 import type { SocialMediaPost } from '../models/SocialMediaPost';
 
@@ -1463,22 +1461,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
             });
 
 
-            // 3. Initialize Scouting Points (Dynamic Budget)
+            // 3. Initialize Scouting Points
             const scoutingPoints: Record<string, number> = {};
             const scoutingReports: Record<string, Record<string, { points: number, isPotentialRevealed: boolean }>> = {};
 
-            // Sort entire league by wins (ascending) -> Worst teams first
-            const leagueStandings = [...updatedTeams].sort((a, b) => (a.wins || 0) - (b.wins || 0));
+            const westTeams = updatedTeams.filter(t => t.conference === 'West').sort((a, b) => (b.wins || 0) - (a.wins || 0));
+            const eastTeams = updatedTeams.filter(t => t.conference === 'East').sort((a, b) => (b.wins || 0) - (a.wins || 0));
 
-            leagueStandings.forEach((team, index) => {
-                let points = 20; // Base for Playoff Teams
-
-                if (index < 5) {
-                    points = 80; // Top 5 Worst Records (High Lottery)
-                } else if (index < 14) {
-                    points = 40; // Rest of Lottery (approx)
-                }
-
+            [...westTeams, ...eastTeams].forEach((team) => {
+                const confTeams = team.conference === 'West' ? westTeams : eastTeams;
+                const rank = confTeams.findIndex(t => t.id === team.id);
+                const points = rank < 8 ? 15 : 20;
                 scoutingPoints[team.id] = points;
                 scoutingReports[team.id] = {};
             });
@@ -2600,19 +2593,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 return checkedPlayer;
             });
 
-            // 4.5 MONTHLY TRADING BLOCK UPDATE
-            let teamsForTradeSim = [...updatedTeams];
-            if (nextDate.getDate() === 1) {
-                teamsForTradeSim = updateLeagueTradingBlocks(
-                    teamsForTradeSim,
-                    finalUpdatedPlayers,
-                    prev.contracts,
-                    prev.userTeamId
-                );
-            }
-
             // 5. DAILY AI TRADES (Post-Game Execution)
-            let postTradeTeams = [...teamsForTradeSim];
+            let postTradeTeams = [...updatedTeams];
             let postTradePlayers = [...finalUpdatedPlayers];
             let postTradeContracts = [...prev.contracts];
             let newTradeHistory = [...(prev.tradeHistory || [])];
@@ -3770,16 +3752,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             }
         } catch (error) {
             console.error("Save Failed:", error);
-            let msg = "Unknown Error";
-            if (error instanceof DOMException && error.name === 'DataCloneError') {
-                msg = "Data is too complex to save (DataCloneError). This usually means circular references in the state.";
-            } else if (error instanceof Error) {
-                msg = error.message;
-            } else {
-                msg = String(error);
-            }
-            alert("Save Failed: " + msg);
-            throw error; // Re-throw to propagate to UI
+            alert("Save Failed: " + (error instanceof Error ? error.message : String(error)));
         }
     };
 

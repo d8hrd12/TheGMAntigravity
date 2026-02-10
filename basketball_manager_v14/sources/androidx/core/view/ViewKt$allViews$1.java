@@ -1,0 +1,71 @@
+package androidx.core.view;
+
+import android.view.View;
+import android.view.ViewGroup;
+import kotlin.Metadata;
+import kotlin.ResultKt;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
+import kotlin.coroutines.intrinsics.IntrinsicsKt;
+import kotlin.coroutines.jvm.internal.DebugMetadata;
+import kotlin.coroutines.jvm.internal.RestrictedSuspendLambda;
+import kotlin.jvm.functions.Function2;
+import kotlin.sequences.SequenceScope;
+
+@Metadata(d1 = {"\u0000\u000e\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\b\u0012\u0004\u0012\u00020\u00030\u0002H\n"}, d2 = {"<anonymous>", "", "Lkotlin/sequences/SequenceScope;", "Landroid/view/View;"}, k = 3, mv = {2, 0, 0}, xi = 48)
+@DebugMetadata(c = "androidx.core.view.ViewKt$allViews$1", f = "View.kt", i = {0}, l = {410, 412}, m = "invokeSuspend", n = {"$this$sequence"}, s = {"L$0"})
+/* compiled from: View.kt */
+final class ViewKt$allViews$1 extends RestrictedSuspendLambda implements Function2<SequenceScope<? super View>, Continuation<? super Unit>, Object> {
+    final /* synthetic */ View $this_allViews;
+    private /* synthetic */ Object L$0;
+    int label;
+
+    /* JADX INFO: super call moved to the top of the method (can break code semantics) */
+    ViewKt$allViews$1(View view, Continuation<? super ViewKt$allViews$1> continuation) {
+        super(2, continuation);
+        this.$this_allViews = view;
+    }
+
+    public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
+        ViewKt$allViews$1 viewKt$allViews$1 = new ViewKt$allViews$1(this.$this_allViews, continuation);
+        viewKt$allViews$1.L$0 = obj;
+        return viewKt$allViews$1;
+    }
+
+    public final Object invoke(SequenceScope<? super View> sequenceScope, Continuation<? super Unit> continuation) {
+        return ((ViewKt$allViews$1) create(sequenceScope, continuation)).invokeSuspend(Unit.INSTANCE);
+    }
+
+    public final Object invokeSuspend(Object $result) {
+        SequenceScope $this$sequence;
+        Object coroutine_suspended = IntrinsicsKt.getCOROUTINE_SUSPENDED();
+        switch (this.label) {
+            case 0:
+                ResultKt.throwOnFailure($result);
+                $this$sequence = (SequenceScope) this.L$0;
+                this.L$0 = $this$sequence;
+                this.label = 1;
+                if ($this$sequence.yield(this.$this_allViews, this) == coroutine_suspended) {
+                    return coroutine_suspended;
+                }
+                break;
+            case 1:
+                $this$sequence = (SequenceScope) this.L$0;
+                ResultKt.throwOnFailure($result);
+                break;
+            case 2:
+                ResultKt.throwOnFailure($result);
+                break;
+            default:
+                throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+        }
+        if (this.$this_allViews instanceof ViewGroup) {
+            this.L$0 = null;
+            this.label = 2;
+            if ($this$sequence.yieldAll(ViewGroupKt.getDescendants((ViewGroup) this.$this_allViews), (Continuation<? super Unit>) this) == coroutine_suspended) {
+                return coroutine_suspended;
+            }
+        }
+        return Unit.INSTANCE;
+    }
+}

@@ -1,0 +1,66 @@
+package androidx.webkit.internal;
+
+import androidx.webkit.Navigation;
+import androidx.webkit.Page;
+import org.chromium.support_lib_boundary.WebViewNavigationBoundaryInterface;
+import org.chromium.support_lib_boundary.WebViewPageBoundaryInterface;
+import org.chromium.support_lib_boundary.util.BoundaryInterfaceReflectionUtil;
+
+public class NavigationAdapter implements Navigation {
+    WebViewNavigationBoundaryInterface mImpl;
+    PageImpl mPage;
+
+    public NavigationAdapter(WebViewNavigationBoundaryInterface impl) {
+        this.mImpl = impl;
+    }
+
+    public Page getPage() {
+        if (this.mImpl.getPage() == null) {
+            return null;
+        }
+        if (this.mPage == null) {
+            this.mPage = new PageImpl((WebViewPageBoundaryInterface) BoundaryInterfaceReflectionUtil.castToSuppLibClass(WebViewPageBoundaryInterface.class, this.mImpl.getPage()));
+        }
+        return this.mPage;
+    }
+
+    public boolean wasInitiatedByPage() {
+        return this.mImpl.wasInitiatedByPage();
+    }
+
+    public boolean isSameDocument() {
+        return this.mImpl.isSameDocument();
+    }
+
+    public boolean isReload() {
+        return this.mImpl.isReload();
+    }
+
+    public boolean isHistory() {
+        return this.mImpl.isHistory();
+    }
+
+    public boolean isRestore() {
+        return this.mImpl.isRestore();
+    }
+
+    public boolean isBack() {
+        return this.mImpl.isBack();
+    }
+
+    public boolean isForward() {
+        return this.mImpl.isForward();
+    }
+
+    public boolean didCommit() {
+        return this.mImpl.didCommit();
+    }
+
+    public boolean didCommitErrorPage() {
+        return this.mImpl.didCommitErrorPage();
+    }
+
+    public int getStatusCode() {
+        return this.mImpl.getStatusCode();
+    }
+}
