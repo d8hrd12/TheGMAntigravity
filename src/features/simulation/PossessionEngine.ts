@@ -303,7 +303,7 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
     // If capped here, we must accept the TO or Force BAD SHOT?
     // Let's accept Result (TO).
     // Forced Shot (Bypass Cap)
-    return resolveShot(handler, undefined, ctx, events, currentTime, 0, false, true);
+    return resolveShot(handler, lastPasser, ctx, events, currentTime, 0, false, true);
 }
 
 /**
