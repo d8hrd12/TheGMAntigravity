@@ -977,7 +977,7 @@ export function resolveShot(shooter: Player, assister: Player | undefined, ctx: 
 
         if (blocker && blockScore > 60) {
             // REDUCED BLOCK CHANCE (Was /800, now /400 to boost blocks)
-            const blockChance = (blockScore - 50) / 400;
+            const blockChance = (blockScore - 50) / 400 * 0.8;  // Reduced by 20% for scoring boost
             if (Math.random() < blockChance) {
                 // BLOCKED
                 events.push({
@@ -1006,26 +1006,22 @@ export function resolveShot(shooter: Player, assister: Player | undefined, ctx: 
     let chance = 0;
 
     if (driveDunkChance) {
-        // INSIDE: High Percentage (Reduced from 58 to 48 for realism)
+        // INSIDE: High Percentage (Boosted to 55 for scoring)
         const skillBonus = (shotRating - 70) * 0.5;
-        chance = 48 + skillBonus + bonusPercent;
+        chance = 55 + skillBonus + bonusPercent;
         if (chance < 35) chance = 35;
         if (chance > 75) chance = 75;
     } else if (isThree) {
         // 3PT: Lower Percentage
-        // Soft cap with diminishing returns (no hard wall)
+        // Removed soft cap - let skill determine (elite shooters can reach 48-50%)
         const skillBonus = (shotRating - 70) * 0.8;
         chance = 25 + skillBonus + bonusPercent;
         if (chance < 20) chance = 20;
-        // Soft cap: 42% + 30% of excess (allows elite shooters to reach ~44-45%)
-        if (chance > 42) {
-            const excess = chance - 42;
-            chance = 42 + (excess * 0.3);
-        }
+        if (chance > 50) chance = 50;  // Hard cap at 50% for balance
     } else {
-        // MID-RANGE: Middle Percentage
+        // MID-RANGE: Middle Percentage (Boosted to 38 for scoring)
         const skillBonus = (shotRating - 70) * 0.6;
-        chance = 36 + skillBonus + bonusPercent; // Was 40 (Suggestion 3 compensation)
+        chance = 38 + skillBonus + bonusPercent;
         if (chance < 30) chance = 30;
         if (chance > 70) chance = 70;
     }
