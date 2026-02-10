@@ -746,12 +746,20 @@ function checkUsageCap(handler: Player, ctx: PossessionContext): boolean {
     const fga = stats.fgAttempted;
     const qtr = ctx.quarter;
     const ovr = calculateOverall(handler);
+    const minutesPlayed = stats.minutes;
 
-    // PROGRESSIVE HARD CAPS by OVR
-    let hardCap = 25; // Superstars
-    if (ovr < 75) hardCap = 15;      // Strict Role Player Cap
-    else if (ovr < 78) hardCap = 18; // Low Starter Cap
-    else if (ovr < 85) hardCap = 22; // High Starter Cap
+    // PROGRESSIVE HARD CAPS by OVR (base values for 48 minutes)
+    let baseHardCap = 25; // Superstars
+    if (ovr < 75) baseHardCap = 15;      // Strict Role Player Cap
+    else if (ovr < 78) baseHardCap = 18; // Low Starter Cap
+    else if (ovr < 85) baseHardCap = 22; // High Starter Cap
+
+    // MINUTES-BASED SCALING
+    // Scale the cap based on minutes played to prevent bench players from having star efficiency
+    // Example: 15 min player gets 15/48 = 31% of the cap (4.6 FGA for role player)
+    //          30 min player gets 30/48 = 62.5% of the cap (9.4 FGA for role player)
+    const minutesFactor = Math.min(1.0, minutesPlayed / 48);
+    const hardCap = Math.ceil(baseHardCap * minutesFactor);
 
     if (fga >= hardCap) {
         if (stats.consecutiveFieldGoalsMade >= 7) return true; // Heater Rule
@@ -1221,8 +1229,8 @@ export function resolveRebound(ctx: PossessionContext, events: GameEvent[], time
     ctx.offenseLineup.forEach(p => {
         let skill = p.attributes.offensiveRebound;
 
-        // COMPRESSION + OFFENSE DIFFICULTY (increased from 0.85 to 1.0)
-        let threshold = ((100 - skill) * 1.0 + 15) + 15;
+        // COMPRESSION + OFFENSE DIFFICULTY (increased from 0.85 to 1.0, +20 instead of +15)
+        let threshold = ((100 - skill) * 1.0 + 15) + 20;
 
         // O-REBOUND CAP
         if (ctx.getStats) {
