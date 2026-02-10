@@ -77,7 +77,7 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
     // multiplier scales this. 
     // Seven Seconds (1.25x) -> divide by 1.25 -> ~4.8-11.2s (Avg 8s)
     // Very Slow (0.85x) -> divide by 0.85 -> ~7-16.5s (Avg 11.7s)
-    const secondsDribble = Math.floor((Math.random() * 8 + 6) / paceMod);
+    const secondsDribble = Math.floor((Math.random() * 7 + 5) / paceMod);
 
     if (ctx.timeRemaining > 2800) {
         console.log(`[DEBUG] Time: ${ctx.timeRemaining} | Dribble: ${secondsDribble} | PaceMod: ${paceMod}`);
@@ -977,7 +977,7 @@ export function resolveShot(shooter: Player, assister: Player | undefined, ctx: 
 
         if (blocker && blockScore > 60) {
             // REDUCED BLOCK CHANCE (Was /800, now /400 to boost blocks)
-            const blockChance = (blockScore - 50) / 400 * 0.8;  // Reduced by 20% for scoring boost
+            const blockChance = (blockScore - 50) / 400;
             if (Math.random() < blockChance) {
                 // BLOCKED
                 events.push({
@@ -1006,22 +1006,26 @@ export function resolveShot(shooter: Player, assister: Player | undefined, ctx: 
     let chance = 0;
 
     if (driveDunkChance) {
-        // INSIDE: High Percentage (Boosted to 55 for scoring)
+        // INSIDE: High Percentage (Boosted to 50 for scoring balance)
         const skillBonus = (shotRating - 70) * 0.5;
-        chance = 55 + skillBonus + bonusPercent;
+        chance = 50 + skillBonus + bonusPercent;
         if (chance < 35) chance = 35;
         if (chance > 75) chance = 75;
     } else if (isThree) {
         // 3PT: Lower Percentage
-        // Removed soft cap - let skill determine (elite shooters can reach 48-50%)
+        // Soft cap with diminishing returns (no hard wall)
         const skillBonus = (shotRating - 70) * 0.8;
         chance = 25 + skillBonus + bonusPercent;
         if (chance < 20) chance = 20;
-        if (chance > 50) chance = 50;  // Hard cap at 50% for balance
+        // Soft cap: 42% + 40% of excess (allows elite shooters to reach ~45-46%)
+        if (chance > 42) {
+            const excess = chance - 42;
+            chance = 42 + (excess * 0.4);
+        }
     } else {
-        // MID-RANGE: Middle Percentage (Boosted to 38 for scoring)
+        // MID-RANGE: Middle Percentage
         const skillBonus = (shotRating - 70) * 0.6;
-        chance = 38 + skillBonus + bonusPercent;
+        chance = 36 + skillBonus + bonusPercent; // Was 40 (Suggestion 3 compensation)
         if (chance < 30) chance = 30;
         if (chance > 70) chance = 70;
     }
@@ -1220,9 +1224,10 @@ export function resolveRebound(ctx: PossessionContext, events: GameEvent[], time
         let threshold = (100 - skill) * 1.0 + 15;
 
         // REBOUND CAP (Diminishing Returns)
+        // Lowered from 13 to 10 to account for faster pace (more opportunities)
         if (ctx.getStats) {
             const stats = ctx.getStats(p.id);
-            if (stats && (stats.defensiveRebounds + stats.offensiveRebounds) > 13) {
+            if (stats && (stats.defensiveRebounds + stats.offensiveRebounds) > 10) {
                 threshold += 40;
             }
         }
@@ -1239,10 +1244,10 @@ export function resolveRebound(ctx: PossessionContext, events: GameEvent[], time
         // COMPRESSION + OFFENSE DIFFICULTY (increased from 0.85 to 1.0, +20 instead of +15)
         let threshold = ((100 - skill) * 1.0 + 15) + 20;
 
-        // O-REBOUND CAP
+        // O-REBOUND CAP (lowered from 6 to 4 for faster pace)
         if (ctx.getStats) {
             const stats = ctx.getStats(p.id);
-            if (stats && stats.offensiveRebounds > 6) {
+            if (stats && stats.offensiveRebounds > 4) {
                 threshold += 40;
             }
         }
@@ -1253,11 +1258,29 @@ export function resolveRebound(ctx: PossessionContext, events: GameEvent[], time
     });
 
     // 3. Sort by Margin (Highest wins)
-    // If multiple pass threshold, the one who passed by *most* wins.
-    // If nobody passes (all negative), the *least negative* wins (best effort).
     candidates.sort((a, b) => b.margin - a.margin);
 
-    const winner = candidates[0];
+    let winner = candidates[0];
+
+    // REBOUND SHARING (Fix for 20 RPG inflation)
+    // If the winner is already hoarding rebounds (Capped), and the runner-up is a teammate,
+    // let the teammate have it. This spreads stats without losing the rebound to the opponent.
+    if (ctx.getStats) {
+        const stats = ctx.getStats(winner.player.id);
+        const totalRebs = stats ? (stats.defensiveRebounds + stats.offensiveRebounds) : 0;
+
+        // If capped (>10) and we have a runner-up
+        if (totalRebs > 10 && candidates.length > 1) {
+            const runnerUp = candidates[1];
+            // Check if runner-up is a teammate (same team)
+            if (winner.isDef === runnerUp.isDef) {
+                // Give it to the runner-up!
+                // This simulates the center boxing out and the guard cleaning up,
+                // or just general stat distribution.
+                winner = runnerUp;
+            }
+        }
+    }
     const bestRebounder = winner.player;
     const reboundTeam = winner.team;
     const isDefReb = winner.isDef;
