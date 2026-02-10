@@ -169,11 +169,19 @@ export const calculateTendencies = (player: Player, minutes: number = 0, teammat
     else if (minutes < 15) budget = 80;
 
     // Talent-Based Scaling: Adjust budget based on OVR relative to league average (approx 76-78)
+    // Only give usage boost to perimeter players to prevent center dominance
     const ovr = calculateOverall(player);
-    if (ovr > 88) budget += 20;      // Superstars get extra usage
-    else if (ovr > 84) budget += 10; // Stars get extra usage
-    else if (ovr < 75) budget -= 15; // Role players lose usage
-    else if (ovr < 70) budget -= 30; // Bench players lose significant usage
+    const position = player.position;
+
+    if (ovr > 88 && (position === 'PG' || position === 'SG' || position === 'SF')) {
+        budget += 20;  // Superstars get extra usage (guards/wings only)
+    } else if (ovr > 84 && (position === 'PG' || position === 'SG' || position === 'SF')) {
+        budget += 10;  // Stars get extra usage (guards/wings only)
+    } else if (ovr < 75) {
+        budget -= 15;  // Role players lose usage
+    } else if (ovr < 70) {
+        budget -= 30;  // Bench players lose significant usage
+    }
 
     // 2. Base Skill Ratings
     const shootSkill = (attr.finishing + attr.midRange + attr.threePointShot) / 3;

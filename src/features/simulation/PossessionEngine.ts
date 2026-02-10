@@ -544,7 +544,16 @@ export function selectReceiver(handler: Player, ctx: PossessionContext): Player 
         const attr = p.attributes;
         const finishScore = (attr.finishing * 0.8) + (attr.athleticism * 0.2);
         const shootScore = (attr.threePointShot * 0.7) + (attr.midRange * 0.3);
-        const maxThreat = Math.max(finishScore, shootScore);
+
+        // Position-based threat weighting (prevents center dominance)
+        let maxThreat = 0;
+        if (p.position === 'C' || p.position === 'PF') {
+            maxThreat = (finishScore * 0.7) + (shootScore * 0.3);  // Bigs: 70% inside
+        } else if (p.position === 'PG' || p.position === 'SG') {
+            maxThreat = (finishScore * 0.2) + (shootScore * 0.8);  // Guards: 80% outside
+        } else {
+            maxThreat = (finishScore * 0.5) + (shootScore * 0.5);  // SFs: balanced
+        }
 
         return { id: p.id, maxThreat, finishScore, shootScore };
     });
@@ -978,18 +987,22 @@ export function resolveShot(shooter: Player, assister: Player | undefined, ctx: 
     let chance = 0;
 
     if (driveDunkChance) {
-        // INSIDE: High Percentage
+        // INSIDE: High Percentage (Reduced from 58 to 48 for realism)
         const skillBonus = (shotRating - 70) * 0.5;
-        chance = 58 + skillBonus + bonusPercent; // Was 65 (Suggestion 3 compensation)
-        if (chance < 40) chance = 40;
-        if (chance > 95) chance = 95;
+        chance = 48 + skillBonus + bonusPercent;
+        if (chance < 35) chance = 35;
+        if (chance > 75) chance = 75;
     } else if (isThree) {
         // 3PT: Lower Percentage
-        // Round 5 Cap: Max 50%.
-        const skillBonus = (shotRating - 70) * 0.8; // Moderated slope
-        chance = 25 + skillBonus + bonusPercent; // Was 28 (Suggestion 3 compensation)
+        // Soft cap with diminishing returns (no hard wall)
+        const skillBonus = (shotRating - 70) * 0.8;
+        chance = 25 + skillBonus + bonusPercent;
         if (chance < 20) chance = 20;
-        if (chance > 50) chance = 50; // Hard Cap at 50%
+        // Soft cap: 42% + 30% of excess (allows elite shooters to reach ~44-45%)
+        if (chance > 42) {
+            const excess = chance - 42;
+            chance = 42 + (excess * 0.3);
+        }
     } else {
         // MID-RANGE: Middle Percentage
         const skillBonus = (shotRating - 70) * 0.6;
@@ -1187,9 +1200,9 @@ export function resolveRebound(ctx: PossessionContext, events: GameEvent[], time
     ctx.defenseLineup.forEach(p => {
         let skill = p.attributes.defensiveRebound;
 
-        // COMPRESSION FORMULA (Round 11 Fix): 
+        // COMPRESSION FORMULA: Make rebounding harder (increased from 0.85 to 1.0)
         // Flatten output by giving role players a boost and slightly nerfing elites.
-        let threshold = (100 - skill) * 0.85 + 7.5;
+        let threshold = (100 - skill) * 1.0 + 15;
 
         // REBOUND CAP (Diminishing Returns)
         if (ctx.getStats) {
@@ -1208,8 +1221,8 @@ export function resolveRebound(ctx: PossessionContext, events: GameEvent[], time
     ctx.offenseLineup.forEach(p => {
         let skill = p.attributes.offensiveRebound;
 
-        // COMPRESSION + OFFENSE DIFFICULTY
-        let threshold = ((100 - skill) * 0.85 + 7.5) + 15;
+        // COMPRESSION + OFFENSE DIFFICULTY (increased from 0.85 to 1.0)
+        let threshold = ((100 - skill) * 1.0 + 15) + 15;
 
         // O-REBOUND CAP
         if (ctx.getStats) {
