@@ -1,0 +1,191 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+:root {
+  /* 2026 Dark Theme */
+  --background: #3b3b3b;
+  --surface: #2d2d2d;
+  --surface-glass: rgba(45, 45, 45, 0.85);
+  --primary: #FF5F1F;
+  /* Neon Orange */
+  --primary-glow: rgba(255, 95, 31, 0.4);
+  --accent: #FF5F1F;
+  /* Orange */
+  --text: #ffffff;
+  --text-secondary: #d1d5db;
+  --border: rgba(255, 255, 255, 0.1);
+
+  --success: #10b981;
+  --danger: #ef4444;
+
+  --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* S25 Ultra Spacing */
+  --safe-top: env(safe-area-inset-top, 20px);
+  --safe-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  /* Native feel touch */
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--background);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  /* Prevent body scroll, handle in app-container */
+  height: 100dvh;
+}
+
+#root {
+  width: 100%;
+  height: 100dvh;
+  /* Dynamic Viewport Height for perfectly fitting mobile screen */
+  background: var(--background);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Scrollbar Hiding for Native Feel */
+::-webkit-scrollbar {
+  display: none;
+}
+
+.safe-area-top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: var(--safe-top);
+  background: var(--background);
+  z-index: 10000;
+}
+
+.app-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  padding-top: calc(var(--safe-top) + 12px);
+  padding-bottom: 110px;
+  scroll-behavior: smooth;
+}
+
+.responsive-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+}
+
+.responsive-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+
+  .dashboard-grid,
+  .responsive-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .responsive-container {
+    padding: 0 12px;
+  }
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+  background: var(--surface-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+}
+
+.nav-glass {
+  background: rgba(45, 45, 45, 0.95);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-top: 1px solid var(--border);
+}
+
+/* Button Reset & Styles */
+button {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  background: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:active {
+  transform: scale(0.96);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), #FF8C00);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 15px var(--primary-glow);
+}
+
+/* Text Utilities */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+p,
+span,
+div {
+  color: var(--text);
+}
+
+.text-gradient {
+  background: linear-gradient(to right, #1a1a1a, #52525b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-enter {
+  animation: fadeIn 0.4s ease-out forwards;
+}

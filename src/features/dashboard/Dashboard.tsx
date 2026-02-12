@@ -3,14 +3,17 @@ import { useGame } from '../../store/GameContext';
 import { HeroSection } from './HeroSection';
 import { SimControls } from './SimControls';
 import { MatchupCard } from './MatchupCard';
-import { TeamLeaders } from './TeamLeaders'; // Replaced QuickStats
+import { TeamLeaders } from './TeamLeaders';
 import { RosterPreview } from './RosterPreview';
 import { RecentGames } from './RecentGames';
-import { TeamMoraleDashboard } from './TeamMoraleDashboard';
 import { Header } from '../ui/Header';
 import { PulseFeed } from '../news/PulseFeed';
-import { Smartphone } from 'lucide-react';
+import { FranchiseHub } from './FranchiseHub';
+import { TeamMoraleDashboard } from './TeamMoraleDashboard';
 import type { MatchResult } from '../simulation/SimulationTypes';
+import { TrendingUp, Wallet, Home, Users, Trophy, DollarSign, Smartphone } from 'lucide-react';
+import { DashboardCard } from './DashboardCard';
+import { motion } from 'framer-motion';
 
 interface DashboardProps {
     onSelectGame: (game: MatchResult) => void;
@@ -22,6 +25,8 @@ interface DashboardProps {
     onStartTrainingTrigger: () => void;
     onSaveTrigger: () => void;
     onShowMessage: (title: string, msg: string, type: 'error' | 'info' | 'success') => void;
+    onViewStandings?: () => void;
+    onViewFinancials?: () => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -33,44 +38,187 @@ export const Dashboard: React.FC<DashboardProps> = ({
     onStartSeasonTrigger,
     onStartTrainingTrigger,
     onSaveTrigger,
-    onShowMessage
+    onShowMessage,
+    onViewStandings,
+    onViewFinancials
 }) => {
-    const { players, userTeamId, socialMediaPosts } = useGame();
+    const {
+        seasonPhase,
+        seasonGamesPlayed,
+        userTeamId,
+        players,
+        socialMediaPosts,
+        teams,
+        salaryCap,
+        contracts
+    } = useGame();
+
+    const userTeam = teams.find(t => t.id === userTeamId);
+    const isSeasonComplete = seasonPhase === 'regular_season' && seasonGamesPlayed >= 82;
+
+    const gameLabel = isSeasonComplete
+        ? "Season Complete"
+        : (seasonPhase === 'regular_season'
+            ? `Game ${Math.min(seasonGamesPlayed + 1, 82)}/82`
+            : seasonPhase.charAt(0).toUpperCase() + seasonPhase.slice(1).replace('_', ' '));
+    // Dynamic Standings Position
+    const getStandingsPosition = () => {
+        if (!userTeam) return "N/A";
+        const conferenceTeams = teams.filter(t => t.conference === userTeam.conference);
+        const sorted = [...conferenceTeams].sort((a, b) => {
+            const winPctA = a.wins / (a.wins + a.losses || 1);
+            const winPctB = b.wins / (b.wins + b.losses || 1);
+            if (winPctB !== winPctA) return winPctB - winPctA;
+            return b.wins - a.wins;
+        });
+        const rank = sorted.findIndex(t => t.id === userTeamId) + 1;
+        const j = rank % 10, k = rank % 100;
+        if (j === 1 && k !== 11) return rank + "st";
+        if (j === 2 && k !== 12) return rank + "nd";
+        if (j === 3 && k !== 13) return rank + "rd";
+        return rank + "th";
+    };
+
+    // Cap Room Calculation
+    const getCapRoom = () => {
+        if (!userTeam) return "$0M";
+        const teamContracts = contracts.filter(c => c.teamId === userTeamId && c.yearsLeft > 0);
+        const totalSalary = teamContracts.reduce((sum, c) => sum + c.amount, 0);
+        const room = salaryCap - totalSalary;
+        return `$${Math.round(room / 1000000)}M`;
+    };
+
+    const handleStartSeason = () => {
+        const rosterCount = players.filter(p => p.teamId === userTeamId).length;
+        if (rosterCount > 13) {
+            onShowMessage('Roster Limit Exceeded', `You have ${rosterCount} players. Max is 13. Please release players before starting the season.`, 'error');
+            return;
+        }
+        onStartSeasonTrigger();
+    };
+
+    const MiniStat = ({ title, value, subValue, icon: Icon, onClick }: any) => (
+        <DashboardCard
+            variant="white"
+            title={title}
+            icon={<Icon size={14} />}
+            style={{ flex: 1, cursor: onClick ? 'pointer' : 'default' }}
+            onClick={onClick}
+        >
+            <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#1A1A1A' }}>{value}</div>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#10b981' }}>{subValue}</div>
+        </DashboardCard>
+    );
 
     return (
-        <div className="responsive-container">
-            <Header onSaveTrigger={onSaveTrigger} onSaveExitTrigger={onSaveExitTrigger} />
-            <HeroSection
-                onEnterPlayoffs={onEnterPlayoffs}
-                onStartSeasonTrigger={onStartSeasonTrigger}
-                onStartTrainingTrigger={onStartTrainingTrigger}
-            />
+        <div style={{
+            minHeight: '100vh',
+            background: '#2A2A2A', // Exact background from screenshot
+            color: 'white',
+            paddingBottom: '120px'
+        }}>
+            {/* Header Area */}
+            <div style={{ padding: '20px 24px 10px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }} />
+                    <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>{userTeam?.abbreviation} • {gameLabel}</span>
+                </div>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                    <button onClick={onSaveTrigger} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '12px', padding: '10px 20px', color: 'white', fontWeight: 700, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Wallet size={16} /> Save
+                    </button>
+                    <button onClick={onSaveExitTrigger} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '12px', padding: '10px 20px', color: 'white', fontWeight: 700, fontSize: '0.8rem' }}>
+                        Save & Exit
+                    </button>
+                </div>
+            </div>
 
-            <SimControls />
+            <main style={{
+                maxWidth: '500px', // Perfectly mobile sized
+                margin: '0 auto',
+                padding: '0 20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '20px'
+            }}>
 
-            <div className="dashboard-grid">
-                <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
-                        <MatchupCard />
-                        <TeamLeaders />
-                    </div>
-                    <RecentGames onSelectGame={onSelectGame} />
-                    <RosterPreview onSelectPlayer={onSelectPlayer} />
+                {/* 1. Hero Card */}
+                <HeroSection
+                    onEnterPlayoffs={onEnterPlayoffs}
+                    onStartSeasonTrigger={handleStartSeason}
+                    onStartTrainingTrigger={onStartTrainingTrigger}
+                />
+
+                {/* 2. Sim Controls */}
+                <SimControls />
+
+                {/* 3. Matchup / Next Up */}
+                <MatchupCard />
+
+                {/* 4. Mini Stats Grid */}
+                <div style={{ display: 'flex', gap: '16px' }}>
+                    <MiniStat
+                        title="Standings"
+                        value={getStandingsPosition()}
+                        subValue={`${userTeam?.conference || 'League'} Rank`}
+                        icon={TrendingUp}
+                        onClick={onViewStandings}
+                    />
+                    <MiniStat
+                        title="Cap Space"
+                        value={getCapRoom()}
+                        subValue="Cap Room"
+                        icon={DollarSign}
+                        onClick={onViewFinancials}
+                    />
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', minWidth: 0 }}>
-                    {/* News/Pulse Feed */}
-                    <div style={{ background: 'var(--surface-glass)', borderRadius: '16px', border: '1px solid var(--border)', padding: '16px' }}>
-                        <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <Smartphone size={18} color="var(--primary)" />
-                            League Pulse
-                        </h3>
-                        <PulseFeed posts={socialMediaPosts} onSelectPlayer={onSelectPlayer} />
-                    </div>
+                {/* 5. Recent Games / Form */}
+                <RecentGames onSelectGame={onSelectGame} />
 
-                    <TeamMoraleDashboard players={players} teamId={userTeamId} onSelectPlayer={onSelectPlayer} />
+                {/* 6. Leaders */}
+                <TeamLeaders onSelectPlayer={onSelectPlayer} />
+
+                {/* 7. Chemistry */}
+                <TeamMoraleDashboard players={players} teamId={userTeamId || ''} onSelectPlayer={onSelectPlayer} />
+
+                {/* 8. Pulse */}
+                <DashboardCard title="League Pulse" icon={<Smartphone size={16} />} variant="dark">
+                    <PulseFeed posts={socialMediaPosts} onSelectPlayer={onSelectPlayer} />
+                </DashboardCard>
+
+            </main>
+
+            {/* Bottom Floating Nav */}
+            <div style={{ position: 'fixed', bottom: '24px', left: '20px', right: '20px', display: 'flex', justifyContent: 'center', zIndex: 1000 }}>
+                <div style={{
+                    background: 'rgba(20, 20, 20, 0.9)',
+                    backdropFilter: 'blur(20px)',
+                    borderRadius: '24px',
+                    padding: '12px 24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '24px',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
+                    border: '1px solid rgba(255,255,255,0.05)'
+                }}>
+                    <NavItem icon={Home} label="Home" active />
+                    <NavItem icon={Users} label="My Team" />
+                    <NavItem icon={Trophy} label="League" />
+                    <NavItem icon={ArrowRightLeft} label="Market" />
+                    <NavItem icon={Smartphone} label="Pulse" />
                 </div>
             </div>
         </div>
     );
 };
+
+const NavItem = ({ icon: Icon, label, active = false }: any) => (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', opacity: active ? 1 : 0.4 }}>
+        <Icon size={20} color={active ? '#3b82f6' : 'white'} />
+        <span style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase' }}>{label}</span>
+    </div>
+);
+
+// We need to import ArrowRightLeft but it's used in the items
+import { ArrowRightLeft } from 'lucide-react';

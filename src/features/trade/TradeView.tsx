@@ -14,6 +14,43 @@ import { TeamSelect } from '../ui/TeamSelect';
 
 import { MidSeasonFreeAgents } from './MidSeasonFreeAgents';
 
+// Helper to map a team's generic draft pick asset to a specific live draft slot
+const getSpecificPickNumber = (teamId: string, pick: DraftPick, draftOrder: string[]): number | null => {
+    // 1. Identify which round this pick is for
+    const round = pick.round;
+
+    // 2. Find all slots in the remaining draft order belonging to this team
+    const teamSlots = draftOrder.map((tid, idx) => ({ tid, idx })).filter(x => x.tid === teamId);
+
+    // 3. Filter slots by round (Assuming 30 teams, 1-30 R1, 31-60 R2)
+    // IMPORTANT: detailed draft order logic usually puts R2 after R1.
+    // If draftOrder is shrinking, we need to know 'absolute' index to know round?
+    // OR, we assume draftOrder contains the *current* queue.
+    // If we are at Pick 35. draftOrder[0] is R2 Pick 5.
+    // We need to know if draftOrder[0] is R1 or R2.
+    // Heuristic: If draftOrder.length > 30, indices 0-(len-31) are R1?
+    // This is risky. 
+    // Alternative: GameContext draftOrder is initialized as full 60?
+    // "prevState.draftOrder.slice(1)" -> Yes.
+    // So we can deduce Round from (60 - draftOrder.length + idx).
+    // Pick Number (Absolute) = 60 - draftOrder.length + idx + 1.
+
+    const potentialPicks = teamSlots.map(s => {
+        // Calculate Absolute Pick Number
+        const pickNum = (60 - draftOrder.length) + s.idx + 1;
+        const pickRound = pickNum <= 30 ? 1 : 2;
+        return { pickNum, pickRound };
+    });
+
+    // 4. Match (Find the first slot matching the pick's round)
+    // Note: If team has multiple picks in same round, which one is this?
+    // Since we don't have unique IDs, this might alias them.
+    // But for UI "Pick 5", it's fine.
+    const match = potentialPicks.find(p => p.pickRound === round);
+
+    return match ? match.pickNum : null;
+};
+
 interface TradeViewProps {
     userTeam: Team;
     teams: Team[]; // All teams to select opponent
@@ -26,10 +63,12 @@ interface TradeViewProps {
     onExecuteTrade: (userPlayerIds: string[], userPickIds: string[], aiPlayerIds: string[], aiPickIds: string[], aiTeamId: string) => boolean;
     onBack: () => void;
     onSelectPlayer: (playerId: string) => void;
-    gmProfile?: any; // Avoiding circular dependency or rigorous type for now, but ideally import GMProfile type
+    gmProfile?: any;
+    draftOrder?: string[];
+    seasonPhase?: string;
 }
 
-export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, contracts, currentYear, salaryCap, initialAiPlayerId, initialProposal, onExecuteTrade, onBack, onSelectPlayer, gmProfile }) => {
+export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, contracts, currentYear, salaryCap, initialAiPlayerId, initialProposal, onExecuteTrade, onBack, onSelectPlayer, gmProfile, draftOrder, seasonPhase }) => {
 
     // Helper to find initial team based on player
     const getInitialTeamId = () => {
@@ -291,23 +330,67 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
                             );
                         })}
                         <h4 style={{ margin: '10px 0 5px 0', fontSize: '0.9rem', color: '#666' }}>Draft Picks</h4>
-                        {(userTeam.draftPicks || []).map(p => (
-                            <div key={p.id}
-                                onClick={() => toggleUserPick(p.id)}
-                                style={{
-                                    padding: '8px',
-                                    borderBottom: '1px solid #f0f0f0',
-                                    background: userPickSelected.includes(p.id) ? '#fff3e0' : 'transparent',
-                                    cursor: 'pointer',
-                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                                }}>
-                                <div>
-                                    <div style={{ fontWeight: 'bold' }}>{p.year} Round {p.round}</div>
-                                    <div style={{ fontSize: '0.8rem', color: '#666' }}>From: {p.originalTeamName || 'Unknown'}</div>
-                                </div>
-                                <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(getDraftPickValue(p, currentYear, opponentTeam || null))}</div>
-                            </div>
-                        ))}
+                        <h4 style={{ margin: '10px 0 5px 0', fontSize: '0.9rem', color: '#666' }}>Draft Picks</h4>
+                        {(userTeam.draftPicks || [])
+                            .filter(p => {
+                                // Filter out "used" picks if we are in draft mode
+                                if (seasonPhase === 'draft' && p.year === currentYear && draftOrder) {
+                                    // If this team has NO surviving picks in the current draft order for this round, hide it
+                                    // But we need to match specific pick instance if possible.
+                                    // Since we don't have pick IDs in draftOrder, we count slots.
+                                    // Simplified: If team has X remaining picks in Round Y, play it safe?
+                                    // Better: We iterate draftOrder. If teamId is there, we find the pick.
+                                    // Filter Logic:
+                                    // 1. Is it future? Keep.
+                                    if (p.year > currentYear) return true;
+                                    // 2. Is it current year?
+                                    // Does my team specific ID appear in the remaining draft order for this round?
+                                    // Problem: If I have 2 R1 picks, and 1 is remaining. Which one is it?
+                                    // We will render ALL current year picks that "fit" in the remaining slots.
+                                    // But here we are iterating specific pick objects.
+                                    // Let's rely on matching count.
+                                    // But easier: Just check if the team appears in draftOrder for this round at all?
+                                    // Actually, we can just calculate the specific pick number below. If it returns null, hide it.
+                                    const rounds = [1, 2];
+                                    const teamPicksInOrder = draftOrder.reduce((acc, tid, idx) => {
+                                        if (tid === userTeam.id) acc.push(idx + 1 + (30 * 0)); // Flat index 1-60
+                                        // Wait, draftOrder is 60 items.
+                                        return acc;
+                                    }, [] as number[]);
+                                    // This is getting complex.
+                                    // Simple logic:
+                                    // If p.year == currentYear, only show if we can map it to a remaining slot?
+                                    // Let's show all, but label them "Already Picked" if not found?
+                                    // Or just hide.
+                                    // Let's hide if we can't find a corresponding slot.
+                                    const exactPick = getSpecificPickNumber(userTeam.id, p, draftOrder || []);
+                                    return exactPick !== null;
+                                }
+                                return true;
+                            })
+                            .map(p => {
+                                const exactPick = (seasonPhase === 'draft' && p.year === currentYear) ? getSpecificPickNumber(userTeam.id, p, draftOrder || []) : null;
+
+                                return (
+                                    <div key={p.id}
+                                        onClick={() => toggleUserPick(p.id)}
+                                        style={{
+                                            padding: '8px',
+                                            borderBottom: '1px solid #f0f0f0',
+                                            background: userPickSelected.includes(p.id) ? '#fff3e0' : 'transparent',
+                                            cursor: 'pointer',
+                                            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                        }}>
+                                        <div>
+                                            <div style={{ fontWeight: 'bold' }}>
+                                                {p.year} {exactPick ? `Pick ${exactPick}` : `Round ${p.round}`}
+                                            </div>
+                                            <div style={{ fontSize: '0.8rem', color: '#666' }}>From: {p.originalTeamName || 'Unknown'}</div>
+                                        </div>
+                                        <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(getDraftPickValue(p, currentYear, opponentTeam || null, exactPick || undefined))}</div>
+                                    </div>
+                                );
+                            })}
                     </div>
                 </div>
 
@@ -364,23 +447,38 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
                             );
                         })}
                         <h4 style={{ margin: '10px 0 5px 0', fontSize: '0.9rem', color: '#666' }}>Draft Picks</h4>
-                        {(opponentTeam?.draftPicks || []).map(p => (
-                            <div key={p.id}
-                                onClick={() => toggleAiPick(p.id)}
-                                style={{
-                                    padding: '8px',
-                                    borderBottom: '1px solid #f0f0f0',
-                                    background: aiPickSelected.includes(p.id) ? '#eee' : 'transparent',
-                                    cursor: 'pointer',
-                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                                }}>
-                                <div>
-                                    <div style={{ fontWeight: 'bold' }}>{p.year} Round {p.round}</div>
-                                    <div style={{ fontSize: '0.8rem', color: '#666' }}>From: {p.originalTeamName || 'Unknown'}</div>
-                                </div>
-                                <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(getDraftPickValue(p, currentYear, opponentTeam || null))}</div>
-                            </div>
-                        ))}
+                        <h4 style={{ margin: '10px 0 5px 0', fontSize: '0.9rem', color: '#666' }}>Draft Picks</h4>
+                        {(opponentTeam?.draftPicks || [])
+                            .filter(p => {
+                                if (seasonPhase === 'draft' && p.year === currentYear && draftOrder) {
+                                    if (p.year > currentYear) return true;
+                                    const exactPick = getSpecificPickNumber(opponentTeam!.id, p, draftOrder);
+                                    return exactPick !== null;
+                                }
+                                return true;
+                            })
+                            .map(p => {
+                                const exactPick = (seasonPhase === 'draft' && p.year === currentYear) ? getSpecificPickNumber(opponentTeam!.id, p, draftOrder || []) : null;
+                                return (
+                                    <div key={p.id}
+                                        onClick={() => toggleAiPick(p.id)}
+                                        style={{
+                                            padding: '8px',
+                                            borderBottom: '1px solid #f0f0f0',
+                                            background: aiPickSelected.includes(p.id) ? '#eee' : 'transparent',
+                                            cursor: 'pointer',
+                                            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                        }}>
+                                        <div>
+                                            <div style={{ fontWeight: 'bold' }}>
+                                                {p.year} {exactPick ? `Pick ${exactPick}` : `Round ${p.round}`}
+                                            </div>
+                                            <div style={{ fontSize: '0.8rem', color: '#666' }}>From: {p.originalTeamName || 'Unknown'}</div>
+                                        </div>
+                                        <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(getDraftPickValue(p, currentYear, opponentTeam || null, exactPick || undefined))}</div>
+                                    </div>
+                                );
+                            })}
                     </div>
                 </div>
             </div>

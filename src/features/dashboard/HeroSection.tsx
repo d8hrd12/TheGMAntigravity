@@ -1,216 +1,141 @@
 import React from 'react';
-import { LayoutDashboard, Play, Trophy } from 'lucide-react';
 import { useGame } from '../../store/GameContext';
-import { formatDate } from '../../utils/dateUtils';
-import { ensureColorVibrancy, lightenColor } from '../../utils/colorUtils';
+import { Shirt } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { DashboardCard } from './DashboardCard';
 
 interface HeroSectionProps {
-    onEnterPlayoffs: () => void;
+    onEnterPlayoffs?: () => void;
     onStartSeasonTrigger: () => void;
     onStartTrainingTrigger: () => void;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({
-    onEnterPlayoffs,
-    onStartSeasonTrigger,
-    onStartTrainingTrigger
-}) => {
-    const {
-        teams,
-        userTeamId,
-        date,
-        seasonPhase,
-        dailyMatchups,
-        advanceDay,
-        startLiveGameFn,
-        triggerDraft
-    } = useGame();
-
+export const HeroSection: React.FC<HeroSectionProps> = ({ onEnterPlayoffs, onStartSeasonTrigger, onStartTrainingTrigger }) => {
+    const { teams, userTeamId, date, seasonPhase, seasonGamesPlayed, advanceDay, triggerDraft } = useGame();
     const userTeam = teams.find(t => t.id === userTeamId);
+
     if (!userTeam) return null;
 
-    const userMatchup = dailyMatchups.find(m => m.homeId === userTeamId || m.awayId === userTeamId);
-    const opponentId = userMatchup ? (userMatchup.homeId === userTeamId ? userMatchup.awayId : userMatchup.homeId) : null;
-    const opponent = teams.find(t => t.id === opponentId);
+    // ADJUSTMENT: If season is over, main action is entering playoffs
+    const isSeasonComplete = seasonPhase === 'regular_season' && seasonGamesPlayed >= 82;
+
+    const mainAction = (seasonPhase === 'pre_season')
+        ? onStartSeasonTrigger
+        : (seasonPhase === 'offseason')
+            ? triggerDraft
+            : (isSeasonComplete ? () => onEnterPlayoffs?.() : (seasonPhase.startsWith('playoffs') ? () => onEnterPlayoffs?.() : advanceDay));
+
+    const mainLabel = (seasonPhase === 'pre_season')
+        ? 'Start Season'
+        : (seasonPhase === 'offseason' ? 'Start Offseason' : (isSeasonComplete ? 'Enter Playoffs' : (seasonPhase.startsWith('playoffs') ? 'Go to Playoffs' : 'Simulate Day')));
+
+    const gameLabel = isSeasonComplete
+        ? "Regular Season Complete"
+        : (seasonPhase === 'regular_season'
+            ? `Game ${seasonGamesPlayed + 1}/82`
+            : seasonPhase.charAt(0).toUpperCase() + seasonPhase.slice(1).replace('_', ' '));
+
+    const primaryColor = userTeam.colors?.primary || '#1a365d';
+    const secondaryColor = userTeam.colors?.secondary || '#eab308';
 
     return (
-        <div style={{
-            background: 'var(--surface-glass)',
-            borderRadius: '24px',
-            padding: '24px',
-            marginBottom: '20px',
-            border: '1px solid var(--border)',
-            position: 'relative',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px'
-        }}>
-            {/* Background decoration */}
+        <DashboardCard
+            variant="hero"
+            noPadding
+            style={{
+                position: 'relative',
+                background: `linear-gradient(135deg, ${primaryColor} 0%, #0a0a0a 100%)`, // Dynamic primary color
+            }}
+        >
+            {/* Logo Watermark - Team Specific */}
             <div style={{
                 position: 'absolute',
-                top: '-50%',
-                right: '-10%',
-                width: '300px',
-                height: '300px',
-                background: ensureColorVibrancy(userTeam.colors?.primary || '#FF5F1F'),
-                filter: 'blur(100px)',
-                opacity: 0.15,
-                borderRadius: '50%',
-                zIndex: 0
-            }} />
+                right: '-5%',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '60%',
+                opacity: 0.2,
+                filter: 'grayscale(0.5) brightness(1.5) contrast(1.2)', // More vibrant watermark
+                pointerEvents: 'none',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}>
+                <img
+                    src={userTeam.logo || `/logos/${userTeam.name.toLowerCase().replace(/\s+/g, '_')}.png`}
+                    alt=""
+                    style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
+                    onError={(e) => (e.currentTarget.style.display = 'none')}
+                />
+            </div>
 
-            {/* Team Background Logo */}
-            <img
-                src={userTeam.logo || `https://a.espncdn.com/i/teamlogos/nba/500/${userTeam.abbreviation === 'UTA' ? 'utah' :
-                    userTeam.abbreviation === 'NOP' ? 'no' :
-                        userTeam.abbreviation.toLowerCase()
-                    }.png`}
-                alt=""
-                style={{
-                    position: 'absolute',
-                    right: '-5%',
-                    top: '50%',
-                    transform: 'translateY(-50%) rotate(-10deg)',
-                    height: '300px',
-                    width: '350px',
-                    objectFit: 'contain',
-                    opacity: 0.35,
-                    zIndex: 0,
-                    userSelect: 'none',
-                    pointerEvents: 'none'
-                }}
-                onError={(e) => {
-                    e.currentTarget.style.display = 'none'; // Fallback to nothing if fails
-                }}
-            />
-
-            <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-
-                <div style={{ marginTop: '30px' }}>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>
-                        {seasonPhase.replace('_', ' ')} • {formatDate(date)}
+            <div style={{ padding: '20px', position: 'relative', zIndex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                        <span style={{
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.1em',
+                            opacity: 0.7
+                        }}>
+                            {gameLabel}
+                        </span>
+                        <h1 style={{
+                            margin: '4px 0 0 0',
+                            fontSize: '2.4rem',
+                            fontWeight: 900,
+                            lineHeight: 1.05,
+                            letterSpacing: '-0.05em',
+                            color: 'white'
+                        }}>
+                            {userTeam.city}<br />
+                            <span style={{ color: secondaryColor }}>{userTeam.name}</span>
+                        </h1>
                     </div>
-                    <h1 style={{
-                        margin: 0,
-                        fontSize: '2.8rem',
-                        lineHeight: '1.1',
-                        letterSpacing: '-1.5px',
-                        background: `linear-gradient(135deg, ${lightenColor(ensureColorVibrancy(userTeam.colors?.primary || '#000000'), 40)}, #ffffff)`,
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.2))'
+
+                    <div style={{
+                        background: 'rgba(0,0,0,0.2)',
+                        padding: '6px 12px',
+                        borderRadius: '12px',
+                        textAlign: 'center',
+                        border: `1px solid ${secondaryColor}22`,
+                        backdropFilter: 'blur(4px)'
                     }}>
-                        {userTeam.city}<br />{userTeam.name}
-                    </h1>
-                </div>
-
-                <div style={{
-                    textAlign: 'right',
-                    background: 'rgba(0, 0, 0, 0.4)',
-                    backdropFilter: 'blur(4px)',
-                    padding: '12px 20px',
-                    borderRadius: '16px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-                }}>
-                    <div style={{ fontWeight: 800, lineHeight: 1, color: 'var(--text)', whiteSpace: 'nowrap', fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}>
-                        {userTeam.wins}-{userTeam.losses}
-                    </div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
-                        {userTeam.wins > userTeam.losses ? 'Winning Record' : 'Rebuilding'}
+                        <div style={{ fontSize: '1.8rem', fontWeight: 900, letterSpacing: '-0.02em', color: 'white' }}>
+                            {userTeam.wins}-{userTeam.losses}
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Primary Action Button - Context Aware */}
-            <div style={{ marginTop: '10px', display: 'flex', gap: '10px', position: 'relative', zIndex: 2 }}>
-                {seasonPhase === 'regular_season' && (
-                    <>
-                        <button
-                            onClick={() => advanceDay()}
-                            className="btn-primary"
-                            style={{
-                                flex: 1,
-                                padding: '16px',
-                                fontSize: '1.1rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                background: `linear-gradient(135deg, ${ensureColorVibrancy(userTeam.colors?.primary || '#3498db')}, ${ensureColorVibrancy(userTeam.colors?.secondary || '#3498db')})`,
-                                boxShadow: `0 8px 20px -4px ${ensureColorVibrancy(userTeam.colors?.primary || '#3498db')}80`
-                            }}
-                        >
-                            <LayoutDashboard size={20} />
-                            Simulate Day
-                        </button>
-                        <button
-                            onClick={() => startLiveGameFn('next')}
-                            style={{
-                                flex: 1,
-                                padding: '16px',
-                                fontSize: '1.1rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                background: 'linear-gradient(135deg, #e67e22 0%, #d35400 100%)',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '12px',
-                                fontWeight: 'bold',
-                                cursor: 'pointer',
-                                boxShadow: '0 8px 20px -4px rgba(230, 126, 34, 0.5)'
-                            }}
-                        >
-                            <Play size={20} /> {opponent ? `Play vs ${opponent.abbreviation}` : 'Play Next'}
-                        </button>
-
-                    </>
-                )}
-                {String(seasonPhase).startsWith('playoffs') && (
-                    <button
-                        onClick={onEnterPlayoffs}
-                        className="btn-primary"
-                        style={{
-                            flex: 1,
-                            padding: '16px',
-                            fontSize: '1.1rem',
-                            background: 'linear-gradient(135deg, #f1c40f, #e67e22)',
-                            color: '#000'
-                        }}
-                    >
-                        <Trophy size={20} />
-                        Enter Playoffs
-                    </button>
-                )}
-                {seasonPhase === 'offseason' && (
-                    <button
-                        onClick={triggerDraft}
-                        className="btn-primary"
-                        style={{ flex: 1, padding: '16px', fontSize: '1.1rem' }}>
-                        Start Draft
-                    </button>
-                )}
-                {seasonPhase === 'pre_season' && (
-                    <>
-                        <button
-                            onClick={onStartTrainingTrigger}
-                            className="btn-primary"
-                            style={{ flex: 1, padding: '16px', fontSize: '1.1rem', background: '#e67e22' }}
-                        >
-                            Training Camp
-                        </button>
-                        <button
-                            onClick={() => onStartSeasonTrigger()}
-                            className="btn-primary"
-                            style={{ flex: 1, padding: '16px', fontSize: '1.1rem', background: '#27ae60' }}>
-                            Start Regular Season
-                        </button>
-                    </>
-                )}
+                {/* Main Action Button - Dynamic Highlight Colors */}
+                <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => mainAction?.()}
+                    style={{
+                        marginTop: '20px',
+                        width: '100%',
+                        padding: '12px',
+                        borderRadius: '20px',
+                        border: 'none',
+                        background: `linear-gradient(90deg, ${primaryColor} 0%, ${secondaryColor} 100%)`, // Dynamic highlight colors
+                        color: 'white',
+                        fontSize: '1.1rem',
+                        fontWeight: 800,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '12px',
+                        cursor: 'pointer',
+                        boxShadow: `0 10px 25px ${primaryColor}44`,
+                        textShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                    }}
+                >
+                    <Shirt size={22} strokeWidth={2.5} />
+                    {mainLabel}
+                </motion.button>
             </div>
-        </div>
+        </DashboardCard>
     );
 };

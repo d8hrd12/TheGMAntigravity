@@ -7,7 +7,8 @@ interface RosterPreviewProps {
 }
 
 export const RosterPreview: React.FC<RosterPreviewProps> = ({ onSelectPlayer }) => {
-    const { players, userTeamId, contracts } = useGame();
+    const { players, userTeamId, contracts, teams } = useGame();
+    const userTeam = teams.find(t => t.id === userTeamId);
 
     const formatMoney = (amount: number) => {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0, notation: 'compact' }).format(amount);
@@ -21,7 +22,42 @@ export const RosterPreview: React.FC<RosterPreviewProps> = ({ onSelectPlayer }) 
         .slice(0, 5);
 
     return (
-        <div style={{ paddingBottom: '20px' }}>
+        <div style={{
+            paddingBottom: '0',
+            background: 'var(--surface-glass)',
+            padding: '20px',
+            borderRadius: '20px',
+            border: '1px solid var(--border)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            marginBottom: '24px',
+            position: 'relative',
+            overflow: 'hidden',
+            isolation: 'isolate'
+        }} onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 12px 48px rgba(0, 0, 0, 0.18)';
+        }} onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.12)';
+        }}>
+            {/* Watermark Logo - 200% Scale */}
+            <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '200%',
+                height: '200%',
+                opacity: 0.1,
+                backgroundImage: userTeam?.logo ? `url(${userTeam.logo})` : 'none',
+                backgroundSize: 'contain',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                pointerEvents: 'none',
+                zIndex: -1
+            }} />
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Team Leaders</h3>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>

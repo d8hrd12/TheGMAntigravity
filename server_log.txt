@@ -1,0 +1,691 @@
+
+> basketball_manager@0.0.0 dev
+> vite
+
+
+  VITE v7.3.0  ready in 78 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://10.224.24.77:5173/
+9:55:53 PM [vite] (client) hmr update /src/App.tsx
+9:56:10 PM [vite] (client) hmr update /src/App.tsx
+9:57:58 PM [vite] (client) hmr update /src/App.tsx
+9:58:40 PM [vite] (client) hmr update /src/App.tsx
+9:59:54 PM [vite] (client) hmr update /src/features/dashboard/MatchupCard.tsx, /src/features/dashboard/RecentGames.tsx, /src/features/dashboard/FranchiseHub.tsx, /src/features/dashboard/HeroSection.tsx, /src/App.tsx
+10:00:08 PM [vite] (client) hmr update /src/App.tsx
+10:00:17 PM [vite] (client) hmr update /src/App.tsx
+10:07:16 PM [vite] (client) hmr update /src/features/dashboard/FranchiseHub.tsx
+10:07:16 PM [vite] Internal server error: Failed to resolve import "framer-motion" from "src/features/dashboard/FranchiseHub.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/features/dashboard/FranchiseHub.tsx:5:23
+  5  |  import { Building2, Users, Briefcase, DollarSign, TrendingUp, TrendingDown } from "lucide-react";
+  6  |  import { DashboardCard } from "./DashboardCard";
+  7  |  import { motion } from "framer-motion";
+     |                          ^
+  8  |  export const FranchiseHub = () => {
+  9  |    _s();
+      at TransformPluginContext._formatLog (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:28998:43)
+      at TransformPluginContext.error (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:28995:14)
+      at normalizeUrl (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:27118:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:27176:32
+      at async Promise.all (index 5)
+      at async TransformPluginContext.transform (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:27144:4)
+      at async EnvironmentPluginContainer.transform (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:28796:14)
+      at async loadAndTransform (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:22669:26)
+      at async viteTransformMiddleware (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:24541:20)
+10:07:16 PM [vite] (client) Pre-transform error: Failed to resolve import "framer-motion" from "src/features/dashboard/DashboardCard.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/features/dashboard/DashboardCard.tsx:2:40
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React, { ReactNode } from "react";
+  3  |  import { motion, HTMLMotionProps } from "framer-motion";
+     |                                           ^
+  4  |  export const DashboardCard = ({
+  5  |    children,
+10:07:17 PM [vite] (client) hmr update /src/features/dashboard/SimControls.tsx
+10:07:17 PM [vite] Internal server error: Failed to resolve import "framer-motion" from "src/features/dashboard/SimControls.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/features/dashboard/SimControls.tsx:5:23
+  5  |  import { useGame } from "../../store/GameContext";
+  6  |  import { DashboardCard } from "./DashboardCard";
+  7  |  import { motion } from "framer-motion";
+     |                          ^
+  8  |  export const SimControls = () => {
+  9  |    _s();
+      at TransformPluginContext._formatLog (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:28998:43)
+      at TransformPluginContext.error (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:28995:14)
+      at normalizeUrl (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:27118:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:27176:32
+      at async Promise.all (index 5)
+      at async TransformPluginContext.transform (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:27144:4)
+      at async EnvironmentPluginContainer.transform (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:28796:14)
+      at async loadAndTransform (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:22669:26)
+      at async viteTransformMiddleware (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:24541:20)
+10:07:17 PM [vite] (client) Pre-transform error: Failed to resolve import "framer-motion" from "src/features/dashboard/DashboardCard.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/features/dashboard/DashboardCard.tsx:2:40
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React, { ReactNode } from "react";
+  3  |  import { motion, HTMLMotionProps } from "framer-motion";
+     |                                           ^
+  4  |  export const DashboardCard = ({
+  5  |    children,
+10:07:39 PM [vite] (client) page reload src/features/dashboard/DashboardCard.tsx
+10:07:39 PM [vite] (client) Pre-transform error: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/features/dashboard/DashboardCard.tsx: Missing semicolon. (28:24)
+
+  26 |     return (
+  27 |         <motion.div
+> 28 |             className={`dashboard - card ${ className } `}
+     |                         ^
+  29 |             initial={{ opacity: 0, scale: 0.95 }}
+  30 |             animate={{ opacity: 1, scale: 1 }}
+  31 |             transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }} // Ease out quintish
+  Plugin: vite:react-babel
+  File: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/features/dashboard/DashboardCard.tsx:28:24
+  26 |      return (
+  27 |          <motion.div
+  28 |              className={`dashboard - card ${ className } `}
+     |                          ^
+  29 |              initial={{ opacity: 0, scale: 0.95 }}
+  30 |              animate={{ opacity: 1, scale: 1 }}
+10:07:39 PM [vite] (client) Pre-transform error: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/features/dashboard/DashboardCard.tsx: Missing semicolon. (28:24)
+
+  26 |     return (
+  27 |         <motion.div
+> 28 |             className={`dashboard - card ${ className } `}
+     |                         ^
+  29 |             initial={{ opacity: 0, scale: 0.95 }}
+  30 |             animate={{ opacity: 1, scale: 1 }}
+  31 |             transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }} // Ease out quintish
+  Plugin: vite:react-babel
+  File: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/features/dashboard/DashboardCard.tsx:28:24
+  26 |      return (
+  27 |          <motion.div
+  28 |              className={`dashboard - card ${ className } `}
+     |                          ^
+  29 |              initial={{ opacity: 0, scale: 0.95 }}
+  30 |              animate={{ opacity: 1, scale: 1 }}
+10:07:39 PM [vite] Internal server error: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/features/dashboard/DashboardCard.tsx: Missing semicolon. (28:24)
+
+  26 |     return (
+  27 |         <motion.div
+> 28 |             className={`dashboard - card ${ className } `}
+     |                         ^
+  29 |             initial={{ opacity: 0, scale: 0.95 }}
+  30 |             animate={{ opacity: 1, scale: 1 }}
+  31 |             transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }} // Ease out quintish
+  Plugin: vite:react-babel
+  File: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/features/dashboard/DashboardCard.tsx:28:24
+  26 |      return (
+  27 |          <motion.div
+  28 |              className={`dashboard - card ${ className } `}
+     |                          ^
+  29 |              initial={{ opacity: 0, scale: 0.95 }}
+  30 |              animate={{ opacity: 1, scale: 1 }}
+      at constructor (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:367:19)
+      at TypeScriptParserMixin.raise (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6624:19)
+      at TypeScriptParserMixin.semicolon (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6920:10)
+      at TypeScriptParserMixin.parseExpressionStatement (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13361:10)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12975:19)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseModuleItem (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12820:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13392:36)
+      at TypeScriptParserMixin.parseBlockBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseProgram (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12698:10)
+      at TypeScriptParserMixin.parseTopLevel (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12688:25)
+      at TypeScriptParserMixin.parse (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:14568:25)
+      at TypeScriptParserMixin.parse (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10183:18)
+      at parse (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:14602:38)
+      at parser (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/gensync/index.js:261:32)
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/gensync/index.js:223:11)
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/gensync/index.js:189:28
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/gensync/index.js:113:33
+      at step (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/gensync/index.js:287:14)
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/gensync/index.js:223:11)
+10:07:39 PM [vite] Internal server error: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/features/dashboard/DashboardCard.tsx: Missing semicolon. (28:24)
+
+  26 |     return (
+  27 |         <motion.div
+> 28 |             className={`dashboard - card ${ className } `}
+     |                         ^
+  29 |             initial={{ opacity: 0, scale: 0.95 }}
+  30 |             animate={{ opacity: 1, scale: 1 }}
+  31 |             transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }} // Ease out quintish
+  Plugin: vite:react-babel
+  File: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/features/dashboard/DashboardCard.tsx:28:24
+  26 |      return (
+  27 |          <motion.div
+  28 |              className={`dashboard - card ${ className } `}
+     |                          ^
+  29 |              initial={{ opacity: 0, scale: 0.95 }}
+  30 |              animate={{ opacity: 1, scale: 1 }}
+      at constructor (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:367:19)
+      at TypeScriptParserMixin.raise (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6624:19)
+      at TypeScriptParserMixin.semicolon (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6920:10)
+      at TypeScriptParserMixin.parseExpressionStatement (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13361:10)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12975:19)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseModuleItem (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12820:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13392:36)
+      at TypeScriptParserMixin.parseBlockBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseProgram (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12698:10)
+      at TypeScriptParserMixin.parseTopLevel (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12688:25)
+      at TypeScriptParserMixin.parse (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:14568:25)
+      at TypeScriptParserMixin.parse (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10183:18)
+      at parse (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:14602:38)
+      at parser (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/gensync/index.js:261:32)
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/gensync/index.js:223:11)
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/gensync/index.js:189:28
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/gensync/index.js:113:33
+      at step (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/gensync/index.js:287:14)
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/gensync/index.js:223:11)
+10:07:39 PM [vite] (client) error while updating dependencies:
+Error: ENOENT: no such file or directory, open '/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@capacitor/app/dist/esm/index.js'
+    at async open (node:internal/fs/promises:642:25)
+    at async Object.readFile (node:internal/fs/promises:1279:14)
+    at async extractExportsData (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:32269:23)
+    at async file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:32076:23
+    at async Promise.all (index 4)
+    at async prepareEsbuildOptimizerRun (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:32074:2)
+10:08:13 PM [vite] (client) hmr update /src/features/dashboard/SimControls.tsx, /src/features/dashboard/FranchiseHub.tsx
+10:08:13 PM [vite] (client) error while updating dependencies:
+Error: ENOENT: no such file or directory, open '/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@capacitor/app/dist/esm/index.js'
+    at async open (node:internal/fs/promises:642:25)
+    at async Object.readFile (node:internal/fs/promises:1279:14)
+    at async extractExportsData (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:32269:23)
+    at async file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:32076:23
+    at async Promise.all (index 4)
+    at async prepareEsbuildOptimizerRun (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:32074:2)
+10:08:23 PM [vite] (client) hmr update /src/features/dashboard/Dashboard.tsx
+10:08:42 PM [vite] (client) hmr update /src/features/dashboard/DashboardCard.tsx
+10:08:42 PM [vite] (client) hmr update /src/features/dashboard/Dashboard.tsx
+10:08:54 PM [vite] (client) error while updating dependencies:
+Error: ENOENT: no such file or directory, open '/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@capacitor/app/dist/esm/index.js'
+    at async open (node:internal/fs/promises:642:25)
+    at async Object.readFile (node:internal/fs/promises:1279:14)
+    at async extractExportsData (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:32269:23)
+    at async file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:32076:23
+    at async Promise.all (index 4)
+    at async prepareEsbuildOptimizerRun (file:///Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/vite/dist/node/chunks/config.js:32074:2)
+10:10:37 PM [vite] vite.config.ts changed, restarting server...
+10:10:37 PM [vite] (client) Re-optimizing dependencies because lockfile has changed
+10:10:37 PM [vite] server restarted.
+10:12:42 PM [vite] (client) hmr update /src/features/dashboard/DashboardCard.tsx
+10:12:55 PM [vite] (client) hmr update /src/features/dashboard/FranchiseHub.tsx
+10:13:08 PM [vite] (client) hmr update /src/features/dashboard/SimControls.tsx
+10:13:22 PM [vite] (client) hmr update /src/features/dashboard/Dashboard.tsx
+10:16:19 PM [vite] (client) hmr update /src/features/dashboard/DashboardCard.tsx
+10:16:24 PM [vite] (client) hmr update /src/features/dashboard/FranchiseHub.tsx
+10:16:29 PM [vite] (client) hmr update /src/features/dashboard/SimControls.tsx
+10:16:31 PM [vite] (client) hmr update /src/features/dashboard/Dashboard.tsx
+10:18:55 PM [vite] (client) hmr update /src/features/dashboard/DashboardCard.tsx
+10:19:11 PM [vite] (client) hmr update /src/features/dashboard/HeroSection.tsx
+10:19:16 PM [vite] (client) hmr update /src/features/dashboard/SimControls.tsx
+10:19:18 PM [vite] (client) hmr update /src/features/dashboard/MatchupCard.tsx
+10:19:40 PM [vite] (client) hmr update /src/features/dashboard/TeamLeaders.tsx
+10:19:41 PM [vite] (client) hmr update /src/features/dashboard/Dashboard.tsx
+10:19:56 PM [vite] (client) hmr update /src/features/dashboard/RecentGames.tsx
+10:19:57 PM [vite] (client) hmr update /src/features/dashboard/TeamMoraleDashboard.tsx
+10:21:54 PM [vite] (client) hmr update /src/features/dashboard/TeamLeaders.tsx
+10:22:17 PM [vite] (client) hmr update /src/features/dashboard/RecentGames.tsx
+10:22:29 PM [vite] (client) hmr update /src/features/dashboard/TeamLeaders.tsx
+10:24:52 PM [vite] (client) hmr update /src/features/dashboard/HeroSection.tsx
+10:24:54 PM [vite] (client) hmr update /src/features/dashboard/MatchupCard.tsx
+10:37:51 PM [vite] (client) hmr update /src/features/dashboard/Dashboard.tsx
+10:38:15 PM [vite] (client) hmr update /src/features/dashboard/MatchupCard.tsx
+10:38:15 PM [vite] Internal server error: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/features/dashboard/MatchupCard.tsx: Unexpected token (101:4)
+
+   99 |         </DashboardCard>
+  100 |     );
+> 101 |     );
+      |     ^
+  102 | };
+  103 |
+  Plugin: vite:react-babel
+  File: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/features/dashboard/MatchupCard.tsx:101:4
+  99  |          </DashboardCard>
+  100 |      );
+  101 |      );
+      |      ^
+  102 |  };
+  103 |  
+      at constructor (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:367:19)
+      at TypeScriptParserMixin.raise (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6624:19)
+      at TypeScriptParserMixin.unexpected (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6644:16)
+      at TypeScriptParserMixin.parseExprAtom (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11508:22)
+      at TypeScriptParserMixin.parseExprAtom (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:4793:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9839:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10848:23)
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10844:39
+      at TypeScriptParserMixin.allowInAnd (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12495:16)
+      at TypeScriptParserMixin.parseExpression (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10844:17)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12971:23)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseStatementListItem (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12823:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13392:61)
+      at TypeScriptParserMixin.parseBlockBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseBlock (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13373:10)
+      at TypeScriptParserMixin.parseFunctionBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12174:24)
+      at TypeScriptParserMixin.parseArrowExpression (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12149:10)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11759:12)
+      at TypeScriptParserMixin.parseExprAtom (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11395:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:4793:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9839:20)
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10864:39
+      at TypeScriptParserMixin.allowInAnd (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12495:16)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10864:17)
+      at TypeScriptParserMixin.parseVar (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13460:91)
+      at TypeScriptParserMixin.parseVarStatement (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13306:10)
+      at TypeScriptParserMixin.parseVarStatement (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9469:31)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12927:23)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseStatementListItem (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12823:17)
+      at TypeScriptParserMixin.parseExportDeclaration (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:14010:17)
+10:38:15 PM [vite] Internal server error: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/features/dashboard/MatchupCard.tsx: Unexpected token (101:4)
+
+   99 |         </DashboardCard>
+  100 |     );
+> 101 |     );
+      |     ^
+  102 | };
+  103 |
+  Plugin: vite:react-babel
+  File: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/features/dashboard/MatchupCard.tsx:101:4
+  99  |          </DashboardCard>
+  100 |      );
+  101 |      );
+      |      ^
+  102 |  };
+  103 |  
+      at constructor (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:367:19)
+      at TypeScriptParserMixin.raise (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6624:19)
+      at TypeScriptParserMixin.unexpected (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6644:16)
+      at TypeScriptParserMixin.parseExprAtom (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11508:22)
+      at TypeScriptParserMixin.parseExprAtom (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:4793:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9839:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10848:23)
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10844:39
+      at TypeScriptParserMixin.allowInAnd (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12495:16)
+      at TypeScriptParserMixin.parseExpression (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10844:17)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12971:23)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseStatementListItem (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12823:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13392:61)
+      at TypeScriptParserMixin.parseBlockBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseBlock (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13373:10)
+      at TypeScriptParserMixin.parseFunctionBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12174:24)
+      at TypeScriptParserMixin.parseArrowExpression (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12149:10)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11759:12)
+      at TypeScriptParserMixin.parseExprAtom (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11395:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:4793:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9839:20)
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10864:39
+      at TypeScriptParserMixin.allowInAnd (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12495:16)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10864:17)
+      at TypeScriptParserMixin.parseVar (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13460:91)
+      at TypeScriptParserMixin.parseVarStatement (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13306:10)
+      at TypeScriptParserMixin.parseVarStatement (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9469:31)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12927:23)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseStatementListItem (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12823:17)
+      at TypeScriptParserMixin.parseExportDeclaration (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:14010:17)
+10:38:24 PM [vite] (client) hmr update /src/features/dashboard/MatchupCard.tsx
+10:43:33 PM [vite] (client) hmr update /src/features/dashboard/MatchupCard.tsx
+10:52:57 PM [vite] (client) hmr update /src/store/GameContext.tsx
+10:52:57 PM [vite] (client) hmr invalidate /src/store/GameContext.tsx Could not Fast Refresh ("GameContext" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+10:52:57 PM [vite] (client) hmr update /src/App.tsx, /src/features/draft/ExpansionDraftView.tsx, /src/features/draft/DraftView.tsx, /src/features/ui/SaveExitModal.tsx, /src/features/trade/TradeFinderView.tsx, /src/features/dashboard/Dashboard.tsx, /src/features/ui/SaveLoadView.tsx, /src/features/league/PlayoffView.tsx, /src/features/ui/ScoutingView.tsx, /src/features/league/LeagueView.tsx, /src/features/menu/MainMenu.tsx, /src/features/free_agency/FreeAgencyView.tsx, /src/features/gm/GMOverview.tsx, /src/features/history/HistoryView.tsx, /src/features/free_agency/ResigningView.tsx, /src/features/training/TrainingView.tsx, /src/features/history/RetiredPlayersSummaryView.tsx, /src/features/history/LeagueHistoryView.tsx, /src/features/team/TeamFinancialsView.tsx, /src/features/player/PlayerDetailView.tsx, /src/features/trade/MidSeasonFreeAgents.tsx, /src/features/team/InjuryReportView.tsx, /src/features/dashboard/HeroSection.tsx, /src/features/dashboard/MatchupCard.tsx, /src/features/dashboard/TeamLeaders.tsx, /src/features/dashboard/RosterPreview.tsx, /src/features/dashboard/SimControls.tsx, /src/features/dashboard/RecentGames.tsx, /src/features/ui/Header.tsx, /src/features/dashboard/FranchiseHub.tsx, /src/features/menu/CreateTeamView.tsx
+10:52:59 PM [vite] (client) hmr update /src/store/GameContext.tsx
+10:53:00 PM [vite] (client) hmr invalidate /src/store/GameContext.tsx Could not Fast Refresh ("GameContext" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+10:53:00 PM [vite] (client) hmr update /src/App.tsx, /src/features/draft/ExpansionDraftView.tsx, /src/features/draft/DraftView.tsx, /src/features/ui/SaveExitModal.tsx, /src/features/trade/TradeFinderView.tsx, /src/features/dashboard/Dashboard.tsx, /src/features/ui/SaveLoadView.tsx, /src/features/league/PlayoffView.tsx, /src/features/ui/ScoutingView.tsx, /src/features/league/LeagueView.tsx, /src/features/menu/MainMenu.tsx, /src/features/free_agency/FreeAgencyView.tsx, /src/features/gm/GMOverview.tsx, /src/features/history/HistoryView.tsx, /src/features/free_agency/ResigningView.tsx, /src/features/training/TrainingView.tsx, /src/features/history/RetiredPlayersSummaryView.tsx, /src/features/history/LeagueHistoryView.tsx, /src/features/team/TeamFinancialsView.tsx, /src/features/player/PlayerDetailView.tsx, /src/features/trade/MidSeasonFreeAgents.tsx, /src/features/team/InjuryReportView.tsx, /src/features/dashboard/HeroSection.tsx, /src/features/dashboard/MatchupCard.tsx, /src/features/dashboard/TeamLeaders.tsx, /src/features/dashboard/RosterPreview.tsx, /src/features/dashboard/SimControls.tsx, /src/features/dashboard/RecentGames.tsx, /src/features/ui/Header.tsx, /src/features/dashboard/FranchiseHub.tsx, /src/features/menu/CreateTeamView.tsx
+10:53:00 PM [vite] (client) hmr update /src/store/GameContext.tsx
+10:53:14 PM [vite] (client) hmr update /src/store/GameContext.tsx
+10:53:14 PM [vite] Internal server error: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/store/GameContext.tsx: Unexpected token, expected "," (1140:12)
+
+  1138 |
+  1139 |             // 1. Calculate Salary Differences
+> 1140 |             const userOutgoingSalary = prev.players
+       |             ^
+  1141 |             .filter(p => userPlayerIds.includes(p.id))
+  1142 |             .reduce((sum, p) => {
+  1143 |                 const c = prev.contracts.find(ct => ct.playerId === p.id);
+  Plugin: vite:react-babel
+  File: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/store/GameContext.tsx:1140:12
+  1138 |  
+  1139 |              // 1. Calculate Salary Differences
+  1140 |              const userOutgoingSalary = prev.players
+       |              ^
+  1141 |              .filter(p => userPlayerIds.includes(p.id))
+  1142 |              .reduce((sum, p) => {
+      at constructor (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:367:19)
+      at TypeScriptParserMixin.raise (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6624:19)
+      at TypeScriptParserMixin.unexpected (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6644:16)
+      at TypeScriptParserMixin.expect (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6924:12)
+      at TypeScriptParserMixin.parseCallExpressionArguments (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11307:14)
+      at TypeScriptParserMixin.parseCoverCallAndAsyncArrowHead (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11250:29)
+      at TypeScriptParserMixin.parseSubscript (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11184:19)
+      at TypeScriptParserMixin.parseSubscript (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9329:18)
+      at TypeScriptParserMixin.parseSubscripts (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11158:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11149:17)
+      at TypeScriptParserMixin.parseUpdate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9839:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10848:23)
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10844:39
+      at TypeScriptParserMixin.allowInAnd (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12495:16)
+      at TypeScriptParserMixin.parseExpression (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10844:17)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12971:23)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseStatementListItem (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12823:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13392:61)
+      at TypeScriptParserMixin.parseBlockBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseBlock (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13373:10)
+      at TypeScriptParserMixin.parseFunctionBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12174:24)
+      at TypeScriptParserMixin.parseArrowExpression (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12149:10)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11759:12)
+      at TypeScriptParserMixin.parseExprAtom (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11395:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:4793:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9839:20)
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10864:39
+      at TypeScriptParserMixin.allowInAnd (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12495:16)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10864:17)
+      at TypeScriptParserMixin.parseVar (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13460:91)
+      at TypeScriptParserMixin.parseVarStatement (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13306:10)
+      at TypeScriptParserMixin.parseVarStatement (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9469:31)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12927:23)
+10:53:14 PM [vite] Internal server error: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/store/GameContext.tsx: Unexpected token, expected "," (1140:12)
+
+  1138 |
+  1139 |             // 1. Calculate Salary Differences
+> 1140 |             const userOutgoingSalary = prev.players
+       |             ^
+  1141 |             .filter(p => userPlayerIds.includes(p.id))
+  1142 |             .reduce((sum, p) => {
+  1143 |                 const c = prev.contracts.find(ct => ct.playerId === p.id);
+  Plugin: vite:react-babel
+  File: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/store/GameContext.tsx:1140:12
+  1138 |  
+  1139 |              // 1. Calculate Salary Differences
+  1140 |              const userOutgoingSalary = prev.players
+       |              ^
+  1141 |              .filter(p => userPlayerIds.includes(p.id))
+  1142 |              .reduce((sum, p) => {
+      at constructor (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:367:19)
+      at TypeScriptParserMixin.raise (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6624:19)
+      at TypeScriptParserMixin.unexpected (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6644:16)
+      at TypeScriptParserMixin.expect (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6924:12)
+      at TypeScriptParserMixin.parseCallExpressionArguments (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11307:14)
+      at TypeScriptParserMixin.parseCoverCallAndAsyncArrowHead (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11250:29)
+      at TypeScriptParserMixin.parseSubscript (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11184:19)
+      at TypeScriptParserMixin.parseSubscript (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9329:18)
+      at TypeScriptParserMixin.parseSubscripts (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11158:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11149:17)
+      at TypeScriptParserMixin.parseUpdate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9839:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10848:23)
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10844:39
+      at TypeScriptParserMixin.allowInAnd (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12495:16)
+      at TypeScriptParserMixin.parseExpression (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10844:17)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12971:23)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseStatementListItem (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12823:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13392:61)
+      at TypeScriptParserMixin.parseBlockBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseBlock (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13373:10)
+      at TypeScriptParserMixin.parseFunctionBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12174:24)
+      at TypeScriptParserMixin.parseArrowExpression (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12149:10)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11759:12)
+      at TypeScriptParserMixin.parseExprAtom (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11395:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:4793:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9839:20)
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10864:39
+      at TypeScriptParserMixin.allowInAnd (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12495:16)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10864:17)
+      at TypeScriptParserMixin.parseVar (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13460:91)
+      at TypeScriptParserMixin.parseVarStatement (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13306:10)
+      at TypeScriptParserMixin.parseVarStatement (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9469:31)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12927:23)
+10:53:14 PM [vite] Internal server error: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/store/GameContext.tsx: Unexpected token, expected "," (1140:12)
+
+  1138 |
+  1139 |             // 1. Calculate Salary Differences
+> 1140 |             const userOutgoingSalary = prev.players
+       |             ^
+  1141 |             .filter(p => userPlayerIds.includes(p.id))
+  1142 |             .reduce((sum, p) => {
+  1143 |                 const c = prev.contracts.find(ct => ct.playerId === p.id);
+  Plugin: vite:react-babel
+  File: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/store/GameContext.tsx:1140:12
+  1138 |  
+  1139 |              // 1. Calculate Salary Differences
+  1140 |              const userOutgoingSalary = prev.players
+       |              ^
+  1141 |              .filter(p => userPlayerIds.includes(p.id))
+  1142 |              .reduce((sum, p) => {
+      at constructor (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:367:19)
+      at TypeScriptParserMixin.raise (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6624:19)
+      at TypeScriptParserMixin.unexpected (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6644:16)
+      at TypeScriptParserMixin.expect (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6924:12)
+      at TypeScriptParserMixin.parseCallExpressionArguments (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11307:14)
+      at TypeScriptParserMixin.parseCoverCallAndAsyncArrowHead (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11250:29)
+      at TypeScriptParserMixin.parseSubscript (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11184:19)
+      at TypeScriptParserMixin.parseSubscript (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9329:18)
+      at TypeScriptParserMixin.parseSubscripts (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11158:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11149:17)
+      at TypeScriptParserMixin.parseUpdate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9839:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10848:23)
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10844:39
+      at TypeScriptParserMixin.allowInAnd (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12495:16)
+      at TypeScriptParserMixin.parseExpression (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10844:17)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12971:23)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseStatementListItem (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12823:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13392:61)
+      at TypeScriptParserMixin.parseBlockBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseBlock (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13373:10)
+      at TypeScriptParserMixin.parseFunctionBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12174:24)
+      at TypeScriptParserMixin.parseArrowExpression (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12149:10)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11759:12)
+      at TypeScriptParserMixin.parseExprAtom (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11395:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:4793:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9839:20)
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10864:39
+      at TypeScriptParserMixin.allowInAnd (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12495:16)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10864:17)
+      at TypeScriptParserMixin.parseVar (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13460:91)
+      at TypeScriptParserMixin.parseVarStatement (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13306:10)
+      at TypeScriptParserMixin.parseVarStatement (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9469:31)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12927:23)
+10:53:14 PM [vite] Internal server error: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/store/GameContext.tsx: Unexpected token, expected "," (1140:12)
+
+  1138 |
+  1139 |             // 1. Calculate Salary Differences
+> 1140 |             const userOutgoingSalary = prev.players
+       |             ^
+  1141 |             .filter(p => userPlayerIds.includes(p.id))
+  1142 |             .reduce((sum, p) => {
+  1143 |                 const c = prev.contracts.find(ct => ct.playerId === p.id);
+  Plugin: vite:react-babel
+  File: /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/src/store/GameContext.tsx:1140:12
+  1138 |  
+  1139 |              // 1. Calculate Salary Differences
+  1140 |              const userOutgoingSalary = prev.players
+       |              ^
+  1141 |              .filter(p => userPlayerIds.includes(p.id))
+  1142 |              .reduce((sum, p) => {
+      at constructor (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:367:19)
+      at TypeScriptParserMixin.raise (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6624:19)
+      at TypeScriptParserMixin.unexpected (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6644:16)
+      at TypeScriptParserMixin.expect (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:6924:12)
+      at TypeScriptParserMixin.parseCallExpressionArguments (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11307:14)
+      at TypeScriptParserMixin.parseCoverCallAndAsyncArrowHead (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11250:29)
+      at TypeScriptParserMixin.parseSubscript (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11184:19)
+      at TypeScriptParserMixin.parseSubscript (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9329:18)
+      at TypeScriptParserMixin.parseSubscripts (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11158:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11149:17)
+      at TypeScriptParserMixin.parseUpdate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9839:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10848:23)
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10844:39
+      at TypeScriptParserMixin.allowInAnd (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12495:16)
+      at TypeScriptParserMixin.parseExpression (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10844:17)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12971:23)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseStatementListItem (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12823:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13392:61)
+      at TypeScriptParserMixin.parseBlockBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseBlock (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13373:10)
+      at TypeScriptParserMixin.parseFunctionBody (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12174:24)
+      at TypeScriptParserMixin.parseArrowExpression (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12149:10)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11759:12)
+      at TypeScriptParserMixin.parseExprAtom (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11395:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:4793:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9839:20)
+      at /Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10864:39
+      at TypeScriptParserMixin.allowInAnd (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12495:16)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:10864:17)
+      at TypeScriptParserMixin.parseVar (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13460:91)
+      at TypeScriptParserMixin.parseVarStatement (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:13306:10)
+      at TypeScriptParserMixin.parseVarStatement (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:9469:31)
+      at TypeScriptParserMixin.parseStatementContent (/Users/ioannistsetselis/.gemini/antigravity/scratch/basketball_manager/node_modules/@babel/parser/lib/index.js:12927:23)
+10:53:51 PM [vite] (client) hmr update /src/store/GameContext.tsx
+10:53:51 PM [vite] (client) hmr invalidate /src/store/GameContext.tsx Could not Fast Refresh ("GameContext" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+10:53:51 PM [vite] (client) hmr update /src/App.tsx, /src/features/draft/ExpansionDraftView.tsx, /src/features/draft/DraftView.tsx, /src/features/ui/SaveExitModal.tsx, /src/features/trade/TradeFinderView.tsx, /src/features/dashboard/Dashboard.tsx, /src/features/ui/SaveLoadView.tsx, /src/features/league/PlayoffView.tsx, /src/features/ui/ScoutingView.tsx, /src/features/league/LeagueView.tsx, /src/features/menu/MainMenu.tsx, /src/features/free_agency/FreeAgencyView.tsx, /src/features/gm/GMOverview.tsx, /src/features/history/HistoryView.tsx, /src/features/free_agency/ResigningView.tsx, /src/features/training/TrainingView.tsx, /src/features/history/RetiredPlayersSummaryView.tsx, /src/features/history/LeagueHistoryView.tsx, /src/features/team/TeamFinancialsView.tsx, /src/features/player/PlayerDetailView.tsx, /src/features/trade/MidSeasonFreeAgents.tsx, /src/features/team/InjuryReportView.tsx, /src/features/dashboard/HeroSection.tsx, /src/features/dashboard/MatchupCard.tsx, /src/features/dashboard/TeamLeaders.tsx, /src/features/dashboard/RosterPreview.tsx, /src/features/dashboard/SimControls.tsx, /src/features/dashboard/RecentGames.tsx, /src/features/ui/Header.tsx, /src/features/dashboard/FranchiseHub.tsx, /src/features/menu/CreateTeamView.tsx
+10:55:22 PM [vite] (client) hmr update /src/store/GameContext.tsx
+10:55:22 PM [vite] (client) hmr invalidate /src/store/GameContext.tsx Could not Fast Refresh ("GameContext" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+10:55:22 PM [vite] (client) hmr update /src/App.tsx, /src/features/draft/ExpansionDraftView.tsx, /src/features/draft/DraftView.tsx, /src/features/ui/SaveExitModal.tsx, /src/features/trade/TradeFinderView.tsx, /src/features/dashboard/Dashboard.tsx, /src/features/ui/SaveLoadView.tsx, /src/features/league/PlayoffView.tsx, /src/features/ui/ScoutingView.tsx, /src/features/league/LeagueView.tsx, /src/features/menu/MainMenu.tsx, /src/features/free_agency/FreeAgencyView.tsx, /src/features/gm/GMOverview.tsx, /src/features/history/HistoryView.tsx, /src/features/free_agency/ResigningView.tsx, /src/features/training/TrainingView.tsx, /src/features/history/RetiredPlayersSummaryView.tsx, /src/features/history/LeagueHistoryView.tsx, /src/features/team/TeamFinancialsView.tsx, /src/features/player/PlayerDetailView.tsx, /src/features/trade/MidSeasonFreeAgents.tsx, /src/features/team/InjuryReportView.tsx, /src/features/dashboard/HeroSection.tsx, /src/features/dashboard/MatchupCard.tsx, /src/features/dashboard/TeamLeaders.tsx, /src/features/dashboard/RosterPreview.tsx, /src/features/dashboard/SimControls.tsx, /src/features/dashboard/RecentGames.tsx, /src/features/ui/Header.tsx, /src/features/dashboard/FranchiseHub.tsx, /src/features/menu/CreateTeamView.tsx
+10:55:38 PM [vite] (client) hmr update /src/store/GameContext.tsx
+10:55:38 PM [vite] (client) hmr invalidate /src/store/GameContext.tsx Could not Fast Refresh ("GameContext" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+10:55:38 PM [vite] (client) hmr update /src/App.tsx, /src/features/draft/ExpansionDraftView.tsx, /src/features/draft/DraftView.tsx, /src/features/ui/SaveExitModal.tsx, /src/features/trade/TradeFinderView.tsx, /src/features/dashboard/Dashboard.tsx, /src/features/ui/SaveLoadView.tsx, /src/features/league/PlayoffView.tsx, /src/features/ui/ScoutingView.tsx, /src/features/league/LeagueView.tsx, /src/features/menu/MainMenu.tsx, /src/features/free_agency/FreeAgencyView.tsx, /src/features/gm/GMOverview.tsx, /src/features/history/HistoryView.tsx, /src/features/free_agency/ResigningView.tsx, /src/features/training/TrainingView.tsx, /src/features/history/RetiredPlayersSummaryView.tsx, /src/features/history/LeagueHistoryView.tsx, /src/features/team/TeamFinancialsView.tsx, /src/features/player/PlayerDetailView.tsx, /src/features/trade/MidSeasonFreeAgents.tsx, /src/features/team/InjuryReportView.tsx, /src/features/dashboard/HeroSection.tsx, /src/features/dashboard/MatchupCard.tsx, /src/features/dashboard/TeamLeaders.tsx, /src/features/dashboard/RosterPreview.tsx, /src/features/dashboard/SimControls.tsx, /src/features/dashboard/RecentGames.tsx, /src/features/ui/Header.tsx, /src/features/dashboard/FranchiseHub.tsx, /src/features/menu/CreateTeamView.tsx
+10:55:40 PM [vite] (client) hmr update /src/features/dashboard/Dashboard.tsx
+10:56:08 PM [vite] (client) hmr update /src/features/dashboard/Dashboard.tsx
+10:56:08 PM [vite] (client) hmr update /src/features/dashboard/HeroSection.tsx
+10:56:09 PM [vite] (client) hmr update /src/features/dashboard/MatchupCard.tsx
+10:56:48 PM [vite] (client) hmr update /src/features/dashboard/Dashboard.tsx
+10:56:49 PM [vite] (client) hmr update /src/features/dashboard/HeroSection.tsx
+10:56:51 PM [vite] (client) hmr update /src/features/dashboard/MatchupCard.tsx
+10:59:19 PM [vite] (client) hmr update /src/features/dashboard/HeroSection.tsx
+10:59:21 PM [vite] (client) hmr update /src/App.tsx
+10:59:39 PM [vite] (client) hmr update /src/App.tsx
+10:59:41 PM [vite] (client) hmr update /src/App.tsx

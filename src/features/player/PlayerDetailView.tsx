@@ -9,6 +9,7 @@ import { PlayerRadarChart } from '../../components/charts/PlayerRadarChart';
 import { PlayerTrendGraph } from '../../components/charts/PlayerTrendGraph';
 
 import { calculateOverall, calculateTendencies } from '../../utils/playerUtils';
+import { getFuzzyAttribute, getFuzzyPotential } from '../../utils/scoutingUtils';
 
 interface PlayerDetailViewProps {
     player: Player;
@@ -23,9 +24,15 @@ interface PlayerDetailViewProps {
 }
 
 export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team, teams, contract, onBack, onTradeFor, isUserTeam, onShop, onTeamClick }) => {
-    const { settings, awardsHistory, players } = useGame();
+    const { settings, awardsHistory, players, seasonPhase, scoutingReports, userTeamId } = useGame();
     // Default to true if settings aren't loaded yet/legacy
     const showLoveForTheGame = settings?.showLoveForTheGame ?? true;
+
+    // Check if Prospect (Fog of War)
+    const isProspect = (seasonPhase === 'scouting' || seasonPhase === 'draft') && !player.teamId;
+    const scoutingReport = isProspect ? (scoutingReports[userTeamId]?.[player.id] || { points: 0, isPotentialRevealed: false }) : null;
+    const scoutingPoints = scoutingReport?.points || 0;
+    const isRevealed = scoutingReport?.isPotentialRevealed || false;
 
     // Memoize teammates for tendency context
     const teammates = React.useMemo(() =>
@@ -33,7 +40,8 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
         [players, player.teamId]
     );
 
-    const getRatingColor = (value: number) => {
+    const getRatingColor = (value: number | string) => {
+        if (typeof value === 'string') return value === '??' ? '#ccc' : '#f1c40f'; // simplistic for fuzzy
         if (value >= 90) return '#2ecc71'; // Elite - Green
         if (value >= 80) return '#3498db'; // Good - Blue
         if (value >= 70) return '#f1c40f'; // Average - Yellow
@@ -41,11 +49,17 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
     };
 
     const AttributeRow = ({ label, value, prevValue }: { label: string, value: number, prevValue?: number }) => {
+
+        let displayValue: string | number = value;
+        if (isProspect) {
+            displayValue = getFuzzyAttribute(value, scoutingPoints);
+        }
+
         const diff = prevValue !== undefined ? value - prevValue : 0;
         let indicator = null;
-        if (diff > 0) {
+        if (!isProspect && diff > 0) { // Don't show progress for fuzzy prospects
             indicator = <span style={{ color: '#2ecc71', fontSize: '0.8rem', marginLeft: '6px' }}>▲ {diff}</span>;
-        } else if (diff < 0) {
+        } else if (!isProspect && diff < 0) {
             indicator = <span style={{ color: '#e74c3c', fontSize: '0.8rem', marginLeft: '6px' }}>▼ {Math.abs(diff)}</span>;
         }
 
@@ -53,7 +67,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
                 <span style={{ color: '#ccc' }}>{label}</span>
                 <div>
-                    <span style={{ fontWeight: 'bold', color: getRatingColor(value) }}>{value}</span>
+                    <span style={{ fontWeight: 'bold', color: getRatingColor(typeof displayValue === 'number' ? displayValue : 50) }}>{displayValue}</span>
                     {indicator}
                 </div>
             </div>
@@ -237,7 +251,9 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
 
                         {/* Overall Rating Box */}
                         <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '3.5rem', fontWeight: 'bold', color: getRatingColor(overall), lineHeight: 1 }}>{overall}</div>
+                            <div style={{ fontSize: '3.5rem', fontWeight: 'bold', color: getRatingColor(overall), lineHeight: 1 }}>
+                                {isProspect && !isRevealed ? getFuzzyPotential(player.potential, scoutingPoints) : overall}
+                            </div>
 
                             {/* Morale Icon (Minimal SVG) */}
                             <div style={{ marginTop: '5px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -271,7 +287,9 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
 
                                 {player.demandTrade && <span style={{ color: 'var(--danger)', fontSize: '0.6rem', fontWeight: 'bold', marginTop: '2px', textTransform: 'uppercase' }}>Wants Out</span>}
                             </div>
-                            <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>OVR</div>
+                            <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>
+                                {isProspect ? 'Proj. Potential' : 'OVR'}
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -1,115 +1,54 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Play, FastForward, Pause, Calendar } from 'lucide-react';
+import React from 'react';
+import { FastForward, Trophy, ArrowRightLeft } from 'lucide-react';
 import { useGame } from '../../store/GameContext';
+import { DashboardCard } from './DashboardCard';
+import { motion } from 'framer-motion';
 
 export const SimControls: React.FC = () => {
-    const { advanceDay, seasonPhase } = useGame();
-    const [isSimulating, setIsSimulating] = useState(false);
-    const stopSimRef = useRef(false);
-
-    // Clean up on unmount
-    useEffect(() => {
-        return () => {
-            stopSimRef.current = true;
-        };
-    }, []);
-
-    const handleSimulate = async (days: number) => {
-        if (isSimulating) return;
-
-        setIsSimulating(true);
-        stopSimRef.current = false;
-
-        for (let i = 0; i < days; i++) {
-            if (stopSimRef.current) break;
-
-            // Allow UI to update
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            // Check if we assume advanceDay is safe to call repeatedly
-            advanceDay();
-        }
-        setIsSimulating(false);
-    };
-
-    const stopSim = () => {
-        stopSimRef.current = true;
-        // The loop will break on next iteration, then set isSimulating false
-    }
+    const { advanceDay, simulateToTradeDeadline, simulateToPlayoffs, seasonPhase } = useGame();
 
     if (seasonPhase !== 'regular_season') return null;
 
-    return (
-        <div className="glass-panel" style={{
-            padding: '12px 20px',
-            marginBottom: '20px',
-            display: 'flex',
-            gap: '12px',
-            alignItems: 'center',
-            borderRadius: '16px',
-            border: '1px solid var(--border)'
-        }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto', color: 'var(--text-secondary)' }}>
-                <Calendar size={18} />
-                <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Quick Sim</span>
-            </div>
+    const SimBox = ({ onClick, icon: Icon, label }: any) => (
+        <DashboardCard
+            variant="white"
+            noPadding
+            onClick={onClick}
+            style={{ flex: 1, cursor: 'pointer' }}
+        >
+            <motion.div
+                whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
+                style={{
+                    padding: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '12px',
+                    textAlign: 'center'
+                }}
+            >
+                <div style={{ color: '#3b82f6' }}>
+                    <Icon size={24} />
+                </div>
+                <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1A1A1A' }}>
+                    {label}
+                </span>
+            </motion.div>
+        </DashboardCard>
+    );
 
-            {isSimulating ? (
-                <button
-                    onClick={stopSim}
-                    style={{
-                        background: '#e74c3c',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        padding: '8px 16px',
-                        display: 'flex',
-                        gap: '8px',
-                        alignItems: 'center',
-                        cursor: 'pointer',
-                        fontWeight: 600
-                    }}
-                >
-                    <Pause size={16} /> Stop
-                </button>
-            ) : (
-                <>
-                    <button
-                        onClick={() => handleSimulate(7)}
-                        style={{
-                            background: 'var(--surface-active)',
-                            border: '1px solid var(--border)',
-                            color: 'var(--text)',
-                            borderRadius: '8px',
-                            padding: '8px 16px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            fontWeight: 500
-                        }}
-                    >
-                        <Play size={16} fill="currentColor" /> Week
-                    </button>
-                    <button
-                        onClick={() => handleSimulate(30)}
-                        style={{
-                            background: 'var(--surface-active)',
-                            border: '1px solid var(--border)',
-                            color: 'var(--text)',
-                            borderRadius: '8px',
-                            padding: '8px 16px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            fontWeight: 500
-                        }}
-                    >
-                        <FastForward size={16} fill="currentColor" /> Month
-                    </button>
-                </>
-            )}
+    return (
+        <div style={{ display: 'flex', gap: '16px', width: '100%' }}>
+            <SimBox
+                onClick={simulateToTradeDeadline}
+                icon={ArrowRightLeft}
+                label="Sim to Deadline"
+            />
+            <SimBox
+                onClick={simulateToPlayoffs}
+                icon={Trophy}
+                label="Sim to Playoffs"
+            />
         </div>
     );
 };

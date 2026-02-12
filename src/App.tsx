@@ -11,9 +11,11 @@ import { DraftView } from './features/draft/DraftView';
 import ScoutingView from './features/ui/ScoutingView';
 import { TradeView } from './features/trade/TradeView';
 import { ExpansionDraftView } from './features/draft/ExpansionDraftView';
+import { DraftSummaryView } from './features/draft/DraftSummaryView'; // New View
 import { TradeFinderView } from './features/trade/TradeFinderView'; // Import
 import { MessageModal } from './features/ui/MessageModal';
 import { TradeCenterView } from './features/trade/TradeCenterView';
+import { Dashboard } from './features/dashboard/Dashboard';
 
 import { LeagueLeaders } from './features/stats/LeagueLeaders';
 import { NewsTicker } from './features/ui/NewsTicker';
@@ -89,640 +91,14 @@ const lightenColor = (col: string, amt: number) => {
   return (usePound ? "#" : "") + (g | (b << 8) | (r << 16)).toString(16).padStart(6, '0');
 }
 
-function Dashboard({ onSelectGame, onShowResults, onSelectPlayer, onEnterPlayoffs, onSaveExitTrigger, onStartSeasonTrigger, onStartTrainingTrigger, onSaveTrigger, onShowMessage }: {
-  onSelectGame: (game: MatchResult) => void,
-  onShowResults: () => void,
-  onSelectPlayer: (playerId: string) => void,
-  onEnterPlayoffs: () => void,
-  onSaveExitTrigger: () => void,
-  onStartSeasonTrigger: () => void,
-  onStartTrainingTrigger: () => void,
-  onSaveTrigger: () => void,
-  onShowMessage: (title: string, msg: string, type: 'error' | 'info' | 'success') => void
-}) {
-  const { teams, players, contracts, date, advanceDay, games, triggerDraft, seasonPhase, startRegularSeason, simulateToTradeDeadline, simulateToPlayoffs, userTeamId, awardsHistory, draftClass, retiredPlayersHistory, signPlayerWithContract, executeTrade, currentSaveSlot, startLiveGameFn, dailyMatchups, socialMediaPosts } = useGame();
 
-  const userTeam = teams.find(t => t.id === userTeamId);
-  const userMatchup = dailyMatchups.find(m => m.homeId === userTeamId || m.awayId === userTeamId);
-  const opponentId = userMatchup ? (userMatchup.homeId === userTeamId ? userMatchup.awayId : userMatchup.homeId) : null;
-  const opponent = teams.find(t => t.id === opponentId);
-
-  const gamesPlayed = userTeam ? (userTeam.wins + userTeam.losses) : 0;
-  const isTradeDeadlinePassed = gamesPlayed > 40;
-
-  const formatMoney = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0, notation: 'compact' }).format(amount);
-  };
-
-  if (!userTeam) return null;
-
-  const handleStartSeason = () => {
-    // Check Roster Limits
-    const rosterCount = players.filter(p => p.teamId === userTeam.id).length;
-    if (rosterCount > 13) {
-      onShowMessage('Roster Limit Exceeded', `You have ${rosterCount} players. Max is 13. Please release players before starting the season.`, 'error');
-      return;
-    }
-    // Show Payment Modal via parent prop
-    onStartSeasonTrigger();
-  };
-
-  // --- MORALE DASHBOARD COMPONENT ---
-  const TeamMoraleDashboard = ({ players, teamId, onSelectPlayer }: { players: Player[], teamId: string, onSelectPlayer: (id: string) => void }) => {
-    const roster = players.filter(p => p.teamId === teamId);
-    if (roster.length === 0) return null;
-
-    const avgMorale = roster.reduce((sum, p) => sum + (p.morale || 50), 0) / roster.length;
-
-    // Major Influencers
-    const happyInfluencers = roster
-      .filter(p => (p.morale || 50) > 85)
-      .sort((a, b) => b.morale - a.morale)
-      .slice(0, 2);
-
-    const sadInfluencers = roster
-      .filter(p => (p.morale || 50) < 30)
-      .sort((a, b) => a.morale - b.morale)
-      .slice(0, 2);
-
-    return (
-      <div style={{ margin: '20px 0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-
-        {/* Team Morale Indicator */}
-        <div className="glass-panel" style={{ width: '100%', padding: '15px', display: 'flex', alignItems: 'center', gap: '20px', boxSizing: 'border-box' }}>
-          <div style={{
-            position: 'relative', width: '60px', height: '60px', borderRadius: '50%', border: `4px solid ${avgMorale > 70 ? '#2ecc71' : avgMorale < 40 ? '#e74c3c' : '#f1c40f'}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold'
-          }}>
-            {Math.round(avgMorale)}
-          </div>
-          <div>
-            <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Team Morale</div>
-            <div style={{ fontSize: '1.2rem', fontWeight: 600 }}>
-              {avgMorale > 80 ? 'Excellent Chemistry' : avgMorale > 60 ? 'Stable Environment' : avgMorale > 40 ? 'Some Tension' : 'Toxic Locker Room'}
-            </div>
-          </div>
-        </div>
-
-        {/* Influencers */}
-        {/* Influencers */}
-        <div className="glass-panel" style={{ width: '100%', padding: '15px', display: 'flex', flexDirection: 'column', gap: '20px', boxSizing: 'border-box' }}>
-          <div style={{ width: '100%' }}>
-            <div style={{ fontSize: '0.75rem', color: '#2ecc71', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '8px' }}>Positive Influence</div>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              {happyInfluencers.length > 0 ? happyInfluencers.map(p => (
-                <div key={p.id} onClick={() => onSelectPlayer(p.id)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(46, 204, 113, 0.1)', padding: '4px 8px', borderRadius: '20px', border: '1px solid rgba(46, 204, 113, 0.3)' }}>
-                  <Smile size={14} color="#2ecc71" />
-                  <span style={{ fontSize: '0.85rem' }}>{p.lastName}</span>
-                </div>
-              )) : <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>None</span>}
-            </div>
-          </div>
-
-          <div style={{ width: '100%' }}>
-            <div style={{ fontSize: '0.75rem', color: '#e74c3c', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '8px' }}>Negative Influence</div>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              {sadInfluencers.length > 0 ? sadInfluencers.map(p => (
-                <div key={p.id} onClick={() => onSelectPlayer(p.id)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(231, 76, 60, 0.1)', padding: '4px 8px', borderRadius: '20px', border: '1px solid rgba(231, 76, 60, 0.3)' }}>
-                  <Frown size={14} color="#e74c3c" />
-                  <span style={{ fontSize: '0.85rem' }}>{p.lastName}</span>
-                </div>
-              )) : <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>None</span>}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // --- HELPER COMPONENTS ---
-
-  const HeroSection = () => (
-    <div style={{
-      background: 'var(--surface-glass)',
-      borderRadius: '24px',
-      padding: '24px',
-      marginBottom: '20px',
-      border: '1px solid var(--border)',
-      position: 'relative',
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '12px'
-    }}>
-      {/* Background decoration */}
-      <div style={{
-        position: 'absolute',
-        top: '-50%',
-        right: '-10%',
-        width: '300px',
-        height: '300px',
-        background: ensureColorVibrancy(userTeam.colors?.primary || '#FF5F1F'),
-        filter: 'blur(100px)',
-        opacity: 0.15,
-        borderRadius: '50%',
-        zIndex: 0
-      }} />
-
-      {/* Team Background Logo */}
-      {/* Team Background Logo */}
-      <img
-        src={userTeam.logo || `https://a.espncdn.com/i/teamlogos/nba/500/${userTeam.abbreviation === 'UTA' ? 'utah' :
-          userTeam.abbreviation === 'NOP' ? 'no' :
-            userTeam.abbreviation.toLowerCase()
-          }.png`}
-        alt=""
-        style={{
-          position: 'absolute',
-          right: '-5%',
-          top: '50%',
-          transform: 'translateY(-50%) rotate(-10deg)',
-          height: '300px',
-          width: '350px',
-          objectFit: 'contain',
-          opacity: 0.35,
-          zIndex: 0,
-          userSelect: 'none',
-          pointerEvents: 'none'
-        }}
-        onError={(e) => {
-          e.currentTarget.style.display = 'none'; // Fallback to nothing if fails
-        }}
-      />
-
-      <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-
-        {/* Save & Exit Button (Top Right Absolute) */}
-
-
-        <div style={{ marginTop: '30px' }}>
-          <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>
-            {seasonPhase.replace('_', ' ')} • {formatDate(date)}
-          </div>
-          <h1 style={{
-            margin: 0,
-            fontSize: '2.8rem',
-            lineHeight: '1.1',
-            letterSpacing: '-1.5px',
-            background: `linear-gradient(135deg, ${lightenColor(ensureColorVibrancy(userTeam.colors?.primary || '#000000'), 40)}, #ffffff)`,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.2))'
-          }}>
-            {userTeam.city}<br />{userTeam.name}
-          </h1>
-        </div>
-
-        <div style={{
-          textAlign: 'right',
-          background: 'rgba(0, 0, 0, 0.4)',
-          backdropFilter: 'blur(4px)',
-          padding: '12px 20px',
-          borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-        }}>
-          <div style={{ fontWeight: 800, lineHeight: 1, color: 'var(--text)', whiteSpace: 'nowrap', fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}>
-            {userTeam.wins}-{userTeam.losses}
-          </div>
-          <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
-            {userTeam.wins > userTeam.losses ? 'Winning Record' : 'Rebuilding'}
-          </div>
-        </div>
-      </div>
-
-
-
-      {/* Primary Action Button - Context Aware */}
-      <div style={{ marginTop: '10px', display: 'flex', gap: '10px', position: 'relative', zIndex: 2 }}>
-        {seasonPhase === 'regular_season' && (
-          <>
-            <button
-              onClick={() => advanceDay()}
-              className="btn-primary"
-              style={{
-                flex: 1,
-                padding: '16px',
-                fontSize: '1.1rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                background: `linear-gradient(135deg, ${ensureColorVibrancy(userTeam.colors?.primary || '#3498db')}, ${ensureColorVibrancy(userTeam.colors?.secondary || '#3498db')})`,
-                boxShadow: `0 8px 20px -4px ${ensureColorVibrancy(userTeam.colors?.primary || '#3498db')}80`
-              }}
-            >
-              <LayoutDashboard size={20} />
-              Simulate Day
-            </button>
-            <button
-              onClick={() => startLiveGameFn('next')}
-              style={{
-                flex: 1,
-                padding: '16px',
-                fontSize: '1.1rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                background: 'linear-gradient(135deg, #e67e22 0%, #d35400 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '12px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                boxShadow: '0 8px 20px -4px rgba(230, 126, 34, 0.5)'
-              }}
-            >
-              <Play size={20} /> {opponent ? `Play vs ${opponent.abbreviation}` : 'Play Next'}
-            </button>
-
-          </>
-        )}
-        {String(seasonPhase).startsWith('playoffs') && (
-          <button
-            onClick={onEnterPlayoffs}
-            className="btn-primary"
-            style={{
-              flex: 1,
-              padding: '16px',
-              fontSize: '1.1rem',
-              background: 'linear-gradient(135deg, #f1c40f, #e67e22)',
-              color: '#000'
-            }}
-          >
-            <Trophy size={20} />
-            Enter Playoffs
-          </button>
-        )}
-        {seasonPhase === 'offseason' && (
-          <button
-            onClick={triggerDraft}
-            className="btn-primary"
-            style={{ flex: 1, padding: '16px', fontSize: '1.1rem' }}>
-            Start Draft
-          </button>
-        )}
-        {seasonPhase === 'pre_season' && (
-          <>
-            <button
-              onClick={onStartTrainingTrigger}
-              className="btn-primary"
-              style={{ flex: 1, padding: '16px', fontSize: '1.1rem', background: '#e67e22' }}
-            >
-              Training Camp
-            </button>
-            <button
-              onClick={handleStartSeason}
-              className="btn-primary"
-              style={{ flex: 1, padding: '16px', fontSize: '1.1rem', background: '#27ae60' }}>
-              Start Regular Season
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-
-  const QuickActions = () => {
-    if (seasonPhase !== 'regular_season') return null;
-
-    return (
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
-        {!isTradeDeadlinePassed && (
-          <button
-            onClick={simulateToTradeDeadline}
-            style={{
-              background: 'var(--surface-glass)',
-              border: '1px solid var(--border)',
-              borderRadius: '16px',
-              padding: '16px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '8px',
-              color: 'var(--text)',
-              cursor: 'pointer',
-              transition: 'transform 0.1s'
-            }}
-          >
-            <ArrowLeftRight size={24} color="var(--primary)" />
-            <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Sim to Deadline</span>
-          </button>
-        )}
-        <button
-          onClick={simulateToPlayoffs}
-          style={{
-            background: 'var(--surface-glass)',
-            border: '1px solid var(--border)',
-            borderRadius: '16px',
-            padding: '16px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '8px',
-            color: 'var(--text)',
-            cursor: 'pointer'
-          }}
-        >
-          <Trophy size={24} color="var(--text-secondary)" />
-          <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Sim to Playoffs</span>
-        </button>
-      </div>
-    );
-  };
-
-  const RecentGames = () => {
-    // Filter for ONLY User Team games
-    const userGames = games.filter(g => g.homeTeamId === userTeam?.id || g.awayTeamId === userTeam?.id);
-    // Show last 10 games, reversed (newest first)
-    const displayGames = userGames.slice(-10).reverse();
-
-    if (games.length === 0) return (
-      <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-secondary)', fontStyle: 'italic', background: 'rgba(255,255,255,0.03)', borderRadius: '16px' }}>
-        No games played yet.
-      </div>
-    );
-
-    return (
-      <div style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Recent Activity</h3>
-          <button onClick={onShowResults} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.85rem', cursor: 'pointer' }}>See All</button>
-        </div>
-
-        {/* Horizontal Scroll Container */}
-        <div style={{
-          display: 'flex',
-          gap: '12px',
-          overflowX: 'auto',
-          paddingBottom: '10px',
-          margin: '0 -20px',
-          paddingLeft: '20px',
-          paddingRight: '20px'
-        }}>
-          {displayGames.map(game => {
-            const home = teams.find(t => t.id === game.homeTeamId);
-            const away = teams.find(t => t.id === game.awayTeamId);
-            const isUserGame = game.homeTeamId === userTeam?.id || game.awayTeamId === userTeam?.id;
-
-            return (
-              <div
-                key={game.id}
-                onClick={() => onSelectGame(game)}
-                style={{
-                  minWidth: '160px',
-                  background: (() => {
-                    if (!isUserGame) return 'var(--surface-glass)';
-                    const color = ensureColorVibrancy(userTeam.colors?.primary || '#3498db');
-                    // Handle RGB
-                    if (color.startsWith('rgb')) {
-                      return `linear-gradient(180deg, ${color.replace(')', ', 0.12)')}, var(--surface-glass))`;
-                    }
-                    // Handle Hex
-                    return `linear-gradient(180deg, ${color}20, var(--surface-glass))`;
-                  })(),
-                  border: (() => {
-                    if (!isUserGame) return '1px solid var(--border)';
-                    const color = userTeam.colors?.primary || '#3498db';
-                    // Handle RGB
-                    if (color.startsWith('rgb')) {
-                      return `1px solid ${color.replace(')', ', 0.37)')}`;
-                    }
-                    // Handle Hex
-                    return `1px solid ${color}60`;
-                  })(),
-                  padding: '16px',
-                  borderRadius: '16px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', fontWeight: 600, opacity: game.winnerId === game.awayTeamId ? 1 : 0.7 }}>
-                  <span>{away?.abbreviation}</span>
-                  <span>{game.awayScore}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', fontWeight: 600, opacity: game.winnerId === game.homeTeamId ? 1 : 0.7 }}>
-                  <span>{home?.abbreviation}</span>
-                  <span>{game.homeScore}</span>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    );
-  };
-
-  const RosterPreview = () => (
-    <div style={{ paddingBottom: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Team Leaders</h3>
-        <div style={{ fontSize: '0.8rem', color: userTeam.salaryCapSpace > 0 ? '#2ecc71' : '#e74c3c' }}>
-          Cap: {formatMoney(userTeam.salaryCapSpace)}
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {players.filter(p => p.teamId === userTeam?.id)
-          .sort((a, b) => b.overall - a.overall) // Sort by OVR for the preview
-          .slice(0, 5) // Just show top 5
-          .map((player) => {
-            const stats = player.seasonStats;
-            return (
-              <div
-                key={player.id}
-                onClick={() => onSelectPlayer(player.id)}
-                style={{
-                  background: 'var(--surface-glass)',
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  border: '1px solid var(--border)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  cursor: 'pointer'
-                }}
-              >
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.85rem',
-                  fontWeight: 700,
-                  color: 'var(--text-secondary)'
-                }}>
-                  {player.position}
-                </div>
-
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{player.firstName} {player.lastName}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', gap: '8px' }}>
-                    <span style={{ color: 'var(--text)' }}>
-                      {stats.gamesPlayed > 0 ? (stats.points / stats.gamesPlayed).toFixed(1) : '0.0'} PPG
-                    </span>
-                    <span style={{ color: 'var(--text-secondary)' }}>•</span>
-                    <span style={{ color: 'var(--text)' }}>
-                      {stats.gamesPlayed > 0 ? (stats.rebounds / stats.gamesPlayed).toFixed(1) : '0.0'} RPG
-                    </span>
-                    <span style={{ color: 'var(--text-secondary)' }}>•</span>
-                    <span style={{ color: 'var(--text)' }}>
-                      {stats.gamesPlayed > 0 ? (stats.assists / stats.gamesPlayed).toFixed(1) : '0.0'} APG
-                    </span>
-                  </div>
-                  {/* Contract Info Line */}
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                    {contracts.find(c => c.playerId === player.id) ? (
-                      (() => {
-                        const c = contracts.find(c => c.playerId === player.id)!;
-                        return (
-                          <span style={{ color: c.yearsLeft === 1 ? '#e74c3c' : 'var(--text-secondary)' }}>
-                            {formatMoney(c.amount)}/yr • {c.yearsLeft === 1 ? 'Expiring' : `${c.yearsLeft} yrs`}
-                          </span>
-                        );
-                      })()
-                    ) : (
-                      <span style={{ color: '#e74c3c' }}>No Contract</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Morale Face */}
-                <div style={{ marginRight: '8px', width: '24px', height: '24px' }}>
-                  {player.morale >= 75 ? (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#2ecc71" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                      <line x1="9" y1="9" x2="9.01" y2="9" />
-                      <line x1="15" y1="9" x2="15.01" y2="9" />
-                    </svg>
-                  ) : player.morale >= 45 ? (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="8" y1="15" x2="16" y2="15" />
-                      <line x1="9" y1="9" x2="9.01" y2="9" />
-                      <line x1="15" y1="9" x2="15.01" y2="9" />
-                    </svg>
-                  ) : (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#e74c3c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M16 16s-1.5-2-4-2-4 2-4 2" />
-                      <line x1="9" y1="9" x2="9.01" y2="9" />
-                      <line x1="15" y1="9" x2="15.01" y2="9" />
-                    </svg>
-                  )}
-                </div>
-
-                <div style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  padding: '4px 8px',
-                  borderRadius: '8px',
-                  fontWeight: 700,
-                  fontSize: '0.9rem'
-                }}>
-                  {calculateOverall(player)}
-                </div>
-              </div>
-            )
-          })}
-      </div>
-    </div>
-  );
-
-  const Header = () => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 4px', marginBottom: '10px' }}>
-      <div style={{ fontWeight: '800', fontSize: '1.2rem', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: currentSaveSlot ? '#2ecc71' : '#e74c3c' }} />
-        {currentSaveSlot ? `Slot ${currentSaveSlot} • ${date.getFullYear()}` : 'Unsaved Career'}
-      </div>
-
-      <div style={{ display: 'flex', gap: '8px' }}>
-        <button
-          onClick={onSaveTrigger}
-          style={{
-            background: 'rgba(255, 255, 255, 0.2)',
-            border: '1px solid var(--border)',
-            color: 'var(--text)',
-            padding: '8px 16px',
-            borderRadius: '20px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontSize: '0.9rem',
-            fontWeight: 600,
-            backdropFilter: 'blur(10px)'
-          }}
-        >
-          <Save size={16} color="var(--text-secondary)" />
-          Save
-        </button>
-
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onSaveExitTrigger();
-          }}
-          style={{
-            background: 'var(--surface-active)',
-            border: '1px solid var(--border)',
-            color: 'var(--text)',
-            padding: '8px 16px',
-            borderRadius: '20px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontSize: '0.9rem',
-            fontWeight: 600
-          }}
-        >
-          <LogOut size={16} color="var(--text-secondary)" />
-          Save & Exit
-        </button>
-      </div>
-
-    </div>
-  );
-
-  return (
-    <div className="responsive-container">
-      <Header />
-      <HeroSection />
-      <div className="dashboard-grid">
-        <div style={{ minWidth: 0 }}>
-          <QuickActions />
-          <RecentGames />
-          <RosterPreview />
-          <TeamMoraleDashboard players={players} teamId={userTeam.id} onSelectPlayer={onSelectPlayer} />
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', minWidth: 0 }}>
-          <div style={{ background: 'var(--surface-glass)', borderRadius: '16px', border: '1px solid var(--border)', padding: '16px' }}>
-            <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Smartphone size={18} color="var(--primary)" />
-              League Pulse
-            </h3>
-            <PulseFeed posts={socialMediaPosts} onSelectPlayer={onSelectPlayer} />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 
 
 
 
 function AppContent() {
-  const { isInitialized, teams, players, executeTrade, draftClass, draftOrder, handleDraftPick, simulateNextPick, simulateToUserPick, endDraft, signFreeAgent, negotiateContract, signPlayerWithContract, endFreeAgency, games, seasonPhase, contracts, updateRotation, updateCoachSettings, updateRotationSchedule, acceptTradeOffer, rejectTradeOffer, tradeOffer, userTeamId, isSimulating, isProcessing, date, tradeHistory, salaryCap, awardsHistory, retiredPlayersHistory, stopSimulation, advanceDay, currentSaveSlot, saveGame, startRegularSeason, news, liveGameData, startLiveGameFn, endLiveGameFn, tutorialFlags, setHasSeenNewsTutorial, gmProfile, simTarget } = useGame();
+  const { isInitialized, isFirstSeasonPaid, teams, players, executeTrade, draftClass, draftOrder, handleDraftPick, simulateNextPick, simulateToUserPick, endDraft, signFreeAgent, negotiateContract, signPlayerWithContract, endFreeAgency, games, seasonPhase, contracts, updateRotation, updateCoachSettings, updateRotationSchedule, acceptTradeOffer, rejectTradeOffer, tradeOffer, userTeamId, isSimulating, isProcessing, date, tradeHistory, salaryCap, awardsHistory, retiredPlayersHistory, stopSimulation, advanceDay, currentSaveSlot, saveGame, startRegularSeason, startPlayoffs, news, liveGameData, startLiveGameFn, endLiveGameFn, tutorialFlags, setHasSeenNewsTutorial, gmProfile, simTarget, setGameState } = useGame();
 
   // Unified Navigation State
   interface NavState {
@@ -978,21 +354,17 @@ function AppContent() {
       return <ExpansionDraftView />;
     }
 
-    // Default Phase Views (Draft, etc)
-    if (seasonPhase === 'draft') {
-      return <DraftView
-        draftClass={draftClass}
-        draftOrder={draftOrder}
-        teams={teams}
-        userTeamId={userTeamId}
-        onPick={handleDraftPick}
-        onSimulateNext={simulateNextPick}
-        onSimulateToUser={simulateToUserPick}
-        onFinish={endDraft}
+    if (seasonPhase === 'draft_summary') {
+      return <DraftSummaryView
         onSelectPlayer={setSelectedPlayerId}
+        onSelectTeam={(id) => {
+          setViewTeamId(id);
+          setView('stats');
+        }}
       />;
     }
 
+    // Default Phase Views (Draft, etc)
     // 1. Explicit View Checks (Navigation overrides Phase)
 
 
@@ -1051,18 +423,21 @@ function AppContent() {
       if (!userTeam) return <div>Loading...</div>;
 
       return <TradeCenterView
-        userTeam={userTeam}
+        userTeam={teams.find(t => t.id === userTeamId)!}
         teams={teams}
         players={players}
         contracts={contracts}
         salaryCap={salaryCap}
         currentYear={date.getFullYear()}
-        tradeHistory={tradeHistory || []}
-        initialAiPlayerId={initialAiPlayerId}
+        tradeHistory={tradeHistory}
+        initialAiPlayerId={shopPlayerId || initialAiPlayerId}
         initialProposal={prefilledTrade}
         initialTab={view === 'transactions' ? 'log' : 'new'}
+        gmProfile={gmProfile}
+        draftOrder={draftOrder}
+        seasonPhase={seasonPhase}
         onBack={() => { setView('dashboard'); setInitialAiPlayerId(undefined); }}
-        onSelectPlayer={setSelectedPlayerId}
+        onSelectPlayer={(id) => setSelectedPlayerId(id)}
         onExecuteTrade={(userP: string[], userPick: string[], aiP: string[], aiPick: string[], aiTeamId: string) => {
           const success = executeTrade(userP, userPick, aiP, aiPick, aiTeamId);
           if (success) {
@@ -1076,7 +451,6 @@ function AppContent() {
           // Default MID-SEASON signing logic: 1 Year / Min Salary
           signPlayerWithContract(playerId, { amount: 1000000, years: 1, role: 'Bench' });
         }}
-        gmProfile={gmProfile}
       />;
     }
 
@@ -1254,11 +628,20 @@ function AppContent() {
             onShowResults={() => setView('results')}
             onSelectPlayer={setSelectedPlayerId}
             onEnterPlayoffs={() => {
+              startPlayoffs();
               setView('playoffs');
-              // Maybe trigger play-in logic? For now direct navigation
             }}
-            onStartSeasonTrigger={() => setShowPayrollModal(true)}
-            onStartTrainingTrigger={() => setView('training')}
+            onStartSeasonTrigger={() => {
+              if (isFirstSeasonPaid) {
+                startRegularSeason();
+              } else {
+                setShowPayrollModal(true);
+              }
+            }}
+            onStartTrainingTrigger={() => {
+              setGameState(prev => ({ ...prev, trainingReport: null, isTrainingCampComplete: false }));
+              setView('training');
+            }}
             onSaveExitTrigger={() => setShowExitModal(true)}
             onShowMessage={(t, m, y) => setModalMessage({ title: t, msg: m, type: y })}
             onSaveTrigger={async () => {
@@ -1269,7 +652,8 @@ function AppContent() {
                 setModalMessage({ title: 'Error', msg: 'No active save slot found.', type: 'error' });
               }
             }}
-
+            onViewStandings={() => setView('standings')}
+            onViewFinancials={() => setView('financials')}
           />
         </>
       );
@@ -1357,10 +741,10 @@ function AppContent() {
             </button>
           )}
 
-          {(seasonPhase === 'regular_season' || seasonPhase === 'pre_season' || seasonPhase === 'free_agency') && (
+          {(seasonPhase === 'regular_season' || seasonPhase === 'pre_season' || seasonPhase === 'free_agency' || seasonPhase === 'draft') && (
             <button onClick={() => { setView('trade'); setSelectedPlayerId(null); setInitialAiPlayerId(undefined); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: (view === 'trade' || view === 'transactions') ? 'var(--primary)' : '#666', gap: '4px' }}>
               <ArrowLeftRight size={24} />
-              <span style={{ fontSize: '10px', fontWeight: 500 }}>Players</span>
+              <span style={{ fontSize: '10px', fontWeight: 500 }}>Players Market</span>
             </button>
           )}
 

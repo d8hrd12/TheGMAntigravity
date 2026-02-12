@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useGame } from '../../store/GameContext';
 import { getPotentialGrade, calculateOverall } from '../../utils/playerUtils';
+import { getFuzzyPotential, getFuzzyAttribute } from '../../utils/scoutingUtils';
 import { getPlayerTradeValue } from '../trade/TradeLogic';
 
 const ScoutingView: React.FC = () => {
@@ -212,70 +213,71 @@ const ScoutingView: React.FC = () => {
             <div style={{ display: 'flex', gap: '20px', flex: 1, minHeight: 0, flexDirection: isMobile ? 'column' : 'row' }}>
                 {/* Prospect List */}
                 {showList && (
-                    <div style={{ flex: 1, overflowY: 'auto', background: 'white', borderRadius: '12px', padding: '15px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-                        <h3 style={{ marginTop: 0 }}>Prospects</h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            {draftClass.filter(p => filterPos === 'All' || p.position === filterPos).map(p => {
-                                const visibility = getVisibility(p.id);
-                                return (
-                                    <div
-                                        key={p.id}
-                                        onClick={() => setSelectedProspectId(p.id)}
-                                        style={{
-                                            padding: '12px',
-                                            borderRadius: '8px',
-                                            background: selectedProspectId === p.id ? 'rgba(255, 107, 0, 0.05)' : '#f8f9fa',
-                                            border: selectedProspectId === p.id ? '1px solid #ff6b00' : '1px solid #eee',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center'
-                                        }}
-                                    >
-                                        <div>
-                                            <div style={{ fontWeight: 'bold', color: '#333' }}>{p.firstName} {p.lastName}</div>
-                                            <div style={{ fontSize: '0.85em', color: '#666' }}>
-                                                {p.position} • {p.archetype} • {p.age} yrs
-                                            </div>
-                                            <div style={{ fontSize: '0.8em', color: '#ff6b00', fontWeight: 'bold', marginTop: '2px' }}>
-                                                Projected: {projections.get(p.id)}
-                                            </div>
-                                        </div>
-                                        <div style={{ textAlign: 'right' }}>
-                                            <div style={{ fontWeight: 'bold', fontSize: '1.1em', color: visibility.showTruePotential ? '#2c3e50' : '#888' }}>
-                                                {visibility.showTruePotential
-                                                    ? getPotentialGrade(p.potential)
-                                                    : (visibility.showGrade ? getPotentialGrade(p.potential || 70) : '??')}
-                                                {!visibility.showTruePotential && <span style={{ fontSize: '0.6em', verticalAlign: 'top', marginLeft: '2px' }}>{visibility.showGrade ? 'EST' : ''}</span>}
-                                            </div>
-                                            {visibility.spent > 0 && (
-                                                <div style={{ fontSize: '0.75em', color: '#ff6b00' }}>
-                                                    {visibility.spent} pts
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'white', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+                        <div style={{ flex: 1, overflowY: 'auto', padding: '15px' }}>
+                            <h3 style={{ marginTop: 0 }}>Prospects</h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                {draftClass.filter(p => filterPos === 'All' || p.position === filterPos).map(p => {
+                                    const visibility = getVisibility(p.id);
+                                    return (
+                                        <div
+                                            key={p.id}
+                                            onClick={() => setSelectedProspectId(p.id)}
+                                            style={{
+                                                padding: '12px',
+                                                borderRadius: '8px',
+                                                background: selectedProspectId === p.id ? 'rgba(255, 107, 0, 0.05)' : '#f8f9fa',
+                                                border: selectedProspectId === p.id ? '1px solid #ff6b00' : '1px solid #eee',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center'
+                                            }}
+                                        >
+                                            <div>
+                                                <div style={{ fontWeight: 'bold', color: '#333' }}>{p.firstName} {p.lastName}</div>
+                                                <div style={{ fontSize: '0.85em', color: '#666' }}>
+                                                    {p.position} • {p.archetype} • {p.age} yrs
                                                 </div>
-                                            )}
+                                                <div style={{ fontSize: '0.8em', color: '#ff6b00', fontWeight: 'bold', marginTop: '2px' }}>
+                                                    Projected: {projections.get(p.id)}
+                                                </div>
+                                            </div>
+                                            <div style={{ textAlign: 'right' }}>
+                                                <div style={{ fontWeight: 'bold', fontSize: '1.1em', color: visibility.showTruePotential ? '#2c3e50' : '#888' }}>
+                                                    {getFuzzyPotential(p.potential || 70, visibility.spent)}
+                                                </div>
+                                                {visibility.spent > 0 && (
+                                                    <div style={{ fontSize: '0.75em', color: '#ff6b00' }}>
+                                                        {visibility.spent} pts
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
                         </div>
                         {isMobile && (
-                            <button
-                                onClick={endScoutingPhase}
-                                style={{
-                                    marginTop: '20px',
-                                    width: '100%',
-                                    padding: '15px',
-                                    background: '#2ecc71',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    fontSize: '1.1em',
-                                    fontWeight: 'bold',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Finish Scouting
-                            </button>
+                            <div style={{ padding: '15px', borderTop: '1px solid #eee', background: 'white' }}>
+                                <button
+                                    onClick={endScoutingPhase}
+                                    style={{
+                                        width: '100%',
+                                        padding: '15px',
+                                        background: '#2ecc71',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        fontSize: '1.1em',
+                                        fontWeight: 'bold',
+                                        cursor: 'pointer',
+                                        boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                                    }}
+                                >
+                                    Finish Scouting
+                                </button>
+                            </div>
                         )}
                     </div>
                 )}
@@ -314,10 +316,7 @@ const ScoutingView: React.FC = () => {
                                     <div style={{ textAlign: 'right' }}>
                                         <div style={{ fontSize: '0.9em', color: '#888' }}>Projected Potential</div>
                                         <div style={{ fontSize: '2em', fontWeight: 'bold', color: '#2c3e50' }}>
-                                            {getVisibility(selectedProspect.id).showTruePotential
-                                                ? getPotentialGrade(selectedProspect.potential)
-                                                : (getVisibility(selectedProspect.id).showGrade ? getPotentialGrade(selectedProspect.potential || 70) : '??')
-                                            }
+                                            {getFuzzyPotential(selectedProspect.potential || 70, pointsSpent)}
                                         </div>
                                     </div>
                                 </div>
@@ -362,11 +361,11 @@ const ScoutingView: React.FC = () => {
                                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '20px' }}>
                                     <div>
                                         <h4 style={{ borderBottom: '2px solid #ff6b00', paddingBottom: '5px' }}>Offense</h4>
-                                        {renderAttributes(selectedProspect, getVisibility(selectedProspect.id).getAttrVisible, 'offense')}
+                                        <AttributeList player={selectedProspect} category="offense" />
                                     </div>
                                     <div>
                                         <h4 style={{ borderBottom: '2px solid #3498db', paddingBottom: '5px' }}>Defense & Physical</h4>
-                                        {renderAttributes(selectedProspect, getVisibility(selectedProspect.id).getAttrVisible, 'defense')}
+                                        <AttributeList player={selectedProspect} category="defense" />
                                     </div>
                                 </div>
 
@@ -383,8 +382,13 @@ const ScoutingView: React.FC = () => {
     );
 };
 
-// Helper for rendering attributes (masked or revealed)
-const renderAttributes = (player: any, getAttrVisible: (key: string) => boolean, category: 'offense' | 'defense') => {
+
+const AttributeList: React.FC<{ player: any, category: 'offense' | 'defense' }> = ({ player, category }) => {
+    const { scoutingReports, userTeamId } = useGame();
+    const userReport = scoutingReports[userTeamId || ''] || {};
+    const report = userReport[player.id] || { points: 0 };
+    const points = report.points;
+
     const offenseKeys = ['insideShot', 'midRangeShot', 'threePointShot', 'passing', 'ballHandling', 'offensiveRebound'];
     const defenseKeys = ['interiorDefense', 'perimeterDefense', 'steal', 'block', 'defensiveRebound', 'speed', 'stamina', 'iq'];
 
@@ -395,13 +399,24 @@ const renderAttributes = (player: any, getAttrVisible: (key: string) => boolean,
             {keys.map(key => {
                 const val = player.attributes[key];
                 const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-                const isVisible = getAttrVisible(key);
+
+                // Fuzzy Value
+                const fuzzyVal = getFuzzyAttribute(val, points);
+                // Color based on fuzzy average or exact
+                // for ranges like "40-60", take avg 50
+                let colorVal = val;
+                if (fuzzyVal.includes('-')) {
+                    const parts = fuzzyVal.split('-');
+                    colorVal = (parseInt(parts[0]) + parseInt(parts[1])) / 2;
+                } else if (fuzzyVal === "??") {
+                    colorVal = 0;
+                }
 
                 return (
                     <div key={key} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9em' }}>
                         <span style={{ color: 'black', fontWeight: '600' }}>{label}</span>
-                        <span style={{ fontWeight: 'bold', color: isVisible ? getRatingColor(val) : '#ccc' }}>
-                            {isVisible ? val : '??'}
+                        <span style={{ fontWeight: 'bold', color: fuzzyVal === "??" ? '#ccc' : getRatingColor(colorVal) }}>
+                            {fuzzyVal}
                         </span>
                     </div>
                 );
@@ -414,6 +429,7 @@ const getRatingColor = (rating: number) => {
     if (rating >= 85) return '#27ae60'; // Green
     if (rating >= 70) return '#2980b9'; // Blue
     if (rating >= 50) return '#f39c12'; // Orange
+    if (rating < 20) return '#ccc'; // Gray/Unknown
     return '#c0392b'; // Red
 };
 

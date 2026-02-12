@@ -4,99 +4,112 @@ import type { Team } from '../models/Team';
 import { calculateOverall } from './playerUtils';
 import { generateUUID } from './uuid';
 
+
+export const calculatePlayerValuation = (player: Player): number => {
+    // If no stats, return OVR (Rookies/No Play)
+    if (!player.seasonStats || player.seasonStats.gamesPlayed < 10) return calculateOverall(player);
+
+    const s = player.seasonStats;
+    const gp = s.gamesPlayed;
+
+    // Game Score Formula (Approximate)
+    // GmSc = PTS + 0.4*FG - 0.7*FGA - 0.4*(FTA - FGM) + 0.7*ORB + 0.3*DRB + STL + 0.7*AST + 0.7*BLK - 0.4*PF - TOV.
+    const gmSc = (s.points + 0.4 * s.fgMade - 0.7 * s.fgAttempted - 0.4 * (s.ftAttempted - s.ftMade) + 0.7 * s.offensiveRebounds + 0.3 * s.defensiveRebounds + s.steals + 0.7 * s.assists + 0.7 * s.blocks - 0.4 * s.fouls - s.turnovers) / gp;
+
+    // Convert GmSc to "Performance OVR" based on linear fit (30 PER -> 98 OVR, 10 PER -> 74 OVR)
+    let perfOvr = 62 + (gmSc * 1.2);
+
+    // Clamp
+    return Math.max(40, Math.min(99, perfOvr));
+};
+
 export const calculateContractAmount = (player: Player, salaryCap: number = 140000000): { amount: number; years: number; type?: 'standard' | 'prove_it' | 'breakout'; explanation: string } => {
     const overall = calculateOverall(player);
-    let amount = 0;
+    const performanceVal = calculatePlayerValuation(player);
+
+    // Calculate Base Values for both OVR and Performance
+    const getBaseValue = (ovr: number) => {
+        if (ovr >= 95) return salaryCap * 0.40; // Supermax
+        if (ovr >= 90) return salaryCap * 0.30; // Max
+        if (ovr >= 85) return salaryCap * 0.22; // Star
+        if (ovr >= 80) return salaryCap * 0.15; // Starter
+        if (ovr >= 76) return salaryCap * 0.08; // Rotation
+        if (ovr >= 72) return salaryCap * 0.04; // Bench
+        return salaryCap * 0.01; // Min
+    };
+
+    const ovrValue = getBaseValue(overall);
+    const perfValue = getBaseValue(performanceVal);
+
+    let amount = ovrValue;
     let years = 1;
     let explanation = "";
-
-    // Granular Tiers based on Salary Cap Percentage
-    if (overall >= 95) {
-        amount = salaryCap * 0.40; // Supermax
-        years = 5;
-        explanation = "Supermax MVP Caliber";
-    } else if (overall >= 90) {
-        amount = salaryCap * 0.30; // Max
-        years = 4;
-        explanation = "Franchise Cornerstone";
-    } else if (overall >= 85) {
-        amount = salaryCap * 0.22; // Star
-        years = 4;
-        explanation = "All-Star Level";
-    } else if (overall >= 80) {
-        amount = salaryCap * 0.15; // High Starter (~21M)
-        years = 3;
-        explanation = "Quality Starter";
-    } else if (overall >= 76) {
-        amount = salaryCap * 0.08; // Rotation (~11M)
-        years = 3;
-        explanation = "Key Rotation Piece";
-    } else if (overall >= 72) {
-        amount = salaryCap * 0.04; // Bench (~5.6M)
-        years = 2;
-        explanation = "Bench Contributor";
-    } else {
-        amount = salaryCap * 0.01; // Minimum (~1.4M)
-        years = 1;
-        explanation = "Minimum Salary";
-    }
-
-    // Performance Adjustments (Context matters)
-    const stats = player.seasonStats;
     let type: 'standard' | 'prove_it' | 'breakout' = 'standard';
+
+
+    const diff = performanceVal - overall;
+
+    // LOGIC BRANCHING
+    if (diff < -4 && player.age < 32) {
+        // UNDERPERFORMER (PROVE IT DEAL)
+        // e.g., 85 OVR playing like a 75 (-10 diff)
+        // Takes average of OVR and Low Perf to reset market
+        amount = (ovrValue * 0.4 + perfValue * 0.6);
+        years = 1;
+        type = 'prove_it';
+        explanation = `Underperformed (${performanceVal.toFixed(0)} rating). Taking 1-year deal to rebuild value.`;
+    } else if (diff > 3) {
+        // OVERPERFORMER (BREAKOUT)
+        // e.g. 75 OVR playing like 80 (+5 diff)
+        // Paid closer to performance
+        amount = (ovrValue * 0.3 + perfValue * 0.7);
+        // Better players want years, but might bet on themselves if young?
+        // Usually breakout players want to lock in money unless they think they can go higher.
+        // Let's say they want 3-4 years.
+        years = 3;
+        type = 'breakout';
+        explanation = `Breakout Season (${performanceVal.toFixed(0)} rating). Cashing in.`;
+    } else {
+        // STANDARD
+        amount = (ovrValue * 0.8 + perfValue * 0.2); // Mostly OVR based but slight perf nudge
+        years = overall > 80 ? 4 : (overall > 74 ? 3 : 2);
+        explanation = "Standard Market Value.";
+    }
 
     // Age / Decline Logic
     if (player.age >= 32) {
-        if (overall < 80) {
-            amount *= 0.7; // 30% Discount
-            explanation += " (Aging Role Player)";
-            years = Math.min(years, 2);
-        } else {
-            amount *= 0.9; // 10% Discount for aging stars
-            explanation += " (Aging Star)";
-            years = Math.min(years, 3);
-        }
+        const agePenalty = (player.age - 31) * 0.1; // 10% per year over 31
+        // But if they are performing well (LeBron rule), reduce penalty
+        const successMod = performanceVal > 85 ? 0.5 : 1.0;
+
+        amount *= (1 - (agePenalty * successMod));
+        years = Math.min(years, (player.age > 35 ? 1 : 2));
+        explanation += ` (Age ${player.age} Adjustment)`;
     }
 
-    // Performance "Prove It" vs "Cash In"
-    if (stats && stats.gamesPlayed > 20) {
-        const ppg = stats.points / stats.gamesPlayed;
-        const efficiency = ((stats.points + stats.rebounds + stats.assists + stats.steals + stats.blocks) - (stats.fgAttempted - stats.fgMade) - (stats.turnovers)) / stats.gamesPlayed;
-
-        // "Prove It" (Good ratings but bad play)
-        // e.g., 80 OVR but 8 PPG
-        if (overall >= 78 && ppg < 10) {
-            amount *= 0.6; // 40% reduction
+    // Low Games Played Penalty (The "Naz Reid" Clause)
+    // Applied LAST to ensure it doesn't get overwritten by Prove It / Standard logic
+    if (player.seasonStats && player.seasonStats.gamesPlayed < 15) {
+        if (overall < 80 && player.age > 24) {
+            amount *= 0.4;
             years = 1;
-            type = 'prove_it';
-            explanation += " (Bad Season - Prove It Deal)";
-        }
-
-        // "Cash In" (Outperforming ratings)
-        // e.g., 74 OVR but 15 PPG
-        // Only trigger if they are NOT already being paid Star Money
-        else if (amount < (salaryCap * 0.15) && ppg > 16) {
-            amount = Math.max(amount * 1.5, salaryCap * 0.12);
-            if (years < 3) years = 3;
-            type = 'breakout';
-            explanation += " (Breakout Season - Cashing In)";
+            // Overwrite explanation or append? Append is safer.
+            explanation += " (Low Usage Penalty)";
+            // If they entered Prove It logic, they already have a low amount, but this crushes it further.
+            // If they entered Standard (because games < 10 reset perfVal), this fixes the "Paid for OVR" bug.
         }
     }
 
-    // Stable Random Variance based on Player ID
-    // We want some variability across players, but stability for the same player
-    const seed = player.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const stableRand = (Math.abs(Math.sin(seed)) * 10000) % 1;
-    const variance = 0.95 + stableRand * 0.1;
-    amount *= variance;
+    // Determine Years for max guys
+    if (amount > salaryCap * 0.25 && player.age < 30) years = 5;
 
     // Safety Clamps
-    const minSalary = salaryCap * 0.008; // ~1.1M
-    const maxSalary = salaryCap * 0.35; // Cap individual max at 35% generally
+    const minSalary = salaryCap * 0.008;
+    const maxSalary = salaryCap * 0.35;
 
-    // Hard check: If OVR < 75, NEVER exceed 12M (approx 8.5% cap) unless young (<22)
-    if (overall < 75 && player.age > 24) {
-        amount = Math.min(amount, salaryCap * 0.085);
+    // Hard Cap for Low OVR/Perf
+    if (overall < 72 && performanceVal < 75) {
+        amount = Math.min(amount, salaryCap * 0.05); // Max ~7M for fringe players
     }
 
     amount = Math.max(minSalary, Math.min(amount, maxSalary));

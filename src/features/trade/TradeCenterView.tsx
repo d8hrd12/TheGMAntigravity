@@ -27,6 +27,8 @@ interface TradeCenterViewProps {
     initialTab?: 'new' | 'log' | 'freeAgents' | 'injuries';
     onSignFreeAgent: (playerId: string) => void;
     gmProfile?: any;
+    draftOrder?: string[];
+    seasonPhase?: string;
 }
 
 export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
@@ -44,7 +46,9 @@ export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
     onBack,
     initialTab = 'new',
     onSignFreeAgent,
-    gmProfile
+    gmProfile,
+    draftOrder,
+    seasonPhase
 }) => {
     const [activeTab, setActiveTab] = useState<'new' | 'log' | 'freeAgents' | 'injuries'>(initialTab);
 
@@ -138,6 +142,8 @@ export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
                         onSelectPlayer={onSelectPlayer}
                         onBack={onBack}
                         gmProfile={gmProfile}
+                        draftOrder={draftOrder}
+                        seasonPhase={seasonPhase}
                     />
                 )}
                 {activeTab === 'freeAgents' && (

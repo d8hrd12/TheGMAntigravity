@@ -123,24 +123,37 @@ export function getPlayerTradeValue(
     return Math.max(0, value);
 }
 
-export function getDraftPickValue(pick: DraftPick, currentYear: number, receivingTeam: Team | null): number {
+export function getDraftPickValue(pick: DraftPick, currentYear: number, receivingTeam: Team | null, pickNumber?: number): number {
     let baseValue = 0;
     const isFuture = pick.year > currentYear;
 
     if (pick.round === 1) {
-        if (isFuture) {
-            const yearsOut = pick.year - currentYear;
-            // "Mystery Premium" Curve:
-            // Year 1-2: Value drops as certainty increases (Teams are locked in)
-            // Year 3-4+: Value rises as "Lottery Ticket" potential increases
-            if (yearsOut <= 2) {
-                baseValue = 60 - (yearsOut * 10); // 1yr: 50, 2yr: 40
-            } else {
-                // Mystery Boost
-                baseValue = 40 + ((yearsOut - 2) * 8); // 3yr: 48, 4yr: 56
-            }
+        if (pickNumber) {
+            // KNOWN PICK VALUE (Draft Day / Lottery Set)
+            if (pickNumber === 1) baseValue = 130; // Wemby/LeBron level asset
+            else if (pickNumber === 2) baseValue = 110;
+            else if (pickNumber === 3) baseValue = 95;
+            else if (pickNumber === 4) baseValue = 75; // The Drop-off
+            else if (pickNumber <= 10) baseValue = 75 - (pickNumber - 4) * 3; // 4->75, 10->57
+            else if (pickNumber <= 20) baseValue = 55 - (pickNumber - 10) * 2; // 11->53, 20->35
+            else baseValue = 35 - (pickNumber - 20) * 1; // 21->34, 30->25
         } else {
-            baseValue = 60;
+            // UNKNOWN FUTURE PICK
+            if (isFuture) {
+                const yearsOut = pick.year - currentYear;
+                // "Mystery Premium" Curve:
+                // Year 1-2: Value drops as certainty increases (Teams are locked in)
+                // Year 3-4+: Value rises as "Lottery Ticket" potential increases
+                if (yearsOut <= 2) {
+                    baseValue = 60 - (yearsOut * 10); // 1yr: 50, 2yr: 40
+                } else {
+                    // Mystery Boost
+                    baseValue = 40 + ((yearsOut - 2) * 8); // 3yr: 48, 4yr: 56
+                }
+            } else {
+                // Current year but unknown number (e.g. before lottery?)
+                baseValue = 60;
+            }
         }
     } else {
         baseValue = 3; // Drastically devalued (Was 15)

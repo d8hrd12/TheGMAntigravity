@@ -3,7 +3,8 @@ import type { Team } from '../../models/Team';
 import type { Player } from '../../models/Player';
 import { getPlayerTradeValue } from '../trade/TradeLogic';
 import { getPotentialGrade } from '../../utils/playerUtils';
-import { useGame } from '../../store/GameContext'; // Better to use context here for scouting data
+import { getFuzzyPotential } from '../../utils/scoutingUtils';
+import { useGame } from '../../store/GameContext';
 
 interface DraftViewProps {
     draftClass: Player[];
@@ -18,8 +19,12 @@ interface DraftViewProps {
 }
 
 export const DraftView: React.FC<DraftViewProps> = ({ draftClass, draftOrder, teams, userTeamId, onPick, onSimulateNext, onSimulateToUser, onFinish, onSelectPlayer }) => {
-    const { scoutingReports, gmProfile } = useGame();
+    const {
+        scoutingReports,
+        gmProfile
+    } = useGame();
     const [showScoutedOnly, setShowScoutedOnly] = React.useState(false);
+    const [filterPos, setFilterPos] = React.useState('All');
     const currentTeamId = draftOrder[0];
     const currentTeam = teams.find(t => t.id === currentTeamId);
     const isUserTurn = currentTeamId === userTeamId;
@@ -35,8 +40,13 @@ export const DraftView: React.FC<DraftViewProps> = ({ draftClass, draftOrder, te
 
     if (showScoutedOnly) {
         rankedProspects = rankedProspects.filter((p, idx) =>
-            scoutingReports[userTeamId]?.[p.id]?.isPotentialRevealed || (idx < autoRevealCount)
+            (scoutingReports[userTeamId]?.[p.id]?.points || 0) > 0 || (idx < autoRevealCount)
         );
+    }
+
+    // Position Filter
+    if (filterPos !== 'All') {
+        rankedProspects = rankedProspects.filter(p => p.position === filterPos);
     }
 
     if (draftOrder.length === 0) {
@@ -47,7 +57,7 @@ export const DraftView: React.FC<DraftViewProps> = ({ draftClass, draftOrder, te
                     onClick={onFinish}
                     className="btn-primary"
                     style={{ marginTop: '20px', padding: '15px 30px', fontSize: '1.2rem' }}>
-                    Start Regular Season
+                    View Draft Summary
                 </button>
             </div>
         )
@@ -76,7 +86,7 @@ export const DraftView: React.FC<DraftViewProps> = ({ draftClass, draftOrder, te
                 )}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <button
                         onClick={() => setShowScoutedOnly(!showScoutedOnly)}
@@ -91,8 +101,30 @@ export const DraftView: React.FC<DraftViewProps> = ({ draftClass, draftOrder, te
                             fontWeight: 'bold'
                         }}
                     >
-                        {showScoutedOnly ? 'Showing Scouted Only' : 'Show Scouted Only'}
+                        {showScoutedOnly ? 'Scouted Only' : 'All Prospects'}
                     </button>
+
+                    {/* Position Filter */}
+                    <div style={{ display: 'flex', gap: '5px' }}>
+                        {['All', 'PG', 'SG', 'SF', 'PF', 'C'].map(pos => (
+                            <button
+                                key={pos}
+                                onClick={() => setFilterPos(pos)}
+                                style={{
+                                    padding: '5px 10px',
+                                    borderRadius: '15px',
+                                    border: '1px solid var(--border)',
+                                    background: filterPos === pos ? 'var(--primary)' : 'var(--surface)',
+                                    color: filterPos === pos ? 'white' : 'var(--text-secondary)',
+                                    cursor: 'pointer',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 'bold'
+                                }}
+                            >
+                                {pos}
+                            </button>
+                        ))}
+                    </div>
                 </div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                     {rankedProspects.length} Players Available
@@ -176,10 +208,17 @@ export const DraftView: React.FC<DraftViewProps> = ({ draftClass, draftOrder, te
                                 </div>
                                 <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
                                     Age: <span style={{ color: 'var(--text)' }}>{p.age}</span> • Potential: <span style={{ color: 'var(--text)' }}>
-                                        {((scoutingReports && scoutingReports[userTeamId] && scoutingReports[userTeamId][p.id] && scoutingReports[userTeamId][p.id].isPotentialRevealed) || (autoRevealCount > 0 && idx < autoRevealCount)) // Assuming list stays sorted by value, top N are auto-revealed
-                                            ? getPotentialGrade(p.potential)
-                                            : '??'
-                                        }
+                                        {(() => {
+                                            const report = scoutingReports[userTeamId]?.[p.id];
+                                            const isRevealed = report?.isPotentialRevealed || (autoRevealCount > 0 && idx < autoRevealCount);
+                                            const points = report?.points || 0;
+
+                                            // If revealed, show exact grade
+                                            if (isRevealed) return getPotentialGrade(p.potential);
+
+                                            // Otherwise show fuzzy
+                                            return getFuzzyPotential(p.potential, points);
+                                        })()}
                                     </span>
                                 </div>
                             </div>

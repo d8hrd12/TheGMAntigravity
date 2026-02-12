@@ -23,7 +23,7 @@ export const PulseFeed: React.FC<PulseFeedProps> = ({ posts, onSelectPlayer, onS
             {posts.map((post) => (
                 <div key={post.id} style={{
                     background: 'var(--surface)',
-                    padding: '16px',
+                    padding: '12px 16px',
                     display: 'flex',
                     gap: '12px',
                     transition: 'background 0.2s',
