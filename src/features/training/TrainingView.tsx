@@ -6,7 +6,7 @@ import { BackButton } from '../ui/BackButton';
 import { TrainingResultsModal } from './TrainingResultsModal';
 
 export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: string) => void }> = ({ onBack, onSelectPlayer }) => {
-    const { players, userTeamId, trainingSettings, updateTrainingFocus, teams, runTrainingCamp, trainingReport, isTrainingCampComplete } = useGame();
+    const { players, userTeamId, trainingSettings, updateTrainingFocus, teams, runTrainingCamp, trainingReport, isTrainingCampComplete, startRegularSeason } = useGame();
     const [sortConfig, setSortConfig] = React.useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'ovr', direction: 'desc' });
     const [showResults, setShowResults] = React.useState(false);
     const [showConfirmation, setShowConfirmation] = React.useState(false);
@@ -147,20 +147,39 @@ export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: 
                     {isTrainingCampComplete ? 'Training Complete' : `Run Training Camp (${selectedCount}/5)`}
                 </button>
                 {isTrainingCampComplete && (
-                    <button
-                        onClick={() => setShowResults(true)}
-                        style={{
-                            marginLeft: '10px',
-                            background: 'transparent',
-                            border: '1px solid var(--border)',
-                            color: 'var(--text-secondary)',
-                            padding: '12px 20px',
-                            borderRadius: '8px',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        View Results
-                    </button>
+                    <div style={{ display: 'inline-flex', gap: '10px', marginLeft: '10px' }}>
+                        <button
+                            onClick={() => setShowResults(true)}
+                            style={{
+                                background: 'transparent',
+                                border: '1px solid var(--border)',
+                                color: 'var(--text-secondary)',
+                                padding: '12px 20px',
+                                borderRadius: '8px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            View Results
+                        </button>
+                        <button
+                            onClick={() => {
+                                if (onBack) onBack();
+                            }}
+                            className="btn-primary"
+                            style={{
+                                background: 'linear-gradient(135deg, #2ecc71, #27ae60)',
+                                padding: '12px 24px',
+                                boxShadow: '0 4px 15px rgba(46, 204, 113, 0.4)',
+                                cursor: 'pointer',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontWeight: 700
+                            }}
+                        >
+                            Finish Training &gt;
+                        </button>
+                    </div>
                 )}
             </div>
 

@@ -1,6 +1,7 @@
 import type { Player, PlayerAttributes } from "../../models/Player";
 import { TrainingFocus, type ProgressionResult, type AttributeChange } from "../../models/Training";
 import { calculateOverall } from "../../utils/playerUtils";
+import { getAttributeTrainability } from "../../utils/trainingUtils";
 
 // Weights for distributing points based on focus
 const FOCUS_WEIGHTS: Record<TrainingFocus, Partial<Record<keyof PlayerAttributes, number>>> = {
@@ -108,8 +109,19 @@ export const calculateProgression = (player: Player, focus: TrainingFocus): { up
 
             if (actualGain > 0) {
                 const currentVal = newAttributes[attr] || 50; // default safety
-                // Cap at 99
-                newAttributes[attr] = Math.min(99, currentVal + actualGain);
+
+                // Check trainability
+                const trainability = getAttributeTrainability(player, attr);
+
+                if (!trainability.canTrain) {
+                    // Cannot train this attribute - skip or apply minimal gain
+                    const minimalGain = Math.min(actualGain * 0.1, 1); // 10% of intended gain, max 1 point
+                    newAttributes[attr] = Math.min(trainability.maxPotential, currentVal + minimalGain);
+                } else {
+                    // Normal training with max potential cap
+                    const newValue = currentVal + actualGain;
+                    newAttributes[attr] = Math.min(trainability.maxPotential, Math.min(99, newValue));
+                }
             }
         });
 

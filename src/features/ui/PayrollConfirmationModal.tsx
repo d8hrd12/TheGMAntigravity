@@ -5,15 +5,17 @@ interface PayrollConfirmationModalProps {
     onCancel: () => void;
     payrollAmount: number;
     currentCash: number;
+    isFirstSeasonFree?: boolean;
 }
 
-export const PayrollConfirmationModal: React.FC<PayrollConfirmationModalProps> = ({ onConfirm, onCancel, payrollAmount, currentCash }) => {
+export const PayrollConfirmationModal: React.FC<PayrollConfirmationModalProps> = ({ onConfirm, onCancel, payrollAmount, currentCash, isFirstSeasonFree }) => {
 
     const formatMoney = (amount: number) => {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
     };
 
-    const remainingCash = currentCash - payrollAmount;
+    const effectivePayroll = isFirstSeasonFree ? 0 : payrollAmount;
+    const remainingCash = currentCash - effectivePayroll;
     const isDeficit = remainingCash < 0;
 
     return (
@@ -34,7 +36,9 @@ export const PayrollConfirmationModal: React.FC<PayrollConfirmationModalProps> =
                 <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '1.5rem' }}>Season Payment Required</h2>
 
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '30px', lineHeight: '1.5' }}>
-                    Before starting the regular season, you must pay all player contracts upfront for the year.
+                    {isFirstSeasonFree
+                        ? "Welcome to your first season! The owner has generously covered all player contracts for this yer."
+                        : "Before starting the regular season, you must pay all player contracts upfront for the year."}
                 </p>
 
                 <div style={{
@@ -48,10 +52,19 @@ export const PayrollConfirmationModal: React.FC<PayrollConfirmationModalProps> =
                 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ color: 'var(--text-secondary)' }}>Total Payroll:</span>
-                        <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#e74c3c' }}>
+                        <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: isFirstSeasonFree ? '#2ecc71' : '#e74c3c', textDecoration: isFirstSeasonFree ? 'line-through' : 'none' }}>
                             {formatMoney(payrollAmount)}
                         </span>
                     </div>
+
+                    {isFirstSeasonFree && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Owner Subsidy:</span>
+                            <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#2ecc71' }}>
+                                -{formatMoney(payrollAmount)}
+                            </span>
+                        </div>
+                    )}
 
                     <div style={{ height: '1px', background: 'var(--border)' }} />
 
@@ -99,10 +112,10 @@ export const PayrollConfirmationModal: React.FC<PayrollConfirmationModalProps> =
                             cursor: isDeficit ? 'not-allowed' : 'pointer',
                             fontSize: '1rem',
                             fontWeight: 600,
-                            boxShadow: isDeficit ? 'none' : '0 4px 15px rgba(231, 76, 60, 0.3)' // Using primary color which is orange usually, but specifically using button color here
+                            boxShadow: isDeficit ? 'none' : '0 4px 15px rgba(231, 76, 60, 0.3)'
                         }}
                     >
-                        {isDeficit ? 'Insufficient Funds' : 'Pay & Start Season'}
+                        {isDeficit ? 'Insufficient Funds' : (isFirstSeasonFree ? 'Accept & Start Season' : 'Pay & Start Season')}
                     </button>
                 </div>
             </div>

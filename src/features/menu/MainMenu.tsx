@@ -27,16 +27,19 @@ export const MainMenu: React.FC = () => {
     }
 
     if (view === 'selection' && setupData) {
-        return <TeamSelectionView onSelectTeam={(teamId) => {
-            console.log("MainMenu: Selected team", teamId);
-            try {
-                startNewGame(teamId, setupData.difficulty);
-                console.log("MainMenu: startNewGame returned");
-            } catch (e) {
-                console.error("MainMenu: Error starting game:", e);
-                alert("Failed to start game: " + e); // Visible feedback
-            }
-        }} />;
+        return <TeamSelectionView
+            onSelectTeam={(teamId) => {
+                console.log("MainMenu: Selected team", teamId);
+                try {
+                    startNewGame(teamId, setupData.difficulty);
+                    console.log("MainMenu: startNewGame returned");
+                } catch (e) {
+                    console.error("MainMenu: Error starting game:", e);
+                    alert("Failed to start game: " + e); // Visible feedback
+                }
+            }}
+            onCreateTeam={() => setView('create_team')}
+        />;
     }
 
     if (showLoadMenu) {
@@ -52,12 +55,6 @@ export const MainMenu: React.FC = () => {
                 style={{ fontSize: '1.2rem', padding: '15px 40px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '50px', boxShadow: '0 4px 15px rgba(255, 107, 0, 0.3)', marginBottom: '20px', display: 'block', margin: '0 auto 20px auto' }}
             >
                 Start New Career
-            </button>
-            <button
-                onClick={() => setView('create_team')}
-                style={{ fontSize: '1.1rem', padding: '15px 40px', background: 'var(--surface)', color: 'white', border: '1px solid var(--border)', borderRadius: '50px', marginBottom: '20px', display: 'block', margin: '0 auto 20px auto', cursor: 'pointer' }}
-            >
-                Create a Team
             </button>
             <button
                 onClick={() => setShowLoadMenu(true)}

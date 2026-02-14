@@ -147,6 +147,24 @@ export const PlayoffView: React.FC = () => {
                     >
                         Sim Next Game
                     </button>
+                    <button
+                        onClick={() => {
+                            console.log("[UI] User clicked Simulate Playoffs");
+                            runAutoPlayoffs();
+                        }}
+                        className="btn-secondary"
+                        style={{
+                            padding: '10px 16px',
+                            fontSize: '0.85rem',
+                            background: '#333',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Simulate Playoffs
+                    </button>
 
                 </div>
             </div>

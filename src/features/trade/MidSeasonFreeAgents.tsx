@@ -248,7 +248,7 @@ export const MidSeasonFreeAgents: React.FC<MidSeasonFreeAgentsProps> = ({ player
                                 </div>
 
                                 <div style={{ fontSize: '0.9rem', color: 'var(--text)', fontWeight: '500' }}>
-                                    Asking: <span style={{ fontFamily: 'monospace' }}>{formatMoney(cost)}</span> (Age: {p.age})
+                                    Asking: <span style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 700 }}>{formatMoney(cost)}</span> (Age: {p.age})
                                 </div>
 
                                 <button

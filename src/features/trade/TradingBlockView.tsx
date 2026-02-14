@@ -89,8 +89,7 @@ export const TradingBlockView: React.FC<TradingBlockViewProps> = ({
 
         return (
             <div key={team.id} className="glass-panel" style={{
-                minWidth: '300px',
-                maxWidth: '300px',
+                width: '100%',
                 padding: '16px',
                 borderRadius: '16px',
                 border: '1px solid var(--border)',
@@ -98,7 +97,6 @@ export const TradingBlockView: React.FC<TradingBlockViewProps> = ({
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '12px',
-                flexShrink: 0,
                 boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
             }}>
                 {/* Header */}
@@ -108,9 +106,14 @@ export const TradingBlockView: React.FC<TradingBlockViewProps> = ({
                         background: team.colors?.primary || '#333',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         color: '#fff', fontWeight: 'bold', fontSize: '1.1rem',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                        overflow: 'hidden'
                     }}>
-                        {team.abbreviation.substring(0, 2)}
+                        {team.logo ? (
+                            <img src={team.logo} alt={team.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                            team.abbreviation.substring(0, 2)
+                        )}
                     </div>
                     <div>
                         <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{team.city} {team.name}</div>
@@ -249,11 +252,9 @@ export const TradingBlockView: React.FC<TradingBlockViewProps> = ({
                 </div>
 
                 <div style={{
-                    display: 'flex',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
                     gap: '20px',
-                    overflowX: 'auto',
-                    paddingBottom: '20px',
-                    scrollbarWidth: 'thin'
                 }}>
                     {categoryTeams.length > 0 ? categoryTeams.map(renderTeamCard) : <div style={{ padding: '20px', color: '#666' }}>No teams in this category.</div>}
                 </div>

@@ -3,7 +3,7 @@ import type { Team } from '../../models/Team';
 import type { Player } from '../../models/Player';
 import type { DraftPick } from '../../models/DraftPick';
 import type { Contract } from '../../models/Contract';
-import { evaluateTrade, getPlayerTradeValue, getDraftPickValue, validateTradeProposal } from './TradeLogic';
+import { evaluateTrade, getPlayerTradeValue, getDraftPickValue, validateTradeProposal, suggestTradePackage } from './TradeLogic';
 import { calculateTeamCapSpace } from '../../utils/contractUtils';
 import { calculateOverall } from '../../utils/playerUtils';
 import type { TradeProposal } from '../../models/TradeProposal';
@@ -206,6 +206,34 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
                     setFeedback("Trade Rejected: Salary Cap Violation!");
                 }
             }, 1000);
+        }
+    };
+
+    const handleSuggest = () => {
+        if (!opponentTeam) return;
+
+        // Inputs: User wants aiSelected / aiPickSelected
+        // We need to find what USER gives (userSelected / userPickSelected)
+
+        const desiredPlayers = players.filter(p => aiSelected.includes(p.id));
+        const desiredPicks = (opponentTeam.draftPicks || []).filter(p => aiPickSelected.includes(p.id));
+
+        const suggestion = suggestTradePackage(
+            userTeam,
+            opponentTeam,
+            { players: desiredPlayers, picks: desiredPicks },
+            players,
+            contracts,
+            currentYear,
+            salaryCap
+        );
+
+        if (suggestion) {
+            setUserSelected(suggestion.userPlayerIds);
+            setUserPickSelected(suggestion.userPickIds);
+            setFeedback("AI Proposal: \"Here is what would make this deal work for us.\"");
+        } else {
+            setFeedback("AI: \"We couldn't find a package from your team that makes this specific trade work.\"");
         }
     };
 
@@ -505,10 +533,30 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
                         fontSize: '1.2rem',
                         border: 'none',
                         borderRadius: '50px',
+                        cursor: (userSelected.length === 0 && aiSelected.length === 0 && userPickSelected.length === 0 && aiPickSelected.length === 0) ? 'not-allowed' : 'pointer',
                         opacity: (userSelected.length === 0 && aiSelected.length === 0 && userPickSelected.length === 0 && aiPickSelected.length === 0) ? 0.5 : 1
                     }}>
                     Propose Trade
                 </button>
+
+                {aiSelected.length > 0 && userSelected.length === 0 && userPickSelected.length === 0 && (
+                    <div style={{ marginTop: '10px' }}>
+                        <button
+                            onClick={handleSuggest}
+                            style={{
+                                background: 'transparent',
+                                border: '1px solid var(--primary)',
+                                color: 'var(--primary)',
+                                padding: '8px 16px',
+                                borderRadius: '20px',
+                                cursor: 'pointer',
+                                fontSize: '0.9rem'
+                            }}
+                        >
+                            What would make this work?
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

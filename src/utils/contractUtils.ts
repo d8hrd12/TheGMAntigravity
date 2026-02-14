@@ -12,12 +12,19 @@ export const calculatePlayerValuation = (player: Player): number => {
     const s = player.seasonStats;
     const gp = s.gamesPlayed;
 
-    // Game Score Formula (Approximate)
-    // GmSc = PTS + 0.4*FG - 0.7*FGA - 0.4*(FTA - FGM) + 0.7*ORB + 0.3*DRB + STL + 0.7*AST + 0.7*BLK - 0.4*PF - TOV.
-    const gmSc = (s.points + 0.4 * s.fgMade - 0.7 * s.fgAttempted - 0.4 * (s.ftAttempted - s.ftMade) + 0.7 * s.offensiveRebounds + 0.3 * s.defensiveRebounds + s.steals + 0.7 * s.assists + 0.7 * s.blocks - 0.4 * s.fouls - s.turnovers) / gp;
+    // Game Score Formula (Adjusted)
+    // GmSc = PTS + 0.4*FG - 0.7*FGA - 0.4*(FTA - FGM) + 0.5*ORB + 0.3*DRB + STL + 0.7*AST + 0.7*BLK - 0.4*PF - TOV.
+    // Reduced Rebound weights (0.7 -> 0.5 ORB, 0.3 DRB stays) to prevent high-rebound/low-score inflation
+    const gmSc = (s.points + 0.4 * s.fgMade - 0.7 * s.fgAttempted - 0.4 * (s.ftAttempted - s.ftMade) + 0.5 * s.offensiveRebounds + 0.3 * s.defensiveRebounds + s.steals + 0.6 * s.assists + 0.6 * s.blocks - 0.4 * s.fouls - s.turnovers) / gp;
 
-    // Convert GmSc to "Performance OVR" based on linear fit (30 PER -> 98 OVR, 10 PER -> 74 OVR)
-    let perfOvr = 62 + (gmSc * 1.2);
+    // Convert GmSc to "Performance OVR"
+    // Adjusted curve: 30 GmSc -> 98, 10 GmSc -> ~70
+    let perfOvr = 58 + (gmSc * 1.3);
+
+    // Penalize pure specialists who score very little (< 5 PPG) unless they are elite defenders
+    if (s.points / gp < 5 && perfOvr > 75) {
+        perfOvr -= 5;
+    }
 
     // Clamp
     return Math.max(40, Math.min(99, perfOvr));

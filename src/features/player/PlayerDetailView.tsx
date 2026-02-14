@@ -10,6 +10,7 @@ import { PlayerTrendGraph } from '../../components/charts/PlayerTrendGraph';
 
 import { calculateOverall, calculateTendencies } from '../../utils/playerUtils';
 import { getFuzzyAttribute, getFuzzyPotential } from '../../utils/scoutingUtils';
+import { getAttributePotential } from '../../utils/trainingUtils';
 
 interface PlayerDetailViewProps {
     player: Player;
@@ -48,7 +49,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
         return '#e74c3c'; // Poor - Red
     };
 
-    const AttributeRow = ({ label, value, prevValue }: { label: string, value: number, prevValue?: number }) => {
+    const AttributeRow = ({ label, value, prevValue, attributeKey }: { label: string, value: number, prevValue?: number, attributeKey?: keyof PlayerAttributes }) => {
 
         let displayValue: string | number = value;
         if (isProspect) {
@@ -63,11 +64,19 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
             indicator = <span style={{ color: '#e74c3c', fontSize: '0.8rem', marginLeft: '6px' }}>▼ {Math.abs(diff)}</span>;
         }
 
+        // Calculate attribute-specific potential
+        const potential = attributeKey && !isProspect ? getAttributePotential(player, attributeKey) : null;
+
         return (
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
                 <span style={{ color: '#ccc' }}>{label}</span>
                 <div>
                     <span style={{ fontWeight: 'bold', color: getRatingColor(typeof displayValue === 'number' ? displayValue : 50) }}>{displayValue}</span>
+                    {potential && potential > value && (
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginLeft: '4px', opacity: 0.7 }}>
+                            / {potential}
+                        </span>
+                    )}
                     {indicator}
                 </div>
             </div>
@@ -403,30 +412,30 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                         {/* OFFENSE */}
                         <div style={{ flex: '1 1 250px', background: 'rgba(255,255,255,0.03)', padding: '15px', borderRadius: '8px' }}>
                             <h4 style={{ margin: '0 0 10px 0', color: 'var(--text-secondary)', fontSize: '0.9rem', textTransform: 'uppercase' }}>Offense</h4>
-                            <AttributeRow label="Finishing" value={player.attributes.finishing} prevValue={player.previousAttributes?.finishing} />
-                            <AttributeRow label="Mid-Range" value={player.attributes.midRange} prevValue={player.previousAttributes?.midRange} />
-                            <AttributeRow label="3PT Shot" value={player.attributes.threePointShot} prevValue={player.previousAttributes?.threePointShot} />
-                            <AttributeRow label="Free Throw" value={player.attributes.freeThrow} prevValue={player.previousAttributes?.freeThrow} />
+                            <AttributeRow label="Finishing" value={player.attributes.finishing} prevValue={player.previousAttributes?.finishing} attributeKey="finishing" />
+                            <AttributeRow label="Mid-Range" value={player.attributes.midRange} prevValue={player.previousAttributes?.midRange} attributeKey="midRange" />
+                            <AttributeRow label="3PT Shot" value={player.attributes.threePointShot} prevValue={player.previousAttributes?.threePointShot} attributeKey="threePointShot" />
+                            <AttributeRow label="Free Throw" value={player.attributes.freeThrow} prevValue={player.previousAttributes?.freeThrow} attributeKey="freeThrow" />
                         </div>
 
                         {/* PLAYMAKING & PHYSICAL */}
                         <div style={{ flex: '1 1 250px', background: 'rgba(255,255,255,0.03)', padding: '15px', borderRadius: '8px' }}>
                             <h4 style={{ margin: '0 0 10px 0', color: 'var(--text-secondary)', fontSize: '0.9rem', textTransform: 'uppercase' }}>Playmaking & Phys</h4>
-                            <AttributeRow label="Playmaking" value={player.attributes.playmaking} prevValue={player.previousAttributes?.playmaking} />
-                            <AttributeRow label="Ball Hand." value={player.attributes.ballHandling} prevValue={player.previousAttributes?.ballHandling} />
-                            <AttributeRow label="IQ" value={player.attributes.basketballIQ} prevValue={player.previousAttributes?.basketballIQ} />
-                            <AttributeRow label="Athleticism" value={player.attributes.athleticism} prevValue={player.previousAttributes?.athleticism} />
+                            <AttributeRow label="Playmaking" value={player.attributes.playmaking} prevValue={player.previousAttributes?.playmaking} attributeKey="playmaking" />
+                            <AttributeRow label="Ball Hand." value={player.attributes.ballHandling} prevValue={player.previousAttributes?.ballHandling} attributeKey="ballHandling" />
+                            <AttributeRow label="IQ" value={player.attributes.basketballIQ} prevValue={player.previousAttributes?.basketballIQ} attributeKey="basketballIQ" />
+                            <AttributeRow label="Athleticism" value={player.attributes.athleticism} prevValue={player.previousAttributes?.athleticism} attributeKey="athleticism" />
                         </div>
 
                         {/* DEFENSE & REBOUNDING */}
                         <div style={{ flex: '1 1 250px', background: 'rgba(255,255,255,0.03)', padding: '15px', borderRadius: '8px' }}>
                             <h4 style={{ margin: '0 0 10px 0', color: 'var(--text-secondary)', fontSize: '0.9rem', textTransform: 'uppercase' }}>Defense & Reb</h4>
-                            <AttributeRow label="Int. Def" value={player.attributes.interiorDefense} prevValue={player.previousAttributes?.interiorDefense} />
-                            <AttributeRow label="Per. Def" value={player.attributes.perimeterDefense} prevValue={player.previousAttributes?.perimeterDefense} />
-                            <AttributeRow label="Stealing" value={player.attributes.stealing} prevValue={player.previousAttributes?.stealing} />
-                            <AttributeRow label="Blocking" value={player.attributes.blocking} prevValue={player.previousAttributes?.blocking} />
-                            <AttributeRow label="Off. Reb" value={player.attributes.offensiveRebound} prevValue={player.previousAttributes?.offensiveRebound} />
-                            <AttributeRow label="Def. Reb" value={player.attributes.defensiveRebound} prevValue={player.previousAttributes?.defensiveRebound} />
+                            <AttributeRow label="Int. Def" value={player.attributes.interiorDefense} prevValue={player.previousAttributes?.interiorDefense} attributeKey="interiorDefense" />
+                            <AttributeRow label="Per. Def" value={player.attributes.perimeterDefense} prevValue={player.previousAttributes?.perimeterDefense} attributeKey="perimeterDefense" />
+                            <AttributeRow label="Stealing" value={player.attributes.stealing} prevValue={player.previousAttributes?.stealing} attributeKey="stealing" />
+                            <AttributeRow label="Blocking" value={player.attributes.blocking} prevValue={player.previousAttributes?.blocking} attributeKey="blocking" />
+                            <AttributeRow label="Off. Reb" value={player.attributes.offensiveRebound} prevValue={player.previousAttributes?.offensiveRebound} attributeKey="offensiveRebound" />
+                            <AttributeRow label="Def. Reb" value={player.attributes.defensiveRebound} prevValue={player.previousAttributes?.defensiveRebound} attributeKey="defensiveRebound" />
                         </div>
                     </div>
                 </div>

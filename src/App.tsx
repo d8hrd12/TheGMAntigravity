@@ -98,7 +98,7 @@ const lightenColor = (col: string, amt: number) => {
 
 
 function AppContent() {
-  const { isInitialized, isFirstSeasonPaid, teams, players, executeTrade, draftClass, draftOrder, handleDraftPick, simulateNextPick, simulateToUserPick, endDraft, signFreeAgent, negotiateContract, signPlayerWithContract, endFreeAgency, games, seasonPhase, contracts, updateRotation, updateCoachSettings, updateRotationSchedule, acceptTradeOffer, rejectTradeOffer, tradeOffer, userTeamId, isSimulating, isProcessing, date, tradeHistory, salaryCap, awardsHistory, retiredPlayersHistory, stopSimulation, advanceDay, currentSaveSlot, saveGame, startRegularSeason, startPlayoffs, news, liveGameData, startLiveGameFn, endLiveGameFn, tutorialFlags, setHasSeenNewsTutorial, gmProfile, simTarget, setGameState } = useGame();
+  const { isInitialized, isFirstSeasonPaid, teams, players, executeTrade, draftClass, draftOrder, handleDraftPick, simulateNextPick, simulateToUserPick, endDraft, signFreeAgent, negotiateContract, signPlayerWithContract, endFreeAgency, games, seasonPhase, contracts, updateRotation, updateCoachSettings, updateRotationSchedule, acceptTradeOffer, rejectTradeOffer, tradeOffer, userTeamId, isSimulating, isProcessing, date, tradeHistory, salaryCap, awardsHistory, retiredPlayersHistory, stopSimulation, advanceDay, currentSaveSlot, saveGame, startRegularSeason, startPlayoffs, news, liveGameData, startLiveGameFn, endLiveGameFn, tutorialFlags, setHasSeenNewsTutorial, gmProfile, simTarget, setGameState, paySalaries, isTrainingCampComplete } = useGame();
 
   // Unified Navigation State
   interface NavState {
@@ -195,6 +195,11 @@ function AppContent() {
       setView('scouting');
     } else if (seasonPhase !== 'scouting' && view === 'scouting') {
       setView('dashboard');
+    }
+
+    // Auto-redirect to Training when in Pre-Season
+    if (seasonPhase === 'pre_season' && !isTrainingCampComplete && view !== 'training') {
+      setView('training');
     }
     // Draft view handling is tricky as it has its own logic, but let's ensure we don't block manual navigation
     // Actually, Dashboard usually handles the "Start Draft" button.
@@ -578,6 +583,28 @@ function AppContent() {
       return <LeagueHistoryView onBack={() => setView('stats')} />;
     }
 
+    if (view === ('dev_tools' as any)) {
+      return (
+        <div style={{ padding: '20px', color: 'white' }}>
+          <h2>Developer Tools</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <button onClick={() => {
+              setGameState(prev => ({ ...prev, seasonPhase: 'resigning' }));
+              setView('dashboard');
+            }}>Force Phase: Resigning</button>
+            <button onClick={() => {
+              setGameState(prev => ({ ...prev, seasonPhase: 'free_agency', freeAgencyDay: 1 }));
+              setView('dashboard');
+            }}>Force Phase: Free Agency (Day 1)</button>
+            <button onClick={() => {
+              setGameState(prev => ({ ...prev, seasonPhase: 'regular_season' }));
+              setView('dashboard');
+            }}>Force Phase: Regular Season</button>
+          </div>
+        </div>
+      );
+    }
+
     if (view === 'gm_overview') {
       return (
         <div style={{ paddingBottom: '80px', minHeight: '100%', background: 'var(--background)' }}>
@@ -632,11 +659,7 @@ function AppContent() {
               setView('playoffs');
             }}
             onStartSeasonTrigger={() => {
-              if (isFirstSeasonPaid) {
-                startRegularSeason();
-              } else {
-                setShowPayrollModal(true);
-              }
+              setShowPayrollModal(true);
             }}
             onStartTrainingTrigger={() => {
               setGameState(prev => ({ ...prev, trainingReport: null, isTrainingCampComplete: false }));
@@ -761,6 +784,8 @@ function AppContent() {
               </button>
             </>
           )}
+
+
         </nav>
       )}
       {(isSimulating || simTarget !== 'none') && (
@@ -831,10 +856,20 @@ function AppContent() {
           payrollAmount={contracts.filter(c => c.teamId === userTeamId).reduce((sum, c) => sum + c.amount, 0)}
           currentCash={teams.find(t => t.id === userTeamId)?.cash || 0}
           onConfirm={() => {
-            startRegularSeason();
-            setShowPayrollModal(false);
+            if (isFirstSeasonPaid) {
+              startRegularSeason(); // Will handle logic to set isFirstSeasonPaid = false
+              setShowPayrollModal(false);
+            } else {
+              if (paySalaries()) {
+                startRegularSeason();
+                setShowPayrollModal(false);
+              } else {
+                setModalMessage({ title: 'Error', msg: 'Insufficient funds.', type: 'error' });
+              }
+            }
           }}
           onCancel={() => setShowPayrollModal(false)}
+          isFirstSeasonFree={isFirstSeasonPaid}
         />
       )}
 

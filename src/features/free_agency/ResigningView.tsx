@@ -3,6 +3,10 @@ import { useGame } from '../../store/GameContext';
 import { calculateContractAmount, calculateAdjustedDemand } from '../../utils/contractUtils';
 import type { Player } from '../../models/Player';
 import { calculateOverall } from '../../utils/playerUtils';
+import { NegotiationView } from '../negotiation/NegotiationView';
+import { UpcomingFreeAgentsModal } from './UpcomingFreeAgentsModal';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Users, DollarSign, Briefcase } from 'lucide-react';
 
 interface ResigningViewProps {
     onSelectPlayer?: (id: string) => void;
@@ -23,355 +27,299 @@ export const ResigningView: React.FC<ResigningViewProps> = ({ onSelectPlayer, on
 
     const [actionedPlayers, setActionedPlayers] = useState<string[]>([]);
     const [negotiatingPlayer, setNegotiatingPlayer] = useState<Player | null>(null);
+    const [showFAModal, setShowFAModal] = useState(false);
 
-    // Negotiation State
-    const [offerAmount, setOfferAmount] = useState<number>(0);
-    const [offerYears, setOfferYears] = useState<number>(1);
-    const [offerRole, setOfferRole] = useState<'Star' | 'Starter' | 'Rotation' | 'Bench' | 'Prospect'>('Rotation');
-    const [playerResponse, setPlayerResponse] = useState<string | null>(null);
-    const [askingDetails, setAskingDetails] = useState<{ amount: number; years: number; explanation: string } | null>(null);
+    const handleNegotiationResult = (offer: { amount: number; years: number; role: 'Star' | 'Starter' | 'Rotation' | 'Bench' | 'Prospect' }) => {
+        if (!negotiatingPlayer) return { decision: 'REJECTED' as const, feedback: '' };
 
-    // Reset when selecting a new player
-    useEffect(() => {
-        if (negotiatingPlayer) {
-            const market = calculateContractAmount(negotiatingPlayer, salaryCap);
-            setAskingDetails(market);
-            setOfferAmount(market.amount);
-            setOfferYears(market.years);
+        const market = calculateContractAmount(negotiatingPlayer, salaryCap);
+        const acceptableAmount = calculateAdjustedDemand(negotiatingPlayer, market.amount, market.years, offer.role, offer.years, true);
 
-            // Set default role expectation based on explanation or OVR
-            const ovr = calculateOverall(negotiatingPlayer);
-            if (ovr >= 85) setOfferRole('Star');
-            else if (ovr >= 78) setOfferRole('Starter');
-            else if (ovr >= 74) setOfferRole('Rotation');
-            else if (ovr >= 70) setOfferRole('Bench');
-            else setOfferRole('Prospect');
-
-            setPlayerResponse(null);
-        }
-    }, [negotiatingPlayer, salaryCap]);
-
-
-    const handleRelease = (playerId: string) => {
-        // Just mark them as ignored locally so they disappear from list
-        setActionedPlayers(prev => [...prev, playerId]);
-        if (negotiatingPlayer?.id === playerId) setNegotiatingPlayer(null);
-    };
-
-
-
-    const handleSubmitOffer = () => {
-        if (!negotiatingPlayer || !askingDetails) return;
-
-        const market = askingDetails;
-        const acceptableAmount = calculateAdjustedDemand(negotiatingPlayer, market.amount, market.years, offerRole, offerYears, true);
-
-        // Years Check - Flexibility
-        // Allow +/- 1 year if the money is right
-        // But if money is low, strict on years.
-
-        // Amount Check - Flexibility (Buffer)
-        // Ensure offer is at least 95% of acceptable amount (5% wiggle room/stone cold fix)
-        // Also if total value is very high, user can get away with slightly less AAV
-
-        let decision = 'REJECTED';
-        const ratio = offerAmount / acceptableAmount;
+        const ratio = offer.amount / acceptableAmount;
+        let decision: 'ACCEPTED' | 'REJECTED' | 'INSULTED' = 'REJECTED';
+        let feedback = '';
 
         if (ratio >= 0.95) {
             decision = 'ACCEPTED';
+            feedback = "I'm happy to accept this offer!";
         } else if (ratio >= 0.85) {
-            // Close... maybe check years?
-            if (offerYears > market.years) {
-                // Paying less per year but more years... might accept security
-                decision = 'ACCEPTED'; // Simplified logic
+            if (offer.years > market.years) {
+                decision = 'ACCEPTED';
+                feedback = " The salary is a bit lower than I wanted, but the extra security convinces me.";
             } else {
-                setPlayerResponse(`We are close, but I need at least $${(acceptableAmount / 1000000).toFixed(2)}M for that role.`);
-                return;
+                feedback = `We are close, but I need at least $${(acceptableAmount / 1000000).toFixed(2)}M.`;
+            }
+        } else if (ratio < 0.6) {
+            decision = 'INSULTED';
+            feedback = "That is an insulting offer. I am not sure we can make this work.";
+        } else {
+            const diff = acceptableAmount - offer.amount;
+            if (diff < 1000000) {
+                feedback = `We are close. I need around $${(acceptableAmount / 1000000).toFixed(2)}M.`;
+            } else {
+                feedback = `That offer is too low. Market value is around $${(market.amount / 1000000).toFixed(2)}M.`;
             }
         }
 
-        if (decision === 'ACCEPTED') {
-            // Deal
+        return { decision, feedback };
+    };
+
+    const handleSignPlayer = (offer: { amount: number; years: number; role: 'Star' | 'Starter' | 'Rotation' | 'Bench' | 'Prospect' }) => {
+        if (negotiatingPlayer) {
             signPlayerWithContract(negotiatingPlayer.id, {
-                amount: offerAmount,
-                years: offerYears,
-                role: offerRole
+                amount: offer.amount,
+                years: offer.years,
+                role: offer.role
             });
 
             setActionedPlayers(prev => [...prev, negotiatingPlayer.id]);
             setNegotiatingPlayer(null);
-            onShowMessage?.("Deal Accepted", `${negotiatingPlayer.firstName} ${negotiatingPlayer.lastName} has re-signed with the team!`, "success");
-        } else {
-            // Refusal messages
-            const diff = acceptableAmount - offerAmount;
-            if (diff < 1000000) {
-                setPlayerResponse(`We are close, but considering the role of ${offerRole}, I need about $${(acceptableAmount / 1000000).toFixed(2)}M.`);
-            } else {
-                setPlayerResponse(`That offer is too low. Market value is around $${(market.amount / 1000000).toFixed(2)}M.`);
-            }
+            onShowMessage?.("Deal Accepted", `${negotiatingPlayer.firstName} ${negotiatingPlayer.lastName} has re-signed!`, "success");
         }
+    };
+
+    const handleRelease = (playerId: string) => {
+        setActionedPlayers(prev => [...prev, playerId]);
+        if (negotiatingPlayer?.id === playerId) setNegotiatingPlayer(null);
     };
 
     const visiblePlayers = expiringPlayers.filter(p => !actionedPlayers.includes(p.id));
 
     return (
-        <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto', color: 'var(--text)' }}>
+        <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', color: 'var(--text)' }}>
+
+            {/* Header */}
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', gap: '20px' }}>
                 <div>
-                    <h1 style={{ margin: 0, fontSize: '2rem' }}>Re-sign Players</h1>
-                    <p style={{ margin: '5px 0 0 0', color: 'var(--text-secondary)' }}>
-                        Negotiate with expiring contracts before they hit Free Agency.
+                    <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-1px' }}>Re-sign Players</h1>
+                    <p style={{ margin: '5px 0 0 0', color: 'var(--text-secondary)', fontSize: '1.1rem' }}>
+                        Negotiate extensions before Free Agency begins.
                     </p>
-                    <div style={{ display: 'flex', gap: '20px', marginTop: '10px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--surface)', padding: '6px 14px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2ecc71' }}></div>
-                            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Available Cash:</span>
-                            <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>
-                                ${((userTeam?.cash || 0) / 1000000).toFixed(1)}M
-                            </span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--surface)', padding: '6px 14px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: (userTeam?.salaryCapSpace || 0) > 0 ? '#3498db' : '#e74c3c' }}></div>
-                            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Cap Space:</span>
-                            <span style={{ fontSize: '1rem', fontWeight: 'bold', color: (userTeam?.salaryCapSpace || 0) > 0 ? '#3498db' : '#e74c3c' }}>
-                                ${((userTeam?.salaryCapSpace || 0) / 1000000).toFixed(1)}M
-                            </span>
+                </div>
+
+                <div style={{ display: 'flex', gap: '15px' }}>
+                    <button
+                        onClick={() => setShowFAModal(true)}
+                        className="btn-secondary"
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px', fontSize: '0.95rem' }}
+                    >
+                        <Users size={18} />
+                        View Upcoming Free Agents
+                    </button>
+
+                    <button
+                        onClick={endResigning}
+                        className="btn-primary"
+                        style={{ padding: '12px 24px', fontSize: '1rem', fontWeight: 600 }}
+                    >
+                        Finish & Advance
+                    </button>
+                </div>
+            </div>
+
+            {/* Financial Status Bar */}
+            <div style={{
+                display: 'flex',
+                gap: '20px',
+                marginBottom: '30px',
+                background: 'var(--surface)',
+                padding: '15px 25px',
+                borderRadius: '16px',
+                border: '1px solid var(--border)',
+                alignItems: 'center'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ padding: '10px', background: 'rgba(46, 204, 113, 0.1)', borderRadius: '12px', color: '#2ecc71' }}>
+                        <DollarSign size={20} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 700 }}>Available Cash</div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>${((userTeam?.cash || 0) / 1000000).toFixed(1)}M</div>
+                    </div>
+                </div>
+
+                <div style={{ width: '1px', height: '40px', background: 'var(--border)' }}></div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{
+                        padding: '10px',
+                        background: (userTeam?.salaryCapSpace || 0) > 0 ? 'rgba(52, 152, 219, 0.1)' : 'rgba(231, 76, 60, 0.1)',
+                        borderRadius: '12px',
+                        color: (userTeam?.salaryCapSpace || 0) > 0 ? '#3498db' : '#e74c3c'
+                    }}>
+                        <Briefcase size={20} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 700 }}>Cap Space</div>
+                        <div style={{
+                            fontSize: '1.2rem',
+                            fontWeight: 800,
+                            color: (userTeam?.salaryCapSpace || 0) > 0 ? '#3498db' : '#e74c3c'
+                        }}>
+                            ${((userTeam?.salaryCapSpace || 0) / 1000000).toFixed(1)}M
                         </div>
                     </div>
                 </div>
-                <button
-                    onClick={endResigning}
-                    className="btn-primary"
-                    style={{ padding: '12px 24px' }}
-                >
-                    Finish & Go into Free Agency
-                </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                {/* List Column */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    {visiblePlayers.length === 0 && !negotiatingPlayer && <p>No players left to resign.</p>}
+            {/* Players List */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+                {visiblePlayers.length === 0 && (
+                    <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px', color: 'var(--text-secondary)', background: 'var(--surface)', borderRadius: '20px' }}>
+                        <h3>No players left to re-sign.</h3>
+                        <p>You can proceed to Free Agency.</p>
+                    </div>
+                )}
 
-                    {visiblePlayers.map(player => {
-                        const ovr = calculateOverall(player);
-                        return (
-                            <div
-                                key={player.id}
-                                onClick={() => setNegotiatingPlayer(player)}
-                                style={{
-                                    padding: '15px',
-                                    background: negotiatingPlayer?.id === player.id ? 'var(--primary-light)' : 'var(--surface)',
-                                    border: negotiatingPlayer?.id === player.id ? '2px solid var(--primary)' : '1px solid var(--border)',
-                                    borderRadius: '12px',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                <div style={{ fontWeight: 'bold' }}>{player.firstName} {player.lastName}</div>
-                                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{player.position} • {ovr} OVR • Age {player.age}</div>
-                                {player.careerStats && player.careerStats.length > 0 && (() => {
-                                    const lastS = player.careerStats[player.careerStats.length - 1];
-                                    const gp = lastS.gamesPlayed || 1;
-                                    const fgp = lastS.fgAttempted ? (lastS.fgMade / lastS.fgAttempted * 100).toFixed(0) : '0';
-                                    const tp = lastS.threeAttempted ? (lastS.threeMade / lastS.threeAttempted * 100).toFixed(0) : '0';
-                                    return (
-                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '6px', background: 'rgba(255,255,255,0.03)', padding: '4px 8px', borderRadius: '4px' }}>
-                                            <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{(lastS.points / gp).toFixed(1)} PTS</span> /
-                                            <span> {(lastS.rebounds / gp).toFixed(1)} REB</span> /
-                                            <span> {(lastS.assists / gp).toFixed(1)} AST</span> —
-                                            <span style={{ marginLeft: '4px' }}>{fgp}% FG / {tp}% 3P</span>
-                                        </div>
-                                    );
-                                })()}
+                {visiblePlayers.map(player => {
+                    const ovr = calculateOverall(player);
+                    const market = calculateContractAmount(player, salaryCap); // Estimate for badge
+
+                    return (
+                        <motion.div
+                            key={player.id}
+                            whileHover={{ y: -5, boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}
+                            onClick={() => setNegotiatingPlayer(player)}
+                            style={{
+                                background: 'var(--surface)',
+                                border: '1px solid var(--border)',
+                                borderRadius: '16px',
+                                padding: '20px',
+                                cursor: 'pointer',
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
+                                <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+
+                                    <div
+                                        onClick={(e) => { e.stopPropagation(); onSelectPlayer?.(player.id); }}
+                                        style={{ cursor: 'pointer' }}
+                                    >
+                                        <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>{player.firstName} {player.lastName}</div>
+                                        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{player.position} • {player.age} yo</div>
+                                    </div>
+                                </div>
+                                <div style={{
+                                    background: ovr >= 85 ? 'linear-gradient(135deg, #f1c40f, #f39c12)' : '#ecf0f1',
+                                    color: ovr >= 85 ? '#fff' : '#2c3e50',
+                                    padding: '5px 12px',
+                                    borderRadius: '8px',
+                                    fontWeight: 800,
+                                    fontSize: '0.9rem',
+                                    boxShadow: ovr >= 85 ? '0 2px 10px rgba(243, 156, 18, 0.3)' : 'none'
+                                }}>
+                                    {ovr}
+                                </div>
                             </div>
-                        );
-                    })}
-                </div>
 
-                {/* Negotiation Column */}
-                <div>
-                    {negotiatingPlayer ? (
-                        <div style={{ background: 'var(--surface)', padding: '25px', borderRadius: '16px', border: '1px solid var(--border)' }}>
-                            <h2 style={{ marginTop: 0 }}>Negotiation Table</h2>
-                            <h3
-                                onClick={() => onSelectPlayer?.(negotiatingPlayer.id)}
-                                style={{ color: 'var(--primary)', marginBottom: '10px', cursor: 'pointer', display: 'inline-block' }}
-                            >
-                                {negotiatingPlayer.firstName} {negotiatingPlayer.lastName}
-                            </h3>
-
-                            {negotiatingPlayer.careerStats && negotiatingPlayer.careerStats.length > 0 && (() => {
-                                const lastS = negotiatingPlayer.careerStats[negotiatingPlayer.careerStats.length - 1];
+                            {/* Stats Preview */}
+                            {player.careerStats && player.careerStats.length > 0 && (() => {
+                                const lastS = player.careerStats[player.careerStats.length - 1];
                                 const gp = lastS.gamesPlayed || 1;
-                                const fgp = lastS.fgAttempted ? (lastS.fgMade / lastS.fgAttempted * 100).toFixed(1) : '0.0';
-                                const tp = lastS.threeAttempted ? (lastS.threeMade / lastS.threeAttempted * 100).toFixed(1) : '0.0';
-                                const ftp = lastS.ftAttempted ? (lastS.ftMade / lastS.ftAttempted * 100).toFixed(1) : '0.0';
-
                                 return (
-                                    <div style={{
-                                        background: 'var(--background)',
-                                        padding: '12px',
-                                        borderRadius: '8px',
-                                        marginBottom: '20px',
-                                        border: '1px solid var(--border)',
-                                    }}>
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', textAlign: 'center', gap: '5px', marginBottom: '10px' }}>
-                                            {[
-                                                { label: 'PPG', val: (lastS.points / gp).toFixed(1) },
-                                                { label: 'RPG', val: (lastS.rebounds / gp).toFixed(1) },
-                                                { label: 'APG', val: (lastS.assists / gp).toFixed(1) },
-                                                { label: 'GP', val: lastS.gamesPlayed }
-                                            ].map(s => (
-                                                <div key={s.label}>
-                                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>{s.label}</div>
-                                                    <div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--primary)' }}>{s.val}</div>
-                                                </div>
-                                            ))}
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(9, 1fr)', gap: '4px', marginBottom: '15px', background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px' }}>
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>PTS</div>
+                                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{(lastS.points / gp).toFixed(1)}</div>
                                         </div>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', textAlign: 'center', paddingTop: '8px', borderTop: '1px solid var(--border)' }}>
-                                            <div>
-                                                <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>FG%</div>
-                                                <div style={{ fontWeight: '600', fontSize: '1rem' }}>{fgp}%</div>
-                                            </div>
-                                            <div>
-                                                <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>3P%</div>
-                                                <div style={{ fontWeight: '600', fontSize: '1rem' }}>{tp}%</div>
-                                            </div>
-                                            <div>
-                                                <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>FT%</div>
-                                                <div style={{ fontWeight: '600', fontSize: '1rem' }}>{ftp}%</div>
-                                            </div>
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>REB</div>
+                                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{(lastS.rebounds / gp).toFixed(1)}</div>
+                                        </div>
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>AST</div>
+                                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{(lastS.assists / gp).toFixed(1)}</div>
+                                        </div>
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>SPG</div>
+                                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{(lastS.steals / gp).toFixed(1)}</div>
+                                        </div>
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>BPG</div>
+                                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{(lastS.blocks / gp).toFixed(1)}</div>
+                                        </div>
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>MPG</div>
+                                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{(lastS.minutes / gp).toFixed(1)}</div>
+                                        </div>
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>FG%</div>
+                                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{lastS.fgAttempted > 0 ? ((lastS.fgMade / lastS.fgAttempted) * 100).toFixed(0) + '%' : '-'}</div>
+                                        </div>
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>3P%</div>
+                                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{lastS.threeAttempted > 0 ? ((lastS.threeMade / lastS.threeAttempted) * 100).toFixed(0) + '%' : '-'}</div>
+                                        </div>
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>FT%</div>
+                                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{lastS.ftAttempted > 0 ? ((lastS.ftMade / lastS.ftAttempted) * 100).toFixed(0) + '%' : '-'}</div>
                                         </div>
                                     </div>
                                 );
                             })()}
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px', background: 'var(--background)', padding: '10px', borderRadius: '8px' }}>
-                                <div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Asking Salary</div>
-                                    <div style={{ fontWeight: 'bold' }}>
-                                        ${askingDetails ? (calculateAdjustedDemand(negotiatingPlayer, askingDetails.amount, askingDetails.years, offerRole, offerYears, true) / 1000000).toFixed(2) : '0.00'}M
-                                    </div>
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Preferred Length</div>
-                                    <div style={{ fontWeight: 'bold' }}>{askingDetails?.years || 1} Years</div>
-                                </div>
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                fontSize: '0.85rem',
+                                color: 'var(--text-secondary)',
+                                borderTop: '1px solid var(--border)',
+                                paddingTop: '12px'
+                            }}>
+                                <span>Expiring Contract</span>
+                                <span style={{ color: '#2ecc71', fontWeight: 600 }}>Asking ~${(market.amount / 1000000).toFixed(1)}M</span>
                             </div>
-
-                            <div style={{ marginBottom: '20px', padding: '10px', background: 'rgba(var(--success-rgb), 0.1)', borderRadius: '8px', border: '1px solid var(--success)', fontSize: '0.85rem' }}>
-                                <span style={{ color: 'var(--success)', fontWeight: 'bold' }}>✓ Home Discount Applied: 10%</span>
-                                <div style={{ color: 'var(--text-secondary)', marginTop: '2px' }}>
-                                    Players accept less to stay with their current team. If they hit Free Agency, they will expect the full market value.
-                                </div>
-                            </div>
-
-                            {playerResponse && (
-                                <div style={{
-                                    padding: '15px',
-                                    background: '#fff3e0',
-                                    color: '#e65100',
-                                    borderRadius: '8px',
-                                    marginBottom: '20px',
-                                    fontStyle: 'italic'
-                                }}>
-                                    "{playerResponse}"
-                                </div>
-                            )}
-
-                            <div style={{ marginBottom: '20px' }}>
-                                <label style={{ display: 'block', marginBottom: '5px' }}>Offer Amount: ${(offerAmount / 1000000).toFixed(2)}M</label>
-                                <input
-                                    type="range"
-                                    min="700000"
-                                    max="60000000"
-                                    step="500000"
-                                    value={offerAmount}
-                                    onChange={(e) => setOfferAmount(Number(e.target.value))}
-                                    style={{ width: '100%' }}
-                                />
-                            </div>
-
-                            <div style={{ marginBottom: '20px' }}>
-                                <label style={{ display: 'block', marginBottom: '5px' }}>Offer Years: {offerYears}</label>
-                                <div style={{ display: 'flex', gap: '10px' }}>
-                                    {[1, 2, 3, 4, 5].map(y => (
-                                        <button
-                                            key={y}
-                                            onClick={() => setOfferYears(y)}
-                                            style={{
-                                                flex: 1,
-                                                padding: '10px',
-                                                background: offerYears === y ? 'var(--primary)' : 'var(--background)',
-                                                color: offerYears === y ? 'white' : 'var(--text)',
-                                                border: '1px solid var(--border)',
-                                                borderRadius: '8px',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            {y}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div style={{ marginBottom: '30px' }}>
-                                <label style={{ display: 'block', marginBottom: '5px' }}>Offer Role: <span style={{ color: 'var(--primary)' }}>{offerRole}</span></label>
-                                <div style={{ display: 'flex', gap: '5px' }}>
-                                    {['Star', 'Starter', 'Rotation', 'Bench', 'Prospect'].map(r => (
-                                        <button
-                                            key={r}
-                                            onClick={() => setOfferRole(r as any)}
-                                            style={{
-                                                flex: 1,
-                                                padding: '8px', // Smaller padding
-                                                fontSize: '0.8rem',
-                                                background: offerRole === r ? 'var(--primary)' : 'var(--background)',
-                                                color: offerRole === r ? 'white' : 'var(--text)',
-                                                border: '1px solid var(--border)',
-                                                borderRadius: '8px',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            {r}
-                                        </button>
-                                    ))}
-                                </div>
-                                <div style={{ marginTop: '10px', fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                                    * Promising a larger role can help lower salary demands.
-                                </div>
-                            </div>
-
-                            <div style={{ marginBottom: '20px', padding: '10px', background: 'var(--background)', borderRadius: '8px', fontSize: '0.8rem' }}>
-                                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Agent's Note:</div>
-                                "{askingDetails?.explanation || 'No notes.'}"
-                            </div>
-
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                                <button
-                                    onClick={() => handleRelease(negotiatingPlayer.id)}
-                                    className="btn-secondary"
-                                    style={{ flex: 1, borderColor: 'var(--error)', color: 'var(--error)' }}
-                                >
-                                    Renounce Rights
-                                </button>
-                                <button
-                                    onClick={handleSubmitOffer}
-                                    className="btn-primary"
-                                    style={{ flex: 1 }}
-                                >
-                                    Submit Offer
-                                </button>
-                            </div>
-
-                        </div>
-                    ) : (
-                        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-                            Select a player to start negotiating.
-                        </div>
-                    )}
-                </div>
+                        </motion.div>
+                    );
+                })}
             </div>
+
+            {/* Negotiation Modal */}
+            <AnimatePresence>
+                {negotiatingPlayer && userTeam && (
+                    <div style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'rgba(0,0,0,0.8)',
+                        backdropFilter: 'blur(5px)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1000
+                    }} onClick={() => setNegotiatingPlayer(null)}>
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            onClick={e => e.stopPropagation()}
+                            style={{ width: '100%', maxWidth: '650px' }}
+                        >
+                            <NegotiationView
+                                player={negotiatingPlayer}
+                                team={userTeam}
+                                salaryCap={salaryCap}
+                                onNegotiate={handleNegotiationResult}
+                                onSign={handleSignPlayer}
+                                onCancel={() => setNegotiatingPlayer(null)}
+                            // We can use onSelectPlayer to show detail if needed, but for now modal is enough focus
+                            />
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Upcoming FA Modal */}
+            <UpcomingFreeAgentsModal
+                isOpen={showFAModal}
+                onClose={() => setShowFAModal(false)}
+            />
+
         </div>
     );
 };

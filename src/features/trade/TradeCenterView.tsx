@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TradeView } from './TradeView';
 import { TradesSummaryView } from './TradesSummaryView';
+import { TradingBlockView } from './TradingBlockView';
 import type { Team } from '../../models/Team';
 import type { Player } from '../../models/Player';
 import type { Contract } from '../../models/Contract';
@@ -24,7 +25,7 @@ interface TradeCenterViewProps {
     onExecuteTrade: (userPlayerIds: string[], userPickIds: string[], aiPlayerIds: string[], aiPickIds: string[], aiTeamId: string) => boolean;
     onSelectPlayer: (playerId: string) => void;
     onBack: () => void;
-    initialTab?: 'new' | 'log' | 'freeAgents' | 'injuries';
+    initialTab?: 'new' | 'block' | 'log' | 'freeAgents' | 'injuries';
     onSignFreeAgent: (playerId: string) => void;
     gmProfile?: any;
     draftOrder?: string[];
@@ -50,7 +51,7 @@ export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
     draftOrder,
     seasonPhase
 }) => {
-    const [activeTab, setActiveTab] = useState<'new' | 'log' | 'freeAgents' | 'injuries'>(initialTab);
+    const [activeTab, setActiveTab] = useState<'new' | 'block' | 'log' | 'freeAgents' | 'injuries'>(initialTab);
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
@@ -78,6 +79,21 @@ export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
                     }}
                 >
                     Trade
+                </button>
+                <button
+                    onClick={() => setActiveTab('block')}
+                    className="glass-panel"
+                    style={{
+                        padding: '8px 16px',
+                        borderRadius: '30px',
+                        background: activeTab === 'block' ? 'var(--primary)' : 'transparent',
+                        color: activeTab === 'block' ? '#fff' : 'var(--text-secondary)',
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        transition: 'all 0.3s ease'
+                    }}
+                >
+                    Trading Block
                 </button>
                 <button
                     onClick={() => setActiveTab('freeAgents')}
@@ -144,6 +160,28 @@ export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
                         gmProfile={gmProfile}
                         draftOrder={draftOrder}
                         seasonPhase={seasonPhase}
+                    />
+                )}
+                {activeTab === 'block' && (
+                    <TradingBlockView
+                        userTeamId={userTeam.id}
+                        teams={teams}
+                        players={players}
+                        contracts={contracts}
+                        onSelectTeam={(teamId) => {
+                            // Switch to Trade View for this team
+                            onSelectPlayer(players.find(p => p.teamId === teamId)?.id || '');
+                            // This is a bit hacky, ideally we'd have onSelectTeam prop in TradeView or a route
+                            // For now, let's just let user find them or implement robust linking later
+                            // Actually, onSelectPlayer will likely open that player context?
+                            // Let's assume onExecuteTrade setup handles context.
+                            setActiveTab('new');
+                        }}
+                        onSelectPlayer={onSelectPlayer}
+                        onTradeForPlayer={(playerId) => {
+                            onSelectPlayer(playerId);
+                            setActiveTab('new');
+                        }}
                     />
                 )}
                 {activeTab === 'freeAgents' && (

@@ -11,7 +11,7 @@ interface HeroSectionProps {
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onEnterPlayoffs, onStartSeasonTrigger, onStartTrainingTrigger }) => {
-    const { teams, userTeamId, date, seasonPhase, seasonGamesPlayed, advanceDay, triggerDraft } = useGame();
+    const { teams, userTeamId, date, seasonPhase, seasonGamesPlayed, advanceDay, triggerDraft, isTrainingCampComplete, setGameState } = useGame();
     const userTeam = teams.find(t => t.id === userTeamId);
 
     if (!userTeam) return null;
@@ -20,13 +20,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onEnterPlayoffs, onSta
     const isSeasonComplete = seasonPhase === 'regular_season' && seasonGamesPlayed >= 82;
 
     const mainAction = (seasonPhase === 'pre_season')
-        ? onStartSeasonTrigger
+        ? (isTrainingCampComplete ? onStartSeasonTrigger : onStartTrainingTrigger)
         : (seasonPhase === 'offseason')
             ? triggerDraft
             : (isSeasonComplete ? () => onEnterPlayoffs?.() : (seasonPhase.startsWith('playoffs') ? () => onEnterPlayoffs?.() : advanceDay));
 
     const mainLabel = (seasonPhase === 'pre_season')
-        ? 'Start Season'
+        ? (isTrainingCampComplete ? 'Pay Contracts' : 'Start Training Camp')
         : (seasonPhase === 'offseason' ? 'Start Offseason' : (isSeasonComplete ? 'Enter Playoffs' : (seasonPhase.startsWith('playoffs') ? 'Go to Playoffs' : 'Simulate Day')));
 
     const gameLabel = isSeasonComplete
@@ -135,6 +135,35 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onEnterPlayoffs, onSta
                     <Shirt size={22} strokeWidth={2.5} />
                     {mainLabel}
                 </motion.button>
+                {/* SYSTEM REPAIR: Only show if season is glitched (NaN or >82 games) */}
+                {(seasonGamesPlayed > 82 || isNaN(seasonGamesPlayed)) && (
+                    <button
+                        onClick={() => {
+                            setGameState(prev => ({
+                                ...prev,
+                                seasonGamesPlayed: 82
+                            }));
+                            alert("System Repaired: The season cycle has been reset. Please click 'Simulate' to start the Playoffs.");
+                        }}
+                        style={{
+                            position: 'absolute',
+                            bottom: 10,
+                            right: 10,
+                            fontSize: '0.75rem',
+                            background: '#ef4444',
+                            border: 'none',
+                            borderRadius: '6px',
+                            color: 'white',
+                            padding: '6px 12px',
+                            cursor: 'pointer',
+                            fontWeight: 600,
+                            boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+                            zIndex: 10
+                        }}
+                    >
+                        ⚠ Repair Season Glitch
+                    </button>
+                )}
             </div>
         </DashboardCard>
     );

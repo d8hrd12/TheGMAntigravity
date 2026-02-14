@@ -66,6 +66,11 @@ export interface Player {
     attributes: PlayerAttributes;
     previousAttributes?: PlayerAttributes; // For tracking progression
 
+    // Detailed Stat tracking (Optional for now)
+    stats?: {
+        threePtRating?: number;
+    };
+
     // Dynamic
     morale: number; // 0-100
     fatigue: number; // 0-100
