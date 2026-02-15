@@ -94,6 +94,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onEnterPlayoffs, onSta
                         </h1>
                     </div>
 
+
+
                     <div style={{
                         background: 'rgba(0,0,0,0.2)',
                         padding: '6px 12px',
@@ -165,6 +167,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onEnterPlayoffs, onSta
                     </button>
                 )}
             </div>
-        </DashboardCard>
+        </DashboardCard >
     );
 };

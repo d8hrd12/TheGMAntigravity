@@ -4,7 +4,7 @@ import type { PlayoffSeries } from '../../store/GameContext';
 // import type { Team } from '../../models/Team';
 
 export const PlayoffView: React.FC = () => {
-    const { playoffs, teams, advanceDay, simulateRound } = useGame();
+    const { playoffs, teams, advanceDay, simulateRound, simulatePlayoffs } = useGame();
     // Default to the latest active round
     const maxRound = Math.max(...playoffs.map(s => s.round), 1);
     const [selectedRound, setSelectedRound] = useState(maxRound);
@@ -150,7 +150,7 @@ export const PlayoffView: React.FC = () => {
                     <button
                         onClick={() => {
                             console.log("[UI] User clicked Simulate Playoffs");
-                            runAutoPlayoffs();
+                            simulatePlayoffs();
                         }}
                         className="btn-secondary"
                         style={{

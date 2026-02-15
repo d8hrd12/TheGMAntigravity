@@ -9,8 +9,9 @@ import { PlayerRadarChart } from '../../components/charts/PlayerRadarChart';
 import { PlayerTrendGraph } from '../../components/charts/PlayerTrendGraph';
 
 import { calculateOverall, calculateTendencies } from '../../utils/playerUtils';
-import { getFuzzyAttribute, getFuzzyPotential } from '../../utils/scoutingUtils';
+import { getFuzzyAttribute, getFuzzyPotential, getPotentialGrade } from '../../utils/scoutingUtils';
 import { getAttributePotential } from '../../utils/trainingUtils';
+import { DraftHistoryModal } from '../draft/DraftHistoryModal';
 
 interface PlayerDetailViewProps {
     player: Player;
@@ -72,11 +73,6 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                 <span style={{ color: '#ccc' }}>{label}</span>
                 <div>
                     <span style={{ fontWeight: 'bold', color: getRatingColor(typeof displayValue === 'number' ? displayValue : 50) }}>{displayValue}</span>
-                    {potential && potential > value && (
-                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginLeft: '4px', opacity: 0.7 }}>
-                            / {potential}
-                        </span>
-                    )}
                     {indicator}
                 </div>
             </div>
@@ -92,6 +88,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
     const [viewMode, setViewMode] = React.useState<'Average' | 'Total'>('Average');
     const [careerMode, setCareerMode] = React.useState<'Regular' | 'Playoff'>('Regular');
     const [statsView, setStatsView] = React.useState<'Skills' | 'Development'>('Skills');
+    const [viewDraftHistoryYear, setViewDraftHistoryYear] = React.useState<number | null>(null);
 
     const stats = player.seasonStats;
     const gp = stats.gamesPlayed || 1;
@@ -240,7 +237,19 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                             {/* Acquired Info */}
                             {player.acquisition && (
                                 <div style={{ marginTop: '5px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                                    <span style={{ opacity: 0.7 }}>Acquired:</span> <strong style={{ color: 'var(--text)' }}>{player.acquisition.year}</strong> via <span style={{ textTransform: 'capitalize', color: 'var(--text)' }}>{player.acquisition.type.replace('_', ' ')}</span>
+                                    <span style={{ opacity: 0.7 }}>Acquired:</span>
+                                    <strong
+                                        onClick={() => player.acquisition?.type === 'draft' && setViewDraftHistoryYear(player.acquisition.year)}
+                                        style={{
+                                            color: player.acquisition.type === 'draft' ? 'var(--primary)' : 'var(--text)',
+                                            cursor: player.acquisition.type === 'draft' ? 'pointer' : 'default',
+                                            textDecoration: player.acquisition.type === 'draft' ? 'underline' : 'none',
+                                            marginLeft: '4px'
+                                        }}
+                                    >
+                                        {player.acquisition.year}
+                                    </strong>
+                                    via <span style={{ textTransform: 'capitalize', color: 'var(--text)' }}>{player.acquisition.type.replace('_', ' ')}</span>
                                     {player.acquisition.details && <span style={{ color: 'var(--primary)', marginLeft: '4px' }}>{player.acquisition.details}</span>}
                                     {player.acquisition.previousTeamId && (
                                         <span style={{ marginLeft: '4px' }}>
@@ -248,6 +257,23 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                                         </span>
                                     )}
                                 </div>
+                            )}
+
+                            {/* Draft History Modal */}
+                            {viewDraftHistoryYear && (
+                                <DraftHistoryModal
+                                    year={viewDraftHistoryYear}
+                                    onClose={() => setViewDraftHistoryYear(null)}
+                                    onPlayerClick={(pid) => {
+                                        // Optional: Navigate to that player? 
+                                        // For now just close or do nothing as we are already in player detail view.
+                                        // Usually user would want to switch player view.
+                                        // We don't have a direct 'history.push' here, but we pass onTradeFor etc.
+                                        // If we want to switch player, we need a prop for it or just re-render parent.
+                                        // Current props don't support "Switch Player", but we can just close for now.
+                                        setViewDraftHistoryYear(null);
+                                    }}
+                                />
                             )}
 
                             {/* Contract Box */}
@@ -299,6 +325,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                             <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>
                                 {isProspect ? 'Proj. Potential' : 'OVR'}
                             </div>
+
                         </div>
                     </div>
                 </div>
@@ -438,6 +465,19 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                             <AttributeRow label="Def. Reb" value={player.attributes.defensiveRebound} prevValue={player.previousAttributes?.defensiveRebound} attributeKey="defensiveRebound" />
                         </div>
                     </div>
+
+                    {/* POTENTIAL (Standalone below attributes) */}
+                    {!isProspect && (
+                        <div style={{ marginTop: '20px', background: 'rgba(255,255,255,0.03)', padding: '15px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div>
+                                <h4 style={{ margin: '0 0 4px 0', color: 'var(--text)', fontSize: '1.1rem' }}>Player Potential</h4>
+                                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Projected Maximum Overall</div>
+                            </div>
+                            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: getRatingColor(player.potential) }}>
+                                {getPotentialGrade(player.potential)}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* TENDENCY TREE (Dynamic Role-Based) */}

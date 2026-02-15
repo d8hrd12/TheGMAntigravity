@@ -76,6 +76,15 @@ export interface Message {
 
 import { NewsEngine } from '../features/news/NewsEngine';
 
+// Define DraftResult Interface used in GameState
+export interface DraftResult {
+    pick: number;
+    teamId: string;
+    playerId: string;
+    playerName: string;
+    round: number;
+}
+
 export interface GameState {
     players: Player[];
     teams: Team[];
@@ -87,6 +96,8 @@ export interface GameState {
     isInitialized: boolean;
     draftClass: Player[];
     draftOrder: string[];
+    draftResults: DraftResult[]; // Results of current/recent draft
+    draftHistory: Record<number, DraftResult[]>; // Historical results by year
     seasonPhase: 'regular_season' | 'playoffs_r1' | 'playoffs_r2' | 'playoffs_r3' | 'playoffs_finals' | 'offseason' | 'pre_season' | 'draft' | 'draft_summary' | 'resigning' | 'free_agency' | 'retirement_summary' | 'expansion_draft' | 'scouting';
     expansionPool: Player[];
     playoffs: PlayoffSeries[];
@@ -101,7 +112,6 @@ export interface GameState {
     scoutingPoints: Record<string, number>; // teamId -> points remaining
     isPotentialRevealed: boolean;
     scoutingReports: Record<string, Record<string, { points: number, isPotentialRevealed: boolean }>>; // teamId -> (prospectId -> {points, revealed})
-    draftResults: { pick: number, teamId: string, playerId: string, playerName: string, round: number }[]; // Track draft history
     settings: {
         difficulty: 'Easy' | 'Medium' | 'Hard';
         showLoveForTheGame: boolean;
@@ -233,6 +243,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         isInitialized: false,
         draftClass: [],
         draftOrder: [],
+        draftResults: [],
+        draftHistory: {},
         seasonPhase: 'regular_season',
         playoffs: [],
         salaryCap: 140500000,
@@ -254,7 +266,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
         tradeHistory: [],
         tradeOffer: null,
         scoutingReports: {},
-        draftResults: [],
         isTrainingCampComplete: false,
         news: [],
         dailyMatchups: [],
@@ -487,7 +498,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 abbreviation: name.substring(0, 3).toUpperCase(),
                 conference: conference,
                 logo: logo,
-                cash: 50000000,
+                cash: 350000000,
                 salaryCapSpace: 140000000,
                 debt: 0,
                 fanInterest: 1.0,
@@ -536,10 +547,25 @@ export function GameProvider({ children }: { children: ReactNode }) {
             // We must update BOTH contracts and player team assignments.
 
             // A. Update Contracts
-            let fastForwardedContracts = initializedContracts.map(c => ({
-                ...c,
-                years: Math.max(0, c.years - 1)
-            }));
+            let fastForwardedContracts = initializedContracts.map(c => {
+                const player = initializedPlayers.find(p => p.id === c.playerId);
+                let newYears = Math.max(0, c.yearsLeft - 1);
+
+                // Auto-Extension Logic: Prevent "Too Many Stars in FA"
+                // If a star player (OVR >= 87, Age <= 34) is expiring, they likely re-signed.
+                if (newYears === 0 && player && player.overall >= 87 && player.age <= 34) {
+                    // 90% Chance to re-sign
+                    if (Math.random() < 0.9) {
+                        newYears = 3 + Math.floor(Math.random() * 3); // 3-5 Years
+                        // console.log(`Auto-extended ${player.name} (${player.overall}) for ${newYears} years.`);
+                    }
+                }
+
+                return {
+                    ...c,
+                    yearsLeft: newYears
+                };
+            });
 
             // B. FORCE GENERATE FREE AGENTS (User Request: "At least 30", including aging stars)
             // Since Real Rosters might have long contracts, we need to artificially expire some.
@@ -576,7 +602,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             // Force contracts to 0 for these IDs
             fastForwardedContracts = fastForwardedContracts.map(c => {
                 if (playersToExpireIds.has(c.playerId)) {
-                    return { ...c, years: 0 };
+                    return { ...c, yearsLeft: 0 };
                 }
                 return c;
             });
@@ -584,7 +610,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             // C. Release Players with 0 Years to Free Agency
             const updatedPlayers = initializedPlayers.map(p => {
                 const contract = fastForwardedContracts.find(c => c.playerId === p.id);
-                if (contract && contract.years === 0) {
+                if (contract && contract.yearsLeft === 0) {
                     return { ...p, teamId: null };
                 }
                 return p;
@@ -603,10 +629,29 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 }
             });
 
-            // 8. Calculate Cap Space Strategy
-            // Now that rosters are accurate to the fast-forwarded state, calc cap space.
+            // 8. Calculate Cap Space Strategy & OPTIMIZE ROTATIONS (Fix for Low Scoring)
+            // Now that rosters are accurate to the fast-forwarded state, calc cap space AND rotations.
             initialTeams = initialTeams.map(t => {
+                // 1. Cap Space
                 const cap = calculateTeamCapSpace(t, fastForwardedContracts, 140000000);
+
+                // 2. Optimize Rotation (CRITICAL FIX)
+                // This assigns minutes to players. Without this, they have 0 minutes -> Low Usage -> Low Scoring.
+                const teamRoster = updatedPlayers.filter(p => p.teamId === t.id);
+
+                // optimizeRotation expects a specific string or number, not the full TeamStrategy object.
+                // For now, we default to 'Standard' to ensure valid minutes.
+                const rotation = optimizeRotation(teamRoster, 'Standard');
+
+                // Apply rotation minutes/roles back to the players in 'updatedPlayers'
+                rotation.forEach(r => {
+                    const pIndex = updatedPlayers.findIndex(p => p.id === r.id);
+                    if (pIndex !== -1) {
+                        updatedPlayers[pIndex].minutes = r.minutes;
+                        updatedPlayers[pIndex].isStarter = r.isStarter;
+                    }
+                });
+
                 return { ...t, salaryCapSpace: cap };
             });
 
@@ -636,13 +681,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 scoutingPoints: {},
                 scoutingReports: {},
                 draftResults: [], // Initialize
+                draftHistory: {},
                 isPotentialRevealed: false,
                 transactions: [],
                 messages: [],
                 trainingSettings: {},
                 trainingReport: null,
                 isTrainingCampComplete: false,
-                news: [{ date: initialDate, title: "League Expansion", content: `${name} have joined the NBA!`, type: 'info' }],
+                news: [{ id: generateUUID(), date: initialDate, headline: "League Expansion", content: `${name} have joined the NBA!`, type: 'GENERAL', priority: 5 }],
                 dailyMatchups: [], // Draft phase doesn't have daily matchups yet
                 pendingUserResult: null,
                 gmProfile: INITIAL_GM_PROFILE,
@@ -652,7 +698,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 seasonGamesPlayed: 0,
                 isFirstSeasonPaid: true, // First season is free
                 freeAgencyDay: 0,
-                playoffGamesPlayed: 0
+                activeOffers: []
             };
 
             // Apply Real-World Trades (Post-Init Patch for Expansion too)
@@ -808,6 +854,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 activeMerchCampaigns: [],
                 draftClass: [],
                 draftOrder: [], // Will be set on init
+                draftResults: [],
+                draftHistory: {},
                 seasonPhase: 'regular_season',
                 playoffs: [],
                 transactions: [],
@@ -827,7 +875,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 retiredPlayersHistory: [],
                 scoutingPoints: {},
                 scoutingReports: {},
-                draftResults: [], // Initialize
                 dailyMatchups: [],
                 pendingUserResult: null,
                 tutorialFlags: { hasSeenNewsTutorial: false },
@@ -835,7 +882,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 isProcessing: false,
                 socialMediaPosts: [],
                 seasonGamesPlayed: 0,
-                isFirstSeasonPaid: true, // First season is free
+                isFirstSeasonPaid: true, // First season is free, so we don't get blocked by the budget gate
                 activeOffers: [],
                 freeAgencyDay: 1
             });
@@ -1299,6 +1346,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const simulateToPlayoffs = () => {
         setSimTarget('playoffs');
+    };
+
+    const simulatePlayoffs = () => {
+        setSimTarget('playoffs_end');
+        setGameState(prev => ({ ...prev, isSimulating: true }));
     };
 
 
@@ -1883,6 +1935,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         ...(prev.retiredPlayersHistory || []),
                         { year: prev.date.getFullYear(), players: retiredPlayers }
                     ],
+                    draftHistory: {
+                        ...prev.draftHistory,
+                        [prev.date.getFullYear()]: prev.draftResults
+                    },
                     seasonPhase: 'draft_summary', // Show Summary First
                 };
             } catch (error) {
@@ -2132,7 +2188,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
             // 1. Update Player to Free Agent
             const updatedPlayers = prev.players.map(p =>
-                p.id === playerId ? { ...p, teamId: 'free_agent', minutes: 0, isStarter: false, rotationIndex: undefined } : p
+                p.id === playerId ? { ...p, teamId: null, minutes: 0, isStarter: false, rotationIndex: undefined } : p
             );
 
             // 2. Remove Contract
@@ -3499,7 +3555,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     };
 
     // Ref-based toggle for immediate interruption
-    const simTargetRef = useRef<'none' | 'deadline' | 'playoffs' | 'round'>(simTarget);
+    const simTargetRef = useRef<'none' | 'deadline' | 'playoffs' | 'playoffs_end' | 'round'>(simTarget);
     useEffect(() => {
         simTargetRef.current = simTarget;
     }, [simTarget]);
@@ -4200,8 +4256,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
             spendScoutingPoints,
             endScoutingPhase,
             simulateRound,
-            simulateRound,
-            runAutoPlayoffs,
             updatePlayerAttribute,
             setGameState,
             updateTrainingFocus,
@@ -4209,6 +4263,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             generateDailyMatchups,
             setHasSeenNewsTutorial,
             startPlayoffs,
+            simulatePlayoffs,
             placeOffer,
             advanceFreeAgencyDay
         }}>

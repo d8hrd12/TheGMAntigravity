@@ -16,7 +16,8 @@ export const PayrollConfirmationModal: React.FC<PayrollConfirmationModalProps> =
 
     const effectivePayroll = isFirstSeasonFree ? 0 : payrollAmount;
     const remainingCash = currentCash - effectivePayroll;
-    const isDeficit = remainingCash < 0;
+    // Allow proceeding if it's the first season (owner covered it), even if funds are negative from setup
+    const isDeficit = isFirstSeasonFree ? false : remainingCash < 0;
 
     return (
         <div style={{
@@ -37,7 +38,7 @@ export const PayrollConfirmationModal: React.FC<PayrollConfirmationModalProps> =
 
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '30px', lineHeight: '1.5' }}>
                     {isFirstSeasonFree
-                        ? "Welcome to your first season! The owner has generously covered all player contracts for this yer."
+                        ? "Welcome to your first season! The owner has generously covered all player contracts for this year."
                         : "Before starting the regular season, you must pay all player contracts upfront for the year."}
                 </p>
 

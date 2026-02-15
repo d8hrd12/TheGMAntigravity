@@ -257,8 +257,8 @@ export const CreateTeamView: React.FC<CreateTeamViewProps> = ({ onBack }) => {
                                 style={{
                                     padding: '10px',
                                     borderRadius: '8px',
-                                    border: division === div ? '1px solid var(--primary)' : '1px solid var(--border)',
-                                    background: division === div ? 'var(--primary)' : 'var(--surface-active)',
+                                    border: division === div ? `1px solid ${extractedColor || 'var(--primary)'}` : '1px solid var(--border)',
+                                    background: division === div ? (extractedColor || 'var(--primary)') : 'var(--surface-active)',
                                     color: division === div ? 'white' : 'var(--text-secondary)',
                                     cursor: 'pointer',
                                     fontWeight: division === div ? 600 : 400,
@@ -278,7 +278,7 @@ export const CreateTeamView: React.FC<CreateTeamViewProps> = ({ onBack }) => {
                     style={{
                         marginTop: '10px',
                         padding: '16px',
-                        background: (!name || !city || isSubmitting) ? 'var(--surface-active)' : 'linear-gradient(135deg, var(--primary) 0%, #2980b9 100%)',
+                        background: (!name || !city || isSubmitting) ? 'var(--surface-active)' : `linear-gradient(135deg, ${extractedColor || 'var(--primary)'} 0%, #2980b9 100%)`,
                         color: (!name || !city) ? 'var(--text-secondary)' : 'white',
                         border: 'none',
                         borderRadius: '12px',
