@@ -54,6 +54,7 @@ import { NewsFeedView } from './features/news/NewsFeedView';
 import { PulseFeed } from './features/news/PulseFeed';
 import { LiveGameView } from './features/simulation/LiveGameView';
 import { LayoutDashboard, Users, Calendar, Trophy, Settings, ChevronRight, BarChart2, Coins, ArrowRight, Save, LogOut, Check, X, Smartphone, Smile, Frown, ArrowLeftRight, Wallet, Dribbble, Play } from 'lucide-react';
+import { App as CapApp } from '@capacitor/app';
 
 // Helper to lighten color
 const lightenColor = (col: string, amt: number) => {
@@ -242,6 +243,26 @@ function AppContent() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+  // --- Android Back Button Handling ---
+  useEffect(() => {
+    const backListener = CapApp.addListener('backButton', ({ canGoBack }) => {
+      console.warn("DEBUG: Android Back Button Pressed", { canGoBack, view });
+
+      // If we are not at the dashboard, or we are in a sub-view of the dashboard (like selectedPlayerId)
+      // we try to navigate back.
+      if (view !== 'dashboard' || selectedPlayerId || selectedGame || currentNegotiation) {
+        window.history.back();
+      } else {
+        // At dashboard root. We could show an exit modal or just let it close.
+        CapApp.exitApp();
+      }
+    });
+
+    return () => {
+      backListener.then(l => l.remove());
+    };
+  }, [view, selectedPlayerId, selectedGame, currentNegotiation]);
+
   // Debug Phase Transitions
   useEffect(() => {
     console.warn("DEBUG: App seasonPhase changed to:", seasonPhase);
