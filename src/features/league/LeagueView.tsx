@@ -21,103 +21,108 @@ interface LeagueViewProps {
     onSelectTeam: (teamId: string) => void;
 }
 
+import { PageHeader } from '../ui/PageHeader';
+
 export const LeagueView: React.FC<LeagueViewProps> = ({ teams, players, awardsHistory, onBack, onSelectPlayer, onSelectTeam }) => {
     const [tab, setTab] = useState<'standings' | 'leaders' | 'stats' | 'players'>('standings');
 
     return (
         <div style={{ minHeight: '100vh', padding: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
-                <BackButton onClick={onBack} />
+            <PageHeader
+                title="League Office"
+                onBack={onBack}
+            />
 
-                <div style={{ display: 'flex', gap: '5px', background: 'var(--surface)', padding: '4px', borderRadius: '12px', overflowX: 'auto', flex: 1, minWidth: 0 }}>
-                    <button
-                        onClick={() => setTab('standings')}
-                        style={{
-                            padding: '8px 10px',
-                            background: tab === 'standings' ? 'var(--primary)' : 'transparent',
-                            color: tab === 'standings' ? '#fff' : 'var(--text-secondary)',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontWeight: 500,
-                            fontSize: '0.85rem',
-                            whiteSpace: 'nowrap',
-                            flex: 1,
-                            textAlign: 'center'
-                        }}
-                    >
-                        Standings
-                    </button>
-                    <button
-                        onClick={() => setTab('players')}
-                        style={{
-                            padding: '8px 10px',
-                            background: tab === 'players' ? 'var(--primary)' : 'transparent',
-                            color: tab === 'players' ? '#fff' : 'var(--text-secondary)',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontWeight: 500,
-                            fontSize: '0.85rem',
-                            whiteSpace: 'nowrap',
-                            flex: 1,
-                            textAlign: 'center'
-                        }}
-                    >
-                        Players
-                    </button>
-                    <button
-                        onClick={() => setTab('leaders')}
-                        style={{
-                            padding: '8px 10px',
-                            background: tab === 'leaders' ? 'var(--primary)' : 'transparent',
-                            color: tab === 'leaders' ? '#fff' : 'var(--text-secondary)',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontWeight: 500,
-                            fontSize: '0.85rem',
-                            whiteSpace: 'nowrap',
-                            flex: 1,
-                            textAlign: 'center'
-                        }}
-                    >
-                        Leaders
-                    </button>
-                    <button
-                        onClick={() => setTab('stats')}
-                        style={{
-                            padding: '8px 10px',
-                            background: tab === 'stats' ? 'var(--primary)' : 'transparent',
-                            color: tab === 'stats' ? '#fff' : 'var(--text-secondary)',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontWeight: 500,
-                            fontSize: '0.85rem',
-                            whiteSpace: 'nowrap',
-                            flex: 1,
-                            textAlign: 'center'
-                        }}
-                    >
-                        Stats
-                    </button>
+            <div style={{ display: 'flex', gap: '5px', background: 'var(--surface)', padding: '4px', borderRadius: '12px', overflowX: 'auto', marginBottom: '20px' }}>
+                <button
+                    onClick={() => setTab('standings')}
+                    style={{
+                        padding: '8px 10px',
+                        background: tab === 'standings' ? 'var(--primary)' : 'transparent',
+                        color: tab === 'standings' ? '#fff' : 'var(--text-secondary)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontWeight: 500,
+                        fontSize: '0.85rem',
+                        whiteSpace: 'nowrap',
+                        flex: 1,
+                        textAlign: 'center'
+                    }}
+                >
+                    Standings
+                </button>
+                <button
+                    onClick={() => setTab('players')}
+                    style={{
+                        padding: '8px 10px',
+                        background: tab === 'players' ? 'var(--primary)' : 'transparent',
+                        color: tab === 'players' ? '#fff' : 'var(--text-secondary)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontWeight: 500,
+                        fontSize: '0.85rem',
+                        whiteSpace: 'nowrap',
+                        flex: 1,
+                        textAlign: 'center'
+                    }}
+                >
+                    Players
+                </button>
+                <button
+                    onClick={() => setTab('leaders')}
+                    style={{
+                        padding: '8px 10px',
+                        background: tab === 'leaders' ? 'var(--primary)' : 'transparent',
+                        color: tab === 'leaders' ? '#fff' : 'var(--text-secondary)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontWeight: 500,
+                        fontSize: '0.85rem',
+                        whiteSpace: 'nowrap',
+                        flex: 1,
+                        textAlign: 'center'
+                    }}
+                >
+                    Leaders
+                </button>
+                <button
+                    onClick={() => setTab('stats')}
+                    style={{
+                        padding: '8px 10px',
+                        background: tab === 'stats' ? 'var(--primary)' : 'transparent',
+                        color: tab === 'stats' ? '#fff' : 'var(--text-secondary)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontWeight: 500,
+                        fontSize: '0.85rem',
+                        whiteSpace: 'nowrap',
+                        flex: 1,
+                        textAlign: 'center'
+                    }}
+                >
+                    Stats
+                </button>
 
-                </div>
             </div>
 
-            {tab === 'standings' ? (
-                <StandingsTableOnly teams={teams} onSelectTeam={onSelectTeam} />
-            ) : tab === 'players' ? (
-                <LeaguePlayersFullView players={players} teams={teams} onSelectPlayer={onSelectPlayer} />
-            ) : tab === 'leaders' ? (
-                <LeagueLeaders players={players} teams={teams} onSelectPlayer={onSelectPlayer} />
-            ) : tab === 'stats' ? (
-                <LeagueTeamStats teams={teams} players={players} onSelectTeam={onSelectTeam} />
-            ) : (
-                <AwardsHistoryView awardsHistory={awardsHistory} />
-            )}
-        </div>
+            {
+                tab === 'standings' ? (
+                    <StandingsTableOnly teams={teams} onSelectTeam={onSelectTeam} />
+                ) : tab === 'players' ? (
+                    <LeaguePlayersFullView players={players} teams={teams} onSelectPlayer={onSelectPlayer} />
+                ) : tab === 'leaders' ? (
+                    <LeagueLeaders players={players} teams={teams} onSelectPlayer={onSelectPlayer} />
+                ) : tab === 'stats' ? (
+                    <LeagueTeamStats teams={teams} players={players} onSelectTeam={onSelectTeam} />
+                ) : (
+                    <AwardsHistoryView awardsHistory={awardsHistory} />
+                )
+            }
+        </div >
     );
 };
 

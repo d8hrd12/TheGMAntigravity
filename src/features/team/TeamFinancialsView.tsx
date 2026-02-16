@@ -5,6 +5,8 @@ import { calculateExpectation, AVAILABLE_MERCH_CAMPAIGNS } from '../finance/Fina
 import { DollarSign, TrendingUp, TrendingDown, Wallet, Trash2, Users, Briefcase, Building2, AlertTriangle, Info, X, ShoppingBag, Activity } from 'lucide-react';
 
 import { BackButton } from '../ui/BackButton';
+import { PageHeader } from '../ui/PageHeader';
+import { SegmentedControl } from '../../components/ui/SegmentedControl';
 
 interface TeamFinancialsViewProps {
     onBack: () => void;
@@ -67,12 +69,28 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
             flexDirection: 'column',
             gap: '16px'
         }}>
-            {/* Header with Tabs */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <BackButton onClick={onBack} />
-                    <h1 style={{ margin: 0, fontSize: '1.8rem' }}>Financials</h1>
+            {/* Header */}
+            <PageHeader
+                title="Financials"
+                onBack={onBack}
+            />
+
+            {/* Info Button and Tab Switcher */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                {/* Tab Switcher */}
+                <div style={{ flex: 1, marginRight: '15px' }}>
+                    <SegmentedControl
+                        value={viewMode}
+                        onChange={(val) => setViewMode(val as any)}
+                        options={[
+                            { value: 'my_team', label: 'My Team' },
+                            { value: 'league', label: 'League Contracts' },
+                            { value: 'merch', label: 'Merchandise' }
+                        ]}
+                    />
                 </div>
+
+                {/* Info Button */}
                 <button
                     onClick={() => setShowRules(true)}
                     style={{
@@ -86,61 +104,6 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                     }}
                 >
                     <Info size={20} />
-                </button>
-            </div>
-
-            {/* Tab Switcher */}
-            <div style={{
-                display: 'flex',
-                background: 'var(--surface)',
-                padding: '4px',
-                borderRadius: '12px',
-                marginBottom: '10px'
-            }}>
-                <button
-                    onClick={() => setViewMode('my_team')}
-                    style={{
-                        flex: 1,
-                        padding: '8px',
-                        borderRadius: '8px',
-                        border: 'none',
-                        background: viewMode === 'my_team' ? 'var(--primary)' : 'transparent',
-                        color: viewMode === 'my_team' ? 'white' : 'var(--text-secondary)',
-                        fontWeight: 600,
-                        cursor: 'pointer'
-                    }}
-                >
-                    My Team
-                </button>
-                <button
-                    onClick={() => setViewMode('league')}
-                    style={{
-                        flex: 1,
-                        padding: '8px',
-                        borderRadius: '8px',
-                        border: 'none',
-                        background: viewMode === 'league' ? 'var(--primary)' : 'transparent',
-                        color: viewMode === 'league' ? 'white' : 'var(--text-secondary)',
-                        fontWeight: 600,
-                        cursor: 'pointer'
-                    }}
-                >
-                    League Contracts
-                </button>
-                <button
-                    onClick={() => setViewMode('merch')}
-                    style={{
-                        flex: 1,
-                        padding: '8px',
-                        borderRadius: '8px',
-                        border: 'none',
-                        background: viewMode === 'merch' ? 'var(--primary)' : 'transparent',
-                        color: viewMode === 'merch' ? 'white' : 'var(--text-secondary)',
-                        fontWeight: 600,
-                        cursor: 'pointer'
-                    }}
-                >
-                    Merchandise
                 </button>
             </div>
 

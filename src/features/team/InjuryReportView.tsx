@@ -24,11 +24,8 @@ export const InjuryReportView: React.FC = () => {
 
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '20px', padding: '20px' }}>
-            {/* Header / Filter */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <h2 style={{ margin: 0, fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Activity color="#e74c3c" /> Injury Report
-                </h2>
+            {/* Filter */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <div style={{ display: 'flex', background: 'var(--surface)', padding: '4px', borderRadius: '8px' }}>
                     <button
                         onClick={() => setFilter('all')}

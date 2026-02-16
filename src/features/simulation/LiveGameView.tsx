@@ -25,6 +25,14 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
     const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'points', direction: 'desc' });
     const [showExitConfirm, setShowExitConfirm] = useState(false);
     const [isExitingAfterSim, setIsExitingAfterSim] = useState(false);
+    const logRef = useRef<HTMLDivElement>(null);
+
+    // Auto-scroll log
+    useEffect(() => {
+        if (logRef.current) {
+            logRef.current.scrollTop = logRef.current.scrollHeight;
+        }
+    }, [gameState?.events.length]);
 
     useEffect(() => {
         if (isExitingAfterSim && gameState?.isFinished) {
@@ -283,7 +291,10 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
             {/* Event Log (Full Width) */}
             <div style={{ marginBottom: '20px', background: '#C0C0C0', borderRadius: '12px', padding: '15px', height: '250px', display: 'flex', flexDirection: 'column', border: '1px solid var(--border)' }}>
                 <h3 style={{ margin: '0 0 10px 0', borderBottom: '1px solid #999', paddingBottom: '5px', color: '#000' }}>Play-by-Play</h3>
-                <div style={{ flex: 1, overflowY: 'auto' }}>
+                <div
+                    ref={logRef}
+                    style={{ flex: 1, overflowY: 'auto', scrollBehavior: 'smooth' }}
+                >
                     {gameState.events.map((e, i) => {
                         const homeColor = gameState.homeTeam.colors?.primary || '#3498db';
                         const awayColor = gameState.awayTeam.colors?.primary || '#e74c3c';
@@ -300,11 +311,23 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
                         const displayTime = e.gameTime - qOffset;
 
                         return (
-                            <div key={i} style={{ marginBottom: '8px', fontSize: '0.9rem', display: 'flex', gap: '10px' }}>
-                                <span style={{ fontWeight: 'bold', fontFamily: 'monospace', minWidth: '45px', color: 'var(--text-secondary)' }}>
+                            <div key={i} style={{ marginBottom: '8px', fontSize: '0.9rem', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                <span style={{ fontWeight: 'bold', fontFamily: 'monospace', minWidth: '45px', color: '#555' }}>
                                     {formatTime(displayTime)}
                                 </span>
-                                <span style={{ color: entryColor, fontWeight: isHome || isAway ? '600' : 'normal' }}>
+                                {/* Team Indicator */}
+                                <div style={{ width: '20px', display: 'flex', justifyContent: 'center' }}>
+                                    {isHome && (gameState.homeTeam.logo ?
+                                        <img src={gameState.homeTeam.logo} style={{ width: '16px', height: '16px', objectFit: 'contain' }} /> :
+                                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: homeColor }} />
+                                    )}
+                                    {isAway && (gameState.awayTeam.logo ?
+                                        <img src={gameState.awayTeam.logo} style={{ width: '16px', height: '16px', objectFit: 'contain' }} /> :
+                                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: awayColor }} />
+                                    )}
+                                    {!isHome && !isAway && <div style={{ width: '6px', height: '6px', background: '#555', borderRadius: '50%' }} />}
+                                </div>
+                                <span style={{ color: entryColor, fontWeight: isHome || isAway ? '600' : 'normal', flex: 1 }}>
                                     {e.text}
                                 </span>
                             </div>
@@ -391,12 +414,21 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
                         </div>
                         {gameState.homeLineup.map(p => {
                             const stats = gameState.boxScore.homeStats[p.id] || {};
+                            const fatigue = p.fatigue !== undefined ? p.fatigue : 100;
+                            const fatigueColor = fatigue > 80 ? '#2ecc71' : fatigue > 60 ? '#f1c40f' : '#e74c3c';
+
                             return (
-                                <div key={p.id} style={{ display: 'flex', alignItems: 'center', padding: '6px 5px', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem' }}>
-                                    <span style={{ flex: 1, fontWeight: 'bold' }}>{p.lastName}</span>
-                                    <span style={{ width: '30px', textAlign: 'center' }}>{stats.points || 0}</span>
-                                    <span style={{ width: '30px', textAlign: 'center' }}>{stats.rebounds || 0}</span>
-                                    <span style={{ width: '30px', textAlign: 'center' }}>{stats.assists || 0}</span>
+                                <div key={p.id} style={{ display: 'flex', flexDirection: 'column', padding: '8px 5px', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <span style={{ flex: 1, fontWeight: 'bold' }}>{p.lastName} <small style={{ fontWeight: 'normal', color: '#aaa' }}>{p.position}</small></span>
+                                        <span style={{ width: '30px', textAlign: 'center' }}>{stats.points || 0}</span>
+                                        <span style={{ width: '30px', textAlign: 'center' }}>{stats.rebounds || 0}</span>
+                                        <span style={{ width: '30px', textAlign: 'center' }}>{stats.assists || 0}</span>
+                                    </div>
+                                    {/* Stamina Bar */}
+                                    <div style={{ width: '100%', height: '3px', background: 'rgba(255,255,255,0.1)', marginTop: '4px', borderRadius: '2px', overflow: 'hidden' }}>
+                                        <div style={{ width: `${fatigue}%`, height: '100%', background: fatigueColor, transition: 'width 0.5s' }} />
+                                    </div>
                                 </div>
                             );
                         })}
@@ -478,12 +510,21 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
                         </div>
                         {gameState.awayLineup.map(p => {
                             const stats = gameState.boxScore.awayStats[p.id] || {};
+                            const fatigue = p.fatigue !== undefined ? p.fatigue : 100;
+                            const fatigueColor = fatigue > 80 ? '#2ecc71' : fatigue > 60 ? '#f1c40f' : '#e74c3c';
+
                             return (
-                                <div key={p.id} style={{ display: 'flex', alignItems: 'center', padding: '6px 5px', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem' }}>
-                                    <span style={{ flex: 1, fontWeight: 'bold' }}>{p.lastName}</span>
-                                    <span style={{ width: '30px', textAlign: 'center' }}>{stats.points || 0}</span>
-                                    <span style={{ width: '30px', textAlign: 'center' }}>{stats.rebounds || 0}</span>
-                                    <span style={{ width: '30px', textAlign: 'center' }}>{stats.assists || 0}</span>
+                                <div key={p.id} style={{ display: 'flex', flexDirection: 'column', padding: '8px 5px', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <span style={{ flex: 1, fontWeight: 'bold' }}>{p.lastName} <small style={{ fontWeight: 'normal', color: '#aaa' }}>{p.position}</small></span>
+                                        <span style={{ width: '30px', textAlign: 'center' }}>{stats.points || 0}</span>
+                                        <span style={{ width: '30px', textAlign: 'center' }}>{stats.rebounds || 0}</span>
+                                        <span style={{ width: '30px', textAlign: 'center' }}>{stats.assists || 0}</span>
+                                    </div>
+                                    {/* Stamina Bar */}
+                                    <div style={{ width: '100%', height: '3px', background: 'rgba(255,255,255,0.1)', marginTop: '4px', borderRadius: '2px', overflow: 'hidden' }}>
+                                        <div style={{ width: `${fatigue}%`, height: '100%', background: fatigueColor, transition: 'width 0.5s' }} />
+                                    </div>
                                 </div>
                             );
                         })}

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Team } from '../../models/Team';
-import { BackButton } from '../ui/BackButton';
+import { PageHeader } from '../ui/PageHeader';
 
 interface TeamHistoryViewProps {
     team: Team;
@@ -13,10 +13,10 @@ export const TeamHistoryView: React.FC<TeamHistoryViewProps> = ({ team, onBack }
 
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', color: 'var(--text)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-                <BackButton onClick={onBack} />
-                <h2 style={{ marginLeft: '15px' }}>{team.city} {team.name} History</h2>
-            </div>
+            <PageHeader
+                title={`${team.city} ${team.name} History`}
+                onBack={onBack}
+            />
 
             <div className="glass-panel" style={{ padding: '0', overflow: 'hidden', borderRadius: '12px' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>

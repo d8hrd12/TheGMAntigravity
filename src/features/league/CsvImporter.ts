@@ -160,6 +160,7 @@ export const importNbaPlayers = async (teams: Team[], existingPlayers: Player[])
                 jerseyNumber: parseInt(row.jersey) || 0,
                 morale: 100,
                 fatigue: 0,
+                stamina: 100,
                 potential: parseInt(row.potential) || 80,
                 loveForTheGame: parseInt(row.intangibles) || 80,
                 seasonStats: {

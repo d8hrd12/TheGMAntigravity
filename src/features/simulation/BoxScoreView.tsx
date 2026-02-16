@@ -4,6 +4,7 @@ import type { Team } from '../../models/Team';
 import { formatDate } from '../../utils/dateUtils';
 import { BackButton } from '../ui/BackButton';
 import { Trophy, Calendar, MapPin } from 'lucide-react';
+import { PageHeader } from '../ui/PageHeader';
 
 interface BoxScoreViewProps {
     match: MatchResult;
@@ -194,10 +195,12 @@ export const BoxScoreView: React.FC<BoxScoreViewProps> = ({ match, homeTeam, awa
             background: 'var(--background)',
             paddingBottom: '40px'
         }}>
-            {/* Top Nav */}
-            <div style={{ padding: '20px', display: 'flex', alignItems: 'center' }}>
-                <BackButton onClick={onBack} />
-                <div style={{ marginLeft: 'auto', fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ padding: '20px' }}>
+                <PageHeader
+                    title="Box Score"
+                    onBack={onBack}
+                />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '10px' }}>
                     <Calendar size={14} />
                     {match.date instanceof Date ? formatDate(match.date) : formatDate(new Date(match.date))}
                 </div>

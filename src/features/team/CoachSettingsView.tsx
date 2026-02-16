@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { Team } from '../../models/Team';
 import type { TeamStrategy, PaceType, OffensiveFocus, DefensiveStrategy } from '../simulation/TacticsTypes';
 import { BackButton } from '../ui/BackButton';
+import { PageHeader } from '../ui/PageHeader';
 import { Activity, Target, Shield } from 'lucide-react';
 
 interface CoachSettingsViewProps {
@@ -70,16 +71,19 @@ export const CoachSettingsView: React.FC<CoachSettingsViewProps> = ({ team, onBa
 
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--background)' }}>
-            <div style={{ padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <BackButton onClick={onBack} />
-                <h2 style={{ margin: 0, color: 'white', fontSize: '1.5rem', fontWeight: 800 }}>Game Plan</h2>
-                <button
-                    onClick={handleSave}
-                    className="btn-primary"
-                    style={{ padding: '10px 24px', borderRadius: '12px' }}
-                >
-                    Save Changes
-                </button>
+            <div style={{ padding: '20px' }}>
+
+
+                {/* Save Changes Button */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+                    <button
+                        onClick={handleSave}
+                        className="btn-primary"
+                        style={{ padding: '10px 24px', borderRadius: '12px' }}
+                    >
+                        Save Changes
+                    </button>
+                </div>
             </div>
 
             <div style={{ padding: '0 20px 40px 20px', overflowY: 'auto' }}>

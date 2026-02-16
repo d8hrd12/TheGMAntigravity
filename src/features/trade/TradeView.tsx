@@ -11,6 +11,8 @@ import type { SimulatedTradeProposal } from './TradeSimulation';
 import { Info } from 'lucide-react';
 import { BackButton } from '../ui/BackButton';
 import { TeamSelect } from '../ui/TeamSelect';
+import { PageHeader } from '../ui/PageHeader';
+
 
 import { MidSeasonFreeAgents } from './MidSeasonFreeAgents';
 
@@ -292,6 +294,7 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
 
     return (
         <div style={{ minHeight: '100vh', padding: '10px', display: 'flex', flexDirection: 'column' }}>
+
 
             <div style={{ marginBottom: '15px' }}>
                 <label>Trading Partner: </label>

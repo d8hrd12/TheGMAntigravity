@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Player } from '../../models/Player';
 import type { Team } from '../../models/Team';
+import { calculateEWA } from '../../utils/playerUtils';
 
 interface LeagueLeadersProps {
     players: Player[];
@@ -10,7 +11,7 @@ interface LeagueLeadersProps {
 
 interface LeaderCategory {
     title: string;
-    key: 'points' | 'rebounds' | 'offensiveRebounds' | 'assists' | 'steals' | 'blocks' | 'turnovers' | 'fgPct' | 'threePct' | 'ftPct' | 'ftAttempted';
+    key: 'points' | 'rebounds' | 'offensiveRebounds' | 'assists' | 'steals' | 'blocks' | 'turnovers' | 'fgPct' | 'threePct' | 'ftPct' | 'ftAttempted' | 'mpg' | 'ewa';
     format: (val: number) => string;
 }
 
@@ -22,6 +23,8 @@ const CATEGORIES: LeaderCategory[] = [
     { title: 'Steals', key: 'steals', format: (v) => v.toFixed(1) },
     { title: 'Blocks', key: 'blocks', format: (v) => v.toFixed(1) },
     { title: 'Turnovers', key: 'turnovers', format: (v) => v.toFixed(1) },
+    { title: 'EWA', key: 'ewa', format: (v) => v.toFixed(1) },
+    { title: 'MPG', key: 'mpg', format: (v) => v.toFixed(1) },
     { title: 'FG%', key: 'fgPct', format: (v) => (v * 100).toFixed(1) + '%' },
     { title: '3PT%', key: 'threePct', format: (v) => (v * 100).toFixed(1) + '%' },
     { title: 'FT%', key: 'ftPct', format: (v) => (v * 100).toFixed(1) + '%' },
@@ -47,6 +50,8 @@ export const LeagueLeaders: React.FC<LeagueLeadersProps> = ({ players, teams, on
         } else if (category === 'fgPct') {
             // More than 10 shots total in season
             filtered = filtered.filter(p => p.seasonStats.fgAttempted > 10);
+        } else if (category === 'mpg' || category === 'ewa') {
+            // No specific filter needed beyond games played > 0
         }
 
         return filtered.sort((a, b) => {
@@ -65,9 +70,17 @@ export const LeagueLeaders: React.FC<LeagueLeadersProps> = ({ players, teams, on
             } else if (category === 'ftAttempted') {
                 valA = a.seasonStats.ftAttempted / a.seasonStats.gamesPlayed;
                 valB = b.seasonStats.ftAttempted / b.seasonStats.gamesPlayed;
+            } else if (category === 'ewa') {
+                valA = calculateEWA(a);
+                valB = calculateEWA(b);
+            } else if (category === 'mpg') {
+                valA = a.seasonStats.minutes / a.seasonStats.gamesPlayed;
+                valB = b.seasonStats.minutes / b.seasonStats.gamesPlayed;
             } else {
                 // Standard counting stats (per game)
+                // @ts-ignore - dynamic key access
                 valA = a.seasonStats[category] / a.seasonStats.gamesPlayed;
+                // @ts-ignore - dynamic key access
                 valB = b.seasonStats[category] / b.seasonStats.gamesPlayed;
             }
 
@@ -99,7 +112,12 @@ export const LeagueLeaders: React.FC<LeagueLeadersProps> = ({ players, teams, on
                                                 displayVal = p.seasonStats.fgAttempted > 0 ? p.seasonStats.fgMade / p.seasonStats.fgAttempted : 0;
                                             } else if (cat.key === 'ftAttempted') {
                                                 displayVal = p.seasonStats.ftAttempted / p.seasonStats.gamesPlayed;
+                                            } else if (cat.key === 'ewa') {
+                                                displayVal = calculateEWA(p);
+                                            } else if (cat.key === 'mpg') {
+                                                displayVal = p.seasonStats.minutes / p.seasonStats.gamesPlayed;
                                             } else {
+                                                // @ts-ignore
                                                 displayVal = p.seasonStats[cat.key] / p.seasonStats.gamesPlayed;
                                             }
                                             return (

@@ -299,5 +299,55 @@ export const calculateSecondaryPosition = (player: Player): Position | undefined
         if (player.attributes.threePointShot > 80) return 'SF'; // Stretch 4
     }
 
+
     return undefined;
+};
+
+/**
+ * Calculates Estimated Wins Added (EWA) based on player stats.
+ * Formula roughly approximates Win Shares scaled to 82 games.
+ */
+export const calculateEWA = (player: Player): number => {
+    const s = player.seasonStats;
+    if (!s || s.gamesPlayed === 0) return 0;
+
+    // Calculate "Value" (Approximate Game Score)
+    const games = s.gamesPlayed;
+
+    // Per Game Stats
+    const pts = s.points / games;
+    const reb = s.rebounds / games;
+    const ast = s.assists / games;
+    const stl = s.steals / games;
+    const blk = s.blocks / games;
+    const tov = s.turnovers / games;
+    const fga = s.fgAttempted / games;
+    const fgm = s.fgMade / games;
+    const fta = s.ftAttempted / games;
+    const ftm = s.ftMade / games;
+
+    // Value Formula
+    // PTS + REB*1.2 + AST*1.5 + STL*2.5 + BLK*2.5 - TOV*1.5 - Misses
+    const missFG = fga - fgm;
+    const missFT = fta - ftm;
+
+    const valuePerGame = pts
+        + (reb * 1.2)
+        + (ast * 1.5)
+        + (stl * 2.5)
+        + (blk * 2.5)
+        - (tov * 2.0) // Increased turnover penalty 
+        - (missFG * 1.0) // Increased miss penalty
+        - (missFT * 1.0); // Increased miss FT penalty
+
+    // Filter out very poor performances to avoid negative stacking too hard for rookies
+    // But negative IS possible (Replacement level logic)
+
+    // Total Value Generated
+    const totalValue = valuePerGame * games;
+
+    // Scaling Factor
+    // 200 Value points ~= 1 Win (Approx calibrated to MVP ~15-20 wins)
+    // 3500 Value -> 17.5 Wins
+    return Number((totalValue / 200).toFixed(1));
 };

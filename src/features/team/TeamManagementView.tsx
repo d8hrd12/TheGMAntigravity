@@ -16,6 +16,11 @@ interface TeamManagementViewProps {
     onSaveSchedule: (schedule: RotationSegment[]) => void;
 }
 
+import { PageHeader } from '../ui/PageHeader';
+import { SegmentedControl } from '../../components/ui/SegmentedControl';
+
+// ...
+
 export const TeamManagementView: React.FC<TeamManagementViewProps> = ({
     players,
     team,
@@ -50,31 +55,31 @@ export const TeamManagementView: React.FC<TeamManagementViewProps> = ({
         onSaveRotation(updates);
     };
 
+    const getTitle = () => {
+        switch (activeTab) {
+            case 'rotation': return 'Rotation';
+            case 'strategy': return 'Game Plan';
+            default: return 'Team Management';
+        }
+    };
+
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <div style={{ padding: '20px 20px 0 20px' }}>
-                <div style={{
-                    display: 'flex',
-                    background: 'var(--surface)',
-                    padding: '4px',
-                    borderRadius: '16px',
-                    border: '1px solid var(--border)',
-                    marginBottom: '10px'
-                }}>
-                    <button
-                        onClick={() => setActiveTab('rotation')}
-                        style={tabStyle(activeTab === 'rotation')}
-                    >
-                        <Users size={18} />
-                        Rotation
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('strategy')}
-                        style={tabStyle(activeTab === 'strategy')}
-                    >
-                        <Settings size={18} />
-                        Strategy
-                    </button>
+                <PageHeader
+                    title={getTitle()}
+                    onBack={onBack}
+                />
+
+                <div style={{ marginBottom: '20px' }}>
+                    <SegmentedControl
+                        value={activeTab} // 'rotation' | 'strategy'
+                        onChange={(val) => setActiveTab(val as 'rotation' | 'strategy')}
+                        options={[
+                            { value: 'rotation', label: <><Users size={16} /> Rotation</> },
+                            { value: 'strategy', label: <><Settings size={16} /> Strategy</> }
+                        ]}
+                    />
                 </div>
             </div>
 

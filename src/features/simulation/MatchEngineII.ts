@@ -64,14 +64,45 @@ import { simulatePossession, type PossessionContext } from './PossessionEngine';
  */
 function generateRotationFromMinutes(teamId: string, roster: Player[]): TeamRotationData[] {
     // 1. Normalize targets to ensure they sum to 240
-    const totalAssigned = roster.reduce((sum, p) => sum + (p.minutes || 0), 0);
-    const scale = totalAssigned > 0 ? (240 / totalAssigned) : 1;
-    const targets = roster.map(p => ({
+    let totalAssigned = roster.reduce((sum, p) => sum + (p.minutes || 0), 0);
+    let scale = totalAssigned > 0 ? (240 / totalAssigned) : 1;
+
+    let targets = roster.map(p => ({
         id: p.id,
         target: (p.minutes || 0) * scale,
         played: 0,
         isStarter: p.isStarter
     }));
+
+    // Enforce Max Minutes Cap (e.g. 38 mins) to prevent 48-minute games
+    const MAX_MINUTES = 38;
+    targets.forEach(t => {
+        if (t.target > MAX_MINUTES) t.target = MAX_MINUTES;
+    });
+
+    // Re-sum and redistribute if needed (since capping reduces total below 240)
+    const cappedTotal = targets.reduce((sum, t) => sum + t.target, 0);
+    if (cappedTotal < 240) {
+        const diff = 240 - cappedTotal;
+        const nonCappedPlayers = targets.filter(t => t.target < MAX_MINUTES && t.target > 0);
+
+        // Distribute proportionally based on existing minutes (rich get richer, but fair)
+        // If all non-capped are 0, distribute evenly to them
+        const nonCappedTotal = nonCappedPlayers.reduce((sum, t) => sum + t.target, 0);
+
+        if (nonCappedPlayers.length > 0) {
+            if (nonCappedTotal > 0) {
+                nonCappedPlayers.forEach(t => {
+                    const share = t.target / nonCappedTotal;
+                    t.target += diff * share;
+                });
+            } else {
+                // Fallback: Even distribution if everyone else is 0
+                const share = diff / nonCappedPlayers.length;
+                nonCappedPlayers.forEach(t => t.target += share);
+            }
+        }
+    }
 
     const segments: { quarter: number, start: number, end: number, ids: string[] }[] = [];
     let currentLineup: string[] = [];
@@ -210,6 +241,63 @@ export function simulateMatchII(input: MatchInput): MatchResult {
     let currentQuarter = 1;
 
     // 2. Game Loop
+    // --- STAMINA SYSTEM INITIALIZATION ---
+    [...homeRoster, ...awayRoster].forEach(p => {
+        if (p.stamina === undefined) p.stamina = 100;
+    });
+
+    const homeOverrides = new Map<string, string>();
+    const awayOverrides = new Map<string, string>();
+
+    const applyStaminaLogic = (
+        teamRoster: Player[],
+        targetLineup: Player[],
+        overrides: Map<string, string>
+    ): Player[] => {
+        // A. Remove Overrides if Recovered
+        for (const [originalId, replacementId] of overrides.entries()) {
+            const original = teamRoster.find(p => p.id === originalId);
+            if (original && original.stamina > 80) {
+                overrides.delete(originalId);
+            }
+        }
+
+        // B. Apply Existing Overrides
+        let activeLineup = targetLineup.map(p => {
+            if (overrides.has(p.id)) {
+                const repId = overrides.get(p.id)!;
+                return teamRoster.find(r => r.id === repId) || p;
+            }
+            return p;
+        });
+
+        // C. Check for NEW Fatigue
+        activeLineup = activeLineup.map(p => {
+            if (p.stamina < 40 && !overrides.has(p.id)) {
+                // Find Replacement (Fresh, Best OVR, Diff ID)
+                const candidates = teamRoster.filter(bencher =>
+                    !activeLineup.find(al => al.id === bencher.id) &&
+                    bencher.stamina > 60
+                ).sort((a, b) => {
+                    const posMatchA = a.position === p.position ? 1 : 0;
+                    const posMatchB = b.position === p.position ? 1 : 0;
+                    if (posMatchA !== posMatchB) return posMatchB - posMatchA;
+                    // Preference to players with remaining minutes? (Complexity)
+                    return b.overall - a.overall;
+                });
+
+                const substitute = candidates[0];
+                if (substitute) {
+                    overrides.set(p.id, substitute.id);
+                    return substitute;
+                }
+            }
+            return p;
+        });
+
+        return activeLineup;
+    };
+
     while (timeRemaining > 0) {
         const isHomeOffense = possessionTeam.id === homeTeam.id;
 
@@ -227,6 +315,14 @@ export function simulateMatchII(input: MatchInput): MatchResult {
             });
             currentQuarter++;
             // Reset shot clock conceptually for new quarter
+
+            // --- HALFTIME RECOVERY ---
+            if (currentQuarter === 3) {
+                // Boost stamina at halftime
+                [...homeRoster, ...awayRoster].forEach(p => {
+                    p.stamina = Math.min(100, (p.stamina || 100) + 30); // Big boost
+                });
+            }
         }
 
         const nextBoundary = (4 - currentQuarter) * 720;
@@ -237,15 +333,19 @@ export function simulateMatchII(input: MatchInput): MatchResult {
         const qTime = timeRemaining - offset;
         const minuteOfQuarter = Math.max(0, Math.min(12, qTime / 60));
 
-        const homeTargetLineup = getLineupForTime(homeSchedule, homeRoster, qtr, minuteOfQuarter);
-        const awayTargetLineup = getLineupForTime(awaySchedule, awayRoster, qtr, minuteOfQuarter);
+        let homeTargetLineup = getLineupForTime(homeSchedule, homeRoster, qtr, minuteOfQuarter);
+        let awayTargetLineup = getLineupForTime(awaySchedule, awayRoster, qtr, minuteOfQuarter);
+
+        // APPLY OVERRIDES
+        const homeLineup = applyStaminaLogic(homeRoster, homeTargetLineup, homeOverrides);
+        const awayLineup = applyStaminaLogic(awayRoster, awayTargetLineup, awayOverrides);
 
         // Build Context
         const ctx: PossessionContext = {
             offenseTeam: isHomeOffense ? homeTeam : awayTeam,
             defenseTeam: isHomeOffense ? awayTeam : homeTeam,
-            offenseLineup: isHomeOffense ? homeTargetLineup : awayTargetLineup,
-            defenseLineup: isHomeOffense ? awayTargetLineup : homeTargetLineup,
+            offenseLineup: isHomeOffense ? homeLineup : awayLineup,
+            defenseLineup: isHomeOffense ? awayLineup : homeLineup,
             offenseStrategy: isHomeOffense ? homeStrategy : awayStrategy,
             defenseStrategy: isHomeOffense ? awayStrategy : homeStrategy,
             timeRemaining: timeRemaining,
@@ -283,6 +383,25 @@ export function simulateMatchII(input: MatchInput): MatchResult {
         if (timeRemaining - actualDuration < nextBoundary && currentQuarter < 4) {
             actualDuration = Math.max(0, timeRemaining - nextBoundary);
         }
+
+        // --- STAMINA UPDATE ---
+        const drain = actualDuration * 0.04; // ~2.4 per min
+        const recover = actualDuration * 0.05; // ~3.0 per min
+
+        const updateTeamStamina = (roster: Player[], activeLineup: Player[]) => {
+            roster.forEach(p => {
+                const isActive = activeLineup.find(al => al.id === p.id);
+                if (isActive) {
+                    p.stamina = Math.max(0, (p.stamina || 100) - drain);
+                } else {
+                    p.stamina = Math.min(100, (p.stamina || 100) + recover);
+                }
+            });
+        };
+
+        // Use the lineups from CTX which include overrides
+        updateTeamStamina(homeRoster, ctx.offenseLineup); // Rough approx since offense/defense switch, but good enough for general on-court time
+        updateTeamStamina(awayRoster, ctx.defenseLineup); // Both lineups are fully active for the possession duration
 
         // Update State
         timeRemaining -= actualDuration;

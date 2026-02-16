@@ -3,6 +3,7 @@ import type { MatchResult } from './SimulationTypes';
 import type { Team } from '../../models/Team';
 import { formatDate } from '../../utils/dateUtils';
 import { BackButton } from '../ui/BackButton';
+import { PageHeader } from '../ui/PageHeader';
 
 interface GameResultsViewProps {
     games: MatchResult[]; // All games history
@@ -22,12 +23,11 @@ export const GameResultsView: React.FC<GameResultsViewProps> = ({ games, teams, 
     const sortedGames = [...filteredGames].reverse();
 
     return (
-        <div style={{ paddingBottom: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                <button onClick={onBack} style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', color: 'var(--text)' }}>&larr; Back</button>
-                <h2>Game Results</h2>
-                <div style={{ width: '50px' }}></div> {/* Spacer */}
-            </div>
+        <div style={{ paddingBottom: '20px', padding: '20px' }}>
+            <PageHeader
+                title="Game Results"
+                onBack={onBack}
+            />
 
             <div style={{ marginBottom: '20px' }}>
                 <select

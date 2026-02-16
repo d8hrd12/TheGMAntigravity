@@ -211,6 +211,7 @@ export function generatePlayer(forcedPosition?: Position, forcedTier?: 'star' | 
         tendencies,
         morale: 80,
         fatigue: 0,
+        stamina: 100,
         teamId: null,
         seasonStats: {
             gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0,

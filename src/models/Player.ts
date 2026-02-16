@@ -73,7 +73,8 @@ export interface Player {
 
     // Dynamic
     morale: number; // 0-100
-    fatigue: number; // 0-100
+    fatigue: number; // 0-100 (Long term fatigue / Injury risk)
+    stamina: number; // 0-100 (Short term energy during game)
 
     seasonStats: SeasonStats;
     playoffStats?: SeasonStats;

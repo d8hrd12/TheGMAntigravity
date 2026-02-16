@@ -4,6 +4,7 @@ import { useGame } from '../../store/GameContext';
 import { ChevronLeft, TrendingUp, Target } from 'lucide-react';
 import type { AttributeChange } from '../../models/Training';
 import { BackButton } from '../ui/BackButton';
+import { PageHeader } from '../ui/PageHeader';
 
 // Helper for attribute color coding (Value)
 const getAttributeColor = (value: number) => {
@@ -124,12 +125,10 @@ export const TrainingReportView: React.FC<{ onBack: () => void }> = ({ onBack })
         <div style={{ padding: '20px', minHeight: '100vh', paddingBottom: '80px', background: 'var(--background)' }}>
 
             {/* Top Bar matching TeamStatsView */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <BackButton onClick={onBack} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <h2 className="text-xl font-bold tracking-tight">TRAINING REPORT <span className="opacity-50">{date.getFullYear()}</span></h2>
-                </div>
-            </div>
+            <PageHeader
+                title={`Training Report ${date.getFullYear()}`}
+                onBack={onBack}
+            />
 
             {/* Sub-header / Summary */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>

@@ -647,9 +647,7 @@ function AppContent() {
             showTutorial={!tutorialFlags.hasSeenNewsTutorial}
             onTutorialClose={setHasSeenNewsTutorial}
           />
-          <div style={{ marginTop: '40px' }}> {/* Spacing for fixed ticker */}
-            {/* Content continues */}
-          </div>
+
           <Dashboard
             onSelectGame={setSelectedGame}
             onShowResults={() => setView('results')}
@@ -740,7 +738,7 @@ function AppContent() {
           justifyContent: 'space-around',
           padding: '12px 0',
           zIndex: 1000,
-          boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+
         }}>
           <button onClick={() => { setView('dashboard'); setSelectedPlayerId(null); setInitialAiPlayerId(undefined); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: view === 'dashboard' ? 'var(--primary)' : '#666', gap: '4px' }}>
             <LayoutDashboard size={24} />

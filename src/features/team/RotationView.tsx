@@ -5,7 +5,7 @@ import type { Team } from '../../models/Team';
 import { calculateOverall } from '../../utils/playerUtils';
 import { optimizeRotation, type RotationStrategy } from '../../utils/rotationUtils';
 import { Info, Play, Users, BarChart2, Plus, Minus } from 'lucide-react';
-import { BackButton } from '../ui/BackButton';
+import { PageHeader } from '../ui/PageHeader';
 
 interface RotationViewProps {
     players: Player[];
@@ -124,26 +124,25 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
 
     return (
         <div style={{ width: '100%', margin: '0 auto', padding: '10px', fontFamily: "'Inter', sans-serif" }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                <BackButton onClick={onBack} />
-                <h2 style={{ margin: 0, color: '#fff', fontSize: '1.2rem' }}>Rotation</h2>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                        onClick={handleSave}
-                        style={{
-                            background: '#2ecc71',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '8px',
-                            padding: '8px 16px',
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                            fontSize: '0.9rem'
-                        }}
-                    >
-                        Save
-                    </button>
-                </div>
+
+
+            {/* Save Button */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '15px' }}>
+                <button
+                    onClick={handleSave}
+                    style={{
+                        background: '#2ecc71',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '8px 16px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem'
+                    }}
+                >
+                    Save
+                </button>
             </div>
 
             {/* Rotation Strategy Slider */}
@@ -178,6 +177,8 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                     <span>Heavy Starters (100)</span>
                 </div>
             </div>
+
+
 
             <div className="glass-panel" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', padding: '10px', fontSize: '0.85rem' }}>
                 <div>
@@ -300,6 +301,6 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                     </tbody>
                 </table>
             </div>
-        </div>
+        </div >
     );
 };

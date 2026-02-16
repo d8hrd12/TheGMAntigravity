@@ -1,5 +1,6 @@
 import React from 'react';
 import { BackButton } from '../ui/BackButton';
+import { PageHeader } from '../ui/PageHeader';
 import { DollarSign, Edit } from 'lucide-react';
 import { useGame } from '../../store/GameContext';
 import type { Player, PlayerAttributes } from '../../models/Player';
@@ -147,20 +148,27 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
 
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', color: 'var(--text)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <BackButton onClick={onBack} />
+            <PageHeader
+                title="Player Details"
+                onBack={onBack}
+            />
 
-                {!isUserTeam && onTradeFor && (
-                    <button onClick={() => onTradeFor(player.id)} style={{ padding: '8px 16px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-                        Trade For
-                    </button>
-                )}
-                {isUserTeam && (
-                    <button onClick={onShop} style={{ padding: '8px 16px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <DollarSign size={16} /> Shop Player
-                    </button>
-                )}
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    {!isUserTeam && onTradeFor && (
+                        <button onClick={() => onTradeFor(player.id)} style={{ padding: '8px 16px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
+                            Trade For
+                        </button>
+                    )}
+                    {isUserTeam && (
+                        <button onClick={onShop} style={{ padding: '8px 16px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <DollarSign size={16} /> Shop Player
+                        </button>
+                    )}
+                </div>
             </div>
+
 
             <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
                 {/* Header Section */}
@@ -292,34 +300,6 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
 
                             {/* Morale Icon (Minimal SVG) */}
                             <div style={{ marginTop: '5px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <div style={{ width: '28px', height: '28px' }}>
-                                    {player.morale >= 75 ? (
-                                        // Happy / Green
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="#2ecc71" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <circle cx="12" cy="12" r="10" />
-                                            <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                                            <line x1="9" y1="9" x2="9.01" y2="9" />
-                                            <line x1="15" y1="9" x2="15.01" y2="9" />
-                                        </svg>
-                                    ) : player.morale >= 45 ? (
-                                        // Neutral / White
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <circle cx="12" cy="12" r="10" />
-                                            <line x1="8" y1="15" x2="16" y2="15" />
-                                            <line x1="9" y1="9" x2="9.01" y2="9" />
-                                            <line x1="15" y1="9" x2="15.01" y2="9" />
-                                        </svg>
-                                    ) : (
-                                        // Sad / Red
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="#e74c3c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <circle cx="12" cy="12" r="10" />
-                                            <path d="M16 16s-1.5-2-4-2-4 2-4 2" />
-                                            <line x1="9" y1="9" x2="9.01" y2="9" />
-                                            <line x1="15" y1="9" x2="15.01" y2="9" />
-                                        </svg>
-                                    )}
-                                </div>
-
                                 {player.demandTrade && <span style={{ color: 'var(--danger)', fontSize: '0.6rem', fontWeight: 'bold', marginTop: '2px', textTransform: 'uppercase' }}>Wants Out</span>}
                             </div>
                             <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>

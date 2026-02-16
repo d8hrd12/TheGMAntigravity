@@ -3,6 +3,7 @@ import { useGame } from '../../store/GameContext';
 import { TrainingFocus } from '../../models/Training';
 import { calculateOverall } from '../../utils/playerUtils';
 import { BackButton } from '../ui/BackButton';
+import { PageHeader } from '../ui/PageHeader';
 import { TrainingResultsModal } from './TrainingResultsModal';
 
 export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: string) => void }> = ({ onBack, onSelectPlayer }) => {
@@ -116,10 +117,11 @@ export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: 
 
     return (
         <div style={{ padding: '16px', minHeight: '100vh', paddingBottom: '80px', maxWidth: '100vw', overflowX: 'hidden' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-                {onBack && <BackButton onClick={onBack} />}
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>Training Camp</h2>
-            </div>
+
+            <PageHeader
+                title="Training Camp"
+                onBack={onBack!}
+            />
 
             <p style={{ marginBottom: '20px', color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.4' }}>
                 Select up to <strong>5 players</strong> to participate in Training Camp. Only selected players will improve.

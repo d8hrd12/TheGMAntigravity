@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Team } from '../../models/Team';
+import { PageHeader } from '../ui/PageHeader';
 
 interface StandingsViewProps {
     teams: Team[];
@@ -55,14 +56,10 @@ export const StandingsView: React.FC<StandingsViewProps> = ({ teams, onBack }) =
 
     return (
         <div style={{ minHeight: '100vh', padding: '20px' }}>
-            <button
-                onClick={onBack}
-                className="glass-panel"
-                style={{ marginBottom: '20px', padding: '8px 16px', color: 'var(--text)', cursor: 'pointer', border: '1px solid var(--border)', borderRadius: '8px' }}>
-                &larr; Back
-            </button>
-
-            <h2 style={{ marginBottom: '20px' }}>League Standings</h2>
+            <PageHeader
+                title="League Standings"
+                onBack={onBack}
+            />
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
                 <StandingsTable title="Western Conference" teams={westTeams} />
