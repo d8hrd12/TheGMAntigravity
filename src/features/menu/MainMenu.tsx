@@ -47,21 +47,60 @@ export const MainMenu: React.FC = () => {
     }
 
     return (
-        <div style={{ textAlign: 'center', paddingTop: '50px' }}>
-            <h1>TheGM</h1>
-            <p style={{ marginBottom: '30px', color: '#666' }}>Basketball Manager Simulation</p>
-            <button
-                onClick={() => setView('setup')}
-                style={{ fontSize: '1.2rem', padding: '15px 40px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '50px', boxShadow: '0 4px 15px rgba(255, 107, 0, 0.3)', marginBottom: '20px', display: 'block', margin: '0 auto 20px auto' }}
-            >
-                Start New Career
-            </button>
-            <button
-                onClick={() => setShowLoadMenu(true)}
-                style={{ fontSize: '1rem', padding: '12px 30px', background: 'transparent', color: 'var(--text)', border: '2px solid var(--border)', borderRadius: '50px', cursor: 'pointer' }}
-            >
-                Load Career
-            </button>
+        <div style={{
+            height: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            background: 'var(--background, #1a1a1a)',
+            color: 'var(--text, #ffffff)'
+        }}>
+            <h1 style={{ marginBottom: '10px', fontSize: '3rem', letterSpacing: '-1px', fontWeight: 800 }}>TheGM</h1>
+            <p style={{ marginBottom: '60px', color: '#888', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '2px' }}>Basketball Manager Simulation</p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '300px' }}>
+                <button
+                    onClick={() => setView('setup')}
+                    style={{
+                        padding: '20px',
+                        background: 'var(--primary, #FF5F1F)',
+                        color: 'white',
+                        border: 'none',
+                        fontSize: '1.2rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'transform 0.1s',
+                        borderRadius: '4px' // Squarish
+                    }}
+                    onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
+                    onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                    Start New Career
+                </button>
+
+                <button
+                    onClick={() => setShowLoadMenu(true)}
+                    style={{
+                        padding: '20px',
+                        background: 'transparent',
+                        color: 'var(--text, #ffffff)',
+                        border: '2px solid #333',
+                        fontSize: '1.2rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.1s',
+                        borderRadius: '4px' // Squarish
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#666'}
+                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#333'}
+                    onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
+                    onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                    Load Career
+                </button>
+            </div>
         </div>
     );
 };

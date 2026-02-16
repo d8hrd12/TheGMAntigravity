@@ -62,7 +62,7 @@ const extractDominantColor = (imageSrc: string): Promise<string> => {
 };
 
 export const CreateTeamView: React.FC<CreateTeamViewProps> = ({ onBack }) => {
-    const { startCustomGame } = useGame();
+    const { startNewGame } = useGame();
     const [name, setName] = useState('');
     const [city, setCity] = useState('');
     const [division, setDivision] = useState<string>('Atlantic');
@@ -113,11 +113,18 @@ export const CreateTeamView: React.FC<CreateTeamViewProps> = ({ onBack }) => {
             // Run in timeout to allow UI to update to "Creating..."
             setTimeout(() => {
                 try {
-                    startCustomGame(city, name, division, logo || undefined, extractedColor || undefined);
-                    // Verify success? Logic should redirect or we should manually call onBack?
-                    // Actually, startCustomGame usually sets state that triggers a re-render in App root.
-                    // But if MainMenu is still mounted, we might need to close it.
-                    // However, Context updates typically trigger the App to switch views.
+                    // Unified Engine Start
+                    startNewGame(
+                        '31', // Will be overridden by expansion logic but passed for safety
+                        'Medium', // Default difficulty
+                        {
+                            city,
+                            name,
+                            division,
+                            logo: logo || undefined,
+                            primaryColor: extractedColor || undefined
+                        }
+                    );
                 } catch (err) {
                     console.error("Failed to create team:", err);
                     setError("Failed to create team. Please try again. " + err);

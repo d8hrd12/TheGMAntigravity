@@ -25,6 +25,7 @@ interface TradeCenterViewProps {
     initialProposal?: TradeProposal | null;
     onExecuteTrade: (userPlayerIds: string[], userPickIds: string[], aiPlayerIds: string[], aiPickIds: string[], aiTeamId: string) => boolean;
     onSelectPlayer: (playerId: string) => void;
+    onSelectTeam: (teamId: string) => void; // New prop for team navigation
     onBack: () => void;
     initialTab?: 'new' | 'block' | 'log' | 'freeAgents' | 'injuries';
     onSignFreeAgent: (playerId: string) => void;
@@ -49,6 +50,7 @@ export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
     initialProposal,
     onExecuteTrade,
     onSelectPlayer,
+    onSelectTeam,
     onBack,
     initialTab = 'new',
     onSignFreeAgent,
@@ -291,6 +293,8 @@ export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
                         trades={tradeHistory}
                         teams={teams}
                         onBack={onBack}
+                        onSelectPlayer={onSelectPlayer}
+                        onSelectTeam={onSelectTeam}
                     />
                 )}
             </div>

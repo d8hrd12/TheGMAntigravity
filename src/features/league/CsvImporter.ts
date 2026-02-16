@@ -25,10 +25,23 @@ const parseCSVLine = (line: string): string[] => {
 // Attribute Mapping Logic
 const mapAttributes = (row: Record<string, string>): PlayerAttributes => {
     const getVal = (key: string) => parseInt(row[key]) || 50;
+    const height = parseInt(row['height_cm']) || 200;
+    // Simple heuristic: Small if under 6'6" (198cm) or listed as guard
+    const isSmall = (row['position_1'] === 'PG' || row['position_1'] === 'SG' || height < 198);
 
     // MSSI 14 Attributes Mapping
-    // 1. Finishing: Avg of layup, driving_dunk, close_shot, standing_dunk
-    const finishing = Math.round((getVal('layup') + getVal('driving_dunk') + getVal('close_shot') + getVal('standing_dunk')) / 4);
+
+    // 1. Finishing:
+    // Guards: Weighted purely to driving/layups. Ignore standing dunk.
+    // Bigs: Include standing dunk and post work.
+    let finishing;
+    if (isSmall) {
+        // Layup + Driving Dunk dominant. Close shot secondary.
+        finishing = Math.round((getVal('layup') * 1.5 + getVal('driving_dunk') * 1.2 + getVal('close_shot')) / 3.7);
+    } else {
+        // Bigs need standing dunk
+        finishing = Math.round((getVal('layup') + getVal('driving_dunk') + getVal('close_shot') + getVal('standing_dunk')) / 4);
+    }
 
     // 2. Mid Range
     const midRange = getVal('mid_range_shot');
@@ -40,16 +53,16 @@ const mapAttributes = (row: Record<string, string>): PlayerAttributes => {
     const freeThrow = getVal('free_throw');
 
     // 5. Playmaking: Avg of pass_accuracy, pass_vision, pass_iq
-    const playmaking = Math.round((getVal('pass_accuracy') + getVal('pass_vision') + getVal('pass_iq')) / 3);
+    const playmaking = Math.round((getVal('pass_accuracy') * 1.2 + getVal('pass_vision') + getVal('pass_iq')) / 3.2);
 
     // 6. Ball Handling
-    const ballHandling = Math.round((getVal('ball_handle') + getVal('speed_with_ball')) / 2);
+    const ballHandling = Math.round((getVal('ball_handle') * 1.5 + getVal('speed_with_ball')) / 2.5);
 
-    // 7. Basketball IQ: Avg of shot_iq, offensive_consistency, help_defense_iq
+    // 7. Basketball IQ
     const basketballIQ = Math.round((getVal('shot_iq') + getVal('offensive_consistency') + getVal('help_defense_iq')) / 3);
 
     // 8. Interior Defense
-    const interiorDefense = Math.round((getVal('interior_defense') + getVal('post_control')) / 2); // Post control contributes to post D contextually
+    const interiorDefense = Math.round((getVal('interior_defense') * 1.5 + getVal('post_control') * 0.5) / 2);
 
     // 9. Perimeter Defense
     const perimeterDefense = getVal('perimeter_defense');
@@ -66,8 +79,15 @@ const mapAttributes = (row: Record<string, string>): PlayerAttributes => {
     // 13. Defensive Rebound
     const defensiveRebound = getVal('defensive_rebound');
 
-    // 14. Athleticism (Still in model, useful for physics)
-    const athleticism = Math.round((getVal('speed') + getVal('agility') + getVal('vertical') + getVal('strength')) / 4);
+    // 14. Athleticism
+    // Guards: Speed/Agility/Vert > Strength
+    // Bigs: Strength > Speed/Agility
+    let athleticism;
+    if (isSmall) {
+        athleticism = Math.round((getVal('speed') * 1.5 + getVal('agility') * 1.2 + getVal('vertical') + getVal('strength') * 0.3) / 4);
+    } else {
+        athleticism = Math.round((getVal('speed') + getVal('agility') + getVal('vertical') + getVal('strength') * 1.5) / 4.5);
+    }
 
     return {
         finishing,

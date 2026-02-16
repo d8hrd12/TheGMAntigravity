@@ -236,8 +236,16 @@ export function getDraftPickValue(pick: DraftPick, currentYear: number, receivin
             }
         }
     } else {
-        baseValue = 3; // Drastically devalued
-        if (isFuture) baseValue = 1;
+        // Round 2
+        if (pickNumber) {
+            if (pickNumber <= 40) baseValue = 22; // Early 2nd (31-40) - Decent prospect
+            else if (pickNumber <= 50) baseValue = 12; // Mid 2nd (41-50) - Flyer
+            else baseValue = 5; // Late 2nd (51-60) - Stash
+        } else {
+            // Future 2nd
+            baseValue = 12;
+            if (isFuture && pick.year > currentYear + 1) baseValue = 8; // Deep future 2nd
+        }
     }
 
     if (receivingTeam) {
@@ -600,6 +608,10 @@ export function generateTradeOffers(
             const userBundle = { players: [shopPlayer], picks: [] };
             const aiBundle = { players: proposedAiPlayers, picks: proposedAiPicks };
 
+            // STRICTER CHECK FOR OFFER GENERATION
+            // We want the AI to be "sure" when it offers, so we don't get a bait-and-switch.
+            // Normal evaluateTrade checks for ~1.05 ratio. 
+            // We check for 1.10 here to provide a safety buffer against minor context shifts (roster changes during eval).
             const evaluation = evaluateTrade(
                 aiTeam,
                 aiBundle,
@@ -612,7 +624,12 @@ export function generateTradeOffers(
                 salaryCap
             );
 
-            if (evaluation.accepted) {
+            // MANUALLY CHECK RATIO BUFFER
+            const valReceived = getPackageValue(userBundle, aiTeam, contracts, aiRoster.filter(p => !aiBundle.players.includes(p)), currentYear);
+            const valGiven = getPackageValue(aiBundle, aiTeam, contracts, aiRoster.filter(p => !aiBundle.players.includes(p)), currentYear);
+            const ratio = valReceived / (valGiven || 1);
+
+            if (evaluation.accepted && ratio >= 1.10) {
                 offers.push({
                     userPlayerIds: [shopPlayerId],
                     userPickIds: [],

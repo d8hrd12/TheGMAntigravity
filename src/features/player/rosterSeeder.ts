@@ -7,6 +7,40 @@ import { generatePlayer, deriveTendenciesFromAttributes, deriveArchetypeName, PE
 import { generateUUID } from '../../utils/uuid';
 import { calculateOverall, calculateFairSalary } from '../../utils/playerUtils';
 
+// Helper to identify key stats for an archetype/position
+function getKeyAttributes(archetype: string, pos: Position): (keyof PlayerAttributes)[] {
+    const keys: (keyof PlayerAttributes)[] = [];
+
+    // Position Basics
+    if (pos === 'PG' || pos === 'SG') keys.push('ballHandling', 'playmaking', 'perimeterDefense');
+    if (pos === 'C' || pos === 'PF') keys.push('interiorDefense', 'defensiveRebound', 'finishing');
+
+    // Archetype Specifics
+    if (archetype.includes('Playmaker') || archetype.includes('Floor General')) {
+        keys.push('playmaking', 'ballHandling', 'basketballIQ');
+    }
+    if (archetype.includes('Sharpshooter') || archetype.includes('Offensive Threat')) {
+        keys.push('threePointShot', 'midRange', 'freeThrow');
+    }
+    if (archetype.includes('Slasher') || archetype.includes('Athletic')) {
+        keys.push('finishing', 'athleticism');
+    }
+    if (archetype.includes('Lockdown') || archetype.includes('Defender')) {
+        keys.push('perimeterDefense', 'stealing', 'athleticism');
+    }
+    if (archetype.includes('Rim Protector') || archetype.includes('Paint') || archetype.includes('Stopper')) {
+        keys.push('interiorDefense', 'blocking');
+    }
+    if (archetype.includes('Rebounder') || archetype.includes('Glass')) {
+        keys.push('offensiveRebound', 'defensiveRebound');
+    }
+    if (archetype.includes('Scorer') || archetype.includes('Shot Creator')) {
+        keys.push('midRange', 'finishing', 'perimeterDefense'); // Typo fix in list? perimeterDefense
+    }
+
+    return keys;
+}
+
 // Helper to convert OVR target into rough attributes
 function generateAttributesForOvr(targetOvr: number, pos: Position, archetype: string): PlayerAttributes {
     let tier: 'star' | 'starter' | 'bench' = 'bench';
@@ -15,6 +49,7 @@ function generateAttributesForOvr(targetOvr: number, pos: Position, archetype: s
 
     const template = generatePlayer(pos, tier);
     const attrs = { ...template.attributes };
+    const relevantKeys = getKeyAttributes(archetype, pos);
 
     // Tuning loop: Adjust stats up/down until OVR matches target
     let currentOvr = calculateOverall({ ...template, attributes: attrs });
@@ -23,26 +58,45 @@ function generateAttributesForOvr(targetOvr: number, pos: Position, archetype: s
     while (Math.abs(currentOvr - targetOvr) > 1 && attempts < 50) {
         attempts++;
         const diff = targetOvr - currentOvr;
-        const adjustment = diff > 0 ? 1 : -1;
+
+        // Smart Adjustment:
+        // If we need to GAIN OVR (diff > 0):
+        //   - Buff relevant stats heavily (+2)
+        //   - Buff others rarely/lightly (chance of +1)
+        // If we need to LOSE OVR (diff < 0):
+        //   - Protect relevant stats (0 change)
+        //   - Nerf others heavily (-2)
 
         for (const key in attrs) {
             const k = key as keyof PlayerAttributes;
-            let val = attrs[k] + adjustment;
+            const isRelevant = relevantKeys.includes(k);
+            let delta = 0;
+
+            if (diff > 0) {
+                // Boosting
+                if (isRelevant) delta = 2; // Buff strengths!
+                else delta = Math.random() > 0.7 ? 1 : 0; // Buff weaknesses slowly
+            } else {
+                // Nerfing
+                if (isRelevant) delta = 0; // Protect strengths!
+                else delta = -2; // Cut fat elsewhere
+            }
+
+            // Random jitter to prevent locking 
+            if (Math.random() > 0.9) delta += (diff > 0 ? 1 : -1);
+
+            let val = attrs[k] + delta;
             attrs[k] = Math.max(40, Math.min(99, val));
         }
         currentOvr = calculateOverall({ ...template, attributes: attrs });
     }
 
-    // Specific Archetype Tuning
-    if (archetype.includes('Sharpshooter')) {
-        attrs.threePointShot = Math.min(99, Math.max(85, attrs.threePointShot + 5));
-    }
-    if (archetype.includes('Playmaker')) {
-        attrs.playmaking = Math.min(99, Math.max(85, attrs.playmaking + 5));
-    }
-    if (archetype.includes('Rim Protector')) {
-        attrs.blocking = Math.min(99, Math.max(85, attrs.blocking + 5));
-        attrs.interiorDefense = Math.min(99, Math.max(85, attrs.interiorDefense + 5));
+    // Final Polish for "Superstars" to ensure they really shine in their category
+    if (targetOvr >= 90) {
+        relevantKeys.forEach(k => {
+            // Force key stats to at least 85 for stars
+            if (attrs[k] < 85) attrs[k] = Math.min(99, attrs[k] + 5);
+        });
     }
 
     return attrs;
@@ -187,6 +241,7 @@ export function seedRealRosters(teams: Team[]): { players: Player[], contracts: 
                     tendencies: tendencies,
                     morale: 90,
                     fatigue: 0,
+                    stamina: 100,
                     teamId: team.id,
                     isStarter: true, // Assume top 5 are starters
                     minutes: 30,

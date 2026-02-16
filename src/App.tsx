@@ -443,6 +443,10 @@ function AppContent() {
         seasonPhase={seasonPhase}
         onBack={() => { setView('dashboard'); setInitialAiPlayerId(undefined); }}
         onSelectPlayer={(id) => setSelectedPlayerId(id)}
+        onSelectTeam={(teamId) => {
+          setViewTeamId(teamId);
+          setView('stats');
+        }}
         onExecuteTrade={(userP: string[], userPick: string[], aiP: string[], aiPick: string[], aiTeamId: string) => {
           const success = executeTrade(userP, userPick, aiP, aiPick, aiTeamId);
           if (success) {

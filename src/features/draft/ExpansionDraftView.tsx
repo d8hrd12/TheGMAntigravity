@@ -10,7 +10,8 @@ export const ExpansionDraftView: React.FC = () => {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [sortBy, setSortBy] = useState<'overall' | 'age' | 'salary'>('overall');
 
-    const MAX_PICKS = 10;
+    const MAX_PICKS = 14;
+    const MIN_PICKS = 8;
 
     const togglePlayer = (playerId: string) => {
         if (selectedIds.includes(playerId)) {
@@ -25,8 +26,9 @@ export const ExpansionDraftView: React.FC = () => {
     };
 
     const handleFinish = () => {
-        if (selectedIds.length === 0) {
-            if (!confirm("Are you sure you want to finish without drafting any players?")) return;
+        if (selectedIds.length < MIN_PICKS) {
+            alert(`You must select at least ${MIN_PICKS} players to form a valid roster.`);
+            return;
         }
         finishExpansionDraft(selectedIds);
     };
