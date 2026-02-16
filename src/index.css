@@ -66,8 +66,9 @@ body {
   left: 0;
   width: 100vw;
   height: var(--safe-top);
-  background: var(--background);
   z-index: 10000;
+  pointer-events: none;
+  /* Let clicks pass through to content if needed */
 }
 
 .app-container {
@@ -75,9 +76,13 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   width: 100%;
-  padding-top: calc(var(--safe-top) + 39px);
+  padding-top: var(--safe-top);
   padding-bottom: 110px;
   scroll-behavior: smooth;
+}
+
+.app-container.with-ticker {
+  padding-top: calc(var(--safe-top) + 39px);
 }
 
 .responsive-container {

@@ -85,7 +85,7 @@ export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+        <div style={{ minHeight: '100%', paddingBottom: '140px', background: '#2A2A2A' }}>
             <div style={{ padding: '20px 20px 0 20px' }}>
                 <PageHeader
                     title={getTitle()}
@@ -231,7 +231,7 @@ export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
             </div>
 
             {/* Content Area */}
-            <div style={{ flex: 1, overflowY: 'auto' }}>
+            <div style={{ width: '100%' }}>
                 {activeTab === 'new' && (
                     <TradeView
                         userTeam={userTeam}

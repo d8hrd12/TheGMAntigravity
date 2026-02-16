@@ -717,7 +717,7 @@ function AppContent() {
   return (
     <>
       <div className="safe-area-top-bar" />
-      <div className="app-container">
+      <div className={`app-container ${view === 'dashboard' ? 'with-ticker' : ''}`}>
 
         {renderContent()}
         {tradeOffer && (
@@ -763,7 +763,8 @@ function AppContent() {
           justifyContent: 'space-around',
           padding: '12px 0',
           zIndex: 1000,
-
+          border: '1.5px solid var(--primary)', /* Highlight border */
+          boxShadow: '0 4px 15px rgba(0,0,0,0.3), 0 0 10px var(--primary-glow)', /* Premium depth with team glow */
         }}>
           <button onClick={() => { setView('dashboard'); setSelectedPlayerId(null); setInitialAiPlayerId(undefined); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: view === 'dashboard' ? 'var(--primary)' : '#666', gap: '4px' }}>
             <LayoutDashboard size={24} />

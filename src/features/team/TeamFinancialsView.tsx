@@ -58,16 +58,16 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
 
     return (
         <div style={{
-            height: '100%',
+            minHeight: '100%',
             padding: '20px',
-            paddingBottom: '120px',
-            overflowY: 'auto',
+            paddingBottom: '140px',
             color: 'var(--text)',
             maxWidth: '600px',
             margin: '0 auto',
             display: 'flex',
             flexDirection: 'column',
-            gap: '16px'
+            gap: '16px',
+            background: '#2A2A2A' // Standard dashboard background to avoid "gray bottom"
         }}>
             {/* Header */}
             <PageHeader

@@ -64,7 +64,7 @@ export const TeamManagementView: React.FC<TeamManagementViewProps> = ({
     };
 
     return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ minHeight: '100%', paddingBottom: '140px', background: '#2A2A2A' }}>
             <div style={{ padding: '20px 20px 0 20px' }}>
                 <PageHeader
                     title={getTitle()}
@@ -83,7 +83,7 @@ export const TeamManagementView: React.FC<TeamManagementViewProps> = ({
                 </div>
             </div>
 
-            <div style={{ flex: 1, overflowY: 'auto' }}>
+            <div style={{ width: '100%' }}>
                 {activeTab === 'rotation' && (
                     <RotationView
                         players={players}
