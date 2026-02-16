@@ -21,6 +21,7 @@ function createMockPlayer(id: string, name: string, overrides: Partial<Player['a
         loveForTheGame: 50,
         morale: 100,
         fatigue: 0,
+        stamina: 100,
         jerseyNumber: 1,
         teamId: 't1',
         personality: 'Professional' as Personality,

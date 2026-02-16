@@ -188,37 +188,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </DashboardCard>
 
             </main>
-
-            {/* Bottom Floating Nav */}
-            <div style={{ position: 'fixed', bottom: '24px', left: '20px', right: '20px', display: 'flex', justifyContent: 'center', zIndex: 1000 }}>
-                <div style={{
-                    background: 'rgba(20, 20, 20, 0.9)',
-                    backdropFilter: 'blur(20px)',
-                    borderRadius: '24px',
-                    padding: '12px 24px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '24px',
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
-                    border: '1px solid rgba(255,255,255,0.05)'
-                }}>
-                    <NavItem icon={Home} label="Home" active />
-                    <NavItem icon={Users} label="My Team" />
-                    <NavItem icon={Trophy} label="League" />
-                    <NavItem icon={ArrowRightLeft} label="Market" />
-                    <NavItem icon={Smartphone} label="Pulse" />
-                </div>
-            </div>
         </div>
     );
 };
-
-const NavItem = ({ icon: Icon, label, active = false }: any) => (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', opacity: active ? 1 : 0.4 }}>
-        <Icon size={20} color={active ? '#3b82f6' : 'white'} />
-        <span style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase' }}>{label}</span>
-    </div>
-);
-
-// We need to import ArrowRightLeft but it's used in the items
-import { ArrowRightLeft } from 'lucide-react';
