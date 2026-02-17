@@ -51,7 +51,7 @@ function createMockPlayer(id: string, name: string, overrides: Partial<Player['a
             defensiveAggression: 50,
             foulTendency: 50
         },
-        seasonStats: { gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, fouls: 0, offensiveRebounds: 0, defensiveRebounds: 0, fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0, ftMade: 0, ftAttempted: 0, plusMinus: 0, rimMade: 0, rimAttempted: 0, midRangeMade: 0, midRangeAttempted: 0 },
+        seasonStats: { gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, fouls: 0, offensiveRebounds: 0, defensiveRebounds: 0, fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0, ftMade: 0, ftAttempted: 0, plusMinus: 0, rimMade: 0, rimAttempted: 0, rimAssisted: 0, midRangeMade: 0, midRangeAttempted: 0, midRangeAssisted: 0, threePointAssisted: 0 },
     };
 }
 
@@ -106,7 +106,8 @@ for (let i = 0; i < 1000; i++) {
         timeRemaining: 720,
         shotClock: 24,
         quarter: 1,
-        scoreMargin: 0
+        scoreMargin: 0,
+        playerConfidence: {}, playerPressure: {}, gameVariance: 0
     };
 
     const res = simulatePossession(ctx);
@@ -137,7 +138,8 @@ for (let i = 0; i < 1000; i++) {
         timeRemaining: 720,
         shotClock: 24,
         quarter: 1,
-        scoreMargin: 0
+        scoreMargin: 0,
+        playerConfidence: {}, playerPressure: {}, gameVariance: 0
     };
 
     const res = simulatePossession(ctx);
@@ -166,7 +168,8 @@ for (let i = 0; i < 1000; i++) {
         timeRemaining: 720,
         shotClock: 24,
         quarter: 1,
-        scoreMargin: 0
+        scoreMargin: 0,
+        playerConfidence: {}, playerPressure: {}, gameVariance: 0
     };
 
     const res = simulatePossession(ctx);
@@ -196,6 +199,7 @@ for (let i = 0; i < 1000; i++) {
         shotClock: 24,
         quarter: 1,
         scoreMargin: 0,
+        playerConfidence: {}, playerPressure: {}, gameVariance: 0,
         getStats: (id) => mockStats as any // Mocking the stats return
     };
 

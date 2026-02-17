@@ -28,6 +28,12 @@ const FOCUS_WEIGHTS: Record<TrainingFocus, Partial<Record<keyof PlayerAttributes
     [TrainingFocus.FUNDAMENTALS]: {
         basketballIQ: 4, freeThrow: 2, playmaking: 2,
         perimeterDefense: 1
+    },
+    [TrainingFocus.NATURAL]: {
+        finishing: 1, midRange: 1, threePointShot: 1, freeThrow: 1,
+        playmaking: 1, ballHandling: 1, offensiveRebound: 1,
+        interiorDefense: 1, perimeterDefense: 1, stealing: 1, blocking: 1,
+        defensiveRebound: 1, athleticism: 1, basketballIQ: 1
     }
 };
 

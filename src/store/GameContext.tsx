@@ -4218,12 +4218,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 const isUserPlayer = p.teamId === prev.userTeamId;
 
                 if (isUserPlayer) {
-                    // Check if user set a focus. If undefined or NONE, skip training.
+                    // Check if user set a focus. If undefined or NONE, use NATURAL (Natural Progression).
                     const userFocus = prev.trainingSettings[p.id];
                     if (!userFocus || userFocus === TrainingFocus.NONE) {
-                        return p; // No training
+                        focus = TrainingFocus.NATURAL;
+                    } else {
+                        focus = userFocus;
                     }
-                    focus = userFocus;
                 } else {
                     // AI Logic
                     if (p.age < 24) focus = TrainingFocus.PHYSICAL; // Develop body

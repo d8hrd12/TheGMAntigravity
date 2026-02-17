@@ -45,13 +45,30 @@ const StatCell = ({ label, value, changes, isOvr = false }: { label: string, val
         delta = change ? change.delta : 0;
     }
 
+    // Color Logic: If changed, color by change. Else color by tier.
+    let valueClass = '';
+    let valueStyle = {};
+
+    if (delta > 0) {
+        valueClass = 'font-bold';
+        valueStyle = { color: '#2ecc71' }; // Green for progress
+    } else if (delta < 0) {
+        valueClass = 'font-bold';
+        valueStyle = { color: '#e74c3c' }; // Red for regress
+    } else {
+        valueClass = getAttributeColor(value); // Default tier color
+    }
+
+    // For specific report visual, maybe we strictly follow "Red/Green" request?
+    // The OvrCellDisplay does it. Let's replicate.
+
     return (
         <div className="flex items-center justify-center h-full w-full relative">
-            <span className={`text-[0.9rem] ${isOvr ? (value >= 90 ? 'text-[#2ecc71] font-bold' : 'text-[var(--text)] font-bold') : getAttributeColor(value)}`}>
+            <span className={`text-[0.9rem] ${valueClass}`} style={valueStyle}>
                 {value}
             </span>
             {delta !== 0 && (
-                <sup className={`ml-0.5 text-[10px] font-bold ${delta > 0 ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>
+                <sup className={`ml-0.5 text-[10px] font-bold`} style={{ color: delta > 0 ? '#2ecc71' : '#e74c3c' }}>
                     {delta > 0 ? '+' : ''}{delta}
                 </sup>
             )}
@@ -83,7 +100,6 @@ const OvrCellDisplay = ({ value, delta }: { value: number, delta: number }) => {
         </div>
     );
 };
-
 
 export const TrainingReportView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const { trainingReport, teams, players, userTeamId, date } = useGame();
@@ -119,7 +135,7 @@ export const TrainingReportView: React.FC<{ onBack: () => void }> = ({ onBack })
 
     const avgChange = (trainingReport.reduce((acc: number, r: any) => acc + (r.overallChange || 0), 0) / trainingReport.length).toFixed(1);
 
-    const FOCUS_OPTIONS = ['All', 'Balanced', 'Shooting', 'Playmaking', 'Defense', 'Physical'];
+    const FOCUS_OPTIONS = ['All', 'Balanced', 'Natural', 'Shooting', 'Playmaking', 'Defense', 'Physical'];
 
     return (
         <div style={{ padding: '20px', minHeight: '100vh', paddingBottom: '80px', background: 'var(--background)' }}>

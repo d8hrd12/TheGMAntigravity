@@ -98,15 +98,17 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
                                 <div
                                     key={result.pick}
                                     style={{
-                                        display: 'flex',
+                                        display: 'grid',
+                                        gridTemplateColumns: '50px 1.4fr 1.6fr 24px', // Fixed Grid Layout
                                         alignItems: 'center',
                                         background: isUserPick ? 'linear-gradient(90deg, rgba(var(--primary-rgb), 0.15), rgba(var(--primary-rgb), 0.05))' : '#fff',
                                         borderRadius: '16px',
-                                        padding: '10px 16px',
+                                        padding: '10px 12px', // Reduced side padding slightly
                                         border: isUserPick ? '1px solid var(--primary)' : '1px solid #f0f0f0',
                                         boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
                                         transition: 'transform 0.2s',
-                                        animation: 'fadeIn 0.3s ease-out'
+                                        animation: 'fadeIn 0.3s ease-out',
+                                        gap: '0' // Gap handled by padding/borders
                                     }}
                                 >
                                     {/* Pick Number Badge */}
@@ -115,8 +117,7 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
                                         flexDirection: 'column',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        width: '40px',
-                                        marginRight: '12px'
+                                        width: '100%', // Fill grid cell
                                     }}>
                                         <span style={{
                                             fontSize: '1.1rem',
@@ -136,13 +137,14 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
                                     <div
                                         onClick={() => onSelectTeam(result.teamId)}
                                         style={{
-                                            flex: 1.5,
                                             display: 'flex',
                                             alignItems: 'center',
-                                            gap: '12px',
+                                            gap: '10px',
                                             cursor: 'pointer',
-                                            paddingRight: '10px',
-                                            borderRight: '1px solid #f0f0f0'
+                                            padding: '0 10px',
+                                            borderRight: '1px solid #eee', // Always in same place due to Grid
+                                            height: '100%', // Full height for border
+                                            overflow: 'hidden' // Contain text
                                         }}
                                     >
                                         {team && team.logo ? (
@@ -150,18 +152,20 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
                                                 src={team.logo}
                                                 alt={team.abbreviation}
                                                 style={{
-                                                    width: '40px',
-                                                    height: '40px',
+                                                    width: '36px',
+                                                    height: '36px',
                                                     objectFit: 'contain',
+                                                    flexShrink: 0, // Prevent squash
                                                     filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.1))'
                                                 }}
                                             />
                                         ) : (
                                             <div style={{
-                                                width: '40px',
-                                                height: '40px',
+                                                width: '36px',
+                                                height: '36px',
                                                 background: '#eee',
                                                 borderRadius: '50%',
+                                                flexShrink: 0,
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
@@ -173,11 +177,28 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
                                             </div>
                                         )}
 
-                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#111', lineHeight: '1.1' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', overflow: 'hidden' }}>
+                                            <div style={{
+                                                fontWeight: 800,
+                                                fontSize: '0.9rem',
+                                                color: '#111',
+                                                lineHeight: '1.2',
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                width: '100%'
+                                            }}>
                                                 {team ? team.city : 'Unknown'}
                                             </div>
-                                            <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: 500 }}>
+                                            <div style={{
+                                                fontSize: '0.8rem',
+                                                color: '#666',
+                                                fontWeight: 500,
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                width: '100%'
+                                            }}>
                                                 {team ? team.name : 'Team'}
                                             </div>
                                         </div>
@@ -187,38 +208,48 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
                                     <div
                                         onClick={() => onSelectPlayer(result.playerId)}
                                         style={{
-                                            flex: 2,
                                             display: 'flex',
                                             alignItems: 'center',
-                                            gap: '12px',
+                                            gap: '10px',
                                             cursor: 'pointer',
-                                            paddingLeft: '16px',
-                                            // borderLeft: '1px solid #eee' // Removed as it's redundant with the team block border
+                                            paddingLeft: '14px',
+                                            overflow: 'hidden'
                                         }}
                                     >
 
-                                        <div>
+                                        <div style={{ overflow: 'hidden', width: '100%' }}>
                                             <div style={{
                                                 fontWeight: 700,
-                                                fontSize: '1rem',
-                                                color: '#111', // Force dark text for readability
-                                                letterSpacing: '-0.3px'
+                                                fontSize: '0.95rem',
+                                                color: '#111',
+                                                letterSpacing: '-0.3px',
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis'
                                             }}>
                                                 {result.playerName}
                                             </div>
-                                            <div style={{ display: 'flex', gap: '8px', fontSize: '0.75rem', color: '#555', marginTop: '2px', fontWeight: 500 }}>
+                                            <div style={{ display: 'flex', gap: '6px', fontSize: '0.75rem', color: '#555', marginTop: '2px', fontWeight: 500, alignItems: 'center' }}>
                                                 {player && (
                                                     <>
                                                         <span style={{
                                                             background: '#e0e0e5',
-                                                            padding: '1px 6px',
+                                                            padding: '1px 5px',
                                                             borderRadius: '4px',
                                                             color: '#222',
-                                                            fontWeight: 700
+                                                            fontWeight: 700,
+                                                            fontSize: '0.7rem',
+                                                            flexShrink: 0
                                                         }}>
                                                             {player.position}
                                                         </span>
-                                                        <span style={{ fontFeatureSettings: '"tnum" on', color: '#666' }}>
+                                                        <span style={{
+                                                            fontFeatureSettings: '"tnum" on',
+                                                            color: '#666',
+                                                            whiteSpace: 'nowrap',
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis'
+                                                        }}>
                                                             {(player.height / 100).toFixed(2)}m • {player.weight}kg • {player.age}yo
                                                         </span>
                                                     </>
@@ -228,7 +259,7 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
                                     </div>
 
                                     {/* Action Arrow */}
-                                    <div style={{ color: '#ccc', paddingLeft: '10px' }}>
+                                    <div style={{ color: '#ccc', display: 'flex', justifyContent: 'flex-end' }}>
                                         <ArrowRight size={14} />
                                     </div>
                                 </div>

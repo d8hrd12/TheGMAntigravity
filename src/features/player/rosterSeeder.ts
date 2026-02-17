@@ -246,11 +246,13 @@ export function seedRealRosters(teams: Team[]): { players: Player[], contracts: 
                     isStarter: true, // Assume top 5 are starters
                     minutes: 30,
                     seasonStats: {
-                        gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0,
-                        turnovers: 0, offensiveRebounds: 0, defensiveRebounds: 0, fouls: 0,
-                        fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0, ftMade: 0, ftAttempted: 0,
-                        plusMinus: 0,
-                        rimMade: 0, rimAttempted: 0, midRangeMade: 0, midRangeAttempted: 0
+                        gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0,
+                        steals: 0, blocks: 0, turnovers: 0, offensiveRebounds: 0, defensiveRebounds: 0,
+                        fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0,
+                        ftMade: 0, ftAttempted: 0, fouls: 0, plusMinus: 0,
+                        rimMade: 0, rimAttempted: 0, rimAssisted: 0,
+                        midRangeMade: 0, midRangeAttempted: 0, midRangeAssisted: 0,
+                        threePointAssisted: 0
                     },
                     careerStats: [],
                     potential: Math.min(99, def.ovr + (30 - def.age > 0 ? (30 - def.age) * 2 : 0)), // Simple potential logic

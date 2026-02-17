@@ -6,21 +6,45 @@ import { getRandomArchetype } from './archetypes';
 import { calculateOverall, calculateSecondaryPosition } from '../../utils/playerUtils';
 
 const FIRST_NAMES = [
+    // Common
     'James', 'John', 'Robert', 'Michael', 'William', 'David', 'Richard', 'Joseph', 'Thomas', 'Charles',
     'Christopher', 'Daniel', 'Matthew', 'Anthony', 'Mark', 'Donald', 'Steven', 'Paul', 'Andrew', 'Joshua',
     'Kenneth', 'Kevin', 'Brian', 'George', 'Timothy', 'Ronald', 'Edward', 'Jason', 'Jeffrey', 'Ryan',
     'Jacob', 'Gary', 'Nicholas', 'Eric', 'Jonathan', 'Stephen', 'Larry', 'Justin', 'Scott', 'Brandon',
     'Benjamin', 'Samuel', 'Gregory', 'Alexander', 'Frank', 'Patrick', 'Raymond', 'Jack', 'Dennis', 'Jerry',
     'Tyler', 'Aaron', 'Jose', 'Adam', 'Nathan', 'Henry', 'Douglas', 'Zachary', 'Peter', 'Kyle',
+    // Modern / User Requested
+    'Liam', 'Noah', 'Oliver', 'Elijah', 'Lucas', 'Theodore', 'Levi', 'Jackson', 'Mateo', 'Mason',
+    'Sebastian', 'Ethan', 'Logan', 'Owen', 'Asher', 'Aiden', 'Wyatt', 'Leo', 'Luke', 'Julian',
+    'Hudson', 'Grayson', 'Ezra', 'Gabriel', 'Carter', 'Isaac', 'Jayden', 'Luca', 'Dylan', 'Lincoln',
+    'Maverick', 'Elias', 'Josiah', 'Caleb', 'Ezekiel', 'Miles', 'Jaxon', 'Isaiah', 'Nolan', 'Adrian',
+    'Cameron', 'Santiago', 'Eli', 'Angel', 'Cooper', 'Waylon', 'Easton', 'Kai', 'Christian', 'Landon',
+    'Colton', 'Roman', 'Axel', 'Brooks', 'Jameson', 'Ian', 'Everett', 'Greyson', 'Wesley', 'Jeremiah',
+    'Hunter', 'Leonardo', 'Jordan', 'Bennett', 'Silas', 'Beau', 'Micah', 'Connor', 'Austin', 'Dominic',
+    // International Stars
     'Luka', 'Nikola', 'Giannis', 'Joel', 'Shai', 'Domantas', 'Victor', 'Alperen', 'Franz'
 ];
+
 const LAST_NAMES = [
+    // Common
     'Smith', 'Johnson', 'Williams', 'Jones', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor',
     'Anderson', 'Thomas', 'Jackson', 'White', 'Harris', 'Martin', 'Thompson', 'Garcia', 'Martinez', 'Robinson',
     'Clark', 'Rodriguez', 'Lewis', 'Lee', 'Walker', 'Hall', 'Allen', 'Young', 'Hernandez', 'King',
     'Wright', 'Lopez', 'Hill', 'Scott', 'Green', 'Adams', 'Baker', 'Gonzalez', 'Nelson', 'Carter',
     'Mitchell', 'Perez', 'Roberts', 'Turner', 'Phillips', 'Campbell', 'Parker', 'Evans', 'Edwards', 'Collins',
     'Stewart', 'Sanchez', 'Morris', 'Rogers', 'Reed', 'Cook', 'Morgan', 'Bell', 'Murphy', 'Bailey',
+    // User Requested Expansion
+    'Rivera', 'Gomez', 'Diaz', 'Cruz', 'Reyes', 'Morales', 'Gutierrez', 'Ortiz', 'Cooper', 'Peterson',
+    'Kelly', 'Howard', 'Ramos', 'Kim', 'Cox', 'Ward', 'Richardson', 'Watson', 'Brooks', 'Chavez',
+    'Wood', 'James', 'Bennett', 'Gray', 'Mendoza', 'Ruiz', 'Hughes', 'Price', 'Alvarez', 'Castillo',
+    'Sanders', 'Patel', 'Myers', 'Long', 'Ross', 'Foster', 'Jimenez', 'Powell', 'Jenkins', 'Perry',
+    'Russell', 'Sullivan', 'Wallace', 'Woods', 'Cole', 'West', 'Jordan', 'Owens', 'Reynolds', 'Fisher',
+    'Ellis', 'Harrison', 'Gibson', 'McDonald', 'Cruz', 'Marshall', 'Ortiz', 'Gomez', 'Murray', 'Freeman',
+    'Wells', 'Webb', 'Simpson', 'Stevens', 'Tucker', 'Porter', 'Hunter', 'Hicks', 'Crawford', 'Henry',
+    'Boyd', 'Mason', 'Morales', 'Kennedy', 'Warren', 'Dixon', 'Ramos', 'Reyes', 'Burns', 'Gordon',
+    'Shaw', 'Holmes', 'Rice', 'Robertson', 'Hunt', 'Black', 'Daniels', 'Palmer', 'Mills', 'Nichols',
+    'Grant', 'Knight', 'Ferguson', 'Rose', 'Stone', 'Hawkins', 'Dunn', 'Perkins', 'Hudson', 'Spencer',
+    // Unique Stars
     'Doncic', 'Jokic', 'Antetokounmpo', 'Embiid', 'Gilgeous-Alexander', 'Sabonis', 'Wembanyama', 'Sengun', 'Wagner'
 ];
 
@@ -214,10 +238,14 @@ export function generatePlayer(forcedPosition?: Position, forcedTier?: 'star' | 
         stamina: 100,
         teamId: null,
         seasonStats: {
-            gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0,
-            turnovers: 0, fouls: 0, offensiveRebounds: 0, defensiveRebounds: 0,
-            fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0, ftMade: 0, ftAttempted: 0, plusMinus: 0,
-            rimMade: 0, rimAttempted: 0, midRangeMade: 0, midRangeAttempted: 0
+            gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0,
+            steals: 0, blocks: 0, turnovers: 0, fouls: 0,
+            offensiveRebounds: 0, defensiveRebounds: 0,
+            fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0,
+            ftMade: 0, ftAttempted: 0, plusMinus: 0,
+            rimMade: 0, rimAttempted: 0, rimAssisted: 0,
+            midRangeMade: 0, midRangeAttempted: 0, midRangeAssisted: 0,
+            threePointAssisted: 0
         },
         careerStats: [],
         minutes: 0,

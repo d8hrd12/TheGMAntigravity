@@ -5,6 +5,7 @@ import { calculateOverall } from '../../utils/playerUtils';
 import { BackButton } from '../ui/BackButton';
 import { PageHeader } from '../ui/PageHeader';
 import { TrainingResultsModal } from './TrainingResultsModal';
+import { TrainingReportView } from './TrainingReportView';
 
 export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: string) => void }> = ({ onBack, onSelectPlayer }) => {
     const { players, userTeamId, trainingSettings, updateTrainingFocus, teams, runTrainingCamp, trainingReport, isTrainingCampComplete, startRegularSeason } = useGame();
@@ -293,13 +294,12 @@ export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: 
                 )
             }
 
-            {/* Training Results Modal */}
+            {/* Training Results (Full Page Overlay) */}
             {
                 showResults && trainingReport && (
-                    <TrainingResultsModal
-                        results={trainingReport.filter(r => players.find(p => p.id === r.playerId)?.teamId === userTeamId)}
-                        onClose={() => setShowResults(false)}
-                    />
+                    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 2000, background: 'var(--background)' }}>
+                        <TrainingReportView onBack={() => setShowResults(false)} />
+                    </div>
                 )
             }
         </div >

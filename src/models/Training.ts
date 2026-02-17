@@ -5,7 +5,8 @@ export const TrainingFocus = {
     DEFENSE: 'Defense',
     PHYSICAL: 'Physical',
     FUNDAMENTALS: 'Fundamentals', // Good for very young players or pure regression control
-    NONE: 'None'
+    NONE: 'None',
+    NATURAL: 'Natural'
 } as const;
 
 export type TrainingFocus = typeof TrainingFocus[keyof typeof TrainingFocus];
