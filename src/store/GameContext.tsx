@@ -144,9 +144,9 @@ export interface GameState {
 
 // --- New Trade Interface for Interactivity ---
 export interface TradeAssetItem {
-    type: 'player' | 'pick';
-    id: string;
-    description: string; // "LeBron James" or "2025 Round 1"
+    type: 'player' | 'pick' | 'cash';
+    id: string; // PlayerId, PickId, or some unique id for cash
+    description: string; // "LeBron James", "2025 Round 1", or "$15M Cash"
     subText?: string;
     color?: string;
     originalTeamId?: string; // For picks
@@ -213,7 +213,7 @@ interface GameContextType extends GameState {
     acceptTradeOffer: () => void;
     rejectTradeOffer: () => void;
     liveGameData: { home: Team, away: Team, date: Date } | null;
-    startLiveGameFn: (gameId: string) => void;
+    startLiveGameFn: (startTimeOrMatchup?: string | { home: Team, away: Team }) => void;
     endLiveGameFn: (result: MatchResult) => void;
     startMerchCampaign: (campaign: MerchCampaign) => void;
 
@@ -231,6 +231,8 @@ interface GameContextType extends GameState {
     setHasSeenNewsTutorial: () => void;
     placeOffer: (playerId: string, amount: number, years: number) => void;
     advanceFreeAgencyDay: () => void;
+    sellPlayer: (playerId: string) => void;
+    sellPlayerToTeam: (playerId: string, targetTeamId: string) => { success: boolean, message: string };
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -339,7 +341,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const isSimulating = simTarget !== 'none';
     const stopSimulation = () => setSimTarget('none');
 
-    const startLiveGame = (gameId: string) => {
+    const startLiveGame = (arg?: string | { home: Team, away: Team }) => {
+        // Option A: Direct Matchup passed (e.g. from Playoffs)
+        if (typeof arg === 'object' && arg.home && arg.away) {
+            setLiveGame({
+                home: arg.home,
+                away: arg.away,
+                date: gameState.date
+            });
+            return;
+        }
+
+        // Option B: Regular Season Daily Matchup
         const userMatchup = gameState.dailyMatchups.find(m => m.homeId === gameState.userTeamId || m.awayId === gameState.userTeamId);
         if (!userMatchup) return;
 
@@ -1429,6 +1442,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 p.attributes // Ensure attributes exist
             );
 
+            console.log(`[Awards] Calculation for ${year}. Total Players: ${players.length}, Active (w/ stats): ${activePlayers.length}`);
+            if (activePlayers.length > 0) {
+                console.log(`[Awards] Sample Player Stats:`, activePlayers[0].seasonStats);
+            } else {
+                console.warn(`[Awards] NO ACTIVE PLAYERS FOUND! Dumping first player season stats:`, players[0]?.seasonStats);
+            }
+
             // FALLBACK: If no games record (e.g. bug fix applied mid-season or corrupted stats),
             // use ALL players to ensure awards are generated and game can proceed.
             if (activePlayers.length === 0) {
@@ -1846,23 +1866,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     const teamSuccess = team.wins / (Math.max(1, team.wins + team.losses));
                     const happiness = player.morale || 80;
 
-                    let wantsOut = false;
-                    if (happiness < 60 || teamSuccess < 0.4) {
-                        wantsOut = true;
-                    }
+                    let intent: 'RE-SIGN' | 'TEST_MARKET' | 'WANT_OUT' | 'DEMAND_EXIT' = 'RE-SIGN';
+                    if (happiness < 40) intent = 'DEMAND_EXIT';
+                    else if (happiness < 60 || teamSuccess < 0.4) intent = 'WANT_OUT';
+                    else if (isStar) intent = 'TEST_MARKET';
 
                     let shouldSign = false;
 
-                    if (wantsOut) {
-                        // If they want out, they usually refuse (e.g., 75% chance to refuse)
-                        // But Stars (ovr > 88) are harder to lose if morale isn't ABSOLUTELY terrible
-                        const refuseChance = (happiness < 40) ? 0.9 : 0.7;
-                        if (Math.random() > refuseChance) {
-                            shouldSign = true; // Rare case where they stay despite wanting out
-                        }
+                    if (intent === 'DEMAND_EXIT') {
+                        // 98% chance to refuse
+                        if (Math.random() > 0.98) shouldSign = true;
+                    } else if (intent === 'WANT_OUT') {
+                        // 85% chance to refuse
+                        if (Math.random() > 0.85) shouldSign = true;
+                    } else if (intent === 'TEST_MARKET') {
+                        // Stars hit market 50% of the time if not unhappy
+                        if (Math.random() > 0.50) shouldSign = true;
                     } else {
-                        // Standard Decision Logic
-                        // Always re-sign Stars if Cash permits
+                        // Standard Decision Logic (Role players / Happy starters)
                         if (isStar || (isStarter && team.rosterIds.length < 15)) {
                             shouldSign = true;
                         }
@@ -2087,6 +2108,137 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 teams: updatedTeams
             };
         });
+    };
+
+    const sellPlayer = (playerId: string) => {
+        setGameState(prev => {
+            const player = prev.players.find(p => p.id === playerId);
+            if (!player || !player.teamId) return prev;
+
+            const contract = prev.contracts.find(c => c.playerId === playerId);
+            if (!contract) return prev;
+
+            const teamId = player.teamId;
+            const cashFromSale = contract.amount;
+
+            // 1. Update Player to Free Agent
+            const updatedPlayers = prev.players.map(p =>
+                p.id === playerId ? { ...p, teamId: null, minutes: 0, isStarter: false, rotationIndex: undefined } : p
+            );
+
+            // 2. Remove Contract
+            const updatedContracts = prev.contracts.filter(c => c.playerId !== playerId);
+
+            // 3. Update Team (Add Cash + Remove Roster Entry)
+            const updatedTeams = prev.teams.map(t => {
+                if (t.id === teamId) {
+                    return {
+                        ...t,
+                        cash: t.cash + cashFromSale,
+                        rosterIds: (t.rosterIds || []).filter(id => id !== playerId)
+                    };
+                }
+                return t;
+            });
+
+            console.log(`[Liquidation] Sold ${player.firstName} ${player.lastName} for ${cashFromSale.toLocaleString()} cash.`);
+
+            return {
+                ...prev,
+                players: updatedPlayers,
+                contracts: updatedContracts,
+                teams: updatedTeams
+            };
+        });
+    };
+
+    const sellPlayerToTeam = (playerId: string, targetTeamId: string): { success: boolean, message: string } => {
+        let result = { success: false, message: 'Unknown error' };
+
+        setGameState(prev => {
+            const player = prev.players.find(p => p.id === playerId);
+            if (!player || !player.teamId) {
+                result = { success: false, message: 'Player not found or not on a team.' };
+                return prev;
+            }
+
+            const sellerTeam = prev.teams.find(t => t.id === player.teamId);
+            const buyerTeam = prev.teams.find(t => t.id === targetTeamId);
+            const contract = prev.contracts.find(c => c.playerId === playerId);
+
+            if (!sellerTeam || !buyerTeam || !contract) {
+                result = { success: false, message: 'Transaction data missing.' };
+                return prev;
+            }
+
+            const price = contract.amount;
+
+            // Check Buyer Financials
+            if (buyerTeam.cash < price) {
+                result = { success: false, message: `${buyerTeam.city} doesn't have enough cash to buy this player.` };
+                return prev;
+            }
+
+            const buyerPayroll = prev.contracts.filter(c => c.teamId === targetTeamId).reduce((sum, c) => sum + c.amount, 0);
+            if (buyerPayroll + price > prev.salaryCap) {
+                result = { success: false, message: `${buyerTeam.city} doesn't have enough Salary Cap space.` };
+                return prev;
+            }
+
+            // 1. Update Player (Move to new team)
+            const updatedPlayers = prev.players.map(p =>
+                p.id === playerId ? { ...p, teamId: targetTeamId, minutes: 0, isStarter: false, rotationIndex: undefined } : p
+            );
+
+            // 2. Update Contract (Assign to new team)
+            const updatedContracts = prev.contracts.map(c =>
+                c.playerId === playerId ? { ...c, teamId: targetTeamId } : c
+            );
+
+            // 3. Update Teams (Transfer Cash)
+            const updatedTeams = prev.teams.map(t => {
+                if (t.id === sellerTeam.id) {
+                    return {
+                        ...t,
+                        cash: t.cash + price,
+                        rosterIds: (t.rosterIds || []).filter(id => id !== playerId)
+                    };
+                }
+                if (t.id === buyerTeam.id) {
+                    return {
+                        ...t,
+                        cash: t.cash - price,
+                        rosterIds: [...(t.rosterIds || []), playerId]
+                    };
+                }
+                return t;
+            });
+
+            // 4. Record Trade History
+            const newTrade: CompletedTrade = {
+                id: Math.random().toString(36).substr(2, 9),
+                date: new Date(prev.date),
+                team1Id: sellerTeam.id,
+                team2Id: buyerTeam.id,
+                team1Assets: [player.id],
+                team2Assets: [`cash_${price}`],
+                team1Items: [{ type: 'player', id: player.id, description: `${player.firstName} ${player.lastName}` }],
+                team2Items: [{ type: 'cash', id: `cash_${price}`, description: `$${(price / 1e6).toFixed(1)}M Cash` }]
+            };
+
+            console.log(`[Liquidation] Sold ${player.firstName} ${player.lastName} to ${buyerTeam.abbreviation} for $${(price / 1e6).toFixed(1)}M.`);
+            result = { success: true, message: `Successfully sold ${player.firstName} ${player.lastName} to ${buyerTeam.city} for $${(price / 1e6).toFixed(1)}M.` };
+
+            return {
+                ...prev,
+                players: updatedPlayers,
+                contracts: updatedContracts,
+                teams: updatedTeams,
+                tradeHistory: [newTrade, ...(prev.tradeHistory || [])]
+            };
+        });
+
+        return result;
     };
 
     const buildRotation = (roster: Player[]): RotationViewData => {
@@ -2412,7 +2564,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             }
 
             // 3. DAILY CONTRACT/MORALE CHECKS (Prove-It Deals)
-            const finalUpdatedPlayers = activePlayers.map(p => { // Use activePlayers here
+            const finalUpdatedPlayers = dayPlayers.map(p => { // Use dayPlayers here to preserve ALL players (including injured)
                 const { player: checkedPlayer, news } = checkProveItDemands(p, nextDate);
                 if (news) {
                     generatedNews.push({
@@ -2519,7 +2671,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 dailyMatchups: nextDayMatchups,
                 pendingUserResult: null,
                 socialMediaPosts: updatedSocialPosts,
-                seasonGamesPlayed: prev.seasonPhase === 'regular_season' ? (prev.seasonGamesPlayed ?? 0) + 1 : (prev.seasonGamesPlayed ?? 0)
+                seasonGamesPlayed: prev.seasonPhase === 'regular_season' && results.length > 0
+                    ? (prev.seasonGamesPlayed ?? 0) + 1
+                    : (prev.seasonGamesPlayed ?? 0)
             };
         }
         else if (prev.seasonPhase.startsWith('playoffs')) {
@@ -2734,6 +2888,43 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     });
 
 
+                    // --- NEW FINANCIAL FIX: AI Emergency Cuts & Amnesty ---
+                    // AI teams in deep debt (-$50M+) will waive their worst-value contracts.
+                    let aiUpdatedPlayers = [...archivedPlayers];
+                    let aiUpdatedContracts = [...prev.contracts];
+                    const aiTeamsInDebt = mapTeamsForSimulation(prev.teams).filter(t => t.id !== prev.userTeamId && t.cash < -50000000);
+
+                    aiTeamsInDebt.forEach(team => {
+                        const teamRoster = aiUpdatedPlayers.filter(p => p.teamId === team.id);
+                        const teamContracts = aiUpdatedContracts.filter(c => c.teamId === team.id);
+
+                        // Find "Bad Value" players: (Salary > 10% of Cap) AND (OVR < 80)
+                        const candidates = teamRoster
+                            .filter(p => {
+                                const c = teamContracts.find(con => con.playerId === p.id);
+                                return c && c.amount > prev.salaryCap * 0.10 && p.overall < 80;
+                            })
+                            .sort((a, b) => {
+                                // Sort by "Value Gap": Salary/OVR ratio
+                                const aSalary = teamContracts.find(c => c.playerId === a.id)?.amount || 0;
+                                const bSalary = teamContracts.find(c => c.playerId === b.id)?.amount || 0;
+                                return (bSalary / b.overall) - (aSalary / a.overall);
+                            });
+
+                        if (candidates.length > 0) {
+                            const toCut = candidates[0];
+                            console.log(`[Financials] ${team.abbreviation} performs Emergency Cut on ${toCut.firstName} ${toCut.lastName} to save salary.`);
+
+                            // 1. Update Player
+                            aiUpdatedPlayers = aiUpdatedPlayers.map(p =>
+                                p.id === toCut.id ? { ...p, teamId: null, minutes: 0, isStarter: false } : p
+                            );
+
+                            // 2. Remove Contract (Amnesty style)
+                            aiUpdatedContracts = aiUpdatedContracts.filter(c => c.playerId !== toCut.id);
+                        }
+                    });
+
                     // archivedPlayers = runProgression(archivedPlayers); // Disabled for MSSI
                     const newSalaryCap = prev.salaryCap;
 
@@ -2745,7 +2936,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     const teamReportsMap: Record<string, any> = {};
 
                     mapTeamsForSimulation(prev.teams).forEach(t => {
-                        const teamContracts = prev.contracts.filter(c => c.teamId === t.id);
+                        const teamContracts = aiUpdatedContracts.filter(c => c.teamId === t.id);
                         teamReportsMap[t.id] = calculateAnnualFinancials(
                             t,
                             teamContracts,
@@ -2787,8 +2978,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         }
 
                         // 2. Evaluate Performance (Fan Interest / Owner Patience)
-                        const roster = prev.players.filter(p => p.teamId === t.id);
-                        const teamContracts = prev.contracts.filter(c => c.teamId === t.id);
+                        const roster = aiUpdatedPlayers.filter(p => p.teamId === t.id);
+                        const teamContracts = aiUpdatedContracts.filter(c => c.teamId === t.id);
                         const expectation = calculateExpectation(t, roster, prev.teams, teamContracts);
 
                         // We use the old evaluator primarily for Fan Interest/Patience updates
@@ -2821,19 +3012,33 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             console.log(`[Financials] ${t.city} Hit with Repeater Tax! Consecutive Years: ${nextConsecutiveTaxYears}`);
                         }
 
+                        // --- NEW FINANCIAL FIX: Pick for Cash Bailout ---
+                        // If a team is in extreme debt (-$100M+), they automatically "sell" their highest 1st round pick to the "League Office" (voided) for $15M.
+                        let bailoutBonus = 0;
+                        let updatedPicks = t.draftPicks || [];
+                        if (newCash < -100000000) {
+                            const firstRounderIdx = updatedPicks.findIndex(p => p.round === 1 && p.year === prev.date.getFullYear() + 1);
+                            if (firstRounderIdx > -1) {
+                                console.log(`[Bailout] ${t.city} sold their 1st round pick for $15M relief.`);
+                                updatedPicks = updatedPicks.filter((_, idx) => idx !== firstRounderIdx);
+                                bailoutBonus = 15000000;
+                            }
+                        }
+
                         return {
                             ...t,
                             consecutiveTaxYears: nextConsecutiveTaxYears,
-                            cash: newCash,
+                            cash: newCash + bailoutBonus,
+                            draftPicks: updatedPicks,
                             // Update Fans/Owner based on success, not just financials
                             fanInterest: performanceUpdate.newFanInterest,
                             ownerPatience: performanceUpdate.newOwnerPatience,
-                            debt: (newCash < 0) ? Math.abs(newCash) : 0,
+                            debt: (newCash + bailoutBonus < 0) ? Math.abs(newCash + bailoutBonus) : 0,
                             // Note: Debt handling is simple here - if negative cash, it becomes debt.
                             // Ideally we might zero out cash if negative, but 'cash' field can be negative to represent debt or use separate field.
                             // Let's stick to: Cash can be negative, Debt display handles formatting.
 
-                            salaryCapSpace: calculateTeamCapSpace(t, prev.contracts, finalSalaryCap),
+                            salaryCapSpace: calculateTeamCapSpace(t, aiUpdatedContracts, finalSalaryCap),
                             financials: {
                                 totalIncome: 0,
                                 totalExpenses: 0,
@@ -2843,8 +3048,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                                     ...(t.financials?.seasonHistory || []),
                                     {
                                         year: finishedSeasonYear,
-                                        profit: cashChange,
-                                        revenue: report.totalRevenue + redistributionReceived,
+                                        profit: cashChange + bailoutBonus,
+                                        revenue: report.totalRevenue + redistributionReceived + bailoutBonus,
                                         payroll: report.payroll,
                                         luxuryTax: report.luxuryTaxPaid
                                     }
@@ -2855,7 +3060,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
                     return {
                         ...prev,
-                        players: archivedPlayers,
+                        players: aiUpdatedPlayers,
+                        contracts: aiUpdatedContracts,
                         games: [...prev.games, ...newGames], // Correctly append games instead of overwriting
                         playoffs: updatedPlayoffs,
                         seasonPhase: 'offseason',
@@ -4026,7 +4232,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
             startPlayoffs,
             simulatePlayoffs,
             placeOffer,
-            advanceFreeAgencyDay
+            advanceFreeAgencyDay,
+            sellPlayer,
+            sellPlayerToTeam
         }}>
             {children}
         </GameContext.Provider>

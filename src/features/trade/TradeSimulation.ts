@@ -100,12 +100,24 @@ export const simulateDailyTrades = (
         const proposerRoster = players.filter(p => p.teamId === proposer.id);
         const proposerPicks = proposer.draftPicks || [];
         const rebuilding = isRebuilding(proposer);
+        const inDebt = (proposer.cash || 0) < 0;
 
         // B. Identify Assets
         let tradingBlock: Player[] = [];
         let tradingPicks: DraftPick[] = [];
 
-        if (rebuilding) {
+        if (inDebt) {
+            // DEBT FIX: Teams in debt prioritize dumping salary
+            // Even if they are contending, they must shed expensive players (> 15% of Cap)
+            tradingBlock = proposerRoster.filter(p => {
+                const contract = contracts.find(c => c.playerId === p.id);
+                return contract && contract.amount > salaryCap * 0.15;
+            });
+            // If they are in deep debt (-100M+), they even trade draft picks to dump salary
+            if (proposer.cash < -100000000) {
+                tradingPicks = proposerPicks.slice(0, 1);
+            }
+        } else if (rebuilding) {
             // Rebuilders sell OLD (>28), Good (>75) players
             tradingBlock = proposerRoster.filter(p => p.age > 28 && calculateOverall(p) > 75);
         } else {
@@ -165,6 +177,16 @@ export const simulateDailyTrades = (
         const targetRoster = players.filter(p => p.teamId === targetTeam.id);
         const targetPicks = targetTeam.draftPicks || [];
         const targetRebuilding = isRebuilding(targetTeam);
+        const targetInDebt = (targetTeam.cash || 0) < 0;
+
+        // E. REJECTION: If target is in debt, they won't ADD salary unless it's a steal
+        if (targetInDebt) {
+            const proposerSalary = assetsToTrade.players.reduce((sum, p) => sum + (contracts.find(c => c.playerId === p.id)?.amount || 0), 0);
+            if (proposerSalary > salaryCap * 0.1) {
+                // Too much salary for a broke team
+                continue;
+            }
+        }
 
         // D. Identify Desired Return
         let desiredPlayers: Player[] = [];

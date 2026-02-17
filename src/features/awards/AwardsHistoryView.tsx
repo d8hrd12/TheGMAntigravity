@@ -76,7 +76,7 @@ const AwardRow = ({ title, winner, icon }: { title: string, winner?: AwardWinner
             <div style={{ textAlign: 'right' }}>
                 <div style={{ fontWeight: 'bold', color: '#fff' }}>{winner.playerName}</div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{winner.teamName}</div>
-                {/* <div style={{ fontSize: '0.75rem', color: '#888' }}>{winner.statsSummary}</div> */}
+                <div style={{ fontSize: '0.75rem', color: '#888' }}>{winner.statsSummary}</div>
             </div>
         </div>
     );

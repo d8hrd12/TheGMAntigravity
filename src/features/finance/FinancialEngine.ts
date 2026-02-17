@@ -243,7 +243,8 @@ export const evaluateSeasonPerformance = (
 
         // Fan Damage
         const fanDamage = 0.05 * finalSeverity;
-        newFanInterest = Math.max(0.5, newFanInterest - fanDamage);
+        const currentFanFloor = (newCash < 0) ? 0.7 : 0.4; // Debt floor 0.7, absolute floor 0.4
+        newFanInterest = Math.max(currentFanFloor, newFanInterest - fanDamage);
         messages.push(`Fan Interest dropped by ${fanDamage.toFixed(2)}.`);
 
         // Owner Patience
@@ -425,9 +426,9 @@ export const calculateLeagueFinancials = (
     newSalaryCap = Math.round(newSalaryCap / 100000) * 100000;
 
     // 3. Revenue Sharing Calculation
-    // Pot = 50% of Luxury Tax Collected (Owners keep 50%, 50% to needy teams)
-    // PLUS 1% of Total League Revenue (Shared Pool conceptualized)
-    const revenueSharingPot = (taxCollected * 0.50) + (totalLeagueRevenue * 0.01);
+    // Pot = 100% of Luxury Tax Collected (Redistributed to needy teams)
+    // PLUS 1.5% of Total League Revenue (Shared Pool conceptualized)
+    const revenueSharingPot = (taxCollected * 1.0) + (totalLeagueRevenue * 0.015);
 
     const payoutPerTeam = eligibleTeams.length > 0 ? (revenueSharingPot / eligibleTeams.length) : 0;
 

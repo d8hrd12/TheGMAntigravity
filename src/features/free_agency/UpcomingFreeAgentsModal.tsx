@@ -50,20 +50,23 @@ export const UpcomingFreeAgentsModal: React.FC<UpcomingFreeAgentsModalProps> = (
                 const teamSuccess = team ? team.wins / (Math.max(1, team.wins + team.losses)) : 0.5;
                 const happiness = p.morale || 80;
 
-                if (happiness > 90 && teamSuccess > 0.55) {
-                    intent = 'Likely to Resign';
-                    intentColor = '#34c759'; // Green
-                } else if (happiness < 40) {
+                if (happiness < 40) {
                     intent = 'Demands Exit';
                     intentColor = '#b00020'; // Dark Red
                 } else if (happiness < 60 || teamSuccess < 0.4) {
                     intent = 'Wants Out';
                     intentColor = '#ff3b30'; // Red
-                } else {
+                } else if (ovr >= 85) {
                     intent = 'Testing Market';
-                    if (ovr > 85) intentColor = '#ff9f0a'; // Orange (Stars testing market)
+                    intentColor = '#ff9f0a'; // Orange
+                } else if (happiness > 90 && teamSuccess > 0.55) {
+                    intent = 'Likely to Resign';
+                    intentColor = '#34c759'; // Green
+                } else {
+                    intent = 'Evaluating Options';
+                    intentColor = '#999';
                 }
-
+                Riverside:
                 return { ...p, team, ovr, intent, intentColor };
             })
             .sort((a, b) => b.ovr - a.ovr); // Sort by best players

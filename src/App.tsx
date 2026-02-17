@@ -411,12 +411,7 @@ function AppContent() {
 
     if (view === 'playoffs') {
       return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '20px 20px 0' }}>
-            <button onClick={() => setView('dashboard')} style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer' }}>&larr; Back</button>
-          </div>
-          <PlayoffView />
-        </div>
+        <PlayoffView onNavigate={setView} onBack={() => setView('dashboard')} />
       );
     }
 

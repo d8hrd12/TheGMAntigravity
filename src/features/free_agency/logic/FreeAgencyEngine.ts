@@ -121,13 +121,21 @@ export const simulateFreeAgencyDay = (
 
                 let offerAmount = Math.floor(contractReq.amount * offerFactor);
 
+                // --- FINANCIAL FIX: Debt Signing Ban ---
+                // If team has negative cash, they can ONLY offer the league minimum.
+                const MIN_SALARY = nextState.salaryCap * 0.008;
+                if (team.cash < 0) {
+                    offerAmount = MIN_SALARY;
+                }
+
                 // Strict Cap Limit
                 if (offerAmount > team.salaryCapSpace) {
                     offerAmount = team.salaryCapSpace;
                 }
 
-                // Sanity check: Don't offer $500k to a Max guy
-                if (offerAmount < contractReq.amount * 0.6) continue;
+                // Sanity check: Don't offer $500k to a Max guy (unless it's the only option due to debt/cap)
+                // If in debt, we allow the min offer even if it's way below market, because that's their only tool.
+                if (team.cash >= 0 && offerAmount < contractReq.amount * 0.6) continue;
 
                 // BIDDING WAR SIMULATION
                 // If player has other offers, we might need to beat them?

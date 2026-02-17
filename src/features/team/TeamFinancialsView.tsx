@@ -2,7 +2,9 @@ import { ConfirmationModal } from '../ui/ConfirmationModal';
 import { useState } from 'react';
 import { useGame } from '../../store/GameContext';
 import { calculateExpectation, AVAILABLE_MERCH_CAMPAIGNS } from '../finance/FinancialEngine';
-import { DollarSign, TrendingUp, TrendingDown, Wallet, Trash2, Users, Briefcase, Building2, AlertTriangle, Info, X, ShoppingBag, Activity } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, Wallet, Trash2, Users, Briefcase, Building2, AlertTriangle, Info, X, ShoppingBag, Activity, Heart, HeartOff } from 'lucide-react';
+import { getPlayerTradeValue, getTeamDirection } from '../trade/TradeLogic';
+import { calculateOverall } from '../../utils/playerUtils';
 
 import { BackButton } from '../ui/BackButton';
 import { PageHeader } from '../ui/PageHeader';
@@ -14,11 +16,13 @@ interface TeamFinancialsViewProps {
 }
 
 export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, onSelectPlayer }) => {
-    const { teams, userTeamId, contracts, salaryCap, releasePlayer, players, seasonPhase, activeMerchCampaigns, startMerchCampaign } = useGame();
+    const { teams, userTeamId, contracts, salaryCap, releasePlayer, sellPlayer, sellPlayerToTeam, players, seasonPhase, activeMerchCampaigns, startMerchCampaign } = useGame();
     const [viewMode, setViewMode] = useState<'my_team' | 'league' | 'merch'>('my_team');
+    const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
     // ... existing logic for user team ...
     const team = teams.find(t => t.id === userTeamId);
     const [playerToCut, setPlayerToCut] = useState<{ id: string, name: string } | null>(null);
+    const [playerToSell, setPlayerToSell] = useState<{ id: string, name: string, amount: number } | null>(null);
     const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null);
     const [showRules, setShowRules] = useState(false);
 
@@ -322,11 +326,47 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                             <div style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>
                                 {(team.fanInterest || 1.0).toFixed(2)}x
                             </div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                Revenue Multiplier
+                            <div style={{ fontSize: '0.75rem', color: (team.fanInterest || 1.0) < 0.8 ? '#f1c40f' : 'var(--text-secondary)' }}>
+                                {(team.fanInterest || 1.0) <= 0.75 ? 'Floor Applied (Debt)' : 'Revenue Multiplier'}
                             </div>
                         </div>
                     </div>
+
+                    {/* LIQUIDATE ASSETS (New Section) */}
+                    {(team.cash < 50000000) && (
+                        <div style={{
+                            background: 'rgba(231, 76, 60, 0.05)',
+                            padding: '16px',
+                            borderRadius: '20px',
+                            border: '1px solid rgba(231, 76, 60, 0.2)'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', color: '#e74c3c' }}>
+                                <AlertTriangle size={18} />
+                                <span style={{ fontWeight: 700, fontSize: '0.9rem', textTransform: 'uppercase' }}>Financial Distress: Sell Assets</span>
+                            </div>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, marginBottom: '10px' }}>
+                                You are low on cash. You can sell players to other teams for their annual salary amount to regain liquidity.
+                            </p>
+                        </div>
+                    )}
+
+                    {message && (
+                        <div style={{
+                            background: message.type === 'success' ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
+                            color: message.type === 'success' ? '#2ecc71' : '#e74c3c',
+                            padding: '12px 16px',
+                            borderRadius: '16px',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            border: `1px solid ${message.type === 'success' ? '#2ecc71' : '#e74c3c'}`
+                        }}>
+                            <span>{message.text}</span>
+                            <button onClick={() => setMessage(null)} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}><X size={14} /></button>
+                        </div>
+                    )}
 
                     {/* Market & Expectations */}
                     <div style={{
@@ -452,22 +492,42 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                                                     {formatMoney(contract.amount)}
                                                 </div>
                                             </div>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleCut(contract.playerId, `${player.firstName} ${player.lastName}`);
-                                                }}
-                                                style={{
-                                                    background: 'rgba(231, 76, 60, 0.1)',
-                                                    color: '#e74c3c',
-                                                    border: 'none',
-                                                    borderRadius: '8px',
-                                                    padding: '8px',
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setPlayerToSell({ id: player.id, name: `${player.firstName} ${player.lastName}`, amount: contract.amount });
+                                                    }}
+                                                    title="Sell Player for Cash"
+                                                    style={{
+                                                        background: 'rgba(46, 204, 113, 0.1)',
+                                                        color: '#2ecc71',
+                                                        border: 'none',
+                                                        borderRadius: '8px',
+                                                        padding: '8px',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    <DollarSign size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleCut(contract.playerId, `${player.firstName} ${player.lastName}`);
+                                                    }}
+                                                    title="Cut Player (No Cash)"
+                                                    style={{
+                                                        background: 'rgba(231, 76, 60, 0.1)',
+                                                        color: '#e74c3c',
+                                                        border: 'none',
+                                                        borderRadius: '8px',
+                                                        padding: '8px',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 );
@@ -479,7 +539,7 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                         playerToCut && (
                             <ConfirmationModal
                                 title="Release Player"
-                                message={`Are you sure you want to cut ${playerToCut.name}? Their salary will be removed from your cap immediately.`}
+                                message={`Are you sure you want to cut ${playerToCut.name}? Their salary will be removed from your cap immediately, but you receive NO cash injection.`}
                                 confirmText="Cut Player"
                                 cancelText="Keep Player"
                                 isDestructive={true}
@@ -489,6 +549,156 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                                 }}
                                 onCancel={() => setPlayerToCut(null)}
                             />
+                        )
+                    }
+
+                    {
+                        playerToSell && (
+                            <div style={{
+                                position: 'fixed',
+                                top: 0, left: 0, right: 0, bottom: 0,
+                                background: 'rgba(0,0,0,0.85)',
+                                backdropFilter: 'blur(8px)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                zIndex: 1100,
+                                padding: '20px'
+                            }}>
+                                <div style={{
+                                    background: 'var(--surface)',
+                                    borderRadius: '28px',
+                                    maxWidth: '480px',
+                                    width: '100%',
+                                    maxHeight: '75vh',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    border: '1px solid var(--border)',
+                                    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+                                    overflow: 'hidden'
+                                }}>
+                                    <div style={{ padding: '24px', borderBottom: '1px solid var(--border)' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                                            <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Sell Player: {playerToSell.name}</h3>
+                                            <button onClick={() => setPlayerToSell(null)} style={{ background: 'var(--surface-glass)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <X size={18} />
+                                            </button>
+                                        </div>
+                                        <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                                            Select a team to buy this player for <b style={{ color: 'var(--text)' }}>{formatMoney(playerToSell.amount)}</b> in cash.
+                                        </p>
+                                    </div>
+
+                                    <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            {teams.filter(t => t.id !== userTeamId).map(t => {
+                                                const tRoster = players.filter(p => p.teamId === t.id);
+                                                const tPayroll = contracts.filter(c => c.teamId === t.id).reduce((sum, c) => sum + c.amount, 0);
+                                                const tCapSpace = salaryCap - tPayroll;
+                                                const canAfford = t.cash >= playerToSell.amount && tCapSpace >= playerToSell.amount;
+
+                                                // INTEREST LOGIC
+                                                const playerObj = players.find(p => p.id === playerToSell.id);
+                                                const tradeValue = playerObj ? getPlayerTradeValue(playerObj, t, contracts, tRoster) : 0;
+
+                                                // Normalized Scale: TradeValue is roughly OVR (70-90)
+                                                // Salary is usually 1M - 40M.
+                                                // We want to see if the value justifies the salary.
+                                                // A $20M player should have at least ~82 OVR/Value to be "Low Interest"
+                                                // A $40M player should be 88+ OVR for "Low Interest"
+                                                const salaryInMillions = playerToSell.amount / 1000000;
+                                                const valuePerMillion = tradeValue / (Math.max(1, salaryInMillions));
+
+                                                let interestLevel: 'Strong' | 'Low' | 'None' = 'None';
+
+                                                // Logic:
+                                                // 1. If tradeValue > 90 (Star), everyone wants them if they can afford.
+                                                // 2. High value per dollar = Strong.
+                                                // 3. Minimum baseline: if value is too low for salary, No Interest.
+                                                const minRequiredValue = 60 + (salaryInMillions * 0.75); // $10M -> 67.5, $30M -> 82.5
+
+                                                if (tradeValue >= minRequiredValue + 10) interestLevel = 'Strong';
+                                                else if (tradeValue >= minRequiredValue) interestLevel = 'Low';
+                                                else interestLevel = 'None';
+
+                                                // Exception: Rebuilders might take bad expiring contracts (not implemented here 100% since we sell for 1yr)
+                                                // But let's allow Low Interest if the player is Young and Rebuilder
+                                                const tDirection = getTeamDirection(t, tRoster);
+                                                if (interestLevel === 'None' && tDirection === 'Rebuilding' && playerObj && playerObj.age < 23) {
+                                                    interestLevel = 'Low';
+                                                }
+
+                                                const statusColor = interestLevel === 'Strong' ? '#2ecc71' : interestLevel === 'Low' ? '#f1c40f' : '#95a5a6';
+
+                                                return (
+                                                    <button
+                                                        key={t.id}
+                                                        disabled={!canAfford || interestLevel === 'None'}
+                                                        onClick={() => {
+                                                            const res = sellPlayerToTeam(playerToSell.id, t.id);
+                                                            setMessage({ text: res.message, type: res.success ? 'success' : 'error' });
+                                                            setPlayerToSell(null);
+                                                        }}
+                                                        style={{
+                                                            background: 'var(--surface-glass)',
+                                                            border: canAfford && interestLevel !== 'None' ? `1px solid ${statusColor}` : '1px solid var(--border)',
+                                                            borderRadius: '16px',
+                                                            padding: '16px',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'space-between',
+                                                            cursor: (canAfford && interestLevel !== 'None') ? 'pointer' : 'not-allowed',
+                                                            opacity: (canAfford && interestLevel !== 'None') ? 1 : 0.6,
+                                                            transition: 'all 0.2s ease',
+                                                            position: 'relative',
+                                                            overflow: 'hidden'
+                                                        }}
+                                                    >
+                                                        <div style={{ textAlign: 'left', zIndex: 1 }}>
+                                                            <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                {t.city} {t.name}
+                                                                {interestLevel === 'Strong' && <Heart size={14} fill="#2ecc71" color="#2ecc71" />}
+                                                                {interestLevel === 'Low' && <Heart size={14} color="#f1c40f" />}
+                                                            </div>
+                                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                                                                Cash: {formatMoney(t.cash)} | Direction: {tDirection.replace('_', ' ')}
+                                                            </div>
+                                                        </div>
+
+                                                        <div style={{ textAlign: 'right', zIndex: 1 }}>
+                                                            {!canAfford ? (
+                                                                <div style={{ color: '#e74c3c', fontWeight: 700, fontSize: '0.75rem' }}>INSUFFICIENT FUNDS</div>
+                                                            ) : interestLevel === 'None' ? (
+                                                                <div style={{ color: '#95a5a6', fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                    <HeartOff size={14} /> NO INTEREST
+                                                                </div>
+                                                            ) : (
+                                                                <div style={{ color: statusColor, fontWeight: 700, fontSize: '0.8rem' }}>
+                                                                    {interestLevel.toUpperCase()} INTEREST
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Progress bar visual for value */}
+                                                        <div style={{
+                                                            position: 'absolute',
+                                                            bottom: 0, left: 0,
+                                                            height: '3px',
+                                                            width: `${Math.min(100, (tradeValue / minRequiredValue) * 80)}%`,
+                                                            background: statusColor,
+                                                            opacity: 0.3
+                                                        }} />
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    <div style={{ padding: '20px', background: 'var(--surface-glass)', borderTop: '1px solid var(--border)', textAlign: 'center' }}>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                            Transaction involves direct cash transfer from buyer to seller.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         )
                     }
 
@@ -555,12 +765,32 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
 
                                     <div style={{ background: 'var(--surface-glass)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)' }}>
                                         <div style={{ fontWeight: 700, marginBottom: '6px', color: '#e74c3c', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <AlertTriangle size={18} /> Luxury Tax & Apron
+                                            <AlertTriangle size={18} /> Debt & Signing Ban
                                         </div>
                                         <p style={{ fontSize: '0.9rem', lineHeight: '1.5', color: 'var(--text-secondary)', margin: 0 }}>
-                                            Exceeding the tax threshold triggers a progressive tax bill defined by the owner.
+                                            Teams with <b style={{ color: '#e74c3c' }}>negative cash</b> are placed under a signing ban. You can only offer <b>League Minimum</b> contracts in Free Agency.
                                             <br /><br />
-                                            <b style={{ color: '#e74c3c' }}>Repeater Tax:</b> Staying above the tax line for 3+ consecutive years triggers a massive multiplier penalty. Avoid this unless you are winning chips!
+                                            <b style={{ color: 'var(--text)' }}>Note:</b> Fan Interest is floor-capped at <b>0.70</b> for teams in debt to ensure you can eventually crawl back to profitability.
+                                        </p>
+                                    </div>
+
+                                    <div style={{ background: 'var(--surface-glass)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                                        <div style={{ fontWeight: 700, marginBottom: '6px', color: '#f1c40f', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <Briefcase size={18} /> Emergency Bailouts
+                                        </div>
+                                        <p style={{ fontSize: '0.9rem', lineHeight: '1.5', color: 'var(--text-secondary)', margin: 0 }}>
+                                            If your debt reaches <b style={{ color: '#e74c3c' }}>$100M</b>, the league will force an emergency sale of your highest next-year 1st round pick for <b>$15M</b> cash relief.
+                                        </p>
+                                    </div>
+
+                                    <div style={{ background: 'var(--surface-glass)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                                        <div style={{ fontWeight: 700, marginBottom: '6px', color: '#3498db', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <DollarSign size={18} /> Asset Liquidation (Sell to Team)
+                                        </div>
+                                        <p style={{ fontSize: '0.9rem', lineHeight: '1.5', color: 'var(--text-secondary)', margin: 0 }}>
+                                            You can sell any player on your roster to another team in exchange for their <b>1-year salary in cash</b>.
+                                            <br /><br />
+                                            <b style={{ color: 'var(--text)' }}>Conditions:</b> The buying team must have enough <b style={{ color: 'var(--primary)' }}>Available Cash</b> and <b style={{ color: '#2ecc71' }}>Salary Cap Space</b> to absorb the contract.
                                         </p>
                                     </div>
                                 </div>
