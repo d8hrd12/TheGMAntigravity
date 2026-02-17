@@ -76,7 +76,16 @@ export const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onSelectTe
 
     // Updated for Dark Theme compatibility to match Main Menu
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px', textAlign: 'center', background: 'var(--background, #1a1a1a)', minHeight: '100vh', color: 'var(--text, #ffffff)' }}>
+        <div style={{
+            maxWidth: '1200px',
+            margin: '0 auto',
+            padding: '40px 20px 100px 20px', // Increased bottom padding
+            textAlign: 'center',
+            background: 'var(--background, #1a1a1a)',
+            minHeight: '100vh',
+            color: 'var(--text, #ffffff)',
+            position: 'relative' // Context for sticky
+        }}>
             <h1 style={{ color: 'var(--text, #ffffff)', marginBottom: '10px' }}>Select Your Team</h1>
             <p style={{ marginBottom: '50px', color: 'var(--text-secondary, #888)' }}>Choose the franchise you want to lead to glory, or create your own.</p>
 
@@ -138,7 +147,14 @@ export const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onSelectTe
                 </div>
             </div>
 
-            <div style={{ marginTop: '20px', position: 'sticky', bottom: '20px' }}>
+            <div style={{
+                marginTop: '20px',
+                position: 'sticky',
+                bottom: '20px',
+                zIndex: 100,
+                background: 'transparent',
+                pointerEvents: 'none'
+            }}>
                 <button
                     onClick={handleConfirm}
                     disabled={!selectedId}
@@ -151,7 +167,8 @@ export const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onSelectTe
                         borderRadius: '50px',
                         cursor: selectedId ? 'pointer' : 'not-allowed',
                         boxShadow: selectedId ? '0 4px 15px rgba(255, 107, 0, 0.3)' : 'none',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.2s',
+                        pointerEvents: 'auto'
                     }}
                 >
                     Start Career

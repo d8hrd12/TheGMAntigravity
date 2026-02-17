@@ -58,7 +58,7 @@ export const ExpansionDraftView: React.FC = () => {
                     Expansion Draft
                 </h1>
                 <p style={{ color: 'var(--text-secondary)', marginTop: '5px' }}>
-                    Select up to 10 players to join your new franchise.
+                    Select up to 14 players to join your new franchise.
                     Unselected players will return to their original teams.
                 </p>
 

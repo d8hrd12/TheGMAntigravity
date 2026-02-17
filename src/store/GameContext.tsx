@@ -48,6 +48,7 @@ import { applyRealWorldTrades } from '../data/tradeUpdates';
 
 
 // ... (imports)
+const randomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 // Re-define PlayoffSeries since I might have deleted it or it was there before
 export interface PlayoffSeries {
     id: string;
@@ -547,12 +548,60 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     // ... (inside GameProvider)
 
-    const startNewGame = async (userTeamId: string, difficulty: 'Easy' | 'Medium' | 'Hard') => {
+    const startNewGame = async (
+        userTeamId: string,
+        difficulty: 'Easy' | 'Medium' | 'Hard',
+        expansionConfig?: { city: string, name: string, division: string, logo?: string, primaryColor?: string }
+    ) => {
         console.log("GameContext: startNewGame called...");
         setIsProcessing(true); // Show loading state if applicable
         try {
             // 1. Load Teams from Data
             const teams: Team[] = JSON.parse(JSON.stringify(NBA_TEAMS));
+
+            let currentExpansionPool: Player[] = [];
+            let currentSeasonPhase: any = 'regular_season';
+            let finalUserTeamId = userTeamId;
+
+            // Handle Expansion Config
+            if (expansionConfig) {
+                const newTeamId = '31';
+                const conference = ['Atlantic', 'Central', 'Southeast'].includes(expansionConfig.division) ? 'East' : 'West';
+
+                const newTeam: Team = {
+                    id: newTeamId,
+                    name: expansionConfig.name,
+                    city: expansionConfig.city,
+                    abbreviation: (expansionConfig.name.length > 3 ? expansionConfig.name.substring(0, 3) : expansionConfig.name).toUpperCase(),
+                    conference: conference,
+                    logo: expansionConfig.logo,
+                    cash: 350000000,
+                    salaryCapSpace: 140000000,
+                    debt: 0,
+                    fanInterest: 1.0,
+                    ownerPatience: 100,
+                    marketSize: 'Medium',
+                    rosterIds: [],
+                    wins: 0,
+                    losses: 0,
+                    history: [],
+                    draftPicks: [],
+                    colors: { primary: expansionConfig.primaryColor || '#000000', secondary: '#FFFFFF' },
+                    financials: { totalIncome: 0, totalExpenses: 0, dailyIncome: 0, dailyExpenses: 0, seasonHistory: [] },
+                    rivalIds: []
+                };
+
+                // Generate Picks
+                const currentYear = new Date().getFullYear();
+                for (let yr = currentYear; yr <= currentYear + 4; yr++) {
+                    newTeam.draftPicks.push({ id: generateUUID(), year: yr, round: 1, originalTeamId: newTeamId, originalTeamName: newTeam.name });
+                    newTeam.draftPicks.push({ id: generateUUID(), year: yr, round: 2, originalTeamId: newTeamId, originalTeamName: newTeam.name });
+                }
+
+                teams.push(newTeam);
+                finalUserTeamId = newTeamId;
+                currentSeasonPhase = 'expansion_draft';
+            }
 
             // 2. Generate Players & Contracts using CSV IMPORTER
             console.log("GameContext: Importing rosters from CSV...");
@@ -561,6 +610,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
             let players = result.newPlayers;
             let contracts = result.newContracts;
+
 
             // Fallback if CSV fails or is empty (should not happen if file exists)
             if (players.length === 0) {
@@ -584,6 +634,29 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     team.rosterIds.push(player.id);
                 }
             });
+
+            // Handle Realistic Expansion Pool Generation
+            if (expansionConfig) {
+                console.log("GameContext: Generating Realistic Expansion Pool...");
+                teams.forEach(t => {
+                    if (t.id === '31') return;
+
+                    const teamRoster = updatedPlayers.filter(p => p.teamId === t.id);
+                    const sorted = [...teamRoster].sort((a, b) => b.overall - a.overall);
+
+                    const exposed = sorted.slice(8);
+                    exposed.forEach(p => {
+                        // Remove from original team roster
+                        t.rosterIds = t.rosterIds.filter(id => id !== p.id);
+                        // Add to expansion pool
+                        currentExpansionPool.push(p);
+                        // Clear teamId for the draft view to distinguish them
+                        p.teamId = null;
+                        // Contract remains for return logic
+                    });
+                });
+                console.log(`GameContext: Expansion Pool initialized with ${currentExpansionPool.length} players.`);
+            }
 
             const INITIAL_SALARY_CAP = 140000000;
 
@@ -663,7 +736,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             console.log("GameContext: Setting Game State...", {
                 playerCount: updatedPlayers.length,
                 teamCount: teams.length,
-                userTeamId
+                userTeamId: finalUserTeamId
             });
 
             // Determine Slot
@@ -675,7 +748,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             setGameState({
                 teams,
                 players: updatedPlayers,
-                userTeamId,
+                userTeamId: finalUserTeamId,
                 contracts,
                 games: [],
                 date: new Date(2024, 9, 20), // Oct 20
@@ -689,14 +762,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 draftOrder: [], // Will be set on init
                 draftResults: [],
                 draftHistory: {},
-                seasonPhase: 'regular_season',
+                seasonPhase: currentSeasonPhase,
                 playoffs: [],
                 transactions: [],
                 messages: [],
                 trainingSettings: {},
                 trainingReport: null,
                 isTrainingCampComplete: false,
-                expansionPool: [],
+                expansionPool: currentExpansionPool,
                 isSimulating: false,
                 tradeHistory: [],
                 tradeOffer: null,
@@ -855,7 +928,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             steals: 0, blocks: 0, turnovers: 0, fouls: 0, plusMinus: 0,
                             fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0,
                             ftMade: 0, ftAttempted: 0, offensiveRebounds: 0, defensiveRebounds: 0,
-                            rimMade: 0, rimAttempted: 0, midRangeMade: 0, midRangeAttempted: 0
+                            rimMade: 0, rimAttempted: 0, rimAssisted: 0,
+                            midRangeMade: 0, midRangeAttempted: 0, midRangeAssisted: 0,
+                            threePointAssisted: 0
                         }
                     };
                 });
@@ -2625,7 +2700,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             offensiveRebounds: 0, defensiveRebounds: 0,
                             fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0,
                             ftMade: 0, ftAttempted: 0, plusMinus: 0,
-                            rimMade: 0, rimAttempted: 0, midRangeMade: 0, midRangeAttempted: 0
+                            rimMade: 0, rimAttempted: 0, rimAssisted: 0,
+                            midRangeMade: 0, midRangeAttempted: 0, midRangeAssisted: 0,
+                            threePointAssisted: 0
                         };
 
                         postTradePlayers[pIdx] = {
@@ -2652,7 +2729,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
                                 rimMade: (current.rimMade || 0) + stat.rimMade,
                                 rimAttempted: (current.rimAttempted || 0) + stat.rimAttempted,
                                 midRangeMade: (current.midRangeMade || 0) + stat.midRangeMade,
-                                midRangeAttempted: (current.midRangeAttempted || 0) + stat.midRangeAttempted
+                                midRangeAttempted: (current.midRangeAttempted || 0) + stat.midRangeAttempted,
+                                rimAssisted: (current.rimAssisted || 0) + stat.rimAssisted,
+                                midRangeAssisted: (current.midRangeAssisted || 0) + stat.midRangeAssisted,
+                                threePointAssisted: (current.threePointAssisted || 0) + stat.threePointAssisted
                             }
                         };
                     }
@@ -2877,7 +2957,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
                                 gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0,
                                 turnovers: 0, offensiveRebounds: 0, defensiveRebounds: 0, fouls: 0,
                                 fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0, ftMade: 0, ftAttempted: 0, plusMinus: 0,
-                                rimMade: 0, rimAttempted: 0, midRangeMade: 0, midRangeAttempted: 0
+                                rimMade: 0, rimAttempted: 0, rimAssisted: 0,
+                                midRangeMade: 0, midRangeAttempted: 0, midRangeAssisted: 0,
+                                threePointAssisted: 0
                             },
                             playoffStats: undefined, // Clear for next season
                             injury: undefined // Heal all injuries for offseason
@@ -3429,7 +3511,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
                                     steals: 0, blocks: 0, turnovers: 0, fouls: 0, plusMinus: 0,
                                     fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0,
                                     ftMade: 0, ftAttempted: 0, offensiveRebounds: 0, defensiveRebounds: 0,
-                                    rimMade: 0, rimAttempted: 0, midRangeMade: 0, midRangeAttempted: 0
+                                    rimMade: 0, rimAttempted: 0, rimAssisted: 0,
+                                    midRangeMade: 0, midRangeAttempted: 0, midRangeAssisted: 0,
+                                    threePointAssisted: 0
                                 };
 
                                 statePlayers[pIndex] = {
@@ -3456,7 +3540,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
                                         rimMade: (currentStats.rimMade || 0) + (stat.rimMade || 0),
                                         rimAttempted: (currentStats.rimAttempted || 0) + (stat.rimAttempted || 0),
                                         midRangeMade: (currentStats.midRangeMade || 0) + (stat.midRangeMade || 0),
-                                        midRangeAttempted: (currentStats.midRangeAttempted || 0) + (stat.midRangeAttempted || 0)
+                                        midRangeAttempted: (currentStats.midRangeAttempted || 0) + (stat.midRangeAttempted || 0),
+                                        rimAssisted: (currentStats.rimAssisted || 0) + (stat.rimAssisted || 0),
+                                        midRangeAssisted: (currentStats.midRangeAssisted || 0) + (stat.midRangeAssisted || 0),
+                                        threePointAssisted: (currentStats.threePointAssisted || 0) + (stat.threePointAssisted || 0)
                                     }
                                 };
                             }

@@ -40,8 +40,11 @@ export interface SeasonStats {
     ftAttempted: number;
     rimMade: number;
     rimAttempted: number;
+    rimAssisted: number;
     midRangeMade: number;
     midRangeAttempted: number;
+    midRangeAssisted: number;
+    threePointAssisted: number;
     plusMinus: number;
 }
 

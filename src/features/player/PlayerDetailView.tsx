@@ -365,23 +365,25 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
 
                     {viewMode === 'Distribution' ? (
                         <div style={{ background: 'var(--surface-glass)', padding: '15px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(100px, 1fr) 1fr 1fr 1fr', borderBottom: '1px solid var(--border)', paddingBottom: '8px', marginBottom: '8px', fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(100px, 1fr) 1fr 1fr 1fr 1fr', borderBottom: '1px solid var(--border)', paddingBottom: '8px', marginBottom: '8px', fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                                 <div style={{ textAlign: 'left' }}>Zone</div>
                                 <div>Made</div>
                                 <div>Att</div>
                                 <div>Pct</div>
+                                <div>%Ast</div>
                             </div>
                             {[
-                                { label: 'Rim', made: stats.rimMade || 0, att: stats.rimAttempted || 0, color: '#e74c3c' },
-                                { label: 'Mid-Range', made: stats.midRangeMade || 0, att: stats.midRangeAttempted || 0, color: '#f1c40f' },
-                                { label: '3-Point', made: stats.threeMade || 0, att: stats.threeAttempted || 0, color: '#3498db' },
+                                { label: 'Rim', made: stats.rimMade || 0, att: stats.rimAttempted || 0, ast: stats.rimAssisted || 0, color: '#e74c3c' },
+                                { label: 'Mid-Range', made: stats.midRangeMade || 0, att: stats.midRangeAttempted || 0, ast: stats.midRangeAssisted || 0, color: '#f1c40f' },
+                                { label: '3-Point', made: stats.threeMade || 0, att: stats.threeAttempted || 0, ast: stats.threePointAssisted || 0, color: '#3498db' },
                             ].map((zone) => {
                                 const pct = zone.att > 0 ? ((zone.made / zone.att) * 100).toFixed(1) : '0.0';
+                                const astPct = zone.made > 0 ? ((zone.ast / zone.made) * 100).toFixed(0) : '0';
                                 const totalShots = (stats.fgAttempted || 1);
                                 const frequency = ((zone.att / totalShots) * 100).toFixed(0);
 
                                 return (
-                                    <div key={zone.label} style={{ display: 'grid', gridTemplateColumns: 'minmax(100px, 1fr) 1fr 1fr 1fr', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem', alignItems: 'center' }}>
+                                    <div key={zone.label} style={{ display: 'grid', gridTemplateColumns: 'minmax(100px, 1fr) 1fr 1fr 1fr 1fr', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem', alignItems: 'center' }}>
                                         <div style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: zone.color }}></div>
                                             <span style={{ fontWeight: 'bold' }}>{zone.label}</span>
@@ -390,6 +392,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                                         <div style={{ color: 'var(--text)' }}>{zone.made}</div>
                                         <div style={{ color: 'var(--text)' }}>{zone.att}</div>
                                         <div style={{ fontWeight: 'bold', color: parseFloat(pct) >= 50 ? 'var(--primary--text)' : 'var(--text)' }}>{pct}%</div>
+                                        <div style={{ color: 'var(--text-secondary)' }}>{astPct}%</div>
                                     </div>
                                 );
                             })}

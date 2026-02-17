@@ -5,16 +5,17 @@ export interface GameTime {
     totalSeconds: number; // For calculation (e.g., 720 down to 0 per quarter)
 }
 
-export type ShotType = 'LAYUP' | 'DUNK' | 'MID_RANGE' | 'THREE_POINT' | 'FREE_THROW';
+export type ShotType = 'LAYUP' | 'DUNK' | 'MID_RANGE' | 'THREE_POINT' | 'FREE_THROW' | 'TIP_IN';
 export const ShotType = {
     LAYUP: 'LAYUP' as ShotType,
     DUNK: 'DUNK' as ShotType,
     MID_RANGE: 'MID_RANGE' as ShotType,
     THREE_POINT: 'THREE_POINT' as ShotType,
-    FREE_THROW: 'FREE_THROW' as ShotType
+    FREE_THROW: 'FREE_THROW' as ShotType,
+    TIP_IN: 'TIP_IN' as ShotType
 };
 
-export type EventType = 'TIP_OFF' | 'POSSESSION_START' | 'PASS' | 'DRIVE' | 'SHOT' | 'SCORE' | 'MISS' | 'REBOUND' | 'TURNOVER' | 'FOUL' | 'SUBSTITUTION' | 'TIMEOUT' | 'END_QUARTER' | 'GAME_END' | 'FREE_THROW_MADE' | 'FREE_THROW_MISSED' | 'STEAL' | 'BLOCK';
+export type EventType = 'TIP_OFF' | 'POSSESSION_START' | 'PASS' | 'DRIVE' | 'SHOT' | 'SCORE' | 'MISS' | 'REBOUND' | 'TURNOVER' | 'FOUL' | 'SUBSTITUTION' | 'TIMEOUT' | 'END_QUARTER' | 'GAME_END' | 'FREE_THROW_MADE' | 'FREE_THROW_MISSED' | 'STEAL' | 'BLOCK' | 'CHAOS';
 export const EventType = {
     TIP_OFF: 'TIP_OFF' as EventType,
     POSSESSION_START: 'POSSESSION_START' as EventType,
@@ -33,7 +34,8 @@ export const EventType = {
     FREE_THROW_MADE: 'FREE_THROW_MADE' as EventType,
     FREE_THROW_MISSED: 'FREE_THROW_MISSED' as EventType,
     STEAL: 'STEAL' as EventType,
-    BLOCK: 'BLOCK' as EventType
+    BLOCK: 'BLOCK' as EventType,
+    CHAOS: 'CHAOS' as EventType
 };
 
 export interface MatchEvent {
@@ -55,14 +57,17 @@ export interface PlayerStats {
     points: number;
     fgMade: number;
     fgAttempted: number;
-    threeMade: number;
-    threeAttempted: number;
-    rimMade: number;
-    rimAttempted: number;
-    midRangeMade: number;
-    midRangeAttempted: number;
     ftMade: number;
     ftAttempted: number;
+    rimMade: number;
+    rimAttempted: number;
+    rimAssisted: number;
+    midRangeMade: number;
+    midRangeAttempted: number;
+    midRangeAssisted: number;
+    threeMade: number;
+    threeAttempted: number;
+    threePointAssisted: number;
     rebounds: number;
     offensiveRebounds: number;
     defensiveRebounds: number;
@@ -119,6 +124,8 @@ export interface SimulationState {
     homeTimeouts: number;
     awayTimeouts: number;
     fatigue: Record<string, number>; // 0-100
+    confidence: Record<string, number>; // -1 to +1
+    pressure: Record<string, number>; // 0 to 1
     lastEventTime: number; // To track time delta
     gameId: string;
     isFinished: boolean;

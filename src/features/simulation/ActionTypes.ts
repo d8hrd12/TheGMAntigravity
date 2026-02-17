@@ -1,5 +1,5 @@
 
-export type ActionType = 'DRIVE' | 'SHOOT' | 'PASS' | 'POST_UP' | 'ISOLATION' | 'PICK_AND_ROLL' | 'KICK_OUT';
+export type ActionType = 'DRIVE' | 'SHOOT' | 'PASS' | 'POST_UP' | 'ISOLATION' | 'PICK_AND_ROLL' | 'KICK_OUT' | 'CATCH_AND_FINISH';
 
 export type ShotZone = 'RIM' | 'MID_RANGE' | 'THREE_POINT';
 

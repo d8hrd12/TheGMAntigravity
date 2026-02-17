@@ -49,8 +49,11 @@ export class StatsAccumulator {
             rimAttempted: 0,
             midRangeMade: 0,
             midRangeAttempted: 0,
+            midRangeAssisted: 0,
             ftMade: 0,
             ftAttempted: 0,
+            rimAssisted: 0,
+            threePointAssisted: 0,
             rebounds: 0,
             offensiveRebounds: 0,
             defensiveRebounds: 0,
@@ -136,6 +139,14 @@ export class StatsAccumulator {
 
                 if (secondaryStats) {
                     secondaryStats.assists++;
+                    // Track Assisted Shots
+                    if (ev.subType === "THREE_POINT") {
+                        stats.threePointAssisted++;
+                    } else if (ev.subType === "MID_RANGE") {
+                        stats.midRangeAssisted++;
+                    } else if (ev.subType === "LAYUP" || ev.subType === "DUNK") {
+                        stats.rimAssisted++;
+                    }
                 }
                 break;
             case "shot_miss":

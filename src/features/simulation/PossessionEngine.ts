@@ -3,7 +3,7 @@ import type { Player } from '../../models/Player';
 import type { GameEvent, PlayerStats } from './SimulationTypes';
 import { EventType } from './SimulationTypes';
 import type { TeamStrategy } from './TacticsTypes';
-import { PACE_MULTIPLIERS, FOCUS_BONUSES } from './TacticsTypes';
+import { PACE_MULTIPLIERS, FOCUS_BONUSES, DEFENSIVE_SCHEME_EFFECTS } from './TacticsTypes';
 import type { ActionType } from './ActionTypes';
 import { CommentaryEngine } from './CommentaryEngine';
 import { calculateTendencies, calculateOverall } from '../../utils/playerUtils';
@@ -22,6 +22,9 @@ export interface PossessionContext {
     quarter: number;
     scoreMargin: number; // Offense Score - Defense Score
     getStats?: (playerId: string) => PlayerStats | undefined;
+    playerConfidence: Record<string, number>; // -1 to +1
+    playerPressure: Record<string, number>; // 0 to 1
+    gameVariance: number; // -0.05 to +0.05
 }
 
 export interface PossessionResult {
@@ -37,6 +40,128 @@ export interface PossessionResult {
  * Simulates a single possession from start to finish.
  */
 // Helper to determine new territory for receiver
+// --- 2. SUCCESS CURVES (Point 3) ---
+function sigmoid(x: number, k: number, x0: number): number {
+    return 1 / (1 + Math.exp(-k * (x - x0)));
+}
+
+const SIGMOID_CURVES = {
+    RIM: { k: 0.12, x0: 50, base: 0.52 },    // Nudge up
+    MID: { k: 0.10, x0: 55, base: 0.46 },    // Nudge up
+    THREE: { k: 0.10, x0: 60, base: 0.36 },
+    FT: { k: 0.15, x0: 65, base: 0.80 }
+};
+
+export const BASE_SUCCESS = {
+    RIM: (fin: number) => {
+        const { k, x0, base } = SIGMOID_CURVES.RIM;
+        return base + (1 - base) * sigmoid(fin, k, x0);
+    },
+    MID: (mid: number) => {
+        const { k, x0, base } = SIGMOID_CURVES.MID;
+        return base + (0.50 - base) * sigmoid(mid, k, x0); // Cap Mid at 0.50
+    },
+    THREE: (three: number) => {
+        const { k, x0, base } = SIGMOID_CURVES.THREE;
+        return base + (0.45 - base) * sigmoid(three, k, x0); // Cap 3PT at 0.45
+    },
+    FT: (ft: number) => {
+        const { k, x0, base } = SIGMOID_CURVES.FT;
+        return base + (0.95 - base) * sigmoid(ft, k, x0);
+    }
+};
+
+// --- 4. USAGE NORMALIZATION (Point 4) ---
+export function calculateUsageLineup(lineup: Player[]): Record<string, number> {
+    const usageScores: Record<string, number> = {};
+    let totalLineupScore = 0;
+
+    lineup.forEach(p => {
+        const a = p.attributes;
+        const score = (0.4 * (a.finishing + a.midRange + a.threePointShot) / 3) +
+            (0.3 * a.ballHandling) +
+            (0.2 * a.playmaking) +
+            (0.1 * a.basketballIQ);
+        usageScores[p.id] = score;
+        totalLineupScore += score;
+    });
+
+    // Normalized end-rate target
+    const normalized: Record<string, number> = {};
+    lineup.forEach(p => {
+        normalized[p.id] = (usageScores[p.id] / totalLineupScore);
+    });
+    return normalized;
+}
+
+// --- 5. DECISION MODEL (Point 5) ---
+export function calculateDecisionAccuracy(player: Player, ctx: PossessionContext): number {
+    const iq = player.attributes.basketballIQ;
+    const fatigue = (100 - (player.stamina || 100)) / 100;
+    const pressure = ctx.playerPressure[player.id] || 0.5;
+    const confidence = ctx.playerConfidence[player.id] || 0;
+
+    const prob = 0.60 + (iq - 50) * 0.004 - (fatigue * 0.15) - (pressure * 0.10) + (confidence * 0.05);
+    return Math.min(0.92, Math.max(0.50, prob));
+}
+
+// --- 7. ADVANTAGE MODEL (Point 7) ---
+export function calculateAdvantageMargin(off: Player, def: Player, ctx: PossessionContext): number {
+    const oa = off.attributes;
+    const da = def.attributes;
+    const confidence = ctx.playerConfidence[off.id] || 0;
+
+    const creation = (0.35 * oa.ballHandling) + (0.25 * oa.playmaking) + (0.20 * oa.athleticism) + (0.10 * oa.basketballIQ) + (0.10 * (confidence + 1) * 50);
+
+    // Containment needs defensive schemes
+    const scheme = ctx.defenseStrategy.defense;
+    const schemeBonus = (DEFENSIVE_SCHEME_EFFECTS[scheme]?.isolationModifier || 0) + 50; // Base 50
+
+    const containment = (0.40 * da.perimeterDefense) + (0.25 * da.athleticism) + (0.20 * da.basketballIQ) + (0.15 * schemeBonus);
+
+    return creation - containment;
+}
+
+// Gaussian helper (Point 9)
+export function randomGaussian(mean: number, stdDev: number): number {
+    const u = 1 - Math.random();
+    const v = 1 - Math.random();
+    const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    return mean + z * stdDev;
+}
+
+// --- 8. SHOT QUALITY (Point 8) ---
+export function calculateShotQuality(
+    advantageMargin: number,
+    contestStrength: number, // 0 to 100
+    helpImpact: number, // 0 to 100
+    player: Player,
+    ctx: PossessionContext
+): number {
+    const fatigue = (100 - (player.stamina || 100)) / 100;
+    const confidence = ctx.playerConfidence[player.id] || 0;
+
+    const modifier = (advantageMargin * 0.001) -
+        (contestStrength * 0.002) -
+        (helpImpact * 0.001) -
+        (fatigue * 0.001) +
+        (confidence * 0.002);
+
+    // Range approx -0.20 to +0.15
+    return Math.max(-0.25, Math.min(0.20, modifier));
+}
+
+// --- 9. FINAL MAKE PROBABILITY (Point 9) ---
+export function calculateFinalMakeProb(
+    baseProb: number,
+    qualityModifier: number,
+    variance: number // Global game variance
+): number {
+    const gaussian = randomGaussian(0, 0.05); // StdDev 0.05
+    const final = baseProb + qualityModifier + variance + gaussian;
+    return Math.max(0.05, Math.min(0.95, final));
+}
+
 function getReceiverTerritory(receiver: Player): Territory {
     const p = receiver.position;
     const roll = Math.random() * 100;
@@ -73,11 +198,9 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
     const paceMod = PACE_MULTIPLIERS[ctx.offenseStrategy.pace] || 1.0;
 
     // ADJUST DURATION: 
-    // baseline 6-14s (Avg 10s). 
+    // baseline 8-16s (Avg 12s). 
     // multiplier scales this. 
-    // Seven Seconds (1.25x) -> divide by 1.25 -> ~4.8-11.2s (Avg 8s)
-    // Very Slow (0.85x) -> divide by 0.85 -> ~7-16.5s (Avg 11.7s)
-    const secondsDribble = Math.floor((Math.random() * 7 + 5) / paceMod);
+    const secondsDribble = Math.floor((Math.random() * 8 + 8) / paceMod);
 
     if (ctx.timeRemaining > 2800) {
         console.log(`[DEBUG] Time: ${ctx.timeRemaining} | Dribble: ${secondsDribble} | PaceMod: ${paceMod}`);
@@ -86,7 +209,7 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
     if (currentTime < 0) currentTime = 0;
 
     // Loop State
-    let handler = selectBallHandler(ctx.offenseLineup, ctx.offenseStrategy);
+    let handler = selectBallHandler(ctx.offenseLineup, ctx);
     let territory: Territory = '3PT'; // Starts at 3PT
     let passes = 0;
     let safePass = false; // Safety Valve State
@@ -207,7 +330,7 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
                 const targetTerritory = getReceiverTerritory(finalTarget);
                 const isRim = targetTerritory === 'FINISHING';
                 // KICKOUT: If Rim, it is ALWAYS a Catch & Finish (Assisted)
-                const res = resolveShot(finalTarget, handler, ctx, events, currentTime - 1, 15, isRim, false, isRim);
+                const res = resolveShot(finalTarget, handler, ctx, events, currentTime - 1, 15, isRim, isRim);
                 if (res.endType === 'TURNOVER' && res.events.some(e => e.id?.includes('cap_defer'))) {
                     // Capped -> Recycle
                     lastPasser = handler;
@@ -259,7 +382,7 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
                 }
 
                 // PnR Roll Man Finish -> Assisted
-                const res = resolveShot(screener, handler, ctx, events, currentTime - 2, 10, true, false, true);
+                const res = resolveShot(screener, handler, ctx, events, currentTime - 2, 10, true, true);
                 if (res.endType === 'TURNOVER' && res.events.some(e => e.id?.includes('cap_defer'))) {
                     handler = screener;
                     passes++;
@@ -282,7 +405,8 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
 
         } else if (action === 'DRIVE') {
             // Successful Drive -> Layup/Dunk
-            const res = resolveShot(handler, lastPasser, ctx, events, currentTime - 1, 0, true);
+            // SELF-CREATION: Clear lastPasser for drives to ensure they are unassisted unless explicitly Catch & Finish
+            const res = resolveShot(handler, undefined, ctx, events, currentTime - 1, 0, true);
             if (res.endType === 'TURNOVER' && res.events.some(e => e.id?.includes('cap_defer'))) {
                 passes++;
                 handler = selectReceiver(handler, ctx);
@@ -291,6 +415,20 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
                 continue;
             }
             return res;
+
+        } else if (action === 'CATCH_AND_FINISH') {
+            // NEW: Catch & Finish (Assisted Rim Attempt)
+            // Unlike Drive, this credits the passer.
+            const res = resolveShot(handler, lastPasser, ctx, events, currentTime - 1, 0, false, true);
+            if (res.endType === 'TURNOVER' && res.events.some(e => e.id?.includes('cap_defer'))) {
+                passes++;
+                handler = selectReceiver(handler, ctx);
+                safePass = true;
+                if (passes >= MAX_PASSES) return res;
+                continue;
+            }
+            return res;
+
         } else {
             // SHOOT (Jumper)
             const res = resolveShot(handler, lastPasser, ctx, events, currentTime - 1);
@@ -303,13 +441,13 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
             }
             return res;
         }
-    }
 
-    // Forced Shot at Buzzer/Max Passes
-    // If capped here, we must accept the TO or Force BAD SHOT?
-    // Let's accept Result (TO).
-    // Forced Shot (Bypass Cap)
-    return resolveShot(handler, lastPasser, ctx, events, currentTime, 0, false, true);
+        // Forced Shot at Buzzer/Max Passes
+        // If capped here, we must accept the TO or Force BAD SHOT?
+        // Let's accept Result (TO).
+    } // End While Loop
+
+    return resolveShot(handler, lastPasser, ctx, events, currentTime);
 }
 
 /**
@@ -334,7 +472,7 @@ function attemptDefenseRoll(defender: Player, handler: Player, ctx: PossessionCo
     // Even if formula gives 101 or 76, we clamp to minimum 88.
 
     const missing = 100 - defender.attributes.stealing;
-    let target = missing + 75;
+    let target = missing + 65; // 75 ovr -> 25 + 65 = 90 (10% chance)
 
     // Apply Modifier
     target -= modifier; // - (-60) = +60. (Target goes up, Steal chance goes down).
@@ -374,7 +512,7 @@ function attemptDefenseRoll(defender: Player, handler: Player, ctx: PossessionCo
         // In this engine, 'FOUL' type usually just ends it.
         // User implied "resets clock" on steal. Foul usually resets to 14 if non-shooting.
         // Let's return FOUL result.
-        return { events, points: 0, endType: 'FOUL', duration: ctx.timeRemaining - time };
+        return { events, points: 0, endType: 'FOUL', duration: time };
     }
 
     if (roll >= target) {
@@ -410,7 +548,7 @@ function attemptDefenseRoll(defender: Player, handler: Player, ctx: PossessionCo
                     points: 0,
                     defensivePoints: 2,
                     endType: 'TURNOVER',
-                    duration: ctx.timeRemaining - time
+                    duration: time
                 };
             }
 
@@ -463,7 +601,7 @@ function attemptDefenseRoll(defender: Player, handler: Player, ctx: PossessionCo
                         points: 0,
                         defensivePoints: 2,
                         endType: 'TURNOVER',
-                        duration: ctx.timeRemaining - time
+                        duration: time
                     };
                 }
             }
@@ -479,59 +617,26 @@ function attemptDefenseRoll(defender: Player, handler: Player, ctx: PossessionCo
 }
 
 
-function selectBallHandler(lineup: Player[], strategy: TeamStrategy): Player {
+function selectBallHandler(lineup: Player[], ctx: PossessionContext): Player {
+    const usageNorms = calculateUsageLineup(lineup);
     let bestPlayer = lineup[0];
     let maxWeight = -1;
 
     lineup.forEach(p => {
-        // FLATTENED WEIGHTS (Round 10 Fix):
-        // Previous: Handling*1.5 + Playmaking + Bonuses = ~300+ vs 200.
-        // New: Handling*0.8 + Playmaking*0.8 + Flat Base.
+        // Lineup-Aware Usage (Point 4)
+        const baseUsage = usageNorms[p.id];
 
-        let weight = (p.attributes.ballHandling * 0.8) + (p.attributes.playmaking * 0.8) + 50;
+        // Decision Accuracy (Point 5)
+        const decisionAcc = calculateDecisionAccuracy(p, ctx);
 
-        const attr = p.attributes;
-        const isPlaymaker = attr.playmaking > 85;
-        const isSlasher = attr.finishing > 85 && attr.athleticism > 80;
-        const isShooter = attr.threePointShot > 85;
-        // Strength doesn't exist, use InteriorDefense as proxy for "Big Man Strength"
-        const isInteriorForce = attr.interiorDefense > 85 && attr.finishing > 85;
+        // Weight: Base Usage * Decision Accuracy * 100
+        let weight = baseUsage * decisionAcc * 100;
 
-        // --- INTELLIGENT HANDLER SELECTION ---
+        // Position bias
+        if (p.position === 'PG') weight += 5;
+        if (p.position === 'SG') weight += 2;
 
-        // 1. Playmakers (Primary Role)
-        if (isPlaymaker) weight += 15; // Reduced from 25
-
-        // 2. Elite Slashers (Secondary Role)
-        if (isSlasher && attr.ballHandling > 75) weight += 10; // Reduced from 15
-
-        // 3. Star Gravity (The "Give me the ball" factor)
-        // Capped severely to prevent 70% usage
-        if (p.overall > 85) weight += 2; // Reduced from 5
-        if (p.overall > 90) weight += 3; // Reduced from 5 (Total +5 max)
-
-        // 4. Scorer Gravity
-        if (isShooter || isInteriorForce) weight += 3; // Reduced from 5
-
-        // 5. Penalize pure Interior Forces (Centers) bringing it up
-        if (isInteriorForce && attr.ballHandling < 65) weight -= 50; // Increased penalty
-
-        // 6. SKILL BASED INITIATION (The "Giannis Rule")
-        // Elite Handlers (Kyrie/Steph/Luka/Giannis) -> The "System"
-        if (attr.ballHandling > 85) weight += 20; // Reduced from 30
-        else if (attr.ballHandling > 75) weight += 10; // Reduced from 15
-
-        // Secondary Playmakers (Connecting Forward/Guard)
-        if (attr.playmaking > 80) weight += 7; // Reduced from 10
-
-        // TIE BREAKER: Position is still relevant for "Default", but weak.
-        if (p.position === 'PG') weight += 5; // Reduced from 10
-        if (p.position === 'SG') weight += 3; // Reduced from 5
-
-        // INCREASE VARIANCE: Prevent Heliocentric dominance
-        // New: Random(550). Was Random(400).
-        // This allows a role player to beat a Star even more often to spread the ball.
-        const roll = Math.random() * 550;
+        const roll = Math.random() * 50;
         if ((weight + roll) > maxWeight) {
             maxWeight = weight + roll;
             bestPlayer = p;
@@ -608,185 +713,68 @@ export function selectReceiver(handler: Player, ctx: PossessionContext, lastPass
 
 
 export function decideAction(handler: Player, ctx: PossessionContext, territory: Territory = '3PT'): ActionType {
-    // 1. FLOW OFFENSE CHECK (Coaching System)
-    // "Not every possession allows the handler to Iso".
-    // We enforce ball movement on a percentage of plays regardless of who has the ball.
-    // Exception: Late Clock (< 6 seconds).
-    const isLateClock = (ctx.shotClock || 24) < 6;
-    const flowPassChance = 0.25; // Reduced from 45% to allow tendencies to matter more
+    // 1. DECISION ACCURACY (Point 5)
+    const accuracy = calculateDecisionAccuracy(handler, ctx);
 
-    // If not late clock, roll for System Compliance
-    if (!isLateClock && Math.random() < flowPassChance) {
-        // Force a PASS (unless no teammate is open, handled by fallback)
-        return checkPassingOptions(handler, ctx) || 'PASS';
+    // CHAOS EVENT: If decision roll is very low, possible turnover (Chaos Point 18)
+    if (Math.random() > accuracy - 0.05) {
+        // "Oops" moment - backcourt, travel, double dribble
+        return 'TURNOVER' as any; // Hack: PossessionEngine expects ActionType, but we can return special type if we handle it
     }
 
-    // 2. USAGE CAP CHECK (Safety Net)
-    if (!checkUsageCap(handler, ctx)) {
-        // STRICT: If capped, FORCE a simple pass. 
-        // Do NOT allow Pick & Roll (which is a play call that leads to usage).
-        return 'PASS';
-    }
-
-    // --- TENDENCY SYSTEM v2 ---
-    // User Requirement: Use tendencies to determine intent, keeping stars grounded.
+    // 2. TENDENCY SYSTEM v2 (Point 11)
     const t = calculateTendencies(handler, handler.minutes, ctx.offenseLineup);
 
-    // NEW: Know Your Role (Hybrid Fix)
-    // If player has poor offensive skills, force them to defer more often.
-    // "Don't shoot unless it's a dunk" - effectively lowers usage for defensive centers.
-    if (handler.attributes.finishing < 75 && handler.attributes.threePointShot < 70 && handler.attributes.midRange < 70) {
-        // Significant reduction in desire to score
-        t.shooting *= 0.4;
-        // Boost desire to pass
-        t.passing *= 1.4;
-    }
-
-    // Intent Generation (Independent Rolls allow "Dual Threat")
+    // Intent Generation
     const scoreRoll = Math.random() * 100;
     const passRoll = Math.random() * 100;
-    // --- OFFENSIVE FOCUS IMPACT ---
-    const focus = ctx.offenseStrategy.offensiveFocus || 'Balanced';
+
+    const focus = ctx.offenseStrategy.offensiveFocus;
     const focusBonuses = FOCUS_BONUSES[focus] || FOCUS_BONUSES['Balanced'];
 
-    // Adjust Intent Rolls based on Focus
-    const shootBias = focusBonuses.shot || 1.0;
-    const passBias = focusBonuses.pass || 1.0;
-
-    const wantsToScore = scoreRoll < (t.shooting * shootBias);
-    const wantsToPass = passRoll < (t.passing * passBias);
+    const wantsToScore = scoreRoll < (t.shooting * (focusBonuses.shot || 1.0));
+    const wantsToPass = passRoll < (t.passing * (focusBonuses.pass || 1.0));
 
     // DETERMINATION
     let intent: 'SCORE' | 'PASS' = 'PASS';
-
     if (wantsToScore && wantsToPass) {
-        // Dual threat scenario: Weight by tendency strength instead of 50/50
-        // Example: 83 passing vs 72 shooting → 53.5% pass, 46.5% score
-        const scoreWeight = t.shooting * shootBias;
-        const passWeight = t.passing * passBias;
-        const totalWeight = scoreWeight + passWeight;
-
-        intent = Math.random() < (passWeight / totalWeight) ? 'PASS' : 'SCORE';
+        intent = Math.random() < 0.5 ? 'PASS' : 'SCORE';
     } else if (wantsToScore) {
         intent = 'SCORE';
     } else if (wantsToPass) {
         intent = 'PASS';
-    } else {
-        // Passive: Default to pass
-        intent = 'PASS';
     }
 
-    // --- EXECUTION ---
-
-    // 3. GRAVITY & SINGLE/DOUBLE COVERAGE (Physics Check)
-    // If player wants to score, checks if defense collapses.
-    if (intent === 'SCORE') {
-        const maxOffense = Math.max(handler.attributes.finishing, handler.attributes.threePointShot, handler.attributes.midRange);
-        const threatLevel = (t.shooting + maxOffense) / 2;
-
-        // Stars (Threat > 80) draw attention
-        if (threatLevel > 80) {
-            // Chance of Defense Collapsing (Gravity)
-            // Increased from 30% to 35% to generate more kickout assists for teammates
-            const doubleTeamChance = 0.35;
-
-            if (Math.random() < doubleTeamChance) {
-                // "Defense Collapses"
-                // The Shot becomes Bad (Contested), The Pass becomes Good (Kickout)
-                // We override their Scoring Intent to a PASS.
-                // This simulates the Star driving, drawing help, and kicking out.
-                // It lowers their FGA but INCREASES stats for teammates (Assists/Open Shots).
-                return checkPassingOptions(handler, ctx) || 'PASS';
-            }
-        }
-    }
-
-    // 4. SCORING EXECUTION
+    // 3. DEFENSIVE COLLAPSE / GRAVITY (Point 14)
     if (intent === 'SCORE') {
         const defender = ctx.defenseLineup.find(p => p.position === handler.position) || ctx.defenseLineup[0];
-        const perimeterDef = defender.attributes.perimeterDefense;
+        const margin = calculateAdvantageMargin(handler, defender, ctx);
 
-        // Determine MODE based on Inside/Outside Tendencies
-        // Normalize range
-        const totalPref = t.inside + t.outside; // e.g. 70 + 90 = 160
-        let outsideRatio = totalPref > 0 ? (t.outside / totalPref) : 0.5;
-
-        // CRITICAL FIX: Respect Territory
-        // If we are already in FINISHING territory (caught ball near rim), we shouldn't pop out to shoot.
-        if (territory === 'FINISHING') {
-            outsideRatio = 0.05; // 95% chance to stay inside
+        // High Advantage -> High Gravity
+        if (margin > 15 && Math.random() < 0.4) {
+            // Defense collapses to stop the blow-by
+            return 'KICK_OUT';
         }
-
-        if (Math.random() < outsideRatio) {
-            // TARGET: PERIMETER (Shoot 3/Mid)
-            // HARD CAP CHECK: User Request "62 Mid Range"
-            // If they are looking to shoot Mid-Range (or 3PT which falls back), check ratings.
-            // If they are bad at both, DO NOT SHOOT.
-            const mid = handler.attributes.midRange;
-            const three = handler.attributes.threePointShot;
-
-            if (mid < 62 && three < 62) {
-                // Cant shoot either. Abort to Drive or Pass.
-                // Fall through to Drive Check
-            } else {
-                // Physics Check: Can he get the shot off?
-                const attRating = handler.attributes.threePointShot;
-
-                // "Weak Defense" Bonus (Att > Def)
-                if (attRating > perimeterDef) {
-                    return 'SHOOT'; // Clean look
-                }
-                // "Strong Defense": Contested.
-                if (t.shooting > 90 && Math.random() < 0.3) return 'SHOOT';
-            }
-        }
-
-        // TARGET: DRIVE (Inside)
-        // Physics Check: Blow-by
-        const driveRating = (handler.attributes.playmaking + handler.attributes.ballHandling) / 2;
-
-        if (driveRating > perimeterDef) {
-            // Beat the perimeter defender.
-            // Now facing help logic (Mid Range vs Rim)
-            const bigs = ctx.defenseLineup.filter(p => p.position === 'C' || p.position === 'PF');
-            const helpDefender = bigs.length > 0 ? bigs[Math.floor(Math.random() * bigs.length)] : defender;
-            const interiorDef = helpDefender.attributes.interiorDefense;
-
-            // Decision: Pull-up or Rim?
-            if (handler.attributes.finishing > interiorDef) return 'DRIVE'; // Rim
-            else {
-                // FALLBACK FIX: If locked up inside, don't force a bad jumper.
-                // Only shoot if they are decent at mid-range.
-                if (handler.attributes.midRange > 62) return 'SHOOT';
-                return 'PASS';
-            }
-        }
-
-        // BULLY BALL LOGIC (C/PF Fallback)
-        // If speed drive fails, check for Strength/Post-Up drive.
-        // Proxies: Strength ~ InteriorDefense. 
-        if (handler.position === 'C' || handler.position === 'PF') {
-            const bullyRating = (handler.attributes.finishing * 0.7) + (handler.attributes.interiorDefense * 0.3);
-            // Defended by whom? If stuck on perimeter, it's the perimeter defender's strength (IntDef).
-            // Usually bigs guard bigs, so we check defender's IntDef.
-            const defenderStrength = defender.attributes.interiorDefense;
-
-            // Advantage check (Needs +5 advantage to force it)
-            if (bullyRating > defenderStrength + 5) {
-                // Success! He bullies his way to the rim.
-                return 'DRIVE';
-            }
-        }
-
-        // If blocked on both checks: Reset to Pass
     }
 
-    // 2. PASSING INTENT (or Failed Score)
-    // Check for High Value Passes first
-    const playmakingAction = checkPassingOptions(handler, ctx);
-    if (playmakingAction) return playmakingAction;
+    // 4. EXECUTION
+    if (intent === 'SCORE') {
+        // Determine MODE based on Territory and Ratings
+        if (territory === 'FINISHING') return 'CATCH_AND_FINISH'; // Was DRIVE, which wiped assists.
 
-    return 'PASS'; // Safe Recycle
+        const shoot3 = handler.attributes.threePointShot;
+        const shootMid = handler.attributes.midRange;
+
+        if (shoot3 > shootMid && shoot3 >= 60) return 'SHOOT';
+        if (shootMid >= 62) return 'SHOOT';
+
+        return 'DRIVE';
+    }
+
+    // Faciliation
+    if (handler.attributes.playmaking > 80 && Math.random() < 0.3) return 'PICK_AND_ROLL';
+
+    return 'PASS';
 }
 
 // Helper for Step 3 (Passing)
@@ -904,7 +892,7 @@ function createTurnover(player: Player, ctx: PossessionContext, events: GameEven
         gameTime: time,
         possessionId: time
     });
-    return { events, points: 0, endType: 'TURNOVER', duration: ctx.timeRemaining - time };
+    return { events, points: 0, endType: 'TURNOVER', duration: time };
 }
 
 function createSteal(victim: Player, thief: Player, ctx: PossessionContext, events: GameEvent[], time: number): PossessionResult {
@@ -919,7 +907,7 @@ function createSteal(victim: Player, thief: Player, ctx: PossessionContext, even
         gameTime: time,
         possessionId: time
     });
-    return { events, points: 0, endType: 'TURNOVER', duration: ctx.timeRemaining - time };
+    return { events, points: 0, endType: 'TURNOVER', duration: time };
 }
 
 // Forced Shot at Buzzer/Max Passes
@@ -935,107 +923,66 @@ function createSteal(victim: Player, thief: Player, ctx: PossessionContext, even
 // } // End simulatePossession
 
 
-export function resolveShot(shooter: Player, assister: Player | undefined, ctx: PossessionContext, events: GameEvent[], time: number, bonusPercent: number = 0, driveDunkChance: boolean = false, ignoreCap: boolean = false, isCatchAndFinish: boolean = false): PossessionResult {
+export function resolveShot(
+    shooter: Player,
+    assister: Player | undefined,
+    ctx: PossessionContext,
+    events: GameEvent[],
+    time: number,
+    externalBonus: number = 0,
+    isDrive: boolean = false,
+    isCatchAndFinish: boolean = false
+): PossessionResult {
     const attr = shooter.attributes;
 
-    // USAGE CAP CHECK (Final Gate)
-    if (!ignoreCap && !checkUsageCap(shooter, ctx)) {
-        events.push({
-            id: `evt_${Date.now()}_cap_defer`, // ID used by loop to trigger pass
-            type: 'turnover', // Pseudo-turnover
-            text: `(Cap Reached for ${shooter.lastName})`,
-            teamId: ctx.offenseTeam.id,
-            gameTime: time,
-            possessionId: time
-        });
-        return {
-            events,
-            points: 0,
-            endType: 'TURNOVER',
-            duration: 0,
-            keepPossession: true
-        };
-    }
-
-
-    // --- SHOT TYPE DETERMINATION (Probabilistic) ---
-    // We already rolled intent in decideAction, but resolveShot needs to execute it.
-    // We re-roll here to determine the specific OUTCOME type if it wasn't a forced drive.
-
-    // If driveDunkChance is passed (from Drive action), we stick to it.
-    // If not, we decide 3PT vs Mid based on the 35/65 rule AND attributes.
-
+    // 1. Determine Shot Type & Territory
     let isThree = false;
+    let isMid = false;
+    let isRim = isDrive || isCatchAndFinish;
 
-    if (!driveDunkChance) {
-        // Roll for 3PT Intent
-        // Base 35% * Skill Modifier.
-        const skillMod = Math.max(0, (attr.threePointShot - 50) / 40);
+    if (!isRim) {
+        // Roll for 3PT Intent (Point 2)
+        const focus = ctx.offenseStrategy.offensiveFocus;
+        let threeFreq = 0.28 + (attr.threePointShot - 50) * 0.0035;
+        if (focus === 'Perimeter') threeFreq += 0.10;
+        if (focus === 'Inside') threeFreq -= 0.10;
 
-        // OFFENSIVE FOCUS: Perimeter focus significantly boosts 3PT rate.
-        const focus = ctx.offenseStrategy.offensiveFocus || 'Balanced';
-        let baseThreeChance = 0.35;
-        if (focus === 'Perimeter') baseThreeChance = 0.48;
-        if (focus === 'Inside') baseThreeChance = 0.22;
-
-        const threeChance = baseThreeChance * (0.5 + skillMod);
-
-        if (Math.random() < threeChance) {
-            isThree = true;
-        }
-
-        // 3PT HARD CAP (User Request: "Under 55 NEVER SHOOT A 3")
-        // Even if the roll succeeds (due to base chance), we forbid it.
-        // They step in for a long 2 instead.
-        if (attr.threePointShot < 55) {
-            isThree = false;
-        }
+        isThree = Math.random() < threeFreq && attr.threePointShot >= 55;
+        isMid = !isThree;
     }
 
-    // Shot Ratings
-    let shotRating = isThree ? attr.threePointShot : attr.midRange;
-    if (driveDunkChance) shotRating = attr.finishing;
+    // 2. Base Probability (Point 3 - Sigmoid Curves)
+    let baseProb = 0;
+    if (isRim) baseProb = BASE_SUCCESS.RIM(attr.finishing);
+    else if (isThree) baseProb = BASE_SUCCESS.THREE(attr.threePointShot);
+    else baseProb = BASE_SUCCESS.MID(attr.midRange);
 
-    // ASSIST DECAY (User Request: "Lower assists a bit")
-    // Not every pass leading to a score is an assist. NBA Rule: "Basketball Move" wipes assist.
-    // We simulate this based on Shot Type.
+    // 3. Advantage & Containment (Point 7)
+    const defender = ctx.defenseLineup.find(p => p.position === shooter.position) || ctx.defenseLineup[0];
+    const margin = calculateAdvantageMargin(shooter, defender, ctx) + externalBonus;
+
+    // 4. Shot Quality (Point 8)
+    // Estimate help: if it's a rim shot, more help
+    const helpImpact = isRim ? 15 : 0;
+    const contest = (defender.attributes.perimeterDefense + (isRim ? defender.attributes.interiorDefense : 0)) / 2;
+
+    const qualityMod = calculateShotQuality(margin, contest, helpImpact, shooter, ctx);
+
+    // 5. Final Make Probability (Point 9 - Gaussian Variance)
+    let finalProb = calculateFinalMakeProb(baseProb, qualityMod, ctx.gameVariance);
+
+    // Assisted Bonus
     if (assister) {
-        let keepAssistChance = 1.0;
-
-        if (driveDunkChance) {
-            // FIX: Catch & Finish (Dump-off) vs ISO Drive
-            if (isCatchAndFinish) {
-                keepAssistChance = 0.95; // Assisted Dunk/Layup (High retention)
-            } else {
-                keepAssistChance = 0.4; // ISO Drive (Low retention)
-            }
-        } else if (!isThree) {
-            keepAssistChance = 0.5; // Mid-range is often Pull-up (50% unassisted)
-        } else {
-            keepAssistChance = 0.95; // 3PT is mostly Catch & Shoot (5% unassisted)
-        }
-
-        // Context Modifiers
-        // Bad passes force receiver to ISO -> Wipes assist
-        if (assister.attributes.playmaking < 60) keepAssistChance -= 0.3;
-
-        // Elite passes lead directly to score -> Keeps assist
-        if (assister.attributes.playmaking > 85) keepAssistChance += 0.2;
-
-        // Roll
-        if (Math.random() > keepAssistChance) {
-            assister = undefined; // Assist Wiped (Self-Created Score)
-        }
+        const dimerBonus = Math.max(0, (assister.attributes.playmaking - 60) * 0.003);
+        finalProb += dimerBonus;
     }
 
-    // --- FOUL LOGIC ---
-    // TUNING: Reduced Foul Rates to increase FGA flow (User Request: 90-100 FGA)
-    let foulChance = 0.05; // Was 0.12
-    if (driveDunkChance) foulChance += 0.08; // Was 0.15 (Total 13%)
-    if (shooter.overall > 90) foulChance += 0.04; // Was 0.05
+    // --- EXECUTION ---
 
+    // Foul Check (Point 13)
+    let foulChance = 0.06;
+    if (isRim) foulChance += 0.08;
     if (Math.random() < foulChance) {
-        // ... Foul Execution (Simplified for Brevity - keeping logic) ...
         const fouler = ctx.defenseLineup[Math.floor(Math.random() * ctx.defenseLineup.length)];
         events.push({
             id: `evt_${Date.now()}_foul`,
@@ -1047,139 +994,42 @@ export function resolveShot(shooter: Player, assister: Player | undefined, ctx: 
             gameTime: time,
             possessionId: time
         });
-        const isAndOne = Math.random() < 0.25;
-        if (!isAndOne) {
-            const numShots = isThree ? 3 : 2;
-            return resolveFreeThrows(shooter, numShots, ctx, events, time);
-        }
+        return resolveFreeThrows(shooter, isThree ? 3 : 2, ctx, events, time);
     }
 
-    // ... Block Logic Unchanged ...
-    if (driveDunkChance || !isThree) {
-        // Chance to interact with bigs
+    // Block Check (Point 13)
+    if (isRim || isMid) {
         const blockers = ctx.defenseLineup.filter(p => p.position === 'C' || p.position === 'PF');
-        const blocker = blockers.length > 0 ? blockers[Math.floor(Math.random() * blockers.length)] : ctx.defenseLineup[0];
+        const blocker = blockers[Math.floor(Math.random() * blockers.length)] || defender;
+        const blockScore = (blocker.attributes.blocking * 0.6) + (blocker.attributes.interiorDefense * 0.4);
 
-        // Block Synergy: Block*0.5 + IntDef*0.3 + Ath*0.2
-        const blockScore = (blocker.attributes.blocking * 0.5) + (blocker.attributes.interiorDefense * 0.3) + (blocker.attributes.athleticism * 0.2);
-
-        if (blocker && blockScore > 60) {
-            // REDUCED BLOCK CHANCE (Was /800, now /400 to boost blocks)
-            const blockChance = (blockScore - 50) / 400;
-            if (Math.random() < blockChance) {
-                // BLOCKED
-                // 1. Credit Block to Defender
-                events.push({
-                    id: `evt_${Date.now()}_block_stat`,
-                    type: 'block',
-                    text: `${blocker.lastName} BLOCKS ${shooter.lastName}!`,
-                    teamId: ctx.defenseTeam.id,
-                    playerId: blocker.id,
-                    secondaryPlayerId: shooter.id,
-                    gameTime: time,
-                    possessionId: time
-                });
-
-                // 2. Assign Miss to Shooter (at Rim)
-                events.push({
-                    id: `evt_${Date.now()}_block_miss`,
-                    type: 'shot_miss',
-                    text: ``, // Text handled by block event usually, or duplicate? Let's leave empty or generic
-                    teamId: ctx.offenseTeam.id,
-                    playerId: shooter.id,
-                    gameTime: time,
-                    possessionId: time,
-                    subType: (shooter.attributes.athleticism > 50 && Math.random() < 0.5) ? 'DUNK' : 'LAYUP' // Blocks usually at rim
-                });
-                return resolveRebound(ctx, events, time);
-            }
-        }
-    }
-
-
-    // --- EFFICIENCY / MAKE CHANCE ---
-    const defense = 50;
-
-    // Formula: (Rating * Factor) - Defense
-    // We want 3PT to be ~35-40% and 2PT to be ~50-60%.
-
-    let chance = 0;
-
-    if (driveDunkChance) {
-        // INSIDE: High Percentage (Boosted to 50 for scoring balance)
-        const skillBonus = (shotRating - 70) * 0.5;
-        chance = 50 + skillBonus + bonusPercent;
-        if (chance < 45) chance = 45; // Raised Floor from 35% to 45% (Hybrid Fix)
-        if (chance > 75) chance = 75;
-    } else if (isThree) {
-        // 3PT: Lower Percentage
-        // Soft cap with diminishing returns (no hard wall)
-        const skillBonus = (shotRating - 70) * 0.8;
-        chance = 25 + skillBonus + bonusPercent;
-        if (chance < 20) chance = 20;
-        // Soft cap: 42% + 40% of excess (allows elite shooters to reach ~45-46%)
-        if (chance > 42) {
-            const excess = chance - 42;
-            chance = 42 + (excess * 0.4);
-        }
-    } else {
-        // MID-RANGE: Middle Percentage
-        const skillBonus = (shotRating - 70) * 0.6;
-        chance = 36 + skillBonus + bonusPercent; // Was 40 (Suggestion 3 compensation)
-        if (chance < 30) chance = 30;
-        if (chance > 70) chance = 70;
-    }
-
-    // Star Bonus: Stars hit tougher shots
-    if (shooter.overall > 90) chance += 5;
-
-    // DIMER BONUS (Creative Assist)
-    // Smoothed bonus to help "OK" playmakers contribute
-    if (assister) {
-        // Scale: 60 PM -> 0%, 80 PM -> 6%, 100 PM -> 12%
-        // Formula: (PM - 60) * 0.3
-        const pm = assister.attributes.playmaking;
-        const bonus = Math.max(0, (pm - 60) * 0.3);
-        chance += bonus;
-    }
-
-    // GLOBAL NERF: 10% reduction to final percentage (Suggestion 3 - Was 20% to reduce miss volume)
-    chance *= 0.9;
-
-    // SAGGING OFF (Defense vs Non-Shooters)
-    // If player can't shoot 3s, the defense camps the paint.
-    // SAGGING OFF (Defense vs Non-Shooters)
-    // If player can't shoot 3s, the defense camps the paint.
-    // FIX: Do NOT apply if it's a Drive/Dunk (Rim attempt). They are already at the rim.
-    // Only apply to Jumpshots (Mid-Range) where the sag makes the shot harder (contested).
-    if (!driveDunkChance && !isThree && attr.threePointShot < 60) {
-        const sagPenalty = (60 - attr.threePointShot) / 2; // Up to -15% penalty
-        chance -= sagPenalty;
-        if (Math.random() < 0.1) { // Visual feedback via event text
+        const blockChance = Math.max(0, (blockScore - 60) / 450); // Reduced from 200 to 450 for realism
+        if (Math.random() < blockChance) {
             events.push({
-                id: `evt_${Date.now()}_sag_penalty`,
-                type: 'action',
-                text: `Defense sags off ${shooter.lastName}, forcing a tough interior look.`,
+                id: `evt_${Date.now()}_block`,
+                type: 'block',
+                text: `${blocker.lastName} rejects ${shooter.lastName}'s shot!`,
                 teamId: ctx.defenseTeam.id,
+                playerId: blocker.id,
+                secondaryPlayerId: shooter.id,
                 gameTime: time,
                 possessionId: time
             });
+            events.push({
+                id: `evt_${Date.now()}_miss_blk`,
+                type: 'shot_miss',
+                text: `${shooter.lastName} is blocked.`,
+                teamId: ctx.offenseTeam.id,
+                playerId: shooter.id,
+                gameTime: time,
+                possessionId: time,
+                subType: isRim ? 'LAYUP' : 'MID_RANGE'
+            });
+            return resolveRebound(ctx, events, time);
         }
     }
 
-    // CAP CHANCE
-    if (chance > 95) chance = 95;
-    if (chance < 15) chance = 15; // Floor raised from 5
-
-    // Duplicate Usage Cap Logic Removed.
-    // Handled at start of function via checkUsageCap(shooter, ctx) which respects ignoreCap.
-
-    const roll = Math.random() * 100;
-    const isMake = roll < chance;
-
-    // DEBUG SHOT LOGIC
-    // if (isThree) console.log(`[SHOT] ${shooter.lastName} 3PT | Chance: ${chance.toFixed(1)}% | Roll: ${roll.toFixed(1)} | Make: ${isMake}`);
-
+    const isMake = Math.random() < finalProb;
     const points = isThree ? 3 : 2;
 
     if (isMake) {
@@ -1193,25 +1043,9 @@ export function resolveShot(shooter: Player, assister: Player | undefined, ctx: 
             score: points,
             gameTime: time,
             possessionId: time,
-            subType: isThree ? 'THREE_POINT' : (driveDunkChance ? ((shooter.attributes.athleticism > 60 && Math.random() < 0.5) ? 'DUNK' : 'LAYUP') : 'MID_RANGE')
+            subType: isThree ? 'THREE_POINT' : (isRim ? (Math.random() < 0.3 ? 'DUNK' : 'LAYUP') : 'MID_RANGE')
         });
-
-        // AND-ONE CHECK (If we had a foul logic that passed through)
-        // For now, simple random And-1 on makes
-        if (Math.random() < 0.03) { // 3% of makes are And-1s
-            events.push({
-                id: `evt_${Date.now()}_and1`,
-                type: 'foul',
-                text: `And one! ${shooter.lastName} heads to the line.`,
-                teamId: ctx.defenseTeam.id,
-                playerId: ctx.defenseLineup[0].id, // Random fouler
-                gameTime: time,
-                possessionId: time
-            });
-            return resolveFreeThrows(shooter, 1, ctx, events, time, true); // 1 FT, Keep Points
-        }
-
-        return { events, points, endType: 'SCORE', duration: ctx.timeRemaining - time };
+        return { events, points, endType: 'SCORE', duration: time };
     } else {
         events.push({
             id: `evt_${Date.now()}_miss`,
@@ -1221,7 +1055,7 @@ export function resolveShot(shooter: Player, assister: Player | undefined, ctx: 
             playerId: shooter.id,
             gameTime: time,
             possessionId: time,
-            subType: isThree ? 'THREE_POINT' : (driveDunkChance ? 'LAYUP' : 'MID_RANGE')
+            subType: isThree ? 'THREE_POINT' : (isRim ? 'LAYUP' : 'MID_RANGE')
         });
         return resolveRebound(ctx, events, time);
     }
@@ -1286,7 +1120,7 @@ function resolveFreeThrows(shooter: Player, count: number, ctx: PossessionContex
 
     // For now, Auto-End possession on FTs unless we want to simulate rebound.
     // Let's just give points and end. (Simulates make or Def Rebound implicitly for flow)
-    return { events, points: made, endType: 'SCORE', duration: ctx.timeRemaining - time };
+    return { events, points: made, endType: 'SCORE', duration: time };
 }
 
 export function resolveRebound(ctx: PossessionContext, events: GameEvent[], time: number): PossessionResult {
@@ -1311,7 +1145,7 @@ export function resolveRebound(ctx: PossessionContext, events: GameEvent[], time
             events,
             points: 0,
             endType: 'MISS',
-            duration: ctx.timeRemaining - time,
+            duration: time,
             keepPossession: !isDef
         };
     }
@@ -1349,9 +1183,9 @@ export function resolveRebound(ctx: PossessionContext, events: GameEvent[], time
     ctx.offenseLineup.forEach(p => {
         let skill = p.attributes.offensiveRebound;
 
-        // COMPRESSION + OFFENSE DIFFICULTY (Reduced from +20 to +10 to allow Off Rebels to win)
+        // COMPRESSION + OFFENSE DIFFICULTY (+20 to make it significantly harder than defense)
         // This forces teams to have GOOD defensive rebounders, otherwise they lose the board.
-        let threshold = ((100 - skill) * 1.0 + 15) + 10;
+        let threshold = ((100 - skill) * 1.0 + 15) + 20;
 
         // O-REBOUND CAP (lowered from 6 to 4 for faster pace)
         if (ctx.getStats) {
@@ -1410,7 +1244,7 @@ export function resolveRebound(ctx: PossessionContext, events: GameEvent[], time
         events,
         points: 0,
         endType: 'MISS',
-        duration: ctx.timeRemaining - time,
+        duration: time,
         keepPossession: !isDefReb
     };
 }
