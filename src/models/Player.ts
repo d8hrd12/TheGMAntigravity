@@ -38,6 +38,10 @@ export interface SeasonStats {
     threeAttempted: number;
     ftMade: number;
     ftAttempted: number;
+    rimMade: number;
+    rimAttempted: number;
+    midRangeMade: number;
+    midRangeAttempted: number;
     plusMinus: number;
 }
 

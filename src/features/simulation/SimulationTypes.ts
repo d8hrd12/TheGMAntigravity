@@ -57,6 +57,10 @@ export interface PlayerStats {
     fgAttempted: number;
     threeMade: number;
     threeAttempted: number;
+    rimMade: number;
+    rimAttempted: number;
+    midRangeMade: number;
+    midRangeAttempted: number;
     ftMade: number;
     ftAttempted: number;
     rebounds: number;

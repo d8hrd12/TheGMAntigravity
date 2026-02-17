@@ -841,7 +841,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0,
                             steals: 0, blocks: 0, turnovers: 0, fouls: 0, plusMinus: 0,
                             fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0,
-                            ftMade: 0, ftAttempted: 0, offensiveRebounds: 0, defensiveRebounds: 0
+                            ftMade: 0, ftAttempted: 0, offensiveRebounds: 0, defensiveRebounds: 0,
+                            rimMade: 0, rimAttempted: 0, midRangeMade: 0, midRangeAttempted: 0
                         }
                     };
                 });
@@ -1836,18 +1837,37 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 expiringPlayers.sort((a, b) => calculateOverall(b) - calculateOverall(a));
 
                 expiringPlayers.forEach(player => {
-                    // Logic: Sign if Good or Needed
                     const ovr = calculateOverall(player);
                     const isStar = ovr >= 85;
                     const isStarter = ovr >= 78;
                     const isYoung = player.age < 24 && ovr >= 70;
 
-                    let shouldSign = false;
-                    // Always re-sign Stars if Cash permits (Bird Rights allow Cap exceeding)
-                    if (isStar || (isStarter && team.rosterIds.length < 15)) {
-                        shouldSign = true;
+                    // NEW: Intent Logic - Players who "Want Out" (low morale or poor team success) may refuse
+                    const teamSuccess = team.wins / (Math.max(1, team.wins + team.losses));
+                    const happiness = player.morale || 80;
+
+                    let wantsOut = false;
+                    if (happiness < 60 || teamSuccess < 0.4) {
+                        wantsOut = true;
                     }
-                    if (isYoung && Math.random() > 0.3) shouldSign = true;
+
+                    let shouldSign = false;
+
+                    if (wantsOut) {
+                        // If they want out, they usually refuse (e.g., 75% chance to refuse)
+                        // But Stars (ovr > 88) are harder to lose if morale isn't ABSOLUTELY terrible
+                        const refuseChance = (happiness < 40) ? 0.9 : 0.7;
+                        if (Math.random() > refuseChance) {
+                            shouldSign = true; // Rare case where they stay despite wanting out
+                        }
+                    } else {
+                        // Standard Decision Logic
+                        // Always re-sign Stars if Cash permits
+                        if (isStar || (isStarter && team.rosterIds.length < 15)) {
+                            shouldSign = true;
+                        }
+                        if (isYoung && Math.random() > 0.3) shouldSign = true;
+                    }
 
                     if (shouldSign) {
                         const contractNeeds = generateContract(player, prev.date.getFullYear());
@@ -2452,7 +2472,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             steals: 0, blocks: 0, turnovers: 0, fouls: 0,
                             offensiveRebounds: 0, defensiveRebounds: 0,
                             fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0,
-                            ftMade: 0, ftAttempted: 0, plusMinus: 0
+                            ftMade: 0, ftAttempted: 0, plusMinus: 0,
+                            rimMade: 0, rimAttempted: 0, midRangeMade: 0, midRangeAttempted: 0
                         };
 
                         postTradePlayers[pIdx] = {
@@ -2475,7 +2496,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
                                 threeAttempted: current.threeAttempted + stat.threeAttempted,
                                 ftMade: current.ftMade + stat.ftMade,
                                 ftAttempted: current.ftAttempted + stat.ftAttempted,
-                                plusMinus: current.plusMinus + stat.plusMinus
+                                plusMinus: current.plusMinus + stat.plusMinus,
+                                rimMade: (current.rimMade || 0) + stat.rimMade,
+                                rimAttempted: (current.rimAttempted || 0) + stat.rimAttempted,
+                                midRangeMade: (current.midRangeMade || 0) + stat.midRangeMade,
+                                midRangeAttempted: (current.midRangeAttempted || 0) + stat.midRangeAttempted
                             }
                         };
                     }
@@ -2697,7 +2722,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             seasonStats: {
                                 gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0,
                                 turnovers: 0, offensiveRebounds: 0, defensiveRebounds: 0, fouls: 0,
-                                fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0, ftMade: 0, ftAttempted: 0, plusMinus: 0
+                                fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0, ftMade: 0, ftAttempted: 0, plusMinus: 0,
+                                rimMade: 0, rimAttempted: 0, midRangeMade: 0, midRangeAttempted: 0
                             },
                             playoffStats: undefined, // Clear for next season
                             injury: undefined // Heal all injuries for offseason
@@ -3196,7 +3222,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                                     gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0,
                                     steals: 0, blocks: 0, turnovers: 0, fouls: 0, plusMinus: 0,
                                     fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0,
-                                    ftMade: 0, ftAttempted: 0, offensiveRebounds: 0, defensiveRebounds: 0
+                                    ftMade: 0, ftAttempted: 0, offensiveRebounds: 0, defensiveRebounds: 0,
+                                    rimMade: 0, rimAttempted: 0, midRangeMade: 0, midRangeAttempted: 0
                                 };
 
                                 statePlayers[pIndex] = {
@@ -3219,7 +3246,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
                                         ftAttempted: (currentStats.ftAttempted || 0) + (stat.ftAttempted || 0),
                                         offensiveRebounds: (currentStats.offensiveRebounds || 0) + (stat.offensiveRebounds || 0),
                                         defensiveRebounds: (currentStats.defensiveRebounds || 0) + (stat.defensiveRebounds || 0),
-                                        fouls: (currentStats.fouls || 0) + (stat.personalFouls || 0)
+                                        fouls: (currentStats.fouls || 0) + (stat.personalFouls || 0),
+                                        rimMade: (currentStats.rimMade || 0) + (stat.rimMade || 0),
+                                        rimAttempted: (currentStats.rimAttempted || 0) + (stat.rimAttempted || 0),
+                                        midRangeMade: (currentStats.midRangeMade || 0) + (stat.midRangeMade || 0),
+                                        midRangeAttempted: (currentStats.midRangeAttempted || 0) + (stat.midRangeAttempted || 0)
                                     }
                                 };
                             }

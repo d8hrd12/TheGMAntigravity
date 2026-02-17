@@ -86,7 +86,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
     };
 
-    const [viewMode, setViewMode] = React.useState<'Average' | 'Total'>('Average');
+    const [viewMode, setViewMode] = React.useState<'Average' | 'Total' | 'Distribution'>('Average');
     const [careerMode, setCareerMode] = React.useState<'Regular' | 'Playoff'>('Regular');
     const [statsView, setStatsView] = React.useState<'Skills' | 'Development'>('Skills');
     const [viewDraftHistoryYear, setViewDraftHistoryYear] = React.useState<number | null>(null);
@@ -345,22 +345,73 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                             >
                                 Totals
                             </button>
+                            <button
+                                onClick={() => setViewMode('Distribution')}
+                                style={{
+                                    background: viewMode === 'Distribution' ? 'var(--primary)' : 'transparent',
+                                    color: viewMode === 'Distribution' ? '#fff' : 'var(--text-secondary)',
+                                    border: 'none',
+                                    borderRadius: '18px',
+                                    padding: '4px 12px',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Shot Dist
+                            </button>
                         </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '15px 10px', textAlign: 'center', background: 'var(--surface-active)', padding: '15px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                        <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{ppg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'PTS' : 'TPTS'}</div></div>
-                        <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{apg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'AST' : 'TAST'}</div></div>
-                        <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{rpg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'REB' : 'TREB'}</div></div>
-                        <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{mpg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>MIN</div></div>
-                        <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{spg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'STL' : 'TSTL'}</div></div>
-                        <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{bpg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'BLK' : 'TBLK'}</div></div>
-                        <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{topg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'TO' : 'TTO'}</div></div>
+                    {viewMode === 'Distribution' ? (
+                        <div style={{ background: 'var(--surface-glass)', padding: '15px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(100px, 1fr) 1fr 1fr 1fr', borderBottom: '1px solid var(--border)', paddingBottom: '8px', marginBottom: '8px', fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                                <div style={{ textAlign: 'left' }}>Zone</div>
+                                <div>Made</div>
+                                <div>Att</div>
+                                <div>Pct</div>
+                            </div>
+                            {[
+                                { label: 'Rim', made: stats.rimMade || 0, att: stats.rimAttempted || 0, color: '#e74c3c' },
+                                { label: 'Mid-Range', made: stats.midRangeMade || 0, att: stats.midRangeAttempted || 0, color: '#f1c40f' },
+                                { label: '3-Point', made: stats.threeMade || 0, att: stats.threeAttempted || 0, color: '#3498db' },
+                            ].map((zone) => {
+                                const pct = zone.att > 0 ? ((zone.made / zone.att) * 100).toFixed(1) : '0.0';
+                                const totalShots = (stats.fgAttempted || 1);
+                                const frequency = ((zone.att / totalShots) * 100).toFixed(0);
 
-                        <div><div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text)' }}>{fgDisplay}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>FG</div></div>
-                        <div><div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text)' }}>{threeDisplay}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>3PT</div></div>
-                        <div><div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text)' }}>{ftDisplay}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>FT</div></div>
-                    </div>
+                                return (
+                                    <div key={zone.label} style={{ display: 'grid', gridTemplateColumns: 'minmax(100px, 1fr) 1fr 1fr 1fr', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem', alignItems: 'center' }}>
+                                        <div style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: zone.color }}></div>
+                                            <span style={{ fontWeight: 'bold' }}>{zone.label}</span>
+                                            <span style={{ fontSize: '0.7rem', opacity: 0.5 }}>({frequency}%)</span>
+                                        </div>
+                                        <div style={{ color: 'var(--text)' }}>{zone.made}</div>
+                                        <div style={{ color: 'var(--text)' }}>{zone.att}</div>
+                                        <div style={{ fontWeight: 'bold', color: parseFloat(pct) >= 50 ? 'var(--primary--text)' : 'var(--text)' }}>{pct}%</div>
+                                    </div>
+                                );
+                            })}
+                            <div style={{ marginTop: '10px', fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic', textAlign: 'center' }}>
+                                Total FG%: {((stats.fgMade / (stats.fgAttempted || 1)) * 100).toFixed(1)}%
+                            </div>
+                        </div>
+                    ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '15px 10px', textAlign: 'center', background: 'var(--surface-active)', padding: '15px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                            <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{ppg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'PTS' : 'TPTS'}</div></div>
+                            <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{apg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'AST' : 'TAST'}</div></div>
+                            <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{rpg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'REB' : 'TREB'}</div></div>
+                            <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{mpg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>MIN</div></div>
+                            <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{spg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'STL' : 'TSTL'}</div></div>
+                            <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{bpg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'BLK' : 'TBLK'}</div></div>
+                            <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{topg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'TO' : 'TTO'}</div></div>
+
+                            <div><div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text)' }}>{fgDisplay}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>FG</div></div>
+                            <div><div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text)' }}>{threeDisplay}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>3PT</div></div>
+                            <div><div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text)' }}>{ftDisplay}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>FT</div></div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Chart Section with Toggle */}
@@ -689,6 +740,6 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 };

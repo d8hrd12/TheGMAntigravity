@@ -52,13 +52,16 @@ export const UpcomingFreeAgentsModal: React.FC<UpcomingFreeAgentsModalProps> = (
 
                 if (happiness > 90 && teamSuccess > 0.55) {
                     intent = 'Likely to Resign';
-                    intentColor = '#34c759';
+                    intentColor = '#34c759'; // Green
+                } else if (happiness < 40) {
+                    intent = 'Demands Exit';
+                    intentColor = '#b00020'; // Dark Red
                 } else if (happiness < 60 || teamSuccess < 0.4) {
                     intent = 'Wants Out';
-                    intentColor = '#ff3b30';
+                    intentColor = '#ff3b30'; // Red
                 } else {
                     intent = 'Testing Market';
-                    if (ovr > 85) intentColor = '#ff9f0a';
+                    if (ovr > 85) intentColor = '#ff9f0a'; // Orange (Stars testing market)
                 }
 
                 return { ...p, team, ovr, intent, intentColor };

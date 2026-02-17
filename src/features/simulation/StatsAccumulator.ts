@@ -45,6 +45,10 @@ export class StatsAccumulator {
             fgAttempted: 0,
             threeMade: 0,
             threeAttempted: 0,
+            rimMade: 0,
+            rimAttempted: 0,
+            midRangeMade: 0,
+            midRangeAttempted: 0,
             ftMade: 0,
             ftAttempted: 0,
             rebounds: 0,
@@ -118,11 +122,18 @@ export class StatsAccumulator {
                 stats.fgMade++;
                 stats.fgAttempted++;
                 stats.consecutiveFieldGoalsMade++;
-                if (ev.score === 3) {
-                    // console.error(`[STATS] 3PT COUNTED for ${stats.name}`);
+
+                if (ev.subType === "THREE_POINT") {
                     stats.threeMade++;
                     stats.threeAttempted++;
+                } else if (ev.subType === "MID_RANGE") {
+                    stats.midRangeMade++;
+                    stats.midRangeAttempted++;
+                } else if (ev.subType === "LAYUP" || ev.subType === "DUNK") {
+                    stats.rimMade++;
+                    stats.rimAttempted++;
                 }
+
                 if (secondaryStats) {
                     secondaryStats.assists++;
                 }
@@ -130,9 +141,15 @@ export class StatsAccumulator {
             case "shot_miss":
                 stats.fgAttempted++;
                 stats.consecutiveFieldGoalsMade = 0;
-                if (ev.subType === "three_point") {
+
+                if (ev.subType === "THREE_POINT") {
                     stats.threeAttempted++;
+                } else if (ev.subType === "MID_RANGE") {
+                    stats.midRangeAttempted++;
+                } else if (ev.subType === "LAYUP" || ev.subType === "DUNK") {
+                    stats.rimAttempted++;
                 }
+
                 if (secondaryStats && ev.subType === "blocked") {
                     secondaryStats.blocks++;
                 }
