@@ -662,49 +662,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 }
             });
 
-            // REAL DRAFT CLASS INJECTION (Fix for Expansion Mode)
-            // If we are starting an expansion mode, we must ensure the 2025 class is loaded like in Standard Mode
+            // DRAFT CLASS GENERATION (Ensures enough prospects for all teams)
             let initialDraftClass: Player[] = [];
-            if (expansionConfig) {
-                console.log("GameContext: Injecting Real 2025 Draft Class for Expansion Mode...");
-                // Manually define the top prospects to match "Ready Team" mode
-                const realProspects = [
-                    { name: "Cooper Flagg", pos: "PF", height: 206, weight: 98, ovr: 82, pot: 99, school: "Duke" },
-                    { name: "Ace Bailey", pos: "SF", height: 203, weight: 95, ovr: 80, pot: 97, school: "Rutgers" },
-                    { name: "Dylan Harper", pos: "PG", height: 198, weight: 93, ovr: 79, pot: 95, school: "Rutgers" },
-                    { name: "V.J. Edgecombe", pos: "SG", height: 196, weight: 88, ovr: 78, pot: 94, school: "Baylor" },
-                    { name: "Tre Johnson", pos: "SG", height: 198, weight: 84, ovr: 77, pot: 93, school: "Texas" },
-                    { name: "Drake Powell", pos: "SF", height: 201, weight: 91, ovr: 76, pot: 91, school: "UNC" },
-                    { name: "Ian Jackson", pos: "SG", height: 193, weight: 86, ovr: 76, pot: 90, school: "UNC" },
-                    { name: "Khaman Maluach", pos: "C", height: 218, weight: 113, ovr: 75, pot: 92, school: "Duke" }, // 7'2"
-                    { name: "Hugo Gonzalez", pos: "SF", height: 198, weight: 93, ovr: 75, pot: 90, school: "Real Madrid" },
-                    { name: "Liam McNeeley", pos: "SF", height: 201, weight: 95, ovr: 74, pot: 89, school: "UConn" }
-                ];
-
-                realProspects.forEach(rp => {
-                    const p = generatePlayer(rp.pos as any, 'starter');
-                    p.id = generateUUID();
-                    p.firstName = rp.name.split(' ')[0];
-                    p.lastName = rp.name.split(' ').slice(1).join(' ');
-                    p.age = 19;
-                    p.height = rp.height;
-                    p.weight = rp.weight;
-                    p.overall = rp.ovr;
-                    p.potential = rp.pot;
-                    p.teamId = null; // Draft Class
-                    // Ensure attributes match OVR roughly
-                    p.attributes.finishing = rp.ovr;
-                    p.attributes.midRange = rp.ovr - 5;
-                    p.attributes.threePointShot = rp.ovr - 5;
-                    p.attributes.perimeterDefense = rp.ovr;
-                    p.attributes.athleticism = rp.ovr + 5;
-                    initialDraftClass.push(p);
-                });
-
-                // Fill the rest with generics (Total 70 for 31 Teams * 2 Rounds = 62)
-                for (let i = 0; i < 60; i++) {
-                    initialDraftClass.push(generatePlayer(undefined, Math.random() > 0.8 ? 'bench' : 'prospect'));
-                }
+            console.log("GameContext: Generating Draft Class (70 Prospects)...");
+            // Generate a full class to ensure no shortages (62 picks needed for 31 teams)
+            for (let i = 0; i < 70; i++) {
+                const type = i < 15 ? 'starter' : (i < 40 ? 'bench' : 'prospect');
+                initialDraftClass.push(generatePlayer(undefined, type));
             }
 
             // Handle Realistic Expansion Pool Generation
