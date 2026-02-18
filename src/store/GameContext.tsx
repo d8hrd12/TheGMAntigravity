@@ -624,6 +624,33 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
             // 3. Assign Players to Teams
             let updatedPlayers = [...players];
+            // BACKFILL LOGIC: Ensure every team has at least 14 players before Expansion Logic runs
+            // This fixes the "Expansion Draft only has 60 players" bug if CSV rosters are small (e.g. 10 players)
+            teams.forEach(t => {
+                const teamPlayers = updatedPlayers.filter(p => p.teamId === t.id);
+                if (teamPlayers.length < 14) {
+                    const needed = 14 - teamPlayers.length;
+                    console.log(`[StartGame] Backfilling ${t.name} with ${needed} players.`);
+                    for (let i = 0; i < needed; i++) {
+                        // Generate Bench/Prospect level players
+                        const p = generatePlayer(undefined, Math.random() > 0.7 ? 'bench' : 'prospect');
+                        p.teamId = t.id;
+                        updatedPlayers.push(p);
+
+                        // Generate contract for them too
+                        contracts.push({
+                            id: `cont_${p.id}`,
+                            playerId: p.id,
+                            teamId: t.id,
+                            amount: 1000000 + Math.floor(Math.random() * 2000000), // 1-3M
+                            yearsLeft: 1 + Math.floor(Math.random() * 2), // 1-2 years
+                            startYear: 2024,
+                            role: 'Bench'
+                        });
+                    }
+                }
+            });
+
             updatedPlayers.forEach(player => {
                 const team = teams.find(t => t.id === player.teamId);
                 if (!team) return;
@@ -634,6 +661,51 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     team.rosterIds.push(player.id);
                 }
             });
+
+            // REAL DRAFT CLASS INJECTION (Fix for Expansion Mode)
+            // If we are starting an expansion mode, we must ensure the 2025 class is loaded like in Standard Mode
+            let initialDraftClass: Player[] = [];
+            if (expansionConfig) {
+                console.log("GameContext: Injecting Real 2025 Draft Class for Expansion Mode...");
+                // Manually define the top prospects to match "Ready Team" mode
+                const realProspects = [
+                    { name: "Cooper Flagg", pos: "PF", height: 206, weight: 98, ovr: 82, pot: 99, school: "Duke" },
+                    { name: "Ace Bailey", pos: "SF", height: 203, weight: 95, ovr: 80, pot: 97, school: "Rutgers" },
+                    { name: "Dylan Harper", pos: "PG", height: 198, weight: 93, ovr: 79, pot: 95, school: "Rutgers" },
+                    { name: "V.J. Edgecombe", pos: "SG", height: 196, weight: 88, ovr: 78, pot: 94, school: "Baylor" },
+                    { name: "Tre Johnson", pos: "SG", height: 198, weight: 84, ovr: 77, pot: 93, school: "Texas" },
+                    { name: "Drake Powell", pos: "SF", height: 201, weight: 91, ovr: 76, pot: 91, school: "UNC" },
+                    { name: "Ian Jackson", pos: "SG", height: 193, weight: 86, ovr: 76, pot: 90, school: "UNC" },
+                    { name: "Khaman Maluach", pos: "C", height: 218, weight: 113, ovr: 75, pot: 92, school: "Duke" }, // 7'2"
+                    { name: "Hugo Gonzalez", pos: "SF", height: 198, weight: 93, ovr: 75, pot: 90, school: "Real Madrid" },
+                    { name: "Liam McNeeley", pos: "SF", height: 201, weight: 95, ovr: 74, pot: 89, school: "UConn" }
+                ];
+
+                realProspects.forEach(rp => {
+                    const p = generatePlayer(rp.pos as any, 'starter');
+                    p.id = generateUUID();
+                    p.firstName = rp.name.split(' ')[0];
+                    p.lastName = rp.name.split(' ').slice(1).join(' ');
+                    p.age = 19;
+                    p.height = rp.height;
+                    p.weight = rp.weight;
+                    p.overall = rp.ovr;
+                    p.potential = rp.pot;
+                    p.teamId = null; // Draft Class
+                    // Ensure attributes match OVR roughly
+                    p.attributes.finishing = rp.ovr;
+                    p.attributes.midRange = rp.ovr - 5;
+                    p.attributes.threePointShot = rp.ovr - 5;
+                    p.attributes.perimeterDefense = rp.ovr;
+                    p.attributes.athleticism = rp.ovr + 5;
+                    initialDraftClass.push(p);
+                });
+
+                // Fill the rest with generics (Total 70 for 31 Teams * 2 Rounds = 62)
+                for (let i = 0; i < 60; i++) {
+                    initialDraftClass.push(generatePlayer(undefined, Math.random() > 0.8 ? 'bench' : 'prospect'));
+                }
+            }
 
             // Handle Realistic Expansion Pool Generation
             if (expansionConfig) {
@@ -758,7 +830,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 isPotentialRevealed: false,
                 awardsHistory: [],
                 activeMerchCampaigns: [],
-                draftClass: [],
+                draftClass: initialDraftClass, // Use the injected class if expansion, else empty
                 draftOrder: [], // Will be set on init
                 draftResults: [],
                 draftHistory: {},
@@ -2708,7 +2780,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         postTradePlayers[pIdx] = {
                             ...p,
                             seasonStats: {
-                                gamesPlayed: current.gamesPlayed + 1,
+                                gamesPlayed: current.gamesPlayed + (stat.minutes > 0 ? 1 : 0),
                                 minutes: current.minutes + stat.minutes,
                                 points: current.points + stat.points,
                                 rebounds: current.rebounds + stat.rebounds,
@@ -2716,7 +2788,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                                 steals: current.steals + stat.steals,
                                 blocks: current.blocks + stat.blocks,
                                 turnovers: current.turnovers + stat.turnovers,
-                                fouls: current.fouls + stat.personalFouls,
+                                fouls: (current.fouls || 0) + stat.personalFouls,
                                 offensiveRebounds: current.offensiveRebounds + stat.offensiveRebounds,
                                 defensiveRebounds: current.defensiveRebounds + stat.defensiveRebounds,
                                 fgMade: current.fgMade + stat.fgMade,
