@@ -1,6 +1,7 @@
 import { simulateMatchII as simulateMatch } from './MatchEngineII';
 import type { Team } from '../../models/Team';
 import type { Player } from '../../models/Player';
+import type { Coach } from '../../models/Coach';
 import type { MatchResult, BoxScore, GameEvent, PlayerStats, TeamRotationData } from './SimulationTypes';
 import { StatsAccumulator } from './StatsAccumulator';
 
@@ -44,7 +45,17 @@ export class LiveGameEngine {
     private allPlayers: Player[];
     private accumulator: StatsAccumulator;
 
-    constructor(home: Team, away: Team, homeRoster: Player[], awayRoster: Player[], date: Date, userTeamId?: string, existingResult?: MatchResult) {
+    constructor(
+        home: Team,
+        away: Team,
+        homeRoster: Player[],
+        awayRoster: Player[],
+        date: Date,
+        homeCoach?: Coach,
+        awayCoach?: Coach,
+        userTeamId?: string,
+        existingResult?: MatchResult
+    ) {
         this.allPlayers = [...homeRoster, ...awayRoster];
 
         const buildRotation = (roster: Player[]) => {
@@ -68,12 +79,19 @@ export class LiveGameEngine {
         const homeRotation = buildRotation(homeRoster);
         const awayRotation = buildRotation(awayRoster);
 
-        // 1. Pre-Simulate OR Use Existing
         if (existingResult) {
             this.matchResult = existingResult;
         } else {
             this.matchResult = simulateMatch({
-                homeTeam: home, awayTeam: away, homeRoster, awayRoster, date, userTeamId, isInteractive: true
+                homeTeam: home,
+                awayTeam: away,
+                homeRoster,
+                awayRoster,
+                homeCoach,
+                awayCoach,
+                date,
+                userTeamId,
+                isInteractive: true
             });
         }
         this.allEvents = this.matchResult!.events;
@@ -138,35 +156,15 @@ export class LiveGameEngine {
     tick() {
         if (this.state.isPaused || this.state.isFinished) return;
 
-        // Advance time
-        // 1 second per tick * speed.
-        // Or smaller increments for smoothness? 
-        // For Step 9, 1s steps is robust.
-
         const dt = 1; // 1 second
         this.state.timeRemaining -= dt;
 
-        // Possession Clock (Derived)
-        // If event set shot clock, use it? Or decrement?
-        // "UI clock must be derived from event.gameTime".
-        // But shot clock? SimEngine doesn't emit shot clock updates every second.
-        // We can just mock decrement it.
         this.state.shotClock -= dt;
         if (this.state.shotClock < 0) this.state.shotClock = 24; // Reset visual if needed
 
         // Consume Events
         while (this.eventCursor < this.allEvents.length) {
             const ev = this.allEvents[this.eventCursor];
-
-            // Check if it's time to show this event
-            // timeRemaining counts down.
-            // If timeRemaining <= ev.gameTime, we passed it?
-            // E.g. Current=2870. Event=2875. (Event is in past relative to game flow? No)
-            // Time counts 2880 -> 0.
-            // Event at 2875.
-            // Current 2876. 2876 > 2875. Wait.
-            // Current 2875. Process.
-            // Current 2874. Process event at 2875 (if missed).
 
             if (this.state.timeRemaining <= ev.gameTime) {
                 // Process Event

@@ -98,7 +98,7 @@ const lightenColor = (col: string, amt: number) => {
 
 
 function AppContent() {
-  const { isInitialized, isFirstSeasonPaid, teams, players, executeTrade, draftClass, draftOrder, handleDraftPick, simulateNextPick, simulateToUserPick, endDraft, signFreeAgent, negotiateContract, signPlayerWithContract, endFreeAgency, games, seasonPhase, contracts, updateRotation, updateCoachSettings, updateRotationSchedule, acceptTradeOffer, rejectTradeOffer, tradeOffer, userTeamId, isSimulating, isProcessing, date, tradeHistory, salaryCap, awardsHistory, retiredPlayersHistory, stopSimulation, advanceDay, currentSaveSlot, saveGame, startRegularSeason, startPlayoffs, news, liveGameData, startLiveGameFn, endLiveGameFn, tutorialFlags, setHasSeenNewsTutorial, simTarget, setGameState, paySalaries, isTrainingCampComplete } = useGame();
+  const { isInitialized, isFirstSeasonPaid, teams, players, coaches, executeTrade, draftClass, draftOrder, handleDraftPick, simulateNextPick, simulateToUserPick, endDraft, signFreeAgent, negotiateContract, signPlayerWithContract, endFreeAgency, endCoachFreeAgency, games, seasonPhase, contracts, updateRotation, updateCoachSettings, updateRotationSchedule, acceptTradeOffer, rejectTradeOffer, tradeOffer, userTeamId, isSimulating, isProcessing, date, tradeHistory, salaryCap, awardsHistory, retiredPlayersHistory, stopSimulation, advanceDay, currentSaveSlot, saveGame, startRegularSeason, startPlayoffs, news, liveGameData, startLiveGameFn, endLiveGameFn, tutorialFlags, setHasSeenNewsTutorial, simTarget, setGameState, paySalaries, isTrainingCampComplete } = useGame();
 
   // Unified Navigation State
   interface NavState {
@@ -500,6 +500,7 @@ function AppContent() {
       return <TeamManagementView
         players={players}
         team={userTeam}
+        coaches={coaches}
         onBack={() => setView('dashboard')}
         onSelectPlayer={setSelectedPlayerId}
         onSaveRotation={(updates) => {
@@ -551,6 +552,63 @@ function AppContent() {
       return <RetiredPlayersSummaryView onSelectPlayer={setSelectedPlayerId} />;
     }
 
+    if (seasonPhase === 'coach_free_agency') {
+      const freeAgentCoaches = coaches.filter(c => !c.teamId);
+      const userTeam = teams.find(t => t.id === userTeamId);
+      const userCoach = coaches.find(c => c.id === userTeam?.coachId && c.teamId === userTeamId);
+      return (
+        <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+          <h2 style={{ color: 'var(--text-primary)', marginBottom: '8px' }}>🏀 Coach Free Agency</h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}
+          >Review available coaches before the player free agency period begins. AI teams will automatically hire coaches they need.</p>
+
+          {userCoach ? (
+            <div style={{ background: 'var(--surface)', borderRadius: '12px', padding: '16px', marginBottom: '20px', border: '1px solid var(--border)' }}>
+              <h3 style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>Your Current Coach</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{userCoach.firstName} {userCoach.lastName}</div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{userCoach.style} • {userCoach.contract.yearsRemaining} yr{userCoach.contract.yearsRemaining !== 1 ? 's' : ''} remaining</div>
+                </div>
+                <div style={{ display: 'flex', gap: '16px', textAlign: 'center' }}>
+                  <div><div style={{ color: '#3498db', fontWeight: 'bold', fontSize: '1.2rem' }}>{userCoach.rating.offense}</div><div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>OFF</div></div>
+                  <div><div style={{ color: '#e74c3c', fontWeight: 'bold', fontSize: '1.2rem' }}>{userCoach.rating.defense}</div><div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>DEF</div></div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div style={{ background: 'rgba(231,76,60,0.1)', border: '1px solid #e74c3c', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
+              <p style={{ color: '#e74c3c', margin: 0 }}>⚠️ Your team has no head coach! Hire one from the free agent pool below.</p>
+            </div>
+          )}
+
+          <h3 style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>Available Coaches ({freeAgentCoaches.length})</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px', maxHeight: '40vh', overflowY: 'auto' }}>
+            {freeAgentCoaches.sort((a, b) => (b.rating.offense + b.rating.defense) - (a.rating.offense + a.rating.defense)).map(coach => (
+              <div key={coach.id} style={{ background: 'var(--surface)', borderRadius: '10px', padding: '14px 16px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontWeight: 'bold' }}>{coach.firstName} {coach.lastName}</div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>{coach.style}</div>
+                </div>
+                <div style={{ display: 'flex', gap: '16px', textAlign: 'center' }}>
+                  <div><div style={{ color: '#3498db', fontWeight: 'bold' }}>{coach.rating.offense}</div><div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>OFF</div></div>
+                  <div><div style={{ color: '#e74c3c', fontWeight: 'bold' }}>{coach.rating.defense}</div><div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>DEF</div></div>
+                  <div><div style={{ color: '#f1c40f', fontWeight: 'bold' }}>{coach.rating.talentDevelopment}</div><div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>DEV</div></div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={endCoachFreeAgency}
+            style={{ width: '100%', padding: '14px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer' }}
+          >
+            Continue to Player Re-Signing →
+          </button>
+        </div>
+      );
+    }
+
     if (seasonPhase === 'resigning') {
       return <ResigningView
         onSelectPlayer={setSelectedPlayerId}
@@ -594,12 +652,13 @@ function AppContent() {
     if (view === 'team_history') {
       const team = teams.find(t => t.id === userTeamId);
       if (!team) return <div>Error: Team not found</div>;
-      return <TeamHistoryView team={team} onBack={() => setView('stats')} />;
+      return <TeamHistoryView team={team} onBack={() => setView('stats')} onSelectPlayer={setSelectedPlayerId} />;
     }
 
     if (view === 'league_history') {
-      return <LeagueHistoryView onBack={() => setView('stats')} />;
+      return <LeagueHistoryView onBack={() => setView('stats')} onSelectPlayer={setSelectedPlayerId} />;
     }
+
 
     if (view === ('dev_tools' as any)) {
       return (
@@ -634,6 +693,8 @@ function AppContent() {
           awayTeam={liveGameData.away}
           homeRoster={players.filter(p => p.teamId === liveGameData.home.id)}
           awayRoster={players.filter(p => p.teamId === liveGameData.away.id)}
+          homeCoach={coaches.find(c => c.teamId === liveGameData.home.id)}
+          awayCoach={coaches.find(c => c.teamId === liveGameData.away.id)}
           onGameEnd={endLiveGameFn}
           userTeamId={userTeamId}
           date={liveGameData.date}

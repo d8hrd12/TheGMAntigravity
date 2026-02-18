@@ -65,6 +65,7 @@ export interface Team {
     history: { year: number; wins: number; losses: number; playoffResult?: string; }[];
 
     // Strategy
+    coachId?: string;
     tactics?: import('../features/simulation/TacticsTypes').TeamStrategy;
     // coachSettings?: CoachStrategy; // DEPRECATED
 }

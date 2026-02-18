@@ -4,11 +4,14 @@ import type { Team, RotationSegment } from '../../models/Team';
 import type { TeamStrategy } from '../simulation/TacticsTypes';
 import { RotationView } from './RotationView';
 import { CoachSettingsView } from './CoachSettingsView';
-import { Users, Settings } from 'lucide-react';
+import { Users, Settings, User } from 'lucide-react';
+import type { Coach } from '../../models/Coach';
+import { CoachPreview } from './CoachPreview';
 
 interface TeamManagementViewProps {
     players: Player[];
     team: Team;
+    coaches: Coach[];
     onBack: () => void;
     onSelectPlayer: (playerId: string) => void;
     onSaveRotation: (updates: { id: string, minutes: number, isStarter: boolean, rotationIndex?: number }[]) => void;
@@ -24,12 +27,14 @@ import { SegmentedControl } from '../../components/ui/SegmentedControl';
 export const TeamManagementView: React.FC<TeamManagementViewProps> = ({
     players,
     team,
+    coaches,
     onBack,
     onSelectPlayer,
     onSaveRotation,
     onSaveStrategy,
     onSaveSchedule
 }) => {
+    const activeCoach = coaches.find(c => c.teamId === team.id);
     const [activeTab, setActiveTab] = useState<'rotation' | 'strategy'>('rotation');
 
     // Shared Tab Styles
@@ -95,11 +100,19 @@ export const TeamManagementView: React.FC<TeamManagementViewProps> = ({
                 )}
 
                 {activeTab === 'strategy' && (
-                    <CoachSettingsView
-                        team={team}
-                        onBack={onBack}
-                        onSave={onSaveStrategy}
-                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '0 20px' }}>
+                        {activeCoach && (
+                            <div style={{ marginTop: '10px' }}>
+                                <h4 style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>Personnel</h4>
+                                <CoachPreview coach={activeCoach} />
+                            </div>
+                        )}
+                        <CoachSettingsView
+                            team={team}
+                            onBack={onBack}
+                            onSave={onSaveStrategy}
+                        />
+                    </div>
                 )}
             </div>
         </div>

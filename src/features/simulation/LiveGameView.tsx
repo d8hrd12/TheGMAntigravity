@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import type { Team } from '../../models/Team';
 import type { Player } from '../../models/Player';
+import type { Coach } from '../../models/Coach';
 import { LiveGameEngine } from './LiveGameEngine';
 import type { LiveGameState } from './LiveGameEngine';
 import { Play, Pause, FastForward, User, ArrowLeftRight, Clock, ArrowLeft } from 'lucide-react';
@@ -10,12 +11,14 @@ interface LiveGameViewProps {
     awayTeam: Team;
     homeRoster: Player[];
     awayRoster: Player[];
+    homeCoach?: Coach;
+    awayCoach?: Coach;
     onGameEnd: (result: any) => void;
     userTeamId: string;
     date: Date;
 }
 
-export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, homeRoster, awayRoster, onGameEnd, userTeamId, date }) => {
+export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, homeRoster, awayRoster, homeCoach, awayCoach, onGameEnd, userTeamId, date }) => {
 
     // Engine Instance
     const engineRef = useRef<LiveGameEngine | null>(null);
@@ -99,7 +102,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
 
     // Initialize Engine
     useEffect(() => {
-        engineRef.current = new LiveGameEngine(homeTeam, awayTeam, homeRoster, awayRoster, date, userTeamId);
+        engineRef.current = new LiveGameEngine(homeTeam, awayTeam, homeRoster, awayRoster, date, homeCoach, awayCoach, userTeamId);
         const unsubscribe = engineRef.current.subscribe(setGameState);
         return () => { unsubscribe(); };
     }, []);

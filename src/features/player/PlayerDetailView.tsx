@@ -672,16 +672,39 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                                 </thead>
                                 <tbody>
                                     {player.careerStats
-                                        .filter(s => careerMode === 'Playoff' ? (s.isPlayoffs === true) : (!s.isPlayoffs))
+                                        .filter(s => careerMode === 'Playoff'
+                                            ? (s.isPlayoffs === true)
+                                            : (!s.isPlayoffs))
                                         .map((stat, idx) => {
                                             const team = teams.find(t => t.id === stat.teamId);
                                             const gp = stat.gamesPlayed || 1;
                                             const isAvg = viewMode === 'Average';
+                                            const isPoRow = stat.isPlayoffs === true;
+                                            const isSplit = stat.isTradeSplit === true;
+
+                                            // Season label
+                                            const seasonLabel = isPoRow
+                                                ? `P.O.s ${stat.season}`
+                                                : String(stat.season);
 
                                             return (
-                                                <tr key={idx} style={{ borderBottom: '1px solid var(--border)' }}>
-                                                    <td style={{ padding: '8px', whiteSpace: 'nowrap' }}>{stat.season}</td>
-                                                    <td style={{ padding: '8px' }}>{team ? team.abbreviation : 'UNK'}</td>
+                                                <tr key={idx} style={{
+                                                    borderBottom: '1px solid var(--border)',
+                                                    background: isSplit ? 'rgba(243,156,18,0.05)' : isPoRow ? 'rgba(52,152,219,0.05)' : 'transparent'
+                                                }}>
+                                                    <td style={{ padding: '8px', whiteSpace: 'nowrap' }}>
+                                                        <span style={{ color: isPoRow ? '#f1c40f' : 'var(--text)', fontWeight: isPoRow ? 700 : 'normal' }}>
+                                                            {seasonLabel}
+                                                        </span>
+                                                        {isSplit && (
+                                                            <span style={{
+                                                                marginLeft: '5px', fontSize: '0.6rem', fontWeight: 700,
+                                                                background: 'rgba(243,156,18,0.2)', color: '#f39c12',
+                                                                padding: '1px 5px', borderRadius: '4px', verticalAlign: 'middle'
+                                                            }}>TRADE</span>
+                                                        )}
+                                                    </td>
+                                                    <td style={{ padding: '8px' }}>{team ? team.abbreviation : stat.teamId === 'FA' ? 'FA' : 'UNK'}</td>
                                                     <td style={{ padding: '8px' }}>{stat.gamesPlayed}</td>
                                                     <td style={{ padding: '8px' }}>{isAvg ? (stat.points / gp).toFixed(1) : stat.points}</td>
                                                     <td style={{ padding: '8px' }}>{isAvg ? (stat.assists / gp).toFixed(1) : stat.assists}</td>
@@ -711,6 +734,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                                                 </tr>
                                             );
                                         })}
+
                                 </tbody>
                             </table>
                         </div>

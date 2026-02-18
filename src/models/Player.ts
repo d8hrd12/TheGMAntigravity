@@ -53,6 +53,7 @@ export interface CareerStat extends SeasonStats {
     teamId: string;
     overall?: number; // Historical OVR for development tracking
     isPlayoffs?: boolean;
+    isTradeSplit?: boolean; // true = partial season before a mid-season trade
 }
 
 export type Personality = 'Unpredictable' | 'Professional' | 'Workhorse' | 'Diva' | 'Loyalist' | 'Mercenary' | 'Enforcer' | 'Silent Leader';

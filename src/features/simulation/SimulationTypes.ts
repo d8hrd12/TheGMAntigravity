@@ -1,3 +1,7 @@
+import type { Team } from '../../models/Team';
+import type { Coach } from '../../models/Coach';
+import type { Player } from '../../models/Player';
+
 export interface GameTime {
     quarter: number;
     minute: number; // 12 down to 0
@@ -220,6 +224,8 @@ export interface MatchInput {
     awayRoster: any[];
     homeRotation?: TeamRotationData[];
     awayRotation?: TeamRotationData[];
+    homeCoach?: Coach;
+    awayCoach?: Coach;
     date: Date;
     userTeamId?: string; // To enforce strict rotation
     isInteractive?: boolean;

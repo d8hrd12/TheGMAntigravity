@@ -1,5 +1,6 @@
 import type { Team } from '../../models/Team';
 import type { Player } from '../../models/Player';
+import type { Coach } from '../../models/Coach';
 import type { MatchResult, MatchInput, TeamRotationData, GameEvent } from './SimulationTypes';
 import type { TeamStrategy, PaceType, OffensiveFocus, DefensiveStrategy } from './TacticsTypes';
 
@@ -54,6 +55,11 @@ export function determineAIStrategy(roster: Player[]): TeamStrategy {
         offensiveFocus: focus,
         defense
     };
+}
+
+interface CoachBonuses {
+    offensiveRating: number;
+    defensiveRating: number;
 }
 
 import { simulatePossession, type PossessionContext } from './PossessionEngine';
@@ -192,7 +198,7 @@ function getLineupForTime(schedule: TeamRotationData[], roster: Player[], quarte
 import { StatsAccumulator } from './StatsAccumulator';
 
 export function simulateMatchII(input: MatchInput): MatchResult {
-    const { homeTeam, awayTeam, homeRoster, awayRoster, date, userTeamId } = input;
+    const { homeTeam, awayTeam, homeRoster, awayRoster, date, userTeamId, homeCoach, awayCoach } = input;
 
     // 1. Setup Context
     const homeStrategy = homeTeam.tactics || determineAIStrategy(homeRoster);
@@ -364,7 +370,9 @@ export function simulateMatchII(input: MatchInput): MatchResult {
             getStats: (id: string) => accumulator.getStats(id),
             playerConfidence: Object.fromEntries(confidence),
             playerPressure: Object.fromEntries(pressure),
-            gameVariance: gameVariance
+            gameVariance: gameVariance,
+            offenseCoachRating: isHomeOffense ? (homeCoach?.rating.offense || 70) : (awayCoach?.rating.offense || 70),
+            defenseCoachRating: isHomeOffense ? (awayCoach?.rating.defense || 70) : (homeCoach?.rating.defense || 70)
         };
 
         // --- DYNAMIC PRESSURE CALCULATION (Point 14) ---

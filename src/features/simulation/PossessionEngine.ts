@@ -25,6 +25,8 @@ export interface PossessionContext {
     playerConfidence: Record<string, number>; // -1 to +1
     playerPressure: Record<string, number>; // 0 to 1
     gameVariance: number; // -0.05 to +0.05
+    offenseCoachRating: number;
+    defenseCoachRating: number;
 }
 
 export interface PossessionResult {
@@ -101,7 +103,8 @@ export function calculateDecisionAccuracy(player: Player, ctx: PossessionContext
     const pressure = ctx.playerPressure[player.id] || 0.5;
     const confidence = ctx.playerConfidence[player.id] || 0;
 
-    const prob = 0.60 + (iq - 50) * 0.004 - (fatigue * 0.15) - (pressure * 0.10) + (confidence * 0.05);
+    const coachBonus = (ctx.offenseCoachRating - 70) * 0.001;
+    const prob = 0.60 + (iq - 50) * 0.004 - (fatigue * 0.15) - (pressure * 0.10) + (confidence * 0.05) + coachBonus;
     return Math.min(0.92, Math.max(0.50, prob));
 }
 
@@ -141,13 +144,16 @@ export function calculateShotQuality(
     const fatigue = (100 - (player.stamina || 100)) / 100;
     const confidence = ctx.playerConfidence[player.id] || 0;
 
+    const coachBonus = (ctx.offenseCoachRating - ctx.defenseCoachRating) * 0.0005;
+
     const modifier = (advantageMargin * 0.001) -
         (contestStrength * 0.002) -
         (helpImpact * 0.001) -
         (fatigue * 0.001) +
-        (confidence * 0.002);
+        (confidence * 0.002) +
+        coachBonus;
 
-    // Range approx -0.20 to +0.15
+    // Range approx -0.25 to +0.20
     return Math.max(-0.25, Math.min(0.20, modifier));
 }
 
@@ -476,6 +482,10 @@ function attemptDefenseRoll(defender: Player, handler: Player, ctx: PossessionCo
 
     // Apply Modifier
     target -= modifier; // - (-60) = +60. (Target goes up, Steal chance goes down).
+
+    // Coach Influence: Defensive coach helps disrupt, offensive coach helps protect
+    const coachImpact = (ctx.defenseCoachRating - ctx.offenseCoachRating) * 0.2;
+    target -= coachImpact;
 
     // HARD CAP: Ensure target is at least 88 (Max 12% chance)
     // If Safety Pass, Target might be 140 (Impossible). That's fine.

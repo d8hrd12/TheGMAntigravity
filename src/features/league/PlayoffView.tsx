@@ -30,9 +30,7 @@ export const PlayoffView: React.FC<PlayoffViewProps> = ({ onNavigate, onBack }) 
     }, [maxRound]);
 
     const handleSimGame = () => {
-        if (confirm("Simulate the next game day?")) {
-            advanceDay(); // Triggers one-day/one-game simulation
-        }
+        advanceDay(); // Triggers one-day/one-game simulation
     };
 
     const handlePlayGame = () => {

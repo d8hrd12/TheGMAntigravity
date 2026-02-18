@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, type ReactNode } from 'react';
 import { simulateFreeAgencyDay } from '../features/free_agency/logic/FreeAgencyEngine';
 import type { FreeAgencyOffer } from '../features/free_agency/logic/FreeAgencyEngine';
+import type { Coach, PlayingStyle } from '../models/Coach';
 import type { Player, PlayerAttributes, CareerStat } from '../models/Player';
 import type { AwardWinner, SeasonAwards } from '../models/Awards';
 import type { Team, RotationSegment } from '../models/Team';
@@ -8,6 +9,8 @@ import type { Contract } from '../models/Contract';
 import type { DraftPick } from '../models/DraftPick';
 import type { NewsStory } from '../models/NewsStory';
 import { generatePlayer } from '../features/player/playerGenerator';
+import { generateCoach, getTacticsForStyle } from '../features/team/coachGenerator';
+import { shouldFireCoach, fireCoach, hireCoach } from '../features/team/CoachLogic';
 import { seedRealRosters } from '../features/player/rosterSeeder';
 import type { SocialMediaPost } from '../models/SocialMediaPost';
 
@@ -88,6 +91,7 @@ export interface GameState {
     players: Player[];
     teams: Team[];
     news: NewsStory[];
+    coaches: Coach[];
     userTeamId: string;
     contracts: Contract[];
     games: MatchResult[];
@@ -97,7 +101,7 @@ export interface GameState {
     draftOrder: string[];
     draftResults: DraftResult[]; // Results of current/recent draft
     draftHistory: Record<number, DraftResult[]>; // Historical results by year
-    seasonPhase: 'regular_season' | 'playoffs_r1' | 'playoffs_r2' | 'playoffs_r3' | 'playoffs_finals' | 'offseason' | 'pre_season' | 'draft' | 'draft_summary' | 'resigning' | 'free_agency' | 'retirement_summary' | 'expansion_draft' | 'scouting';
+    seasonPhase: 'regular_season' | 'playoffs_r1' | 'playoffs_r2' | 'playoffs_r3' | 'playoffs_finals' | 'offseason' | 'pre_season' | 'draft' | 'draft_summary' | 'resigning' | 'free_agency' | 'retirement_summary' | 'expansion_draft' | 'scouting' | 'coach_free_agency';
     expansionPool: Player[];
     playoffs: PlayoffSeries[];
     salaryCap: number;
@@ -184,6 +188,7 @@ interface GameContextType extends GameState {
     simulateToUserPick: () => void;
     endDraft: () => void;
     continueFromRetirements: () => void;
+    endCoachFreeAgency: () => void;
     endResigning: () => void;
     signFreeAgent: (playerId: string) => void;
     signPlayerWithContract: (playerId: string, offer: { amount: number; years: number; role: 'Star' | 'Starter' | 'Rotation' | 'Bench' | 'Prospect' }) => void;
@@ -248,6 +253,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const [gameState, setGameState] = useState<GameState>({
         players: [],
         teams: NBA_TEAMS,
+        news: [],
+        coaches: [],
         userTeamId: NBA_TEAMS[0].id,
         contracts: [],
         games: [],
@@ -279,7 +286,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
         tradeOffer: null,
         scoutingReports: {},
         isTrainingCampComplete: false,
-        news: [],
         dailyMatchups: [],
         pendingUserResult: null,
         tutorialFlags: { hasSeenNewsTutorial: false },
@@ -747,6 +753,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 }
             });
 
+            // Initialize Coaches - one per team + 20 surplus free agents
+            const initialCoaches: Coach[] = teams.map(t => {
+                const coach = generateCoach(t.id);
+                t.coachId = coach.id;
+                t.tactics = getTacticsForStyle(coach.style);
+                return coach;
+            });
+            // Add surplus free agent coaches
+            for (let i = 0; i < 20; i++) {
+                initialCoaches.push(generateCoach(null));
+            }
+
 
             // coachSettings logic removed as it's deprecated in Team model
 
@@ -786,6 +804,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 games: [],
                 date: new Date(2024, 9, 20), // Oct 20
                 salaryCap: INITIAL_SALARY_CAP,
+                coaches: initialCoaches, // Add coaches here
                 news: [],
                 isInitialized: true,
                 isPotentialRevealed: false,
@@ -830,7 +849,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
             // Initial Save if slot assigned
             if (assignedSlot) {
-                // We rely on auto-save effect or manual save. 
+                // We rely on auto-save effect or manual save.
                 // Auto-save effect might not check 'currentSaveSlot' inside strict mode immediately?
                 // Actually Effect depends on gameState, so it will trigger.
             }
@@ -842,6 +861,86 @@ export function GameProvider({ children }: { children: ReactNode }) {
             console.error("GameContext: Fatal error in startNewGame", error);
             // Ensure alert shows even if caught
             alert("Fatal Error Starting Game: " + (error instanceof Error ? error.message : String(error)));
+            throw error;
+        }
+    };
+
+    const startCustomGame = async (
+        teams: Team[],
+        players: Player[],
+        contracts: Contract[],
+        userTeamId: string,
+        difficulty: 'Easy' | 'Medium' | 'Hard',
+        initialDraftClass: Player[],
+        currentSeasonPhase: 'regular_season' | 'playoffs_r1' | 'playoffs_r2' | 'playoffs_r3' | 'playoffs_finals' | 'offseason' | 'pre_season' | 'draft' | 'draft_summary' | 'resigning' | 'free_agency' | 'retirement_summary' | 'expansion_draft' | 'scouting' | 'coach_free_agency',
+        currentExpansionPool: Player[]
+    ) => {
+        try {
+            setGameState(prev => ({ ...prev, isProcessing: true })); // Set processing flag
+
+            // Initialize Coaches for custom game
+            const initialCoaches: Coach[] = teams.map(t => {
+                const coach = generateCoach(t.id);
+                t.coachId = coach.id; // Assign coachId to the team
+                t.tactics = getTacticsForStyle(coach.style); // Assign tactics based on style
+                return coach;
+            });
+
+            setGameState({
+                teams,
+                players,
+                userTeamId,
+                contracts,
+                games: [],
+                date: new Date(2024, 9, 20), // Oct 20
+                salaryCap: 140000000,
+                coaches: initialCoaches, // Add coaches here
+                news: [],
+                isInitialized: true,
+                isPotentialRevealed: false,
+                awardsHistory: [],
+                activeMerchCampaigns: [],
+                draftClass: initialDraftClass,
+                draftOrder: [],
+                draftResults: [],
+                draftHistory: {},
+                seasonPhase: currentSeasonPhase,
+                playoffs: [],
+                transactions: [],
+                messages: [],
+                trainingSettings: {},
+                trainingReport: null,
+                isTrainingCampComplete: false,
+                expansionPool: currentExpansionPool,
+                isSimulating: false,
+                tradeHistory: [],
+                tradeOffer: null,
+                settings: {
+                    difficulty,
+                    showLoveForTheGame: true
+                },
+                currentSaveSlot: null, // Custom games don't auto-assign a slot
+                retiredPlayersHistory: [],
+                scoutingPoints: {},
+                scoutingReports: {},
+                dailyMatchups: [],
+                pendingUserResult: null,
+                tutorialFlags: { hasSeenNewsTutorial: false },
+                isProcessing: false,
+                socialMediaPosts: [],
+                seasonGamesPlayed: 0,
+                isFirstSeasonPaid: true,
+                activeOffers: [],
+                freeAgencyDay: 1
+            });
+
+            setGameState(prev => applyRealWorldTrades(prev));
+
+            console.log("GameContext: Custom Game State set.");
+            setSimTarget('none');
+        } catch (error) {
+            console.error("GameContext: Fatal error in startCustomGame", error);
+            alert("Fatal Error Starting Custom Game: " + (error instanceof Error ? error.message : String(error)));
             throw error;
         }
     };
@@ -1193,12 +1292,36 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 return c;
             });
 
-            // 2. Update Players
+            // 2. Update Players — snapshot stats before resetting (split stats)
+            const EMPTY_SEASON_STATS = {
+                gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0,
+                steals: 0, blocks: 0, turnovers: 0, fouls: 0,
+                offensiveRebounds: 0, defensiveRebounds: 0,
+                fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0,
+                ftMade: 0, ftAttempted: 0, plusMinus: 0,
+                rimMade: 0, rimAttempted: 0, rimAssisted: 0,
+                midRangeMade: 0, midRangeAttempted: 0, midRangeAssisted: 0,
+                threePointAssisted: 0
+            };
+
             const updatedPlayers = prev.players.map((p: Player) => {
                 if (userPlayerIds.includes(p.id)) {
+                    // Snapshot current season stats as a split row for the old team
+                    const splitStat: CareerStat = {
+                        ...p.seasonStats,
+                        season: prev.date.getFullYear(),
+                        teamId: p.teamId || 'FA',
+                        overall: p.overall,
+                        isTradeSplit: true,
+                    };
+                    const newCareerStats = p.seasonStats.gamesPlayed > 0
+                        ? [...p.careerStats, splitStat]
+                        : [...p.careerStats];
                     return {
                         ...p,
                         teamId: aiTeamId,
+                        careerStats: newCareerStats,
+                        seasonStats: { ...EMPTY_SEASON_STATS },
                         acquisition: {
                             type: 'trade' as const,
                             year: prev.date.getFullYear(),
@@ -1207,9 +1330,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     };
                 }
                 if (aiPlayerIds.includes(p.id)) {
+                    // Snapshot current season stats as a split row for the old team
+                    const splitStat: CareerStat = {
+                        ...p.seasonStats,
+                        season: prev.date.getFullYear(),
+                        teamId: p.teamId || 'FA',
+                        overall: p.overall,
+                        isTradeSplit: true,
+                    };
+                    const newCareerStats = p.seasonStats.gamesPlayed > 0
+                        ? [...p.careerStats, splitStat]
+                        : [...p.careerStats];
                     return {
                         ...p,
                         teamId: userTeamId,
+                        careerStats: newCareerStats,
+                        seasonStats: { ...EMPTY_SEASON_STATS },
                         acquisition: {
                             type: 'trade' as const,
                             year: prev.date.getFullYear(),
@@ -1219,6 +1355,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 }
                 return p;
             });
+
 
             // 3. Update Teams (Picks)
             const updatedTeams = prev.teams.map(t => {
@@ -1363,6 +1500,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 }
             });
 
+            // Coach Contract Decrement
+            const updatedCoaches = prev.coaches.map(coach => {
+                if (coach.contract.yearsRemaining > 1) {
+                    return { ...coach, contract: { ...coach.contract, yearsRemaining: coach.contract.yearsRemaining - 1 } };
+                } else if (coach.contract.yearsRemaining === 1) {
+                    // Contract expired - release to free agency
+                    const team = updatedTeams.find(t => t.id === coach.teamId);
+                    if (team) {
+                        team.coachId = undefined;
+                    }
+                    return { ...coach, teamId: null, contract: { ...coach.contract, yearsRemaining: 0 } };
+                }
+                return coach; // Already a free agent
+            });
+
             // 1. Generate Draft Class
             const draftClass: Player[] = [];
             const draftYear = prev.date.getFullYear();
@@ -1439,7 +1591,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
                     // Replace a random player in the draft class logic? Or just push to top?
                     // Let's unshift them to be at the start (high visibility)
-                    // But array order doesn't dictate rank, sorting does. 
+                    // But array order doesn't dictate rank, sorting does.
                     // Generator usually makes random stats. Let's Ensure they are good.
 
                     draftClass.push(p);
@@ -1453,7 +1605,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             });
 
             // Use draftYear declared above
-            // const draftYear = prev.date.getFullYear(); 
+            // const draftYear = prev.date.getFullYear();
             let order: string[] = [];
 
             // Round 1
@@ -1501,6 +1653,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 players: updatedPlayers,
                 teams: updatedTeams,
                 contracts: updatedContracts,
+                coaches: updatedCoaches,
                 draftClass,
                 draftOrder: order,
                 scoutingPoints,
@@ -1941,9 +2094,70 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const continueFromRetirements = () => {
         setGameState(prev => ({
             ...prev,
-            seasonPhase: 'resigning'
+            seasonPhase: 'coach_free_agency'
         }));
     };
+
+    const endCoachFreeAgency = () => {
+        setGameState(prev => {
+            let updatedCoaches = [...prev.coaches];
+            let updatedTeams = prev.teams.map(t => ({ ...t }));
+
+            // AI teams without a coach hire from the free agent pool
+            const freeAgentCoaches = updatedCoaches.filter(c => !c.teamId);
+            const teamsNeedingCoach = updatedTeams.filter(t => !t.coachId || !updatedCoaches.find(c => c.id === t.coachId && c.teamId === t.id));
+
+            teamsNeedingCoach.forEach(team => {
+                if (freeAgentCoaches.length === 0) {
+                    // Generate a new coach if pool is empty
+                    const newCoach = generateCoach(team.id);
+                    updatedCoaches.push(newCoach);
+                    team.coachId = newCoach.id;
+                    team.tactics = getTacticsForStyle(newCoach.style);
+                    console.log(`[CoachFA] Generated new coach ${newCoach.firstName} ${newCoach.lastName} for ${team.name}`);
+                    return;
+                }
+
+                // Sort free agents by combined rating (offense + defense)
+                freeAgentCoaches.sort((a, b) =>
+                    (b.rating.offense + b.rating.defense) - (a.rating.offense + a.rating.defense)
+                );
+
+                // Pick the best available coach with some randomness
+                const pickIndex = Math.floor(Math.random() * Math.min(3, freeAgentCoaches.length));
+                const hired = freeAgentCoaches.splice(pickIndex, 1)[0];
+
+                // Update coach
+                const coachIdx = updatedCoaches.findIndex(c => c.id === hired.id);
+                if (coachIdx !== -1) {
+                    updatedCoaches[coachIdx] = {
+                        ...hired,
+                        teamId: team.id,
+                        contract: { salary: hired.contract.salary, yearsRemaining: 2 + Math.floor(Math.random() * 3) }
+                    };
+                }
+
+                team.coachId = hired.id;
+                team.tactics = getTacticsForStyle(hired.style);
+                console.log(`[CoachFA] AI Team ${team.name} hired ${hired.firstName} ${hired.lastName}`);
+            });
+
+            // Generate fresh free agents to replenish pool (keep at least 10 free agents)
+            const remainingFreeAgents = updatedCoaches.filter(c => !c.teamId).length;
+            const toGenerate = Math.max(0, 10 - remainingFreeAgents);
+            for (let i = 0; i < toGenerate; i++) {
+                updatedCoaches.push(generateCoach(null));
+            }
+
+            return {
+                ...prev,
+                coaches: updatedCoaches,
+                teams: updatedTeams,
+                seasonPhase: 'resigning' as const
+            };
+        });
+    };
+
 
     const endResigning = () => {
         setGameState(prev => {
@@ -2547,6 +2761,50 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 }
             }
 
+            // --- AI COACH EVALUATION (Every ~20 games) ---
+            let currentCoaches = [...prev.coaches];
+            if (prev.seasonGamesPlayed > 0 && prev.seasonGamesPlayed % 20 === 0) {
+                const recentCutoff = new Date(prev.date.getTime() - 30 * 86400000);
+                const recentTradesByTeam: Record<string, number> = {};
+                currentTradeHistory.forEach(trade => {
+                    if (new Date(trade.date) >= recentCutoff) {
+                        recentTradesByTeam[trade.team1Id] = (recentTradesByTeam[trade.team1Id] || 0) + 1;
+                        recentTradesByTeam[trade.team2Id] = (recentTradesByTeam[trade.team2Id] || 0) + 1;
+                    }
+                });
+
+                currentTeams.forEach(team => {
+                    if (team.id === prev.userTeamId) return; // Don't fire user's coach
+                    const coach = currentCoaches.find(c => c.id === team.coachId && c.teamId === team.id);
+                    if (!coach) return;
+
+                    const recentTrades = recentTradesByTeam[team.id] || 0;
+                    if (shouldFireCoach(team, coach, prev.seasonGamesPlayed, recentTrades)) {
+                        // Fire the coach
+                        const fireResult = fireCoach(team, currentCoaches, currentTeams);
+                        currentCoaches = fireResult.updatedCoaches;
+                        currentTeams = fireResult.updatedTeams;
+
+                        // Hire a replacement
+                        const firedTeam = currentTeams.find(t => t.id === team.id)!;
+                        const hireResult = hireCoach(firedTeam, currentCoaches, currentTeams);
+                        currentCoaches = hireResult.updatedCoaches;
+                        currentTeams = hireResult.updatedTeams;
+
+                        const newCoach = currentCoaches.find(c => c.teamId === team.id);
+                        currentNews.push({
+                            id: generateUUID(),
+                            date: nextDate,
+                            headline: `${team.name} fire coach ${coach.lastName}`,
+                            content: `The ${team.name} have parted ways with head coach ${coach.firstName} ${coach.lastName} after a disappointing ${team.wins}-${team.losses} record.${newCoach ? ` ${newCoach.firstName} ${newCoach.lastName} has been hired as the new head coach.` : ''}`,
+                            type: 'TRANSACTION',
+                            relatedTeamId: team.id,
+                            priority: 4
+                        });
+                    }
+                });
+            }
+
             const results: MatchResult[] = [];
 
 
@@ -2566,12 +2824,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     // Sim non-user game
                     const hRoster = currentPlayers.filter(p => p.teamId === home.id);
                     const aRoster = currentPlayers.filter(p => p.teamId === away.id);
+                    const hCoach = prev.coaches.find(c => c.teamId === home.id);
+                    const aCoach = prev.coaches.find(c => c.teamId === away.id);
 
                     result = simulateMatch({
                         homeTeam: home,
                         awayTeam: away,
                         homeRoster: hRoster,
                         awayRoster: aRoster,
+                        homeCoach: hCoach,
+                        awayCoach: aCoach,
                         date: prev.date,
                         userTeamId: prev.userTeamId
                     });
@@ -2760,6 +3022,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 teams: currentTeams,
                 players: currentPlayers,
                 contracts: currentContracts,
+                coaches: currentCoaches,
                 tradeHistory: currentTradeHistory,
                 games: [...prev.games, ...results],
                 date: nextDate,
@@ -2895,6 +3158,62 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     return p;
                 });
 
+                // --- AGGREGATE PLAYOFF STATS from today's games ---
+                newGames.forEach(game => {
+                    const allStats = [
+                        ...Object.values(game.boxScore.homeStats),
+                        ...Object.values(game.boxScore.awayStats)
+                    ];
+                    allStats.forEach(stat => {
+                        if (stat.minutes === 0) return;
+                        const pIdx = playoffUpdatedPlayers.findIndex(p => p.id === stat.playerId);
+                        if (pIdx !== -1) {
+                            const p = playoffUpdatedPlayers[pIdx];
+                            const cur = p.playoffStats || {
+                                gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0,
+                                steals: 0, blocks: 0, turnovers: 0, fouls: 0, plusMinus: 0,
+                                offensiveRebounds: 0, defensiveRebounds: 0,
+                                fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0,
+                                ftMade: 0, ftAttempted: 0,
+                                rimMade: 0, rimAttempted: 0, rimAssisted: 0,
+                                midRangeMade: 0, midRangeAttempted: 0, midRangeAssisted: 0,
+                                threePointAssisted: 0
+                            };
+                            playoffUpdatedPlayers[pIdx] = {
+                                ...p,
+                                playoffStats: {
+                                    ...cur,
+                                    gamesPlayed: cur.gamesPlayed + 1,
+                                    minutes: cur.minutes + stat.minutes,
+                                    points: cur.points + stat.points,
+                                    rebounds: cur.rebounds + stat.rebounds,
+                                    assists: cur.assists + stat.assists,
+                                    steals: cur.steals + stat.steals,
+                                    blocks: cur.blocks + stat.blocks,
+                                    turnovers: cur.turnovers + (stat.turnovers || 0),
+                                    fouls: cur.fouls + (stat.personalFouls || 0),
+                                    plusMinus: cur.plusMinus + (stat.plusMinus || 0),
+                                    offensiveRebounds: cur.offensiveRebounds + (stat.offensiveRebounds || 0),
+                                    defensiveRebounds: cur.defensiveRebounds + (stat.defensiveRebounds || 0),
+                                    fgMade: cur.fgMade + (stat.fgMade || 0),
+                                    fgAttempted: cur.fgAttempted + (stat.fgAttempted || 0),
+                                    threeMade: cur.threeMade + (stat.threeMade || 0),
+                                    threeAttempted: cur.threeAttempted + (stat.threeAttempted || 0),
+                                    ftMade: cur.ftMade + (stat.ftMade || 0),
+                                    ftAttempted: cur.ftAttempted + (stat.ftAttempted || 0),
+                                    rimMade: cur.rimMade + (stat.rimMade || 0),
+                                    rimAttempted: cur.rimAttempted + (stat.rimAttempted || 0),
+                                    rimAssisted: cur.rimAssisted + (stat.rimAssisted || 0),
+                                    midRangeMade: cur.midRangeMade + (stat.midRangeMade || 0),
+                                    midRangeAttempted: cur.midRangeAttempted + (stat.midRangeAttempted || 0),
+                                    midRangeAssisted: cur.midRangeAssisted + (stat.midRangeAssisted || 0),
+                                    threePointAssisted: cur.threePointAssisted + (stat.threePointAssisted || 0),
+                                }
+                            };
+                        }
+                    });
+                });
+
                 return {
                     ...prev,
                     date: nextDate,
@@ -2904,6 +3223,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     pendingUserResult: null,
                     dailyMatchups: []
                 };
+
             }
 
             // ... (existing round completion logic matches safely)
@@ -3841,9 +4161,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
             // Save full Game State to IndexedDB
             await saveToDB(slotId, currentState, metadata);
 
-            if (!silent) {
-                alert(`Game Saved to Slot ${slotId}!`);
-            }
         } catch (error) {
             console.error("Save Failed:", error);
             alert("Save Failed: " + (error instanceof Error ? error.message : String(error)));
@@ -4254,6 +4571,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             endDraft,
             startRetirementPhase,
             continueFromRetirements,
+            endCoachFreeAgency,
             endResigning,
             signFreeAgent,
             signPlayerWithContract,
