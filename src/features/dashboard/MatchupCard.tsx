@@ -115,22 +115,22 @@ export const MatchupCard: React.FC<MatchupCardProps> = () => {
             }}>
                 <div style={{
                     fontSize: '0.7rem',
-                    fontWeight: 800,
+                    fontWeight: 900,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.1em',
-                    color: 'rgba(0,0,0,0.4)',
-                    marginBottom: '1px'
+                    letterSpacing: '1.2px',
+                    color: 'rgba(0,0,0,0.5)',
+                    marginBottom: '4px'
                 }}>
                     {seriesStatus || "Next Opponent"}
                 </div>
 
                 <h2 style={{
-                    margin: '0 0 2px 0',
-                    fontSize: '1.8rem',
-                    fontWeight: 900,
+                    margin: '0 0 4px 0',
+                    fontSize: '2rem',
+                    fontWeight: 950,
                     color: '#1A1A1A',
-                    letterSpacing: '-0.05em',
-                    lineHeight: 1.1
+                    letterSpacing: '-0.8px',
+                    lineHeight: 1.05
                 }}>
                     {opponent?.city} {opponent?.name}
                 </h2>
@@ -141,18 +141,18 @@ export const MatchupCard: React.FC<MatchupCardProps> = () => {
                     justifyContent: 'center',
                     gap: '12px',
                     fontSize: '0.85rem',
-                    fontWeight: 700,
+                    fontWeight: 800,
                     color: 'rgba(0,0,0,0.4)'
                 }}>
-                    <span style={{ color: '#1A1A1A' }}>{opponent?.wins || 0}-{opponent?.losses || 0}</span>
+                    <span style={{ color: '#1A1A1A' }}>{opponent?.wins || 0}<span style={{ opacity: 0.3, margin: '0 2px' }}>-</span>{opponent?.losses || 0}</span>
                     {last4Results.length > 0 && (
                         <>
-                            <span>•</span>
-                            <div style={{ display: 'flex', gap: '4px' }}>
+                            <span style={{ opacity: 0.2 }}>|</span>
+                            <div style={{ display: 'flex', gap: '5px' }}>
                                 {last4Results.map((r, i) => (
                                     <span key={i} style={{
-                                        color: r === 'W' ? '#10b981' : '#ef4444',
-                                        fontSize: '0.7rem',
+                                        color: r === 'W' ? '#059669' : '#dc2626',
+                                        fontSize: '0.75rem',
                                         fontWeight: 900
                                     }}>{r}</span>
                                 ))}
@@ -162,30 +162,31 @@ export const MatchupCard: React.FC<MatchupCardProps> = () => {
                 </div>
 
                 <motion.button
-                    whileHover={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.02, boxShadow: `0 12px 25px ${primaryColor}66` }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {
                         if (todayMatchup) {
-                            startLiveGameFn(userTeamId); // gameId is ignored but we pass teamId or similar
+                            startLiveGameFn(userTeamId);
                         }
                     }}
                     style={{
                         width: '100%',
-                        marginTop: '20px',
-                        padding: '12px',
-                        borderRadius: '20px',
+                        marginTop: '24px',
+                        padding: '14px',
+                        borderRadius: '24px',
                         border: 'none',
-                        background: `linear-gradient(90deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
+                        background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
                         color: 'white',
                         fontSize: '1.1rem',
-                        fontWeight: 800,
+                        fontWeight: 950,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '12px',
                         cursor: 'pointer',
-                        boxShadow: `0 8px 20px ${primaryColor}44`,
-                        textShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                        boxShadow: `0 10px 20px ${primaryColor}44`,
+                        textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                        transition: 'box-shadow 0.3s'
                     }}
                 >
                     <Play size={22} fill="white" />

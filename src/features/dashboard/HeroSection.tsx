@@ -83,58 +83,60 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onEnterPlayoffs, onSta
                         </span>
                         <h1 style={{
                             margin: '4px 0 0 0',
-                            fontSize: '2.4rem',
-                            fontWeight: 900,
-                            lineHeight: 1.05,
-                            letterSpacing: '-0.05em',
-                            color: 'white'
+                            fontSize: '2.6rem',
+                            fontWeight: 950,
+                            lineHeight: 1.0,
+                            letterSpacing: '-1.2px',
+                            color: 'white',
+                            textShadow: '0 4px 12px rgba(0,0,0,0.3)'
                         }}>
                             {userTeam.city}<br />
-                            <span style={{ color: secondaryColor }}>{userTeam.name}</span>
+                            <span style={{ color: secondaryColor, filter: 'brightness(1.2)' }}>{userTeam.name}</span>
                         </h1>
                     </div>
 
-
-
                     <div style={{
-                        background: 'rgba(0,0,0,0.2)',
-                        padding: '6px 12px',
-                        borderRadius: '12px',
+                        background: 'rgba(255,255,255,0.08)',
+                        padding: '10px 16px',
+                        borderRadius: '16px',
                         textAlign: 'center',
-                        border: `1px solid ${secondaryColor}22`,
-                        backdropFilter: 'blur(4px)'
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        backdropFilter: 'blur(12px)',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
                     }}>
-                        <div style={{ fontSize: '1.8rem', fontWeight: 900, letterSpacing: '-0.02em', color: 'white' }}>
-                            {userTeam.wins}-{userTeam.losses}
+                        <div style={{ fontSize: '1.8rem', fontWeight: 950, letterSpacing: '-0.5px', color: 'white' }}>
+                            {userTeam.wins}<span style={{ opacity: 0.3, margin: '0 2px' }}>-</span>{userTeam.losses}
                         </div>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginTop: '2px' }}>RECORD</div>
                     </div>
                 </div>
 
                 {/* Main Action Button - Dynamic Highlight Colors */}
                 <motion.button
-                    whileHover={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.02, boxShadow: `0 15px 35px ${primaryColor}66` }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => mainAction?.()}
                     style={{
-                        marginTop: '20px',
+                        marginTop: '24px',
                         width: '100%',
-                        padding: '12px',
-                        borderRadius: '20px',
+                        padding: '16px',
+                        borderRadius: '24px',
                         border: 'none',
-                        background: `linear-gradient(90deg, ${primaryColor} 0%, ${secondaryColor} 100%)`, // Dynamic highlight colors
+                        background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
                         color: 'white',
-                        fontSize: '1.1rem',
-                        fontWeight: 800,
+                        fontSize: '1.15rem',
+                        fontWeight: 900,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '12px',
+                        gap: '14px',
                         cursor: 'pointer',
-                        boxShadow: `0 10px 25px ${primaryColor}44`,
-                        textShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                        boxShadow: `0 12px 30px ${primaryColor}44`,
+                        textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                        transition: 'box-shadow 0.3s'
                     }}
                 >
-                    <Shirt size={22} strokeWidth={2.5} />
+                    <Shirt size={24} strokeWidth={2.5} />
                     {mainLabel}
                 </motion.button>
                 {/* SYSTEM REPAIR: Only show if season is glitched (NaN or >82 games) */}

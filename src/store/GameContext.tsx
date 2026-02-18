@@ -41,8 +41,6 @@ import {
 import { saveToDB, loadFromDB, deleteFromDB, type SaveMeta } from '../utils/storage';
 import { TrainingFocus, type ProgressionResult } from '../models/Training';
 import { calculateProgression } from '../features/training/TrainingLogic';
-import { type GMProfile, INITIAL_GM_PROFILE } from '../models/GMProfile';
-import { generateSeasonGoals, checkGoalProgress, processGMGoalUpdates } from '../features/gm/GMLogic';
 import { importNbaPlayers } from '../features/league/CsvImporter';
 import { applyRealWorldTrades } from '../data/tradeUpdates';
 
@@ -124,7 +122,7 @@ export interface GameState {
     isTrainingCampComplete: boolean;
     dailyMatchups: { homeId: string, awayId: string }[];
     pendingUserResult: MatchResult | null;
-    gmProfile: GMProfile; // New GM Mode Profile
+
     tutorialFlags: {
         hasSeenNewsTutorial: boolean;
     };
@@ -284,7 +282,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
         news: [],
         dailyMatchups: [],
         pendingUserResult: null,
-        gmProfile: INITIAL_GM_PROFILE,
         tutorialFlags: { hasSeenNewsTutorial: false },
         isProcessing: false,
         activeOffers: [],
@@ -820,7 +817,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 dailyMatchups: [],
                 pendingUserResult: null,
                 tutorialFlags: { hasSeenNewsTutorial: false },
-                gmProfile: INITIAL_GM_PROFILE,
                 isProcessing: false,
                 socialMediaPosts: [],
                 seasonGamesPlayed: 0,
@@ -2404,27 +2400,26 @@ export function GameProvider({ children }: { children: ReactNode }) {
         const dayPlayers = toxicUpdatedPlayers;
         const activePlayers = dayPlayers.filter(p => !p.injury);
 
+        // Initialize local working copies to avoid mutating prev
+        let currentTeams = [...prev.teams];
+        let currentPlayers = [...toxicUpdatedPlayers];
+        let currentContracts = [...prev.contracts];
+        let currentTradeHistory = [...(prev.tradeHistory || [])];
+        let currentNews: NewsStory[] = [];
+
         // SEASON PHASE 1: REGULAR SEASON
         if (prev.seasonPhase === 'regular_season') {
             const gamesPlayed = prev.seasonGamesPlayed;
 
-            // ... (Rest of Regular Season logic)
-            // But we need to use 'dayPlayers' not 'healedPlayers' or 'prev.players' for matches now
-
-            // Actually, simulateMatch uses 'activePlayers' which was derived from 'healedPlayers'.
-            // Let's update activePlayers to use the morale-updated list
-            // const activePlayers = dayPlayers.filter(p => !p.injury); // REMOVED (Hoisted)
-
-
             // End of Regular Season
             if (gamesPlayed >= 82) {
-                // CALCULATE AWARDS
+                // ... award logic ...
                 const currentYear = prev.date.getFullYear();
-                const awards = calculateRegularSeasonAwards(prev.players, prev.teams, currentYear);
+                const awards = calculateRegularSeasonAwards(currentPlayers, currentTeams, currentYear);
 
                 // Trigger Playoffs Transition
-                const westTeams = prev.teams.filter(t => t.conference === 'West').sort((a, b) => b.wins - a.wins);
-                const eastTeams = prev.teams.filter(t => t.conference === 'East').sort((a, b) => b.wins - a.wins);
+                const westTeams = currentTeams.filter(t => t.conference === 'West').sort((a, b) => b.wins - a.wins);
+                const eastTeams = currentTeams.filter(t => t.conference === 'East').sort((a, b) => b.wins - a.wins);
 
                 const createSeries = (round: number, conf: 'West' | 'East', seeds: number[]): PlayoffSeries[] => {
                     const series: PlayoffSeries[] = [];
@@ -2437,7 +2432,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             id: `${conf}_1_${idx + 1}`,
                             round: 1,
                             conference: conf,
-                            homeTeamId: home ? home.id : 'error', // Safety
+                            homeTeamId: home ? home.id : 'error',
                             awayTeamId: away ? away.id : 'error',
                             homeWins: 0,
                             awayWins: 0
@@ -2455,86 +2450,67 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     playoffs: [...westSeries, ...eastSeries],
                     date: nextDate,
                     awardsHistory: [...prev.awardsHistory, awards],
-                    players: healedPlayers,
+                    players: currentPlayers,
+                    teams: currentTeams,
                     dailyMatchups: [],
                     pendingUserResult: null
                 };
             }
 
 
-            // Normal Day Sim
-            const results: MatchResult[] = [];
-            const generatedNews: NewsStory[] = [];
-
             // --- AI TRADING LOGIC (Restored & Improved) ---
-            // Trade Deadline at Game 40. Only run if we are in regular season before deadline.
             if (prev.seasonGamesPlayed < 40) {
                 const seasonStart = new Date(prev.date.getFullYear() - (prev.date.getMonth() < 6 ? 1 : 0), 9, 1);
 
-                // Attempt to generate a valid trade
                 const tradeProposal = simulateDailyTrades(
-                    prev.teams,
-                    dayPlayers, // Use current players
-                    prev.contracts,
+                    currentTeams,
+                    currentPlayers,
+                    currentContracts,
                     prev.date.getFullYear(),
                     prev.salaryCap,
-                    prev.tradeHistory,
+                    currentTradeHistory,
                     prev.date,
                     seasonStart,
                     prev.userTeamId
                 );
 
                 if (tradeProposal) {
-                    const t1 = prev.teams.find(t => t.id === tradeProposal.proposerId)!;
-                    const t2 = prev.teams.find(t => t.id === tradeProposal.targetTeamId)!;
+                    const t1 = currentTeams.find(t => t.id === tradeProposal.proposerId)!;
+                    const t2 = currentTeams.find(t => t.id === tradeProposal.targetTeamId)!;
 
-                    // EXECUTE AI TRADE (Applying changes directly to state clones)
-                    // 1. Identification
                     const p1Ids = tradeProposal.proposerAssets.players.map(p => p.id);
                     const p2Ids = tradeProposal.targetAssets.players.map(p => p.id);
                     const pick1Ids = tradeProposal.proposerAssets.picks.map(p => p.id);
                     const pick2Ids = tradeProposal.targetAssets.picks.map(p => p.id);
 
-                    // 2. Logic (Update Roster IDs and Picks for Teams)
-                    const newTeams = prev.teams.map(t => {
+                    // Update Teams
+                    currentTeams = currentTeams.map(t => {
                         let updatedT = { ...t };
-                        let roster = [...t.rosterIds];
-                        let picks = [...(t.draftPicks || [])];
-
                         if (t.id === t1.id) {
-                            // Remove P1, Add P2
-                            roster = roster.filter(id => !p1Ids.includes(id)).concat(p2Ids);
-                            // Remove Pick1, Add Pick2
-                            picks = picks.filter(pk => !pick1Ids.includes(pk.id)).concat(tradeProposal.targetAssets.picks);
-                            updatedT.rosterIds = roster;
-                            updatedT.draftPicks = picks;
+                            updatedT.rosterIds = t.rosterIds.filter(id => !p1Ids.includes(id)).concat(p2Ids);
+                            updatedT.draftPicks = (t.draftPicks || []).filter(pk => !pick1Ids.includes(pk.id)).concat(tradeProposal.targetAssets.picks);
                         }
                         if (t.id === t2.id) {
-                            // Remove P2, Add P1
-                            roster = roster.filter(id => !p2Ids.includes(id)).concat(p1Ids);
-                            // Remove Pick2, Add Pick1
-                            picks = picks.filter(pk => !pick2Ids.includes(pk.id)).concat(tradeProposal.proposerAssets.picks);
-                            updatedT.rosterIds = roster;
-                            updatedT.draftPicks = picks;
+                            updatedT.rosterIds = t.rosterIds.filter(id => !p2Ids.includes(id)).concat(p1Ids);
+                            updatedT.draftPicks = (t.draftPicks || []).filter(pk => !pick2Ids.includes(pk.id)).concat(tradeProposal.proposerAssets.picks);
                         }
                         return updatedT;
                     });
 
-                    // 3. Logic (Update Players TeamID)
-                    const newPlayers = dayPlayers.map(p => {
+                    // Update Players
+                    currentPlayers = currentPlayers.map(p => {
                         if (p1Ids.includes(p.id)) return { ...p, teamId: t2.id };
                         if (p2Ids.includes(p.id)) return { ...p, teamId: t1.id };
                         return p;
                     });
 
-                    // 4. Logic (Update Contracts)
-                    const newContracts = prev.contracts.map(c => {
+                    // Update Contracts
+                    currentContracts = currentContracts.map(c => {
                         if (p1Ids.includes(c.playerId)) return { ...c, teamId: t2.id };
                         if (p2Ids.includes(c.playerId)) return { ...c, teamId: t1.id };
                         return c;
                     });
 
-                    // 5. Create Log Items (Rich Data)
                     const createItems = (players: Player[], picks: DraftPick[]) => [
                         ...players.map(p => ({
                             type: 'player' as const, id: p.id, description: `${p.firstName} ${p.lastName}`, subText: `${calculateOverall(p)} OVR`, color: '#22c55e'
@@ -2558,43 +2534,27 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         team2Items: t2Items
                     };
 
-                    const newsItem: NewsStory = {
+                    currentTradeHistory.push(tradeRecord);
+                    currentNews.push({
                         id: generateUUID(),
                         date: nextDate,
                         headline: "League Trade Executed",
                         content: `${t1.abbreviation} and ${t2.abbreviation} have agreed to a deal involving ${t1Items.map(i => i.description).join(', ')}.`,
-                        image: undefined,
                         type: 'TRANSACTION',
                         relatedTeamId: t1.id,
                         priority: 3
-                    };
-
-                    prev.tradeHistory.push(tradeRecord);
-                    generatedNews.push(newsItem);
-
-                    // Apply Changes to Local Variables for next steps in this loop
-                    // (This is tricky because we are inside a map/loop logic or just pre-simulation)
-                    // Since this modifies 'prev' clones, we need to pass these updates down.
-                    // HOWEVER, 'newTeams', 'newPlayers' are NOT used by 'dailyMatchups' loop below which uses 'prev.teams'.
-                    // This is fine. The trade effectively happens "before" the games in state transition terms,
-                    // but the games logic uses 'prev'. Players might play for old team one last time?
-                    // Actually, 'activePlayers' below is filtered from 'dayPlayers'.
-                    // If we want drafted players to NOT play for old team today, we should update 'dayPlayers'.
-                    // For now, let's just accept they play one last game for old team (realistic travel time).
-
-                    // Update State Clones for final return
-                    prev.teams = newTeams;
-                    prev.players = newPlayers;
-                    prev.contracts = newContracts;
+                    });
                 }
             }
+
+            const results: MatchResult[] = [];
 
 
 
             // Use pre-generated daily matchups
             prev.dailyMatchups.forEach(matchup => {
-                const home = prev.teams.find(t => t.id === matchup.homeId)!;
-                const away = prev.teams.find(t => t.id === matchup.awayId)!;
+                const home = currentTeams.find(t => t.id === matchup.homeId)!;
+                const away = currentTeams.find(t => t.id === matchup.awayId)!;
 
                 let result: MatchResult;
 
@@ -2603,38 +2563,65 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 if (isUserGame && prev.pendingUserResult) {
                     result = prev.pendingUserResult;
                 } else {
-                    // Simulate Match
-                    const homeRoster = activePlayers.filter(p => p.teamId === home.id);
-                    const awayRoster = activePlayers.filter(p => p.teamId === away.id);
+                    // Sim non-user game
+                    const hRoster = currentPlayers.filter(p => p.teamId === home.id);
+                    const aRoster = currentPlayers.filter(p => p.teamId === away.id);
+
                     result = simulateMatch({
                         homeTeam: home,
                         awayTeam: away,
-                        homeRoster,
-                        awayRoster,
-                        date: nextDate,
+                        homeRoster: hRoster,
+                        awayRoster: aRoster,
+                        date: prev.date,
                         userTeamId: prev.userTeamId
                     });
                 }
                 results.push(result);
 
+                if (result.homeScore > result.awayScore + 15 || result.awayScore > result.homeScore + 15) {
+                    currentNews.push({
+                        id: generateUUID(),
+                        date: nextDate,
+                        headline: `Blowout: ${result.winnerId === home.id ? home.name : away.name} dominate!`,
+                        content: `The ${(result.winnerId === home.id ? home.name : away.name)} won by a large margin against ${(result.winnerId === home.id ? away.name : home.name)}.`,
+                        type: 'GAME',
+                        relatedTeamId: result.winnerId,
+                        priority: 2
+                    });
+                }
                 // --- NEWS GENERATION START ---
-                const gameStory = NewsEngine.generateGameNews(result, home, away, activePlayers);
-                if (gameStory) generatedNews.push(gameStory);
+                const gameStory = NewsEngine.generateGameNews(result, home, away, currentPlayers.filter(p => !p.injury));
+                if (gameStory) currentNews.push(gameStory);
 
                 result.injuries.forEach(inj => {
-                    const player = activePlayers.find(p => p.id === inj.playerId);
+                    const player = currentPlayers.find(p => p.id === inj.playerId);
                     const team = player ? (player.teamId === home.id ? home : away) : null;
                     if (player && team) {
                         const injuryStory = NewsEngine.generateInjuryNews(player, team, inj.type, 14, nextDate);
-                        generatedNews.push(injuryStory);
+                        currentNews.push(injuryStory);
                     }
                 });
                 // --- NEWS GENERATION END ---
 
+                // --- PLAYER STATEMENTS ---
+                const notablePlayers = [...Object.values(result.boxScore.homeStats), ...Object.values(result.boxScore.awayStats)]
+                    .filter(s => s.minutes > 0)
+                    .sort((a, b) => b.points - a.points)
+                    .slice(0, 3); // Top 3 scorers
+
+                notablePlayers.forEach(ns => {
+                    const p = currentPlayers.find(ap => ap.id === ns.playerId);
+                    const team = p?.teamId === home.id ? home : away;
+                    if (p && team) {
+                        const statement = NewsEngine.generatePlayerStatement(p, team, result, nextDate);
+                        if (statement) currentNews.push(statement);
+                    }
+                });
+
                 // --- DYNAMIC STORY GENERATION ---
                 const allGamesForContext = [...prev.games, ...results];
-                const dynamicStories = NewsEngine.generateDailyStories(prev.teams, dayPlayers, allGamesForContext, nextDate);
-                generatedNews.push(...dynamicStories);
+                const dynamicStories = NewsEngine.generateDailyStories(currentTeams, currentPlayers, allGamesForContext, nextDate);
+                currentNews.push(...dynamicStories);
 
                 // UPDATE MORALE POST-GAME
                 const winnerId = result.winnerId;
@@ -2644,23 +2631,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 ];
 
                 matchPlayers.forEach(mp => {
-                    const playerIndex = dayPlayers.findIndex(p => p.id === mp.id);
+                    const playerIndex = currentPlayers.findIndex(p => p.id === mp.id);
                     if (playerIndex !== -1) {
-                        const player = dayPlayers[playerIndex];
-                        const team = prev.teams.find(t => t.id === mp.teamId)!;
+                        const player = currentPlayers[playerIndex];
+                        const team = currentTeams.find(t => t.id === mp.teamId)!;
                         const won = mp.teamId === winnerId;
-                        const updated = updatePlayerMorale(player, team, won, mp.minutes, prev.salaryCap);
-                        dayPlayers[playerIndex] = updated;
+                        const opponentId = mp.teamId === result.homeTeamId ? result.awayTeamId : result.homeTeamId;
+                        const updated = updatePlayerMorale(player, team, won, mp.minutes, opponentId, prev.salaryCap);
+                        currentPlayers[playerIndex] = updated;
                     }
                 });
             });
 
             // --- SOCIAL MEDIA PULSE ---
-            const newSocialPosts = generateDailyPosts(results, prev.teams, dayPlayers);
+            const newSocialPosts = generateDailyPosts(results, currentTeams, currentPlayers);
             const updatedSocialPosts = [...newSocialPosts, ...(prev.socialMediaPosts || [])].slice(0, 30);
 
             // After loop, generate NEXT day's matchups
-            const playingTeamsForNextDay = [...prev.teams];
+            const playingTeamsForNextDay = [...currentTeams];
             for (let i = playingTeamsForNextDay.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [playingTeamsForNextDay[i], playingTeamsForNextDay[j]] = [playingTeamsForNextDay[j], playingTeamsForNextDay[i]];
@@ -2675,10 +2663,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
             }
 
             // 3. DAILY CONTRACT/MORALE CHECKS (Prove-It Deals)
-            const finalUpdatedPlayers = dayPlayers.map(p => { // Use dayPlayers here to preserve ALL players (including injured)
+            currentPlayers = currentPlayers.map(p => {
                 const { player: checkedPlayer, news } = checkProveItDemands(p, nextDate);
                 if (news) {
-                    generatedNews.push({
+                    currentNews.push({
                         id: generateUUID(),
                         date: nextDate,
                         headline: news.headline,
@@ -2692,18 +2680,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 return checkedPlayer;
             });
 
-            // 5. DAILY AI TRADES (Post-Game Execution)
-            let postTradeTeams = [...prev.teams]; // Use prev.teams as base
-            let postTradePlayers = [...finalUpdatedPlayers];
-            let postTradeContracts = [...prev.contracts];
-            let newTradeHistory = [...(prev.tradeHistory || [])];
-            let newTradeNews: NewsStory[] = [];
+            // 5. DAILY AI TRADES (Post-Game Execution) - Already handled above
 
             // Duplicate AI trade logic removed (handled at start of function)
 
             // --- APPLY GAME RESULTS TO TEAMS ---
             // Fix for 0-0 Bug: We must update team records based on the days results
-            postTradeTeams = postTradeTeams.map(team => {
+            currentTeams = currentTeams.map(team => {
                 const teamResults = results.filter(r => r.homeTeamId === team.id || r.awayTeamId === team.id);
                 if (teamResults.length === 0) return team;
 
@@ -2727,24 +2710,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 ];
 
                 allStats.forEach(stat => {
-                    const pIdx = postTradePlayers.findIndex(p => p.id === stat.playerId);
+                    const pIdx = currentPlayers.findIndex(p => p.id === stat.playerId);
                     if (pIdx !== -1) {
-                        const p = postTradePlayers[pIdx];
+                        const p = currentPlayers[pIdx];
                         const current = p.seasonStats || {
                             gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0,
                             steals: 0, blocks: 0, turnovers: 0, fouls: 0,
                             offensiveRebounds: 0, defensiveRebounds: 0,
                             fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0,
                             ftMade: 0, ftAttempted: 0, plusMinus: 0,
-                            rimMade: 0, rimAttempted: 0, rimAssisted: 0,
-                            midRangeMade: 0, midRangeAttempted: 0, midRangeAssisted: 0,
-                            threePointAssisted: 0
+                            rimAttempted: 0, midRangeAttempted: 0, rimAssisted: 0, midRangeAssisted: 0, threePointAssisted: 0
                         };
 
-                        postTradePlayers[pIdx] = {
+                        currentPlayers[pIdx] = {
                             ...p,
                             seasonStats: {
-                                gamesPlayed: current.gamesPlayed + (stat.minutes > 0 ? 1 : 0),
+                                ...current,
+                                gamesPlayed: current.gamesPlayed + 1,
                                 minutes: current.minutes + stat.minutes,
                                 points: current.points + stat.points,
                                 rebounds: current.rebounds + stat.rebounds,
@@ -2752,7 +2734,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                                 steals: current.steals + stat.steals,
                                 blocks: current.blocks + stat.blocks,
                                 turnovers: current.turnovers + stat.turnovers,
-                                fouls: (current.fouls || 0) + stat.personalFouls,
+                                fouls: current.fouls + stat.personalFouls,
                                 offensiveRebounds: current.offensiveRebounds + stat.offensiveRebounds,
                                 defensiveRebounds: current.defensiveRebounds + stat.defensiveRebounds,
                                 fgMade: current.fgMade + stat.fgMade,
@@ -2762,9 +2744,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                                 ftMade: current.ftMade + stat.ftMade,
                                 ftAttempted: current.ftAttempted + stat.ftAttempted,
                                 plusMinus: current.plusMinus + stat.plusMinus,
-                                rimMade: (current.rimMade || 0) + stat.rimMade,
                                 rimAttempted: (current.rimAttempted || 0) + stat.rimAttempted,
-                                midRangeMade: (current.midRangeMade || 0) + stat.midRangeMade,
                                 midRangeAttempted: (current.midRangeAttempted || 0) + stat.midRangeAttempted,
                                 rimAssisted: (current.rimAssisted || 0) + stat.rimAssisted,
                                 midRangeAssisted: (current.midRangeAssisted || 0) + stat.midRangeAssisted,
@@ -2777,13 +2757,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
             return {
                 ...prev,
-                teams: postTradeTeams,
-                players: postTradePlayers,
-                contracts: postTradeContracts,
-                tradeHistory: newTradeHistory,
+                teams: currentTeams,
+                players: currentPlayers,
+                contracts: currentContracts,
+                tradeHistory: currentTradeHistory,
                 games: [...prev.games, ...results],
                 date: nextDate,
-                news: [...newTradeNews, ...generatedNews, ...prev.news].slice(0, 100),
+                news: [...currentNews, ...prev.news].slice(0, 100),
                 dailyMatchups: nextDayMatchups,
                 pendingUserResult: null,
                 socialMediaPosts: updatedSocialPosts,
@@ -3266,52 +3246,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 
     // GM Mode Helper to check goals
-    const updateGMGoals = (seasonResult?: string) => {
-        setGameState(prev => {
-            const team = prev.teams.find(t => t.id === prev.userTeamId);
-            if (!team) return prev;
 
-            const roster = prev.players.filter(p => team.rosterIds.includes(p.id));
-
-            const updatedGoals = checkGoalProgress(prev.gmProfile.currentGoals, team, roster, seasonResult);
-
-            // Calculate XP gained from newly completed goals
-            let xpGained = 0;
-            const newCompletedGoals = updatedGoals.filter(g => g.isCompleted && !prev.gmProfile.currentGoals.find(og => og.id === g.id)?.isCompleted);
-
-            newCompletedGoals.forEach(g => {
-                xpGained += g.rewardTrust;
-            });
-
-            if (xpGained === 0 && JSON.stringify(updatedGoals) === JSON.stringify(prev.gmProfile.currentGoals)) {
-                return prev; // No change
-            }
-
-            const newMessages = [...prev.messages];
-            if (xpGained > 0) {
-                newMessages.unshift({
-                    id: crypto.randomUUID(),
-                    text: `GM Goal Completed! Earned ${xpGained} Trust Points.`,
-                    type: 'success', // Fixed type error
-                    title: 'Goal Completed', // Fixed missing title
-                    date: new Date(prev.date),
-                    read: false,
-                });
-            }
-
-            return {
-                ...prev,
-                gmProfile: {
-                    ...prev.gmProfile,
-                    currentGoals: updatedGoals,
-                    trustPoints: prev.gmProfile.trustPoints + xpGained,
-                    xp: prev.gmProfile.xp + xpGained,
-                    totalTrustEarned: prev.gmProfile.totalTrustEarned + xpGained
-                },
-                messages: newMessages
-            };
-        });
-    };
 
     const startMerchCampaign = (campaign: MerchCampaign) => {
         const userTeam = gameState.teams.find(t => t.id === gameState.userTeamId);
@@ -4234,9 +4169,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
         // GM Perk: Charisma (deal_2)
         let threshold = 0.95;
-        if (gameState.gmProfile.unlockedPerks.includes('deal_2')) {
-            threshold = 0.90; // 5% Discount on demand
-        }
 
         if (ratio >= threshold) return { decision: 'ACCEPTED', feedback: 'I am happy to accept your offer!' };
         else if (ratio >= 0.85) return { decision: 'REJECTED', feedback: 'We are close, but I need a bit more security or a better role.' };

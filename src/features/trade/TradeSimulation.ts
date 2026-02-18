@@ -108,22 +108,34 @@ export const simulateDailyTrades = (
 
         if (inDebt) {
             // DEBT FIX: Teams in debt prioritize dumping salary
-            // Even if they are contending, they must shed expensive players (> 15% of Cap)
             tradingBlock = proposerRoster.filter(p => {
                 const contract = contracts.find(c => c.playerId === p.id);
                 return contract && contract.amount > salaryCap * 0.15;
             });
-            // If they are in deep debt (-100M+), they even trade draft picks to dump salary
             if (proposer.cash < -100000000) {
                 tradingPicks = proposerPicks.slice(0, 1);
             }
-        } else if (rebuilding) {
-            // Rebuilders sell OLD (>28), Good (>75) players
-            tradingBlock = proposerRoster.filter(p => p.age > 28 && calculateOverall(p) > 75);
         } else {
-            // Contenders sell YOUNG, LOW OVR (Prospects) or PICKS
-            tradingPicks = proposerPicks.slice(0, 2); // Willing to trade next 2 picks
-            tradingBlock = proposerRoster.filter(p => p.age < 24 && calculateOverall(p) < 76);
+            // Check for positional surplus FIRST (New logic for better AI intelligence)
+            const depthChart: Record<string, Player[]> = { 'PG': [], 'SG': [], 'SF': [], 'PF': [], 'C': [] };
+            proposerRoster.forEach(p => { if (depthChart[p.position]) depthChart[p.position].push(p); });
+
+            Object.keys(depthChart).forEach(pos => {
+                const atPos = depthChart[pos].sort((a, b) => (b.overall || 0) - (a.overall || 0));
+                // If we have 3+ players at 80+ OVR at ONE position, shop the lowest rated of the elites
+                if (atPos.length >= 3 && (atPos[2].overall || 0) >= 80) {
+                    tradingBlock.push(atPos[2]);
+                }
+            });
+
+            if (rebuilding) {
+                // Rebuilders sell OLD (>28), Good (>75) players
+                tradingBlock.push(...proposerRoster.filter(p => p.age > 28 && calculateOverall(p) > 75));
+            } else {
+                // Contenders sell YOUNG, LOW OVR (Prospects) or PICKS
+                tradingPicks = proposerPicks.slice(0, 2);
+                tradingBlock.push(...proposerRoster.filter(p => p.age < 24 && calculateOverall(p) < 76));
+            }
         }
 
         if (tradingBlock.length === 0 && tradingPicks.length === 0) continue;

@@ -2,11 +2,9 @@ import type { NewsStory } from '../../models/NewsStory';
 import type { Player } from '../../models/Player';
 import type { Team } from '../../models/Team';
 import type { MatchResult } from '../simulation/SimulationTypes';
-import type { TradeProposal } from '../../models/TradeProposal';
 
 export const NewsEngine = {
     generateGameNews: (match: MatchResult, home: Team, away: Team, players: Player[]): NewsStory | null => {
-        // 1. High Scoring Performance (50+ points)
         const allStats = [...Object.values(match.boxScore.homeStats), ...Object.values(match.boxScore.awayStats)] as any[];
         const bigPerformance = allStats.find(s => s.points >= 50);
 
@@ -26,7 +24,6 @@ export const NewsEngine = {
             }
         }
 
-        // 2. Upset
         const scoreDiff = Math.abs((match.boxScore as any).homeScore - (match.boxScore as any).awayScore);
         if (scoreDiff >= 40) {
             const winner = match.winnerId === home.id ? home : away;
@@ -42,7 +39,21 @@ export const NewsEngine = {
             };
         }
 
-        // 3. Buzzer Beater / Close Game
+        const isRivalry = home.rivalIds?.includes(away.id) || away.rivalIds?.includes(home.id);
+        if (isRivalry) {
+            const winner = match.winnerId === home.id ? home : away;
+            const loser = match.winnerId === home.id ? away : home;
+            return {
+                id: crypto.randomUUID(),
+                date: new Date(match.date),
+                headline: `RIVALRY: ${winner.abbreviation} Best ${loser.abbreviation}`,
+                content: `In a heated rivalry matchup, the ${winner.name} managed to outlast the ${loser.name}. Tensions were high at the final whistle.`,
+                type: 'GAME',
+                priority: 4,
+                relatedTeamId: winner.id
+            };
+        }
+
         if (scoreDiff <= 2) {
             const winner = match.winnerId === home.id ? home : away;
             return {
@@ -56,7 +67,7 @@ export const NewsEngine = {
             };
         }
 
-        return null; // No news worthy event
+        return null;
     },
 
     generateInjuryNews: (player: Player, team: Team, injuryName: string, duration: number, date: Date): NewsStory => {
@@ -99,37 +110,124 @@ export const NewsEngine = {
         };
     },
 
-    generateRumorNews: (players: Player[], teams: Team[], date: Date): NewsStory | null => {
-        // Find unhappy stars
-        // Unhappy = Morale < 50
-        // Star = Overall > 82
-        const unhappyStars = players.filter(p => (p.morale < 50) && (p.overall > 82));
+    generatePlayerStatement: (player: Player, team: Team, match: MatchResult, date: Date): NewsStory | null => {
+        const isWin = match.winnerId === team.id;
+        const stats = (isWin ? match.boxScore.homeStats : match.boxScore.awayStats)[player.id];
+        if (!stats) return null;
 
+        const isKey = player.overall > 80;
+        const isHighPersonality = ['Diva', 'Enforcer', 'Loyalist', 'Silent Leader'].includes(player.personality);
+
+        if (!isKey && !isHighPersonality) return null;
+        if (Math.random() > 0.3) return null;
+
+        let headline = "";
+        let content = "";
+
+        if (isWin) {
+            if (player.personality === 'Diva') {
+                headline = `${player.lastName}: "I'm the Engine"`;
+                content = `After the win, ${player.lastName} told reporters: "We're a different team when I'm controlling the pace. I need those touches."`;
+            } else if (player.personality === 'Loyalist') {
+                headline = `${player.lastName} Praises Team Unity`;
+                content = `"It's not about my stats," ${player.lastName} said. "It's about the badge on the front of the jersey. Great team win today."`;
+            } else if (player.personality === 'Silent Leader') {
+                headline = `${player.lastName} Focused on the Goal`;
+                content = `In a rare post-game comment, ${player.lastName} noted: "One win doesn't mean anything. We have a lot of work to do if we want the title."`;
+            } else {
+                headline = `${player.lastName} on the Win`;
+                content = `"Great bounce back for the guys. We played our system and it worked," said ${player.lastName} after the victory.`;
+            }
+        } else {
+            if (player.personality === 'Diva') {
+                headline = `${player.lastName} Frustrated by Usage`;
+                content = `A visibly upset ${player.lastName} commented on the loss: "It's hard to win when the ball isn't in my hands in winning time."`;
+            } else if (player.personality === 'Enforcer') {
+                headline = `${player.lastName}: "We Were Soft"`;
+                content = `${player.lastName} didn't hold back after the loss, saying the team lacked physicality and 'heart'.`;
+            } else if (player.personality === 'Loyalist') {
+                headline = `${player.lastName} Stays Positive`;
+                content = `"We'll get it right," ${player.lastName} insisted. "The guys in this room have each other's backs."`;
+            }
+        }
+
+        if (!headline) return null;
+
+        return {
+            id: crypto.randomUUID(),
+            date: new Date(date),
+            headline,
+            content,
+            type: 'PLAYER_TALK',
+            priority: 3,
+            relatedPlayerId: player.id,
+            relatedTeamId: team.id
+        };
+    },
+
+    generateDraftScouting: (draftClass: Player[], date: Date): NewsStory | null => {
+        if (!draftClass || draftClass.length === 0) return null;
+
+        const topProspects = [...draftClass].sort((a, b) => (b.potential || 0) - (a.potential || 0));
+        const top = topProspects[0];
+
+        const headlines = [
+            { h: `Scouting Report: The Rise of ${top.lastName}`, c: `Scouts are calling ${top.firstName} ${top.lastName} a "generational talent" with a ceiling of ${top.potential}.` },
+            { h: `The Draft Race Deepens`, c: `With ${top.lastName} leading the pack, teams are already looking at their lottery odds.` },
+            { h: `${top.lastName} Comparison: The Next Superstar?`, c: `Long-time scouts compare prospect ${top.lastName} to some of the greatest to ever play.` }
+        ];
+
+        const pick = headlines[Math.floor(Math.random() * headlines.length)];
+
+        return {
+            id: crypto.randomUUID(),
+            date: new Date(date),
+            headline: pick.h,
+            content: pick.c,
+            type: 'DRAFT',
+            priority: 3,
+            relatedPlayerId: top.id
+        };
+    },
+
+    generateLeaguePulse: (teams: Team[], date: Date): NewsStory | null => {
+        if (!teams || teams.length === 0) return null;
+
+        const sorted = [...teams].sort((a, b) => b.wins - a.wins);
+        const top = sorted[0];
+        const bottom = sorted[sorted.length - 1];
+
+        const storyPool = [
+            { h: `League Pulse: ${top.abbreviation} Dominating`, c: `The ${top.name} continue to set the pace for the league, while the ${bottom.name} are struggling.` },
+            { h: `Power Rankings Shift`, c: `After a wild week, the ${top.abbreviation} have climbed to the top of the league hierarchy.` }
+        ];
+
+        const pick = storyPool[Math.floor(Math.random() * storyPool.length)];
+
+        return {
+            id: crypto.randomUUID(),
+            date: new Date(date),
+            headline: pick.h,
+            content: pick.c,
+            type: 'GENERAL',
+            priority: 4,
+            relatedTeamId: top.id
+        };
+    },
+
+    generateRumorNews: (players: Player[], teams: Team[], date: Date): NewsStory | null => {
+        const unhappyStars = players.filter(p => (p.morale < 50) && (p.overall > 82));
         if (unhappyStars.length === 0) return null;
 
-        // Pick one randomly
         const player = unhappyStars[Math.floor(Math.random() * unhappyStars.length)];
         const team = teams.find(t => t.id === player.teamId);
-
         if (!team) return null;
 
         const rumorPool = [
             { h: `Discord in ${team.city}?`, c: `Sources say ${player.lastName} is increasingly frustrated with the team's direction.` },
-            { h: `${player.lastName} Comments Spark Controversy`, c: `${player.lastName} made a cryptic post on social media appearing to criticize the coaching staff.` },
-            { h: `Trade Request Incoming?`, c: `Rumors are swirling that ${player.firstName} ${player.lastName} may request a trade out of ${team.city} soon.` }
+            { h: `${player.lastName} Comments Spark Controversy`, c: `${player.lastName} made a cryptic post appearing to criticize staff.` },
+            { h: `Trade Request Incoming?`, c: `Rumors suggest ${player.firstName} ${player.lastName} may request a trade soon.` }
         ];
-
-        // Personality Flavor
-        if (player.personality === 'Diva') {
-            rumorPool.push({ h: `${player.lastName} Wants More Touches`, c: `The high-scoring star is reportedly unhappy with his role in the offense.` });
-            rumorPool.push({ h: `Locker Room Friction?`, c: `Rumors suggest ${player.lastName} and technical staff aren't seeing eye-to-eye after recent losses.` });
-        } else if (player.personality === 'Loyalist') {
-            rumorPool.push({ h: `${player.lastName} Urges Unity`, c: `Despite the slump, ${player.lastName} is telling teammates to stay the course.` });
-        } else if (player.personality === 'Mercenary') {
-            rumorPool.push({ h: `${player.lastName} Focused on Business`, c: `When asked about the team's struggles, ${player.lastName} noted he is simply fulfilling his contract.` });
-        } else if (player.personality === 'Workhorse') {
-            rumorPool.push({ h: `${player.lastName} Putting in Extra Hours`, c: `Spotted at the facility at 2 AM, ${player.lastName} is trying to lead by example.` });
-        }
 
         const rumor = rumorPool[Math.floor(Math.random() * rumorPool.length)];
 
@@ -148,10 +246,8 @@ export const NewsEngine = {
     generateDailyStories: (teams: Team[], players: Player[], games: MatchResult[], date: Date): NewsStory[] => {
         const stories: NewsStory[] = [];
 
-        // 1. Streak Stories (3+ Games)
+        // 1. Streak Stories
         teams.forEach(team => {
-            // Calculate current streak
-            // We need game history for this team, sorted by date desc
             const teamGames = games
                 .filter(g => g.homeTeamId === team.id || g.awayTeamId === team.id)
                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -177,7 +273,7 @@ export const NewsEngine = {
                     id: crypto.randomUUID(),
                     date: new Date(date),
                     headline: `${team.city} on Fire! Won ${winStreak} Straight`,
-                    content: `The ${team.name} are the hottest team in the league right now, extending their winning streak to ${winStreak} games.`,
+                    content: `The ${team.name} extend their winning streak to ${winStreak} games.`,
                     type: 'GENERAL',
                     priority: 3,
                     relatedTeamId: team.id
@@ -187,7 +283,7 @@ export const NewsEngine = {
                     id: crypto.randomUUID(),
                     date: new Date(date),
                     headline: `${team.city} Crisis: Lost ${lossStreak} in a Row`,
-                    content: `Panic is setting in for the ${team.name} as they drop their ${lossStreak}th consecutive game.`,
+                    content: `Panic is setting in for the ${team.name} as they drop their ${lossStreak}th in a row.`,
                     type: 'GENERAL',
                     priority: 3,
                     relatedTeamId: team.id
@@ -199,37 +295,28 @@ export const NewsEngine = {
         const rookies = players.filter(p => p.careerStats.length === 0 && p.seasonStats.gamesPlayed > 0);
         const topRookie = rookies.sort((a, b) => (b.seasonStats.points / b.seasonStats.gamesPlayed) - (a.seasonStats.points / a.seasonStats.gamesPlayed))[0];
 
-        if (topRookie && Math.random() < 0.1) { // 10% chance per day to talk about top rookie
+        if (topRookie && Math.random() < 0.1) {
             stories.push({
                 id: crypto.randomUUID(),
                 date: new Date(date),
                 headline: `Rookie Watch: ${topRookie.lastName} Impresses`,
-                content: `${topRookie.firstName} ${topRookie.lastName} continues to lead the rookie class, averaging ${(topRookie.seasonStats.points / topRookie.seasonStats.gamesPlayed).toFixed(1)} PPG.`,
+                content: `${topRookie.firstName} ${topRookie.lastName} continues to lead the rookie class.`,
                 type: 'GENERAL',
                 priority: 2,
                 relatedPlayerId: topRookie.id
             });
         }
 
-        // 3. Rivalry Hype (Next Day's Games)
-        // Note: We need dailyMatchups or schedule to know who plays next.
-        // Assuming simple random checks or looking at schedule passed in isn't easy here without passing schedule.
-        // We will skip pre-game hype for now or rely on GameContext to call this with 'tomorrow' games if needed.
-        // Let's settle for "Power Ranking" hype occasionally.
+        // 3. Draft Scouting (5% chance)
+        if (Math.random() < 0.05) {
+            const scouting = NewsEngine.generateDraftScouting(players.filter(p => !p.teamId), date);
+            if (scouting) stories.push(scouting);
+        }
 
-        if (Math.random() < 0.05) { // Occasional Power Ranking mention
-            const topTeam = teams.sort((a, b) => (b.wins / (b.wins + b.losses || 1)) - (a.wins / (a.wins + a.losses || 1)))[0];
-            if (topTeam) {
-                stories.push({
-                    id: crypto.randomUUID(),
-                    date: new Date(date),
-                    headline: `League Leaders: ${topTeam.city} Dominating`,
-                    content: `The ${topTeam.name} sit atop the standings with a record of ${topTeam.wins}-${topTeam.losses}. Are they the favorites to win it all?`,
-                    type: 'GENERAL',
-                    priority: 2,
-                    relatedTeamId: topTeam.id
-                });
-            }
+        // 4. League Pulse (Mondays)
+        if (date.getDay() === 1) {
+            const pulse = NewsEngine.generateLeaguePulse(teams, date);
+            if (pulse) stories.push(pulse);
         }
 
         return stories;

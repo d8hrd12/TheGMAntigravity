@@ -62,12 +62,25 @@ export function getTradingBlock(team: Team, roster: Player[], direction: TeamDir
     let willingToTradePicks = false;
 
     // define untouchables first
+    const depthChart: Record<string, Player[]> = { 'PG': [], 'SG': [], 'SF': [], 'PF': [], 'C': [] };
+    roster.forEach(p => { if (depthChart[p.position]) depthChart[p.position].push(p); });
+
     roster.forEach(p => {
         const ovr = p.overall || calculateOverall(p);
 
-        // Franchise Cornerstone Logic
-        if ((ovr >= 90) || (ovr >= 85 && p.age < 25) || (ovr >= 80 && p.age < 22)) {
+        // Find rank at position
+        const playersAtPos = depthChart[p.position].sort((a, b) => (b.overall || 0) - (a.overall || 0));
+        const rank = playersAtPos.findIndex(x => x.id === p.id);
+
+        // Franchise Cornerstone Logic: Only the Top 2 at any position can be untouchable
+        // This prevents hoarding 3+ elite PGs and treating them all as untradeable
+        const isCornerstone = (ovr >= 90) || (ovr >= 85 && p.age < 25) || (ovr >= 80 && p.age < 22);
+
+        if (isCornerstone && rank < 2) {
             untouchables.push(p);
+        } else if (isCornerstone && rank >= 2) {
+            // Surplus Cornerstone: Marked as asset to encourage balancing the roster
+            assets.push(p);
         }
     });
 
@@ -100,11 +113,8 @@ export function getTradingBlock(team: Team, roster: Player[], direction: TeamDir
             break;
     }
 
-    // Surplus Logic (Always sell 4th string PG etc)
-    const depthChart: Record<string, Player[]> = { 'PG': [], 'SG': [], 'SF': [], 'PF': [], 'C': [] };
-    roster.forEach(p => { if (depthChart[p.position]) depthChart[p.position].push(p); });
+    // Standard Surplus Logic (Always sell 4th string PG etc)
     Object.keys(depthChart).forEach(pos => {
-        depthChart[pos].sort((a, b) => (b.overall || 0) - (a.overall || 0));
         if (depthChart[pos].length > 3) {
             assets.push(...depthChart[pos].slice(3).filter(p => !untouchables.includes(p)));
         }
@@ -179,10 +189,20 @@ export function getPlayerTradeValue(
             break;
     }
 
-    // B. POSITIONAL NEED ADJUSTMENT
+    // B. POSITIONAL NEED & DIMINISHING RETURNS
     let needMultiplier = 1.0;
-    if (receivingTeam) {
+    if (receivingTeam && roster.length > 0) {
         needMultiplier = getPositionalNeed(receivingTeam, roster, player.position);
+
+        // Internal Diminishing Returns:
+        // If the team VALUING the player (receivingTeam) already has elite talent at that position,
+        // they value ADDING another one significantly less.
+        const elitesAtPos = roster.filter(p => p.position === player.position && (p.overall || calculateOverall(p)) >= 82);
+        if (elitesAtPos.length >= 2) {
+            value *= 0.7; // Heavy penalty for 3rd elite player at same pos
+        } else if (elitesAtPos.length === 1 && currentOvr >= 82) {
+            value *= 0.85; // Medium penalty for 2nd elite player at same pos
+        }
     }
     value *= needMultiplier;
 

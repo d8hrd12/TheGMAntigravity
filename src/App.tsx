@@ -49,7 +49,6 @@ import { SaveExitModal } from './features/ui/SaveExitModal';
 import { PayrollConfirmationModal } from './features/ui/PayrollConfirmationModal';
 import { LeagueHistoryView } from './features/history/LeagueHistoryView';
 import { TrainingView } from './features/training/TrainingView';
-import { GMOverview } from './features/gm/GMOverview';
 import { NewsFeedView } from './features/news/NewsFeedView';
 import { PulseFeed } from './features/news/PulseFeed';
 import { LiveGameView } from './features/simulation/LiveGameView';
@@ -99,11 +98,11 @@ const lightenColor = (col: string, amt: number) => {
 
 
 function AppContent() {
-  const { isInitialized, isFirstSeasonPaid, teams, players, executeTrade, draftClass, draftOrder, handleDraftPick, simulateNextPick, simulateToUserPick, endDraft, signFreeAgent, negotiateContract, signPlayerWithContract, endFreeAgency, games, seasonPhase, contracts, updateRotation, updateCoachSettings, updateRotationSchedule, acceptTradeOffer, rejectTradeOffer, tradeOffer, userTeamId, isSimulating, isProcessing, date, tradeHistory, salaryCap, awardsHistory, retiredPlayersHistory, stopSimulation, advanceDay, currentSaveSlot, saveGame, startRegularSeason, startPlayoffs, news, liveGameData, startLiveGameFn, endLiveGameFn, tutorialFlags, setHasSeenNewsTutorial, gmProfile, simTarget, setGameState, paySalaries, isTrainingCampComplete } = useGame();
+  const { isInitialized, isFirstSeasonPaid, teams, players, executeTrade, draftClass, draftOrder, handleDraftPick, simulateNextPick, simulateToUserPick, endDraft, signFreeAgent, negotiateContract, signPlayerWithContract, endFreeAgency, games, seasonPhase, contracts, updateRotation, updateCoachSettings, updateRotationSchedule, acceptTradeOffer, rejectTradeOffer, tradeOffer, userTeamId, isSimulating, isProcessing, date, tradeHistory, salaryCap, awardsHistory, retiredPlayersHistory, stopSimulation, advanceDay, currentSaveSlot, saveGame, startRegularSeason, startPlayoffs, news, liveGameData, startLiveGameFn, endLiveGameFn, tutorialFlags, setHasSeenNewsTutorial, simTarget, setGameState, paySalaries, isTrainingCampComplete } = useGame();
 
   // Unified Navigation State
   interface NavState {
-    view: 'dashboard' | 'standings' | 'trade' | 'stats' | 'leaders' | 'results' | 'playoffs' | 'rotation' | 'transactions' | 'strategy' | 'financials' | 'team_management' | 'team_history' | 'league_history' | 'match' | 'scouting' | 'training' | 'gm_overview' | 'gm_skill_tree';
+    view: 'dashboard' | 'standings' | 'trade' | 'stats' | 'leaders' | 'results' | 'playoffs' | 'rotation' | 'transactions' | 'strategy' | 'financials' | 'team_management' | 'team_history' | 'league_history' | 'match' | 'scouting' | 'training';
     selectedPlayerId: string | null;
     selectedGame: MatchResult | null;
 
@@ -454,7 +453,6 @@ function AppContent() {
         initialAiPlayerId={shopPlayerId || initialAiPlayerId}
         initialProposal={prefilledTrade}
         initialTab={view === 'transactions' ? 'log' : 'new'}
-        gmProfile={gmProfile}
         draftOrder={draftOrder}
         seasonPhase={seasonPhase}
         onBack={() => { setView('dashboard'); setInitialAiPlayerId(undefined); }}
@@ -625,14 +623,7 @@ function AppContent() {
       );
     }
 
-    if (view === 'gm_overview') {
-      return (
-        <div style={{ paddingBottom: '80px', minHeight: '100%', background: 'var(--background)' }}>
-          <GMOverview />
-          {/* <Navbar /> */}
-        </div>
-      );
-    }
+
 
 
     // Live Game Overlay
@@ -659,8 +650,9 @@ function AppContent() {
     if (view === 'dashboard') {
       return (
         <>
-          {showNews && <NewsFeedView news={news} onClose={() => setShowNews(false)} onTradeForPlayer={startTradeForPlayer} />}
+          {showNews && <NewsFeedView teams={teams} news={news} onClose={() => setShowNews(false)} onTradeForPlayer={startTradeForPlayer} />}
           <NewsTicker
+            teams={teams}
             players={players}
             news={news}
             onClick={() => setShowNews(true)}

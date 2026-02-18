@@ -11,7 +11,7 @@ import { PulseFeed } from '../news/PulseFeed';
 import { FranchiseHub } from './FranchiseHub';
 import { TeamMoraleDashboard } from './TeamMoraleDashboard';
 import type { MatchResult } from '../simulation/SimulationTypes';
-import { TrendingUp, Wallet, Home, Users, Trophy, DollarSign, Smartphone } from 'lucide-react';
+import { TrendingUp, Wallet, Home, Users, Trophy, DollarSign, Smartphone, Save } from 'lucide-react';
 import { DashboardCard } from './DashboardCard';
 import { motion } from 'framer-motion';
 
@@ -113,33 +113,43 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return (
         <div style={{
             minHeight: '100vh',
-            background: '#2A2A2A', // Exact background from screenshot
+            background: '#121212',
+            backgroundImage: 'radial-gradient(circle at top left, rgba(var(--primary-rgb), 0.1), transparent), radial-gradient(circle at bottom right, rgba(255,255,255,0.05), transparent)',
             color: 'white',
             paddingBottom: '120px'
         }}>
             {/* Header Area */}
-            <div style={{ padding: '20px 24px 10px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }} />
-                    <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>{userTeam?.abbreviation} • {gameLabel}</span>
+            <div style={{
+                padding: '24px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: 'rgba(255,255,255,0.03)',
+                borderBottom: '1px solid rgba(255,255,255,0.08)',
+                backdropFilter: 'blur(10px)',
+                marginBottom: '20px'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+                    <span style={{ fontWeight: 900, fontSize: '0.95rem', letterSpacing: '-0.2px' }}>{userTeam?.abbreviation} • <span style={{ opacity: 0.6 }}>{gameLabel}</span></span>
                 </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                    <button onClick={onSaveTrigger} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '12px', padding: '10px 20px', color: 'white', fontWeight: 700, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Wallet size={16} /> Save
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button onClick={onSaveTrigger} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '10px 18px', color: 'white', fontWeight: 800, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                        <Save size={16} /> Save
                     </button>
-                    <button onClick={onSaveExitTrigger} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '12px', padding: '10px 20px', color: 'white', fontWeight: 700, fontSize: '0.8rem' }}>
-                        Save & Exit
+                    <button onClick={onSaveExitTrigger} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '10px 18px', color: 'white', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer' }}>
+                        Exit
                     </button>
                 </div>
             </div>
 
             <main style={{
-                maxWidth: '500px', // Perfectly mobile sized
+                maxWidth: '500px',
                 margin: '0 auto',
                 padding: '0 20px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '20px'
+                gap: '24px'
             }}>
 
                 {/* 1. Hero Card */}
@@ -157,20 +167,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
                 {/* 4. Mini Stats Grid */}
                 <div style={{ display: 'flex', gap: '16px' }}>
-                    <MiniStat
+                    <DashboardCard
+                        variant="glass"
                         title="Standings"
-                        value={getStandingsPosition()}
-                        subValue={`${userTeam?.conference || 'League'} Rank`}
-                        icon={TrendingUp}
+                        icon={<TrendingUp size={14} />}
+                        style={{ flex: 1, cursor: onViewStandings ? 'pointer' : 'default' }}
                         onClick={onViewStandings}
-                    />
-                    <MiniStat
+                    >
+                        <div style={{ fontSize: '1.8rem', fontWeight: 900, color: 'white', letterSpacing: '-0.5px' }}>{getStandingsPosition()}</div>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>{userTeam?.conference || 'League'} Rank</div>
+                    </DashboardCard>
+
+                    <DashboardCard
+                        variant="glass"
                         title="Cap Space"
-                        value={getCapRoom()}
-                        subValue="Cap Room"
-                        icon={DollarSign}
+                        icon={<DollarSign size={14} />}
+                        style={{ flex: 1, cursor: onViewFinancials ? 'pointer' : 'default' }}
                         onClick={onViewFinancials}
-                    />
+                    >
+                        <div style={{ fontSize: '1.8rem', fontWeight: 900, color: 'white', letterSpacing: '-0.5px' }}>{getCapRoom()}</div>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#10b981' }}>Available Room</div>
+                    </DashboardCard>
                 </div>
 
                 {/* 5. Recent Games / Form */}
@@ -183,7 +200,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <TeamMoraleDashboard players={players} teamId={userTeamId || ''} onSelectPlayer={onSelectPlayer} />
 
                 {/* 8. Pulse */}
-                <DashboardCard title="League Pulse" icon={<Smartphone size={16} />} variant="dark">
+                <DashboardCard title="League Pulse" icon={<Smartphone size={16} />} variant="glass">
                     <PulseFeed posts={socialMediaPosts} onSelectPlayer={onSelectPlayer} />
                 </DashboardCard>
 

@@ -30,32 +30,38 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
         switch (variant) {
             case 'hero':
                 return {
-                    background: 'linear-gradient(135deg, #1a365d 0%, #0d1a2d 100%)',
+                    background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
                     color: 'white',
                     borderRadius: '28px',
-                    boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+                    boxShadow: '0 12px 40px rgba(37, 99, 235, 0.3)',
+                    border: '1px solid rgba(255,255,255,0.1)'
                 };
             case 'dark':
                 return {
-                    background: '#1F1F1F',
+                    background: 'rgba(30, 30, 30, 0.8)',
+                    backdropFilter: 'blur(16px)',
                     color: 'white',
-                    borderRadius: '24px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                    borderRadius: '28px',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
                 };
             case 'glass':
                 return {
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    backdropFilter: 'blur(10px)',
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    backdropFilter: 'blur(20px) saturate(160%)',
                     borderRadius: '24px',
                     border: '1px solid rgba(255, 255, 255, 0.1)',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
                 };
             case 'white':
             default:
                 return {
-                    background: '#FFFFFF',
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(10px)',
                     color: '#1A1A1A',
                     borderRadius: '28px',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                    boxShadow: '0 12px 30px rgba(0, 0, 0, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
                 };
         }
     };
