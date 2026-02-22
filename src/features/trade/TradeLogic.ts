@@ -294,7 +294,7 @@ export interface TradeAssetBundle {
     picks: DraftPick[];
 }
 
-function getPackageValue(
+export function getPackageValue(
     assets: TradeAssetBundle,
     receivingTeam: Team,
     contracts: Contract[],
@@ -395,6 +395,12 @@ export function evaluateTrade(
         if (!gettingGoodPlayer && userAssets.picks.length > 0) {
             // Contenders only take picks if they are OVERWHELMING value to flip later
             if (ratio < 1.5) return { accepted: false, message: "We are chasing a ring. Picks don't help us score points right now." };
+        }
+
+        // SUPERSTAR EXCEPTION
+        const gettingSuperstar = userAssets.players.some(p => (p.overall || calculateOverall(p)) >= 88);
+        if (gettingSuperstar) {
+            requiredRatio = 0.95; // Willing to overpay for a star
         }
     }
 
@@ -578,10 +584,13 @@ export function generateTradeOffers(
 
         const aiPicks = picks.filter(p => p.originalTeamId === aiTeam.id && p.year <= currentYear + 2);
 
-        // AI Logic: Identify assets to give up
-        const aiAssetsScored = aiRoster.map(p => {
-            return { player: p, value: getPlayerTradeValue(p, aiTeam, contracts, aiRoster.filter(r => r.id !== p.id)) };
-        }).sort((a, b) => b.value - a.value);
+        const block = getTradingBlock(aiTeam, aiRoster, aiDirection);
+        // AI Logic: Identify assets to give up (excluding untouchables)
+        const aiAssetsScored = aiRoster
+            .filter(p => !block.untouchables.some(u => u.id === p.id))
+            .map(p => {
+                return { player: p, value: getPlayerTradeValue(p, aiTeam, contracts, aiRoster.filter(r => r.id !== p.id)) };
+            }).sort((a, b) => b.value - a.value);
 
         let proposedAiPlayers: Player[] = [];
         let proposedAiPicks: DraftPick[] = [];
@@ -600,10 +609,12 @@ export function generateTradeOffers(
             proposedAiPlayers.push(singleMatch.player);
             currentOfferValue += singleMatch.value;
         } else {
+            // SUPERSTAR EXCEPTION: Allow more package overpay for elite talent
+            const maxPackageRatio = valueToDistribute > 140 ? 1.30 : 1.15;
             for (const asset of aiAssetsScored) {
                 if (proposedAiPlayers.length >= 3) break;
                 if (asset.value > valueToDistribute * 1.2) continue;
-                if (currentOfferValue + asset.value > valueToDistribute * 1.15) continue;
+                if (currentOfferValue + asset.value > valueToDistribute * maxPackageRatio) continue;
 
                 if (asset.player.overall > currentOvr + 5 && aiDirection !== 'Rebuilding') continue;
                 if (asset.player.overall >= 88 && currentOvr < 85) continue;
@@ -633,10 +644,10 @@ export function generateTradeOffers(
             // Normal evaluateTrade checks for ~1.05 ratio. 
             // We check for 1.10 here to provide a safety buffer against minor context shifts (roster changes during eval).
             const evaluation = evaluateTrade(
-                aiTeam,
-                aiBundle,
                 userTeam,
                 userBundle,
+                aiTeam,
+                aiBundle,
                 allTeams,
                 players,
                 currentYear,
@@ -649,7 +660,10 @@ export function generateTradeOffers(
             const valGiven = getPackageValue(aiBundle, aiTeam, contracts, aiRoster.filter(p => !aiBundle.players.includes(p)), currentYear);
             const ratio = valReceived / (valGiven || 1);
 
-            if (evaluation.accepted && ratio >= 1.10) {
+            // SUPERSTAR EXCEPTION: Contenders will accept a slight loss to land an elite player
+            const requiredRatio = (aiDirection === 'Contender' && currentOvr >= 88) ? 0.95 : 1.10;
+
+            if (evaluation.accepted && ratio >= requiredRatio) {
                 offers.push({
                     userPlayerIds: [shopPlayerId],
                     userPickIds: [],

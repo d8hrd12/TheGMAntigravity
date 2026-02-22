@@ -168,24 +168,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 {/* 4. Mini Stats Grid */}
                 <div style={{ display: 'flex', gap: '16px' }}>
                     <DashboardCard
-                        variant="glass"
                         title="Standings"
                         icon={<TrendingUp size={14} />}
                         style={{ flex: 1, cursor: onViewStandings ? 'pointer' : 'default' }}
                         onClick={onViewStandings}
                     >
-                        <div style={{ fontSize: '1.8rem', fontWeight: 900, color: 'white', letterSpacing: '-0.5px' }}>{getStandingsPosition()}</div>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>{userTeam?.conference || 'League'} Rank</div>
+                        <div style={{ fontSize: '1.8rem', fontWeight: 900, color: '#1A1A1A', letterSpacing: '-0.5px' }}>{getStandingsPosition()}</div>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginTop: '2px' }}>{userTeam?.conference || 'League'} Rank</div>
                     </DashboardCard>
 
                     <DashboardCard
-                        variant="glass"
                         title="Cap Space"
                         icon={<DollarSign size={14} />}
                         style={{ flex: 1, cursor: onViewFinancials ? 'pointer' : 'default' }}
                         onClick={onViewFinancials}
                     >
-                        <div style={{ fontSize: '1.8rem', fontWeight: 900, color: 'white', letterSpacing: '-0.5px' }}>{getCapRoom()}</div>
+                        <div style={{ fontSize: '1.8rem', fontWeight: 900, color: '#1A1A1A', letterSpacing: '-0.5px' }}>{getCapRoom()}</div>
                         <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#10b981' }}>Available Room</div>
                     </DashboardCard>
                 </div>

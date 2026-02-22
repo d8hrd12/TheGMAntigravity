@@ -21,8 +21,7 @@ interface TeamManagementViewProps {
 
 import { PageHeader } from '../ui/PageHeader';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
-
-// ...
+import { useGame } from '../../store/GameContext';
 
 export const TeamManagementView: React.FC<TeamManagementViewProps> = ({
     players,
@@ -34,6 +33,7 @@ export const TeamManagementView: React.FC<TeamManagementViewProps> = ({
     onSaveStrategy,
     onSaveSchedule
 }) => {
+    const { userFireCoach } = useGame();
     const activeCoach = coaches.find(c => c.teamId === team.id);
     const [activeTab, setActiveTab] = useState<'rotation' | 'strategy'>('rotation');
 
@@ -101,10 +101,32 @@ export const TeamManagementView: React.FC<TeamManagementViewProps> = ({
 
                 {activeTab === 'strategy' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '0 20px' }}>
-                        {activeCoach && (
+                        {activeCoach ? (
                             <div style={{ marginTop: '10px' }}>
-                                <h4 style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>Personnel</h4>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                    <h4 style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Personnel</h4>
+                                    <button
+                                        onClick={() => userFireCoach(team.id)}
+                                        style={{
+                                            background: 'rgba(239, 68, 68, 0.1)',
+                                            color: '#ef4444',
+                                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                                            padding: '4px 10px',
+                                            borderRadius: '6px',
+                                            fontSize: '0.75rem',
+                                            fontWeight: 'bold',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Fire Coach
+                                    </button>
+                                </div>
                                 <CoachPreview coach={activeCoach} />
+                            </div>
+                        ) : (
+                            <div style={{ marginTop: '10px', padding: '15px', background: 'rgba(239, 68, 68, 0.1)', border: '1px dashed rgba(239, 68, 68, 0.3)', borderRadius: '8px', textAlign: 'center' }}>
+                                <div style={{ color: '#ef4444', fontWeight: 'bold', marginBottom: '5px' }}>No Head Coach</div>
+                                <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Visit the Free Agency menu to hire a new head coach. Your team will suffer significant penalties until a coach is hired.</div>
                             </div>
                         )}
                         <CoachSettingsView

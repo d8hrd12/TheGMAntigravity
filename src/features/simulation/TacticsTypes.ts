@@ -14,13 +14,12 @@ export interface TeamStrategy {
     offensiveFocus: OffensiveFocus;
     defense: DefensiveStrategy;
 }
-
 export const PACE_MULTIPLIERS: Record<PaceType, number> = {
-    'Very Slow': 0.88,  // Adjusted for ~90 possessions
-    'Slow': 0.94,
-    'Normal': 1.0,      // ~95 possessions
-    'Fast': 1.08,
-    'Seven Seconds': 1.18 // Adjusted for ~102 possessions
+    'Very Slow': 0.95,  // Down from 0.88
+    'Slow': 0.97,       // Down from 0.94
+    'Normal': 1.0,
+    'Fast': 1.03,       // Down from 1.08
+    'Seven Seconds': 1.05 // Down from 1.18
 };
 
 // Bonus weights for actions based on focus

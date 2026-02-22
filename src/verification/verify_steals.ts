@@ -107,7 +107,9 @@ for (let i = 0; i < 1000; i++) {
         shotClock: 24,
         quarter: 1,
         scoreMargin: 0,
-        playerConfidence: {}, playerPressure: {}, gameVariance: 0
+        playerConfidence: {}, playerPressure: {}, gameVariance: 0,
+        offenseCoachRating: 80,
+        defenseCoachRating: 80
     };
 
     const res = simulatePossession(ctx);
@@ -139,7 +141,9 @@ for (let i = 0; i < 1000; i++) {
         shotClock: 24,
         quarter: 1,
         scoreMargin: 0,
-        playerConfidence: {}, playerPressure: {}, gameVariance: 0
+        playerConfidence: {}, playerPressure: {}, gameVariance: 0,
+        offenseCoachRating: 80,
+        defenseCoachRating: 80
     };
 
     const res = simulatePossession(ctx);
@@ -169,7 +173,9 @@ for (let i = 0; i < 1000; i++) {
         shotClock: 24,
         quarter: 1,
         scoreMargin: 0,
-        playerConfidence: {}, playerPressure: {}, gameVariance: 0
+        playerConfidence: {}, playerPressure: {}, gameVariance: 0,
+        offenseCoachRating: 80,
+        defenseCoachRating: 80
     };
 
     const res = simulatePossession(ctx);
@@ -200,6 +206,8 @@ for (let i = 0; i < 1000; i++) {
         quarter: 1,
         scoreMargin: 0,
         playerConfidence: {}, playerPressure: {}, gameVariance: 0,
+        offenseCoachRating: 80,
+        defenseCoachRating: 80,
         getStats: (id) => mockStats as any // Mocking the stats return
     };
 

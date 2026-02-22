@@ -87,6 +87,15 @@ export interface DraftResult {
     round: number;
 }
 
+export interface GMProfile {
+    firstName: string;
+    lastName: string;
+    level: number;
+    xp: number;
+    unlockedPerks: string[];
+    perkPoints: number;
+}
+
 export interface GameState {
     players: Player[];
     teams: Team[];
@@ -97,6 +106,7 @@ export interface GameState {
     games: MatchResult[];
     date: Date;
     isInitialized: boolean;
+    gmProfile: GMProfile;
     draftClass: Player[];
     draftOrder: string[];
     draftResults: DraftResult[]; // Results of current/recent draft
@@ -199,6 +209,8 @@ interface GameContextType extends GameState {
     paySalaries: () => boolean; // Returns true if successful, false if insufficient funds
     startPlayoffs: () => void;
     startRetirementPhase: () => void; // Transition from Draft Summary
+    userHireCoach: (coachId: string) => void;
+    userFireCoach: (teamId: string) => void;
 
     spendScoutingPoints: (prospectId: string, points: number) => void;
     addNewsStory: (story: NewsStory) => void;
@@ -260,6 +272,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
         games: [],
         date: new Date(2024, 9, 22), // Start of season (approx)
         isInitialized: false,
+        gmProfile: {
+            firstName: 'GM',
+            lastName: 'User',
+            level: 1,
+            xp: 0,
+            unlockedPerks: [],
+            perkPoints: 0
+        },
         draftClass: [],
         draftOrder: [],
         draftResults: [],
@@ -810,6 +830,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 isPotentialRevealed: false,
                 awardsHistory: [],
                 activeMerchCampaigns: [],
+                gmProfile: {
+                    firstName: 'GM',
+                    lastName: 'User',
+                    level: 1,
+                    xp: 0,
+                    unlockedPerks: [],
+                    perkPoints: 0
+                },
                 draftClass: initialDraftClass, // Use the injected class if expansion, else empty
                 draftOrder: [], // Will be set on init
                 draftResults: [],
@@ -900,6 +928,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 isPotentialRevealed: false,
                 awardsHistory: [],
                 activeMerchCampaigns: [],
+                gmProfile: {
+                    firstName: 'GM',
+                    lastName: 'User',
+                    level: 1,
+                    xp: 0,
+                    unlockedPerks: [],
+                    perkPoints: 0
+                },
                 draftClass: initialDraftClass,
                 draftOrder: [],
                 draftResults: [],
@@ -2981,7 +3017,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             offensiveRebounds: 0, defensiveRebounds: 0,
                             fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0,
                             ftMade: 0, ftAttempted: 0, plusMinus: 0,
-                            rimAttempted: 0, midRangeAttempted: 0, rimAssisted: 0, midRangeAssisted: 0, threePointAssisted: 0
+                            rimMade: 0, rimAttempted: 0, midRangeMade: 0, midRangeAttempted: 0,
+                            rimAssisted: 0, midRangeAssisted: 0, threePointAssisted: 0
                         };
 
                         currentPlayers[pIdx] = {
@@ -3006,7 +3043,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
                                 ftMade: current.ftMade + stat.ftMade,
                                 ftAttempted: current.ftAttempted + stat.ftAttempted,
                                 plusMinus: current.plusMinus + stat.plusMinus,
+                                rimMade: (current.rimMade || 0) + stat.rimMade,
                                 rimAttempted: (current.rimAttempted || 0) + stat.rimAttempted,
+                                midRangeMade: (current.midRangeMade || 0) + stat.midRangeMade,
                                 midRangeAttempted: (current.midRangeAttempted || 0) + stat.midRangeAttempted,
                                 rimAssisted: (current.rimAssisted || 0) + stat.rimAssisted,
                                 midRangeAssisted: (current.midRangeAssisted || 0) + stat.midRangeAssisted,
@@ -4476,6 +4515,83 @@ export function GameProvider({ children }: { children: ReactNode }) {
         });
     };
 
+    const userHireCoach = (coachId: string) => {
+        setGameState(prev => {
+            const coach = prev.coaches.find(c => c.id === coachId);
+            const team = prev.teams.find(t => t.id === prev.userTeamId);
+            if (!coach || !team) return prev;
+
+            // Optional: check if they already have a coach
+            const existingCoach = prev.coaches.find(c => c.teamId === team.id);
+            if (existingCoach) {
+                alert(`You must fire ${existingCoach.firstName} ${existingCoach.lastName} before hiring a new coach.`);
+                return prev;
+            }
+
+            const updatedCoaches = prev.coaches.map(c =>
+                c.id === coachId ? { ...c, teamId: team.id } : c
+            );
+
+            const updatedTeams = prev.teams.map(t =>
+                t.id === team.id ? { ...t, coachId: coach.id } : t
+            );
+
+            return {
+                ...prev,
+                coaches: updatedCoaches,
+                teams: updatedTeams,
+                messages: [
+                    {
+                        id: Date.now().toString(),
+                        date: prev.date,
+                        title: 'New Coach Hired',
+                        text: `You have successfully hired ${coach.firstName} ${coach.lastName} as your new head coach.`,
+                        type: 'success',
+                        read: false
+                    },
+                    ...prev.messages
+                ]
+            };
+        });
+    };
+
+    const userFireCoach = (teamId: string) => {
+        setGameState(prev => {
+            const team = prev.teams.find(t => t.id === teamId);
+            const coach = prev.coaches.find(c => c.id === team?.coachId && c.teamId === team?.id);
+
+            if (!team || !coach) return prev;
+
+            if (confirm(`Are you sure you want to fire ${coach.firstName} ${coach.lastName}?`)) {
+                const updatedCoaches = prev.coaches.map(c =>
+                    c.id === coach.id ? { ...c, teamId: null } : c
+                );
+
+                const updatedTeams = prev.teams.map(t =>
+                    t.id === team.id ? { ...t, coachId: undefined } : t
+                );
+
+                return {
+                    ...prev,
+                    coaches: updatedCoaches,
+                    teams: updatedTeams,
+                    messages: [
+                        {
+                            id: Date.now().toString(),
+                            date: prev.date,
+                            title: 'Coach Fired',
+                            text: `You have fired head coach ${coach.firstName} ${coach.lastName}. Find a replacement in Free Agency.`,
+                            type: 'warning',
+                            read: false
+                        },
+                        ...prev.messages
+                    ]
+                };
+            }
+            return prev;
+        });
+    };
+
     const negotiateContract = (playerId: string, offer: { amount: number; years: number; role: 'Star' | 'Starter' | 'Rotation' | 'Bench' | 'Prospect' }): { decision: 'ACCEPTED' | 'REJECTED' | 'INSULTED', feedback: string } => {
         const player = gameState.players.find(p => p.id === playerId);
         if (!player) return { decision: 'REJECTED', feedback: 'Unknown player' };
@@ -4590,6 +4706,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
             saveGame,
             loadGame,
             deleteSave,
+            userHireCoach,
+            userFireCoach,
 
             simSpeed,
             setSimSpeed,

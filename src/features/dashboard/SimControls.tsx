@@ -19,16 +19,17 @@ export const SimControls: React.FC = () => {
             <motion.div
                 whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
                 style={{
-                    padding: '16px',
+                    padding: '10px 16px',
                     display: 'flex',
-                    flexDirection: 'column',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
                     alignItems: 'center',
-                    gap: '12px',
+                    gap: '8px',
                     textAlign: 'center'
                 }}
             >
-                <div style={{ color: '#3b82f6' }}>
-                    <Icon size={24} />
+                <div style={{ color: '#3b82f6', display: 'flex' }}>
+                    <Icon size={18} />
                 </div>
                 <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1A1A1A' }}>
                     {label}

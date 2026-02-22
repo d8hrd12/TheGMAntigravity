@@ -46,7 +46,6 @@ export const TradesSummaryView: React.FC<TradesSummaryViewProps> = ({ trades, te
                                             {trade.team2Items ? (
                                                 trade.team2Items.map((item, i) => (
                                                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
-                                                        <span style={{ color: '#aaa' }}>+</span>
                                                         <span
                                                             style={{
                                                                 cursor: item.type === 'player' ? 'pointer' : 'default',
@@ -97,7 +96,6 @@ export const TradesSummaryView: React.FC<TradesSummaryViewProps> = ({ trades, te
                                                         >
                                                             {item.description}
                                                         </span>
-                                                        <span style={{ color: '#aaa' }}>+</span>
                                                     </div>
                                                 ))
                                             ) : (

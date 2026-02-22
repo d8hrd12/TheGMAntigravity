@@ -4,7 +4,7 @@ import type { Team } from '../../models/Team';
 import { calculateOverall } from '../../utils/playerUtils';
 import { useGame } from '../../store/GameContext';
 import { calculateContractAmount } from '../../utils/contractUtils';
-import { STYLE_DESCRIPTIONS } from '../../models/Coach';
+import { STYLE_DESCRIPTIONS, type Coach } from '../../models/Coach';
 
 interface MidSeasonFreeAgentsProps {
     players: Player[];
@@ -26,7 +26,7 @@ const STYLE_ICONS: Record<string, string> = {
 };
 
 export const MidSeasonFreeAgents: React.FC<MidSeasonFreeAgentsProps> = ({ players, userTeam, currentYear, onSelectPlayer }) => {
-    const { signPlayerWithContract, salaryCap, coaches } = useGame();
+    const { signPlayerWithContract, userHireCoach, salaryCap, coaches } = useGame();
     const [activeTab, setActiveTab] = React.useState<'players' | 'coaches'>('players');
     const [filterPos, setFilterPos] = React.useState<'All' | 'PG' | 'SG' | 'SF' | 'PF' | 'C'>('All');
     const [sortBy, setSortBy] = React.useState<'OVR' | 'PRICE' | 'AGE'>('OVR');
@@ -100,6 +100,13 @@ export const MidSeasonFreeAgents: React.FC<MidSeasonFreeAgentsProps> = ({ player
     };
 
     const userCoach = (coaches || []).find(c => c.id === userTeam.coachId && c.teamId === userTeam.id);
+
+    const handleSignCoach = (coach: Coach) => {
+        if (userCoach) { alert('You must fire your current coach before hiring a new one.'); return; }
+        if (confirm(`Hire ${coach.firstName} ${coach.lastName} for ${formatMoney(coach.contract.salary)}/yr?`)) {
+            userHireCoach(coach.id);
+        }
+    };
 
     return (
         <div style={{ padding: '10px', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -374,6 +381,19 @@ export const MidSeasonFreeAgents: React.FC<MidSeasonFreeAgentsProps> = ({ player
                                                 <span style={{ color: '#8b5cf6', fontWeight: 700 }}>{STYLE_ICONS[coach.style]} {coach.style}: </span>
                                                 {STYLE_DESCRIPTIONS[coach.style]}
                                             </div>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleSignCoach(coach); }}
+                                                disabled={!!userCoach}
+                                                style={{
+                                                    marginTop: '10px', width: '100%', padding: '10px',
+                                                    background: !userCoach ? '#8b5cf6' : '#444',
+                                                    color: !userCoach ? 'white' : 'var(--text-secondary)',
+                                                    border: 'none', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 'bold',
+                                                    cursor: !userCoach ? 'pointer' : 'not-allowed',
+                                                    opacity: !userCoach ? 1 : 0.6
+                                                }}>
+                                                {!userCoach ? 'SIGN COACH' : 'CURRENT COACH MUST BE FIRED FIRST'}
+                                            </button>
                                         </div>
                                     </div>
                                 )}

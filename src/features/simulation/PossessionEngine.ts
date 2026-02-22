@@ -57,15 +57,15 @@ const SIGMOID_CURVES = {
 export const BASE_SUCCESS = {
     RIM: (fin: number) => {
         const { k, x0, base } = SIGMOID_CURVES.RIM;
-        return base + (1 - base) * sigmoid(fin, k, x0);
+        return base + (0.82 - base) * sigmoid(fin, k, x0); // Cap Rim at 0.82
     },
     MID: (mid: number) => {
         const { k, x0, base } = SIGMOID_CURVES.MID;
-        return base + (0.50 - base) * sigmoid(mid, k, x0); // Cap Mid at 0.50
+        return base + (0.48 - base) * sigmoid(mid, k, x0); // Cap Mid at 0.48
     },
     THREE: (three: number) => {
         const { k, x0, base } = SIGMOID_CURVES.THREE;
-        return base + (0.45 - base) * sigmoid(three, k, x0); // Cap 3PT at 0.45
+        return base + (0.42 - base) * sigmoid(three, k, x0); // Cap 3PT at 0.42
     },
     FT: (ft: number) => {
         const { k, x0, base } = SIGMOID_CURVES.FT;
@@ -204,9 +204,9 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
     const paceMod = PACE_MULTIPLIERS[ctx.offenseStrategy.pace] || 1.0;
 
     // ADJUST DURATION: 
-    // baseline 8-16s (Avg 12s). 
-    // multiplier scales this. 
-    const secondsDribble = Math.floor((Math.random() * 8 + 8) / paceMod);
+    // baseline 9-16s. 
+    // This reduces the average possessions from ~120+ down to ~100 per game.
+    const secondsDribble = Math.floor((Math.random() * 7 + 9) / paceMod);
 
     if (ctx.timeRemaining > 2800) {
         console.log(`[DEBUG] Time: ${ctx.timeRemaining} | Dribble: ${secondsDribble} | PaceMod: ${paceMod}`);
@@ -246,7 +246,7 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
         if (defenseResult) return defenseResult;
 
         // 2. Decide Action
-        const action = decideAction(handler, ctx, territory);
+        const action = decideAction(handler, ctx, territory, lastPasser);
 
         // 3. Resolution
         if (action === 'PASS') {
@@ -676,6 +676,10 @@ export function selectReceiver(handler: Player, ctx: PossessionContext, lastPass
             maxThreat = (finishScore * 0.5) + (shootScore * 0.5);  // SFs: balanced
         }
 
+        // IQ Bonus: High IQ players are better at getting open
+        const iqGettingOpenBonus = (p.attributes.basketballIQ - 50) * 0.15;
+        maxThreat += iqGettingOpenBonus;
+
         return { id: p.id, maxThreat, finishScore, shootScore };
     });
 
@@ -722,7 +726,7 @@ export function selectReceiver(handler: Player, ctx: PossessionContext, lastPass
 }
 
 
-export function decideAction(handler: Player, ctx: PossessionContext, territory: Territory = '3PT'): ActionType {
+export function decideAction(handler: Player, ctx: PossessionContext, territory: Territory = '3PT', lastPasser?: Player): ActionType {
     // 1. DECISION ACCURACY (Point 5)
     const accuracy = calculateDecisionAccuracy(handler, ctx);
 
@@ -742,7 +746,16 @@ export function decideAction(handler: Player, ctx: PossessionContext, territory:
     const focus = ctx.offenseStrategy.offensiveFocus;
     const focusBonuses = FOCUS_BONUSES[focus] || FOCUS_BONUSES['Balanced'];
 
-    const wantsToScore = scoreRoll < (t.shooting * (focusBonuses.shot || 1.0));
+    // ASSIST PRESSURE (The "Golden Pass" Mechanic)
+    // If the person who passed to you is an elite playmaker, you feel pressure to shoot the ball they gave you (Catch & Shoot)
+    // This mathematically ensures elite passers get their assist numbers by reducing the likelihood of the receiver driving or passing again.
+    let assistPressure = 0;
+    if (lastPasser && lastPasser.attributes.playmaking > 85) {
+        // e.g. 96 Playmaking (Jokic) -> +16.5% increased chance for receiver to shoot immediately
+        assistPressure = (lastPasser.attributes.playmaking - 80) * 1.5;
+    }
+
+    const wantsToScore = scoreRoll < ((t.shooting * (focusBonuses.shot || 1.0)) + assistPressure);
     const wantsToPass = passRoll < (t.passing * (focusBonuses.pass || 1.0));
 
     // DETERMINATION
@@ -770,7 +783,14 @@ export function decideAction(handler: Player, ctx: PossessionContext, territory:
     // 4. EXECUTION
     if (intent === 'SCORE') {
         // Determine MODE based on Territory and Ratings
-        if (territory === 'FINISHING') return 'CATCH_AND_FINISH'; // Was DRIVE, which wiped assists.
+        if (territory === 'FINISHING') {
+            // RELAXED ASSIST LOGIC: If you get a pass inside, finish it immediately to preserve the assist
+            // Previously many inside possessions became 'DRIVE', which wipes the `lastPasser` credit.
+            if (lastPasser) return 'CATCH_AND_FINISH';
+
+            // If it's a self-created inside touch, check if they can actually finish, else they might drive
+            return 'CATCH_AND_FINISH';
+        }
 
         const shoot3 = handler.attributes.threePointShot;
         const shootMid = handler.attributes.midRange;
@@ -974,7 +994,18 @@ export function resolveShot(
     // 4. Shot Quality (Point 8)
     // Estimate help: if it's a rim shot, more help
     const helpImpact = isRim ? 15 : 0;
-    const contest = (defender.attributes.perimeterDefense + (isRim ? defender.attributes.interiorDefense : 0)) / 2;
+    const contestBase = (defender.attributes.perimeterDefense + (isRim ? defender.attributes.interiorDefense : 0)) / 2;
+    let contest = contestBase;
+
+    if (assister) {
+        // High IQ players exploit the assist better (getting more open)
+        // Range: IQ 40 = -5, IQ 80 = +5
+        const iqGettingOpenBonus = (shooter.attributes.basketballIQ - 60) * 0.25;
+        const isCatchAndFinishBonus = isCatchAndFinish ? 5 : 0;
+
+        // Reduce contest strength (0-100 scale)
+        contest = Math.max(5, contest - iqGettingOpenBonus - isCatchAndFinishBonus);
+    }
 
     const qualityMod = calculateShotQuality(margin, contest, helpImpact, shooter, ctx);
 
@@ -983,7 +1014,8 @@ export function resolveShot(
 
     // Assisted Bonus
     if (assister) {
-        const dimerBonus = Math.max(0, (assister.attributes.playmaking - 60) * 0.003);
+        // Nerfed from 0.003 to 0.001 to prevent +12% boosts that break the FG% caps
+        const dimerBonus = Math.min(0.04, Math.max(0, (assister.attributes.playmaking - 60) * 0.001));
         finalProb += dimerBonus;
     }
 

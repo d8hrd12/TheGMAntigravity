@@ -184,7 +184,10 @@ export const calculateTendencies = (player: Player, minutes: number = 0, teammat
     }
 
     // 2. Base Skill Ratings
-    const shootSkill = (attr.finishing + attr.midRange + attr.threePointShot) / 3;
+    // BEST TRAIT FOCUS: Don't just average. An elite scorer relies on their best weapon.
+    // 60% Best, 30% Second Best, 10% Worst
+    const scoringSkills = [attr.finishing, attr.midRange, attr.threePointShot].sort((a, b) => b - a);
+    const shootSkill = (scoringSkills[0] * 0.60) + (scoringSkills[1] * 0.30) + (scoringSkills[2] * 0.10);
     // Playmaking is the PRIMARY factor (60%), IQ helps (30%), ball handling minor (10%)
     const passSkill = (attr.playmaking * 0.6) + (attr.basketballIQ * 0.3) + (attr.ballHandling * 0.1);
 
@@ -212,14 +215,16 @@ export const calculateTendencies = (player: Player, minutes: number = 0, teammat
     let wPass = passSkill + teammateBias;
 
     // Safety: "If the player has no passing skills he will always lean more on scoring."
+    // BUT we must not turn defensive role players into black holes.
     if (passSkill < 55) {
-        wPass = passSkill; // Ignore bias if incompetent
+        wPass = passSkill; // Ignore bias if incompetent, but don't crush it to 15%
     }
 
-    // LOW PLAYMAKING PENALTY: Override everything for pure scorers (<60)
-    // This ensures they barely create assists (1-2 APG)
-    if (attr.playmaking < 60) {
-        wPass = passSkill * 0.15; // 15% of skill (CRUSHED)
+    // ROLE PLAYER OVERRIDE
+    // If a player is not an Elite Scorer (>80), they should inherently defer to teammates more often
+    if (shootSkill < 80) {
+        // Boost passing weight to encourage "Swing Passes" (Increased from 25 to 40 for higher global assist totals)
+        wPass += 40;
     }
 
     // Normalize weights
@@ -231,12 +236,43 @@ export const calculateTendencies = (player: Player, minutes: number = 0, teammat
     let allocShoot = Math.round(budget * (wShoot / totalWeight));
     let allocPass = Math.round(budget * (wPass / totalWeight));
 
-    // 5. Clamping (User: "Make cap of points and allocate")
     // Should typically be 20-99.
-    const clamp = (val: number) => Math.min(100, Math.max(25, val));
+    const clamp = (val: number, max: number = 100) => Math.min(max, Math.max(25, val));
 
-    const finalShooting = clamp(allocShoot);
-    const finalPassing = clamp(allocPass);
+    // HARD CAPS based on Talent
+    // Superstars get 100, Stars get 90, Starters get 80, Bench get 65
+    let maxShooting = 100;
+    if (shootSkill < 70) maxShooting = 60;       // Defensive Specialist / Non-Scorer
+    else if (shootSkill < 78) maxShooting = 75;  // Role Player
+    else if (shootSkill < 85) maxShooting = 88;  // Secondary Scorer
+
+    // VERSATILITY PENALTY (The 'Andre Drummond' check)
+    // Centers and PFs are penalized heavily if they ONLY have Finishing
+    if (position === 'C' || position === 'PF') {
+        const isOneDimensional = (attr.midRange < 60 && attr.threePointShot < 60 && attr.playmaking < 60);
+
+        if (isOneDimensional) {
+            maxShooting = 65; // Hard cap on raw rim-runners taking 20 shots
+        } else if (shootSkill < 85) {
+            maxShooting -= 10; // Standard positional subtraction
+        }
+    }
+
+    const finalShooting = clamp(allocShoot, maxShooting);
+
+    // Distribute unallocated budget to passing to ensure they don't just hold the ball
+    let remainingBudget = budget - finalShooting;
+    let finalPassing = clamp(remainingBudget, 99); // They will swing the ball
+
+    // SUPERSTAR PLAYMAKER EXEMPTION (The 'Jokic/Luka' check)
+    // Generational offensive hubs do not obey zero-sum budgeting. They do everything at high volume.
+    if (passSkill > 85) {
+        // Guarantee their passing tendency reflects their elite skill, regardless of how much they shoot
+        const eliteFloor = Math.round(passSkill * 0.90);
+        if (finalPassing < eliteFloor) {
+            finalPassing = clamp(eliteFloor, 99);
+        }
+    }
 
     // 6. Inside vs Outside Split (Preference within Scoring)
     const totalShootSkill = attr.finishing + attr.threePointShot;

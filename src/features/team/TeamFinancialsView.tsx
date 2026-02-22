@@ -82,7 +82,7 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
             {/* Info Button and Tab Switcher */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                 {/* Tab Switcher */}
-                <div style={{ flex: 1, marginRight: '15px' }}>
+                <div style={{ flex: 1, marginRight: '10px' }}>
                     <SegmentedControl
                         value={viewMode}
                         onChange={(val) => setViewMode(val as any)}
@@ -104,7 +104,8 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                         padding: '8px',
                         borderRadius: '50%',
                         cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        marginRight: '5px'
                     }}
                 >
                     <Info size={20} />
