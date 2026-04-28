@@ -465,6 +465,51 @@ export function simulateMatchII(input: MatchInput): MatchResult {
             if (result.defensivePoints) homeScore += result.defensivePoints;
         }
 
+        // FAST BREAK: Athletic teams punish turnovers with run-out possessions
+        if (result.endType === 'TURNOVER' && timeRemaining > 60) {
+            const newOffenseLineup = isHomeOffense ? awayLineup : homeLineup;
+            const newOffenseTeam = isHomeOffense ? awayTeam : homeTeam;
+            const newOffenseStrategy = isHomeOffense ? awayStrategy : homeStrategy;
+            const newDefenseLineup = isHomeOffense ? homeLineup : awayLineup;
+            const newDefenseTeam = isHomeOffense ? homeTeam : awayTeam;
+            const newDefenseStrategy = isHomeOffense ? homeStrategy : awayStrategy;
+
+            const avgAth = newOffenseLineup.reduce((s, p) => s + (p.attributes.athleticism || 70), 0) / newOffenseLineup.length;
+            const fastBreakChance = Math.max(0, (avgAth - 75) * 0.025); // 78 avg → 7.5%, 85 avg → 25%
+
+            if (Math.random() < fastBreakChance) {
+                const fastBreakCtx: PossessionContext = {
+                    offenseTeam: newOffenseTeam,
+                    defenseTeam: newDefenseTeam,
+                    offenseLineup: newOffenseLineup,
+                    defenseLineup: newDefenseLineup,
+                    offenseStrategy: { ...newOffenseStrategy, pace: 'Seven Seconds' },
+                    defenseStrategy: newDefenseStrategy,
+                    timeRemaining: timeRemaining - 5,
+                    shotClock: 24,
+                    scoreMargin: isHomeOffense ? (awayScore - homeScore) : (homeScore - awayScore),
+                    quarter: currentQuarter,
+                    getStats: (id: string) => accumulator.getStats(id),
+                    playerConfidence: Object.fromEntries(confidence),
+                    playerPressure: Object.fromEntries(pressure),
+                    gameVariance: gameVariance,
+                    offenseCoachRating: isHomeOffense ? (awayCoach?.rating.offense || 70) : (homeCoach?.rating.offense || 70),
+                    defenseCoachRating: isHomeOffense ? (homeCoach?.rating.defense || 70) : (awayCoach?.rating.defense || 70)
+                };
+                const fbResult = simulatePossession(fastBreakCtx);
+                fbResult.events.forEach(ev => {
+                    allEvents.push(ev);
+                    accumulator.processEvent(ev);
+                });
+                if (isHomeOffense) {
+                    awayScore += fbResult.points;
+                } else {
+                    homeScore += fbResult.points;
+                }
+                timeRemaining -= 5; // Fast breaks are quick
+            }
+        }
+
         // Swap Possession
         if (!result.keepPossession || timeRemaining <= nextBoundary) {
             possessionTeam = isHomeOffense ? awayTeam : homeTeam;

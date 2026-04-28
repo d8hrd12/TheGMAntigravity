@@ -192,39 +192,36 @@ export const calculateTendencies = (player: Player, minutes: number = 0, teammat
     const passSkill = (attr.playmaking * 0.6) + (attr.basketballIQ * 0.3) + (attr.ballHandling * 0.1);
 
     // 3. Team Context Adjustment
-    // "In a team full of scorers pass more... No scorers lean on scoring"
-    let teammateBias = 0; // Positive = Pass/Share, Negative = Shoot/Carry
+    // CRITICAL RULE: Elite scorers (85+ shootSkill) are NOT affected by teammate quality.
+    // They score regardless. teammateBias only affects role players and secondary options.
+    let teammateBias = 0;
 
-    if (teammates.length > 0) {
-        // Calculate average "Scoring Threat" of teammates
+    if (teammates.length > 0 && shootSkill < 85) {
+        // Only apply teammate context to non-elite scorers
         const totalThreat = teammates.reduce((sum, p) => {
-            if (p.id === player.id) return sum; // Skip self
+            if (p.id === player.id) return sum;
             const pThreat = (p.attributes.finishing + p.attributes.threePointShot + p.attributes.midRange) / 3;
-            // Or just check if they are "Scorers" (>80 stats)
             return sum + pThreat;
         }, 0);
         const avgThreat = totalThreat / (Math.max(1, teammates.length - 1));
 
-        // Thresholds
-        if (avgThreat > 75) teammateBias = 20; // High quality teammates -> Share
-        else if (avgThreat < 65) teammateBias = -20; // Low quality -> Carry
+        // Thresholds — moderated to not completely kill scoring
+        if (avgThreat > 75) teammateBias = 12; // Good teammates -> pass a bit more (was 20)
+        else if (avgThreat < 65) teammateBias = -15; // No help -> carry harder (was -20)
     }
 
     // 4. Weight Calculation (Zero-Sum Distribution)
     let wShoot = shootSkill;
     let wPass = passSkill + teammateBias;
 
-    // Safety: "If the player has no passing skills he will always lean more on scoring."
-    // BUT we must not turn defensive role players into black holes.
+    // Safety: poor passers don't bias toward passing
     if (passSkill < 55) {
-        wPass = passSkill; // Ignore bias if incompetent, but don't crush it to 15%
+        wPass = passSkill;
     }
 
-    // ROLE PLAYER OVERRIDE
-    // If a player is not an Elite Scorer (>80), they should inherently defer to teammates more often
+    // ROLE PLAYER DEFER: Non-elite scorers pass more (nerfed from 40 to 25 to preserve their shot attempts)
     if (shootSkill < 80) {
-        // Boost passing weight to encourage "Swing Passes" (Increased from 25 to 40 for higher global assist totals)
-        wPass += 40;
+        wPass += 25; // Was 40 — still defers but doesn't eliminate their scoring
     }
 
     // Normalize weights
@@ -236,8 +233,9 @@ export const calculateTendencies = (player: Player, minutes: number = 0, teammat
     let allocShoot = Math.round(budget * (wShoot / totalWeight));
     let allocPass = Math.round(budget * (wPass / totalWeight));
 
-    // Should typically be 20-99.
-    const clamp = (val: number, max: number = 100) => Math.min(max, Math.max(25, val));
+    // Min floor: 15 for shooting (allows role players to have genuinely low shooting tendency)
+    // Min floor: 20 for passing (everyone should be willing to swing the ball)
+    const clamp = (val: number, max: number = 100, min: number = 15) => Math.min(max, Math.max(min, val));
 
     // HARD CAPS based on Talent
     // Superstars get 100, Stars get 90, Starters get 80, Bench get 65
@@ -260,17 +258,26 @@ export const calculateTendencies = (player: Player, minutes: number = 0, teammat
 
     const finalShooting = clamp(allocShoot, maxShooting);
 
-    // Distribute unallocated budget to passing to ensure they don't just hold the ball
+    // Distribute unallocated budget to passing
     let remainingBudget = budget - finalShooting;
-    let finalPassing = clamp(remainingBudget, 99); // They will swing the ball
+    let finalPassing = clamp(remainingBudget, 99, 20); // Min 20 — everyone swings the ball
 
     // SUPERSTAR PLAYMAKER EXEMPTION (The 'Jokic/Luka' check)
     // Generational offensive hubs do not obey zero-sum budgeting. They do everything at high volume.
     if (passSkill > 85) {
-        // Guarantee their passing tendency reflects their elite skill, regardless of how much they shoot
         const eliteFloor = Math.round(passSkill * 0.90);
         if (finalPassing < eliteFloor) {
-            finalPassing = clamp(eliteFloor, 99);
+            finalPassing = clamp(eliteFloor, 99, 20);
+        }
+    }
+
+    // SUPERSTAR SCORER EXEMPTION (The 'SGA/Luka/KD' check)
+    // Elite scorers (85+ shootSkill) MUST have higher shooting tendency than passing tendency.
+    // They are the primary option. Their passing is a bonus, not the primary role.
+    if (shootSkill >= 85) {
+        if (finalShooting <= finalPassing) {
+            // Force scoring to dominate by at least 10 points
+            finalPassing = Math.max(20, finalShooting - 10);
         }
     }
 
@@ -291,8 +298,8 @@ export const calculateTendencies = (player: Player, minutes: number = 0, teammat
     // Scale them. Since Inside/Outside are independent checks in PossessionEngine,
     // We can just set them based on skill ratios relative to the *ShootingTendency*.
 
-    const finalInside = clamp(finalShooting * (insideBias * 2));
-    const finalOutside = clamp(finalShooting * (outsideBias * 2));
+    const finalInside = clamp(finalShooting * (insideBias * 2), 100, 15);
+    const finalOutside = clamp(finalShooting * (outsideBias * 2), 100, 15);
 
     return {
         ...player.tendencies,

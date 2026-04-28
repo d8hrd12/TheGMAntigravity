@@ -235,28 +235,59 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
         // We apply massive bonus to OFFENSE (Target goes UP).
         // Mod -60 (from before) made Target 135 (Safe).
         // Let's apply -75 for swings.
+        // Defender-driven safe pass erosion: elite on-ball defenders make even safe passes risky
+        const onBallDefender = ctx.defenseLineup.find(p => p.position === handler.position) || ctx.defenseLineup[0];
+        const defenderPressure = Math.max(0,
+            (onBallDefender.attributes.stealing - 60) * 0.4 +
+            (onBallDefender.attributes.perimeterDefense - 60) * 0.3
+        );
+
         let defenseModifier = 0;
-        if (safePass) defenseModifier = -60;
-        else if (passes > 0) defenseModifier = -75; // Safe Swing
+        if (safePass) defenseModifier = -40 + defenderPressure;       // Safety valve but elite defenders still threaten
+        else if (passes === 1) defenseModifier = -35 + defenderPressure; // First swing: low risk
+        else if (passes === 2) defenseModifier = -25 + defenderPressure; // Building pressure
+        else if (passes >= 3)  defenseModifier = -15 + defenderPressure; // Multiple passes = defense scrambles
 
         safePass = false; // Reset
 
-        const defender = ctx.defenseLineup.find(p => p.position === handler.position) || ctx.defenseLineup[0];
+        // Update handler pressure based on their on-ball defender quality
+        const defPresenceBoost = ((onBallDefender.attributes.perimeterDefense - 60) * 0.004) +
+                                  ((onBallDefender.attributes.stealing - 60) * 0.003);
+        ctx.playerPressure[handler.id] = Math.max(0, Math.min(1,
+            (ctx.playerPressure[handler.id] || 0.2) + defPresenceBoost
+        ));
+
+        const defender = onBallDefender;
         const defenseResult = attemptDefenseRoll(defender, handler, ctx, events, currentTime, defenseModifier);
         if (defenseResult) return defenseResult;
 
         // 2. Decide Action
         const action = decideAction(handler, ctx, territory, lastPasser);
 
+        // Handle mental-error turnovers from decideAction (travel, double-dribble, bad read)
+        if ((action as any) === 'TURNOVER') {
+            return createTurnover(handler, ctx, events, currentTime);
+        }
+
         // 3. Resolution
         if (action === 'PASS') {
-            // Turnover Check (Bad Pass)
-            if (handler.attributes.playmaking < 60) {
-                const risk = (70 - handler.attributes.playmaking) / 100;
-                if (Math.random() < risk * 0.1) return createTurnover(handler, ctx, events, currentTime);
+            // Turnover Check (Bad Pass) — widened to 75, removed artificial 0.1 dampener
+            if (handler.attributes.playmaking < 75) {
+                const risk = (80 - handler.attributes.playmaking) / 200; // Max ~12.5% for PL=55
+                if (Math.random() < risk) return createTurnover(handler, ctx, events, currentTime);
             }
 
             const receiver = selectReceiver(handler, ctx, lastPasser);
+
+            // Passing Lane Interception: receiver's defender reads the play
+            const receiverDefender = ctx.defenseLineup.find(p => p.position === receiver.position) || ctx.defenseLineup[0];
+            const anticipationChance = Math.max(0,
+                (receiverDefender.attributes.basketballIQ - 65) * 0.004 +
+                (receiverDefender.attributes.stealing - 65) * 0.003
+            );
+            if (Math.random() < anticipationChance) {
+                return createSteal(handler, receiverDefender, ctx, events, currentTime);
+            }
 
             // TERRITORY RESET (User Request: Wings always receive in 3PT)
             // "Wings (SG/SF) always receive ball in '3PT' territory."
@@ -409,14 +440,46 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
                 return res;
             }
 
+        } else if (action === 'POST_UP') {
+            // Big man posts up — bypasses perimeter defense, contests with interiorDefense
+            const interiorDef = ctx.defenseLineup.find(p => p.position === 'C' || p.position === 'PF') || ctx.defenseLineup[0];
+            const postAdvantage = (handler.attributes.finishing - interiorDef.attributes.interiorDefense) * 0.8;
+            events.push({
+                id: `evt_${Date.now()}_postup`,
+                type: 'action',
+                text: `${handler.lastName} backs down ${interiorDef.lastName} in the post.`,
+                teamId: ctx.offenseTeam.id,
+                gameTime: currentTime,
+                possessionId: currentTime
+            });
+            const res = resolveShot(handler, lastPasser, ctx, events, currentTime - 2, postAdvantage, true);
+            return res;
+
         } else if (action === 'DRIVE') {
-            // Successful Drive -> Layup/Dunk
-            // SELF-CREATION: Clear lastPasser for drives to ensure they are unassisted unless explicitly Catch & Finish
+            // Rim protector hesitation: dominant bigs deter drives and can force live-ball TOs
+            const rimProtector = ctx.defenseLineup.find(p => p.position === 'C' || p.position === 'PF');
+            if (rimProtector) {
+                const intimidation = (rimProtector.attributes.interiorDefense + rimProtector.attributes.blocking) / 2;
+                const hesitationChance = Math.max(0, (intimidation - 72) * 0.005);
+                if (Math.random() < hesitationChance) {
+                    events.push({
+                        id: `evt_${Date.now()}_hesitation`,
+                        type: 'turnover',
+                        text: `${handler.lastName} picks it up — intimidated by ${rimProtector.lastName}!`,
+                        teamId: ctx.offenseTeam.id,
+                        playerId: handler.id,
+                        gameTime: currentTime,
+                        possessionId: currentTime
+                    });
+                    return { events, points: 0, endType: 'TURNOVER', duration: currentTime };
+                }
+            }
+            // Successful Drive -> Layup/Dunk (unassisted)
             const res = resolveShot(handler, undefined, ctx, events, currentTime - 1, 0, true);
             if (res.endType === 'TURNOVER' && res.events.some(e => e.id?.includes('cap_defer'))) {
                 passes++;
                 handler = selectReceiver(handler, ctx);
-                safePass = true; // Safety Valve
+                safePass = true;
                 if (passes >= MAX_PASSES) return res;
                 continue;
             }
@@ -503,7 +566,7 @@ function attemptDefenseRoll(defender: Player, handler: Player, ctx: PossessionCo
     }
 
     // 3. Outcomes
-    if (roll < 5) { // User Request: "Turnovers through the roof" -> Reduced from 20 -> 5.
+    if (roll < 10) { // Reach-in foul threshold: ~10% of non-immune defense rolls
         // REACH IN FOUL
         // "If the roll is under 20 the player that attempted to steal gets a reach in foul."
         events.push({
@@ -747,21 +810,41 @@ export function decideAction(handler: Player, ctx: PossessionContext, territory:
     const focusBonuses = FOCUS_BONUSES[focus] || FOCUS_BONUSES['Balanced'];
 
     // ASSIST PRESSURE (The "Golden Pass" Mechanic)
-    // If the person who passed to you is an elite playmaker, you feel pressure to shoot the ball they gave you (Catch & Shoot)
-    // This mathematically ensures elite passers get their assist numbers by reducing the likelihood of the receiver driving or passing again.
     let assistPressure = 0;
     if (lastPasser && lastPasser.attributes.playmaking > 85) {
-        // e.g. 96 Playmaking (Jokic) -> +16.5% increased chance for receiver to shoot immediately
         assistPressure = (lastPasser.attributes.playmaking - 80) * 1.5;
     }
 
-    const wantsToScore = scoreRoll < ((t.shooting * (focusBonuses.shot || 1.0)) + assistPressure);
+    // CLUTCH GENE: Stars elevate in crunch time, role players wilt
+    const isClutchTime = ctx.timeRemaining < 300 && Math.abs(ctx.scoreMargin) < 8;
+    let clutchShotBonus = 0;
+    if (isClutchTime) {
+        const starScoringRating = (handler.attributes.finishing + handler.attributes.midRange + handler.attributes.threePointShot) / 3;
+        if (starScoringRating >= 83) clutchShotBonus = 14;  // Stars demand the ball
+        else clutchShotBonus = -10;                          // Role players shy away
+    }
+
+    // HOT HAND: Scoring streaks increase urgency to attack
+    let hotHandBonus = 0;
+    if (ctx.getStats) {
+        const stats = ctx.getStats(handler.id);
+        const streak = stats?.consecutiveFieldGoalsMade || 0;
+        if (streak >= 3) hotHandBonus = Math.min(18, streak * 4);
+    }
+
+    const wantsToScore = scoreRoll < ((t.shooting * (focusBonuses.shot || 1.0)) + assistPressure + clutchShotBonus + hotHandBonus);
     const wantsToPass = passRoll < (t.passing * (focusBonuses.pass || 1.0));
 
     // DETERMINATION
     let intent: 'SCORE' | 'PASS' = 'PASS';
     if (wantsToScore && wantsToPass) {
-        intent = Math.random() < 0.5 ? 'PASS' : 'SCORE';
+        // Attribute-weighted tie-break — better scorer shoots, better passer passes
+        // This prevents the 50/50 coin flip from making elite scorers into passers
+        const scoringEdge = (handler.attributes.finishing + handler.attributes.midRange + handler.attributes.threePointShot) / 3;
+        const passingEdge = (handler.attributes.playmaking * 0.7) + (handler.attributes.basketballIQ * 0.3);
+        // scoringEdge/(total) = probability to shoot; naturally favors whichever is stronger
+        const shootProbability = scoringEdge / (scoringEdge + passingEdge);
+        intent = Math.random() < shootProbability ? 'SCORE' : 'PASS';
     } else if (wantsToScore) {
         intent = 'SCORE';
     } else if (wantsToPass) {
@@ -784,13 +867,19 @@ export function decideAction(handler: Player, ctx: PossessionContext, territory:
     if (intent === 'SCORE') {
         // Determine MODE based on Territory and Ratings
         if (territory === 'FINISHING') {
-            // RELAXED ASSIST LOGIC: If you get a pass inside, finish it immediately to preserve the assist
-            // Previously many inside possessions became 'DRIVE', which wipes the `lastPasser` credit.
+            // Big men in the post — high finishing + inside territory = POST_UP option
+            if ((handler.position === 'C' || handler.position === 'PF') &&
+                handler.attributes.finishing > 78 && Math.random() < 0.45) {
+                return 'POST_UP';
+            }
             if (lastPasser) return 'CATCH_AND_FINISH';
-
-            // If it's a self-created inside touch, check if they can actually finish, else they might drive
             return 'CATCH_AND_FINISH';
         }
+
+        // ATHLETICISM DRIVE FREQUENCY: Explosive perimeter players attack when they have an edge
+        const perimDef = ctx.defenseLineup.find(p => p.position === handler.position)?.attributes.perimeterDefense || 70;
+        const driveEdge = (handler.attributes.athleticism - perimDef) * 0.006;
+        if (driveEdge > 0 && Math.random() < driveEdge) return 'DRIVE';
 
         const shoot3 = handler.attributes.threePointShot;
         const shootMid = handler.attributes.midRange;
@@ -1014,9 +1103,25 @@ export function resolveShot(
 
     // Assisted Bonus
     if (assister) {
-        // Nerfed from 0.003 to 0.001 to prevent +12% boosts that break the FG% caps
         const dimerBonus = Math.min(0.04, Math.max(0, (assister.attributes.playmaking - 60) * 0.001));
         finalProb += dimerBonus;
+    }
+
+    // FATIGUE SHOT QUALITY: Tired players miss more — stamina below 60 degrades accuracy
+    const stamina = shooter.stamina || 100;
+    if (stamina < 60) {
+        const fatiguePenalty = (60 - stamina) * 0.0015; // 20% stamina → -0.06 prob
+        finalProb = Math.max(0.05, finalProb - fatiguePenalty);
+    }
+
+    // HOT HAND BOOST: Scoring streaks improve shot probability (player is in rhythm)
+    if (ctx.getStats) {
+        const stats = ctx.getStats(shooter.id);
+        const streak = stats?.consecutiveFieldGoalsMade || 0;
+        if (streak >= 2) {
+            const hotBonus = Math.min(0.05, streak * 0.012);
+            finalProb = Math.min(0.95, finalProb + hotBonus);
+        }
     }
 
     // --- EXECUTION ---
@@ -1075,6 +1180,7 @@ export function resolveShot(
     const points = isThree ? 3 : 2;
 
     if (isMake) {
+        const shotSubType = isThree ? 'THREE_POINT' : (isRim ? (Math.random() < 0.3 ? 'DUNK' : 'LAYUP') : 'MID_RANGE');
         events.push({
             id: `evt_${Date.now()}_make`,
             type: 'shot_made',
@@ -1085,8 +1191,27 @@ export function resolveShot(
             score: points,
             gameTime: time,
             possessionId: time,
-            subType: isThree ? 'THREE_POINT' : (isRim ? (Math.random() < 0.3 ? 'DUNK' : 'LAYUP') : 'MID_RANGE')
+            subType: shotSubType
         });
+
+        // ATHLETICISM AND-1: Explosive athletes draw contact on drives and finishes
+        if (isRim && isDrive && shooter.attributes.athleticism > 85) {
+            const andOneChance = (shooter.attributes.athleticism - 85) * 0.02; // 90ath→10%, 95ath→20%
+            if (Math.random() < andOneChance) {
+                events.push({
+                    id: `evt_${Date.now()}_andone`,
+                    type: 'action',
+                    text: `AND ONE! ${shooter.lastName} draws the foul through contact!`,
+                    teamId: ctx.offenseTeam.id,
+                    playerId: shooter.id,
+                    gameTime: time,
+                    possessionId: time
+                });
+                const ftResult = resolveFreeThrows(shooter, 1, ctx, events, time, true);
+                return { events: ftResult.events, points: points + ftResult.points, endType: 'SCORE', duration: time };
+            }
+        }
+
         return { events, points, endType: 'SCORE', duration: time };
     } else {
         events.push({
