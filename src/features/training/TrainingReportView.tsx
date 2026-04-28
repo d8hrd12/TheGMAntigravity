@@ -1,74 +1,47 @@
 
 import React, { useMemo, useState } from 'react';
 import { useGame } from '../../store/GameContext';
-import { ChevronLeft, TrendingUp, Target } from 'lucide-react';
-import type { AttributeChange } from '../../models/Training';
+import { ChevronLeft, TrendingUp, Target, Award, User, Users, Zap } from 'lucide-react';
+import type { AttributeChange, ProgressionResult } from '../../models/Training';
 import { BackButton } from '../ui/BackButton';
 import { PageHeader } from '../ui/PageHeader';
 
 // Helper for attribute color coding (Value)
 const getAttributeColor = (value: number) => {
-    if (value >= 90) return 'text-[#2ecc71] font-extrabold'; // Elite (Green)
-    if (value >= 80) return 'text-[#3498db] font-bold'; // Great (Blue)
-    if (value >= 70) return 'text-[#f1c40f] font-semibold'; // Good (Yellow)
-    if (value >= 60) return 'text-[var(--text)]'; // Average (White)
-    return 'text-[var(--danger)]'; // Poor (Red)
+    if (value >= 90) return '#2ecc71'; // Elite (Green)
+    if (value >= 80) return '#3498db'; // Great (Blue)
+    if (value >= 70) return '#f1c40f'; // Good (Yellow)
+    if (value >= 60) return 'var(--text)'; // Average (White)
+    return 'var(--danger)'; // Poor (Red)
 };
 
 // Component for a Data Cell (Value + Growth)
 const StatCell = ({ label, value, changes, isOvr = false }: { label: string, value: number, changes?: AttributeChange[], isOvr?: boolean }) => {
-    // Map label to attribute key
     const map: Record<string, string> = {
-        'FIN': 'finishing',
-        'MID': 'midRange',
-        '3PT': 'threePointShot',
-        'FT': 'freeThrow',
-        'PLY': 'playmaking',
-        'HND': 'ballHandling',
-        'IQ': 'basketballIQ',
-        'IDEF': 'interiorDefense',
-        'PDEF': 'perimeterDefense',
-        'STL': 'stealing',
-        'BLK': 'blocking',
-        'ORB': 'offensiveRebound',
-        'DRB': 'defensiveRebound',
-        'ATH': 'athleticism'
+        'FIN': 'finishing', 'MID': 'midRange', '3PT': 'threePointShot', 'FT': 'freeThrow',
+        'PLY': 'playmaking', 'HND': 'ballHandling', 'IQ': 'basketballIQ',
+        'IDEF': 'interiorDefense', 'PDEF': 'perimeterDefense', 'STL': 'stealing', 'BLK': 'blocking',
+        'ORB': 'offensiveRebound', 'DRB': 'defensiveRebound', 'ATH': 'athleticism'
     };
 
     let delta = 0;
-
-    if (isOvr) {
-        // Parent passes delta for OVR typically
-    } else {
+    if (!isOvr) {
         const key = map[label];
         const change = changes?.find(c => c.attributeName === key);
         delta = change ? change.delta : 0;
     }
 
-    // Color Logic: If changed, color by change. Else color by tier.
-    let valueClass = '';
-    let valueStyle = {};
-
-    if (delta > 0) {
-        valueClass = 'font-bold';
-        valueStyle = { color: '#2ecc71' }; // Green for progress
-    } else if (delta < 0) {
-        valueClass = 'font-bold';
-        valueStyle = { color: '#e74c3c' }; // Red for regress
-    } else {
-        valueClass = getAttributeColor(value); // Default tier color
-    }
-
-    // For specific report visual, maybe we strictly follow "Red/Green" request?
-    // The OvrCellDisplay does it. Let's replicate.
+    const valueStyle = delta > 0 ? { color: '#2ecc71', fontWeight: 700 } : 
+                       delta < 0 ? { color: '#e74c3c', fontWeight: 700 } : 
+                       { color: getAttributeColor(value) };
 
     return (
-        <div className="flex items-center justify-center h-full w-full relative">
-            <span className={`text-[0.9rem] ${valueClass}`} style={valueStyle}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%', position: 'relative' }}>
+            <span style={{ fontSize: '0.85rem', ...valueStyle }}>
                 {value}
             </span>
             {delta !== 0 && (
-                <sup className={`ml-0.5 text-[10px] font-bold`} style={{ color: delta > 0 ? '#2ecc71' : '#e74c3c' }}>
+                <sup style={{ marginLeft: '1px', fontSize: '9px', fontWeight: 800, color: delta > 0 ? '#2ecc71' : '#e74c3c' }}>
                     {delta > 0 ? '+' : ''}{delta}
                 </sup>
             )}
@@ -76,189 +49,182 @@ const StatCell = ({ label, value, changes, isOvr = false }: { label: string, val
     );
 };
 
-// Specific OVR Cell that takes direct delta
 const OvrCellDisplay = ({ value, delta }: { value: number, delta: number }) => {
-    const colorStyle = delta > 0 ? { color: '#00ff88', textShadow: '0 0 8px rgba(0,255,136,0.3)' }
-        : delta < 0 ? { color: '#ff4444' }
-            : undefined;
-
-    const defaultClass = value >= 90 ? 'text-[#2ecc71]' : value >= 80 ? 'text-[#3498db]' : 'text-[var(--text)]';
+    const oldOvr = value - delta;
+    const deltaColor = delta > 0 ? '#2ecc71' : delta < 0 ? '#ff4444' : 'var(--text-secondary)';
 
     return (
-        <div className="flex items-center justify-center font-bold">
-            <span
-                className={`text-[0.95rem] ${!colorStyle ? defaultClass : ''}`}
-                style={colorStyle}
-            >
-                {value}
-            </span>
-            {delta !== 0 && (
-                <sup className="ml-0.5 text-[10px] font-bold" style={{ color: delta > 0 ? '#00ff88' : '#ff4444' }}>
-                    {delta > 0 ? '+' : ''}{delta}
-                </sup>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.9rem' }}>
+            {delta !== 0 ? (
+                <>
+                    <span style={{ color: 'var(--text-secondary)', opacity: 0.6, fontSize: '0.8rem' }}>{oldOvr}</span>
+                    <span style={{ margin: '0 4px', color: 'var(--text-secondary)', opacity: 0.3, fontSize: '10px' }}>→</span>
+                    <span style={{ color: deltaColor, textShadow: delta > 0 ? '0 0 8px rgba(46, 204, 113, 0.3)' : 'none' }}>{value}</span>
+                </>
+            ) : (
+                <span style={{ color: 'var(--text-secondary)' }}>{value}</span>
             )}
         </div>
     );
 };
+
+const SummaryCard = ({ icon: Icon, title, value, subtitle, color }: { icon: any, title: string, value: string | number, subtitle?: string, color: string }) => (
+    <div className="glass-panel" style={{ flex: 1, minWidth: '160px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', borderLeft: `4px solid ${color}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.5px' }}>
+            <Icon size={14} style={{ color }} />
+            {title}
+        </div>
+        <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text)' }}>{value}</div>
+        {subtitle && <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', opacity: 0.8 }}>{subtitle}</div>}
+    </div>
+);
 
 export const TrainingReportView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const { trainingReport, teams, players, userTeamId, date } = useGame();
     const [selectedFocus, setSelectedFocus] = useState<string>('All');
+    const [teamFilter, setTeamFilter] = useState<'MyTeam' | 'AllTeams'>('MyTeam');
 
-    const team = teams.find(t => t.id === userTeamId);
+    const columns = ['FIN', 'MID', '3PT', 'FT', 'PLY', 'HND', 'IQ', 'IDEF', 'PDEF', 'STL', 'BLK', 'ORB', 'DRB', 'ATH'];
 
-    // Determine columns
-    const columns = [
-        'FIN', 'MID', '3PT', 'FT',
-        'PLY', 'HND', 'IQ',
-        'IDEF', 'PDEF', 'STL', 'BLK',
-        'ORB', 'DRB', 'ATH'
-    ];
-
-    const report = useMemo(() => {
+    const filteredReport = useMemo(() => {
         if (!trainingReport) return [];
         let r = [...trainingReport].sort((a, b) => b.overallChange - a.overallChange);
+        if (teamFilter === 'MyTeam') {
+            r = r.filter(entry => players.find(p => p.id === entry.playerId)?.teamId === userTeamId);
+        }
         if (selectedFocus !== 'All') {
             r = r.filter(p => p.focus === selectedFocus);
         }
         return r;
-    }, [trainingReport, selectedFocus]);
+    }, [trainingReport, selectedFocus, teamFilter, players, userTeamId]);
+
+    const stats = useMemo(() => {
+        if (!trainingReport) return null;
+        const myReport = trainingReport.filter(entry => players.find(p => p.id === entry.playerId)?.teamId === userTeamId);
+        const avg = (myReport.reduce((acc, r) => acc + r.overallChange, 0) / (myReport.length || 1)).toFixed(1);
+        const top = [...myReport].sort((a, b) => b.overallChange - a.overallChange)[0];
+        const improvedCount = myReport.filter(r => r.overallChange > 0).length;
+        return { avg, top, improvedCount };
+    }, [trainingReport, players, userTeamId]);
 
     if (!trainingReport || trainingReport.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center h-full text-[var(--text-secondary)]">
-                <div className="mb-4">No report data available.</div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '20px' }}>
+                <div style={{ color: 'var(--text-secondary)' }}>No report data available.</div>
                 <BackButton onClick={onBack} />
             </div>
         );
     }
 
-    const avgChange = (trainingReport.reduce((acc: number, r: any) => acc + (r.overallChange || 0), 0) / trainingReport.length).toFixed(1);
-
     const FOCUS_OPTIONS = ['All', 'Balanced', 'Natural', 'Shooting', 'Playmaking', 'Defense', 'Physical'];
 
     return (
-        <div style={{ padding: '20px', minHeight: '100vh', paddingBottom: '80px', background: 'var(--background)' }}>
+        <div style={{ padding: '16px', height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--background)', overflowY: 'auto', paddingBottom: '90px' }}>
+            <PageHeader title={`Training Report ${date.getFullYear()}`} onBack={onBack} />
 
-            {/* Top Bar matching TeamStatsView */}
-            <PageHeader
-                title={`Training Report ${date.getFullYear()}`}
-                onBack={onBack}
-            />
-
-            {/* Sub-header / Summary */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--primary)' }}>
-                        {team?.city} {team?.name}
-                    </div>
-                </div>
-                <div className={`font-bold flex items-center px-3 py-1 rounded-full bg-white/5 border border-white/10 ${Number(avgChange) >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>
-                    <TrendingUp size={14} className="mr-1.5" />
-                    Avg Growth: {Number(avgChange) > 0 ? '+' : ''}{avgChange}
-                </div>
+            {/* Top Dashboard Summary */}
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                <SummaryCard 
+                    icon={TrendingUp} 
+                    title="Avg Growth" 
+                    value={`${Number(stats?.avg) > 0 ? '+' : ''}${stats?.avg}`} 
+                    subtitle="Points per player"
+                    color={Number(stats?.avg) >= 0 ? '#2ecc71' : '#e74c3c'} 
+                />
+                <SummaryCard 
+                    icon={Award} 
+                    title="Top Prospect" 
+                    value={stats?.top ? stats.top.name.split(' ').pop()! : 'N/A'} 
+                    subtitle={stats?.top ? `+${stats.top.overallChange} OVR gain` : 'No gains'}
+                    color="var(--primary)" 
+                />
+                <SummaryCard 
+                    icon={Users} 
+                    title="Improved" 
+                    value={`${stats?.improvedCount}/5`} 
+                    subtitle="Players showing progress"
+                    color="#3498db" 
+                />
             </div>
 
-            {/* Focus Filter Pills */}
-            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '15px', scrollbarWidth: 'none' }}>
-                {FOCUS_OPTIONS.map(opt => (
+            {/* Filters Row */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '16px', alignItems: 'center' }}>
+                <div className="glass-panel" style={{ display: 'flex', padding: '4px', borderRadius: '12px' }}>
                     <button
-                        key={opt}
-                        onClick={() => setSelectedFocus(opt)}
-                        style={{
-                            padding: '6px 16px',
-                            background: selectedFocus === opt ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
-                            color: selectedFocus === opt ? '#fff' : 'var(--text-secondary)',
-                            border: `1px solid ${selectedFocus === opt ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}`,
-                            borderRadius: '20px',
-                            cursor: 'pointer',
-                            fontSize: '0.85rem',
-                            fontWeight: 600,
-                            whiteSpace: 'nowrap',
-                            transition: 'all 0.2s'
-                        }}
+                        onClick={() => setTeamFilter('MyTeam')}
+                        style={{ padding: '6px 16px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 600, background: teamFilter === 'MyTeam' ? 'var(--primary)' : 'transparent', color: teamFilter === 'MyTeam' ? '#fff' : 'var(--text-secondary)' }}
                     >
-                        {opt}
+                        My Team
                     </button>
-                ))}
+                    <button
+                        onClick={() => setTeamFilter('AllTeams')}
+                        style={{ padding: '6px 16px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 600, background: teamFilter === 'AllTeams' ? 'var(--primary)' : 'transparent', color: teamFilter === 'AllTeams' ? '#fff' : 'var(--text-secondary)' }}
+                    >
+                        League
+                    </button>
+                </div>
+
+                <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px', maxWidth: 'calc(100vw - 40px)' }}>
+                    {FOCUS_OPTIONS.map(opt => (
+                        <button
+                            key={opt}
+                            onClick={() => setSelectedFocus(opt)}
+                            style={{ 
+                                padding: '6px 14px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 600, border: '1px solid var(--border)', whiteSpace: 'nowrap',
+                                background: selectedFocus === opt ? 'var(--surface)' : 'rgba(255,255,255,0.05)', 
+                                color: selectedFocus === opt ? 'var(--primary)' : 'var(--text-secondary)' 
+                            }}
+                        >
+                            {opt}
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            {/* Table Container - matching TeamStatsView glass-panel */}
-            <div className="glass-panel" style={{ padding: '0', overflowX: 'auto', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <table style={{ width: '100%', minWidth: '900px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+            {/* Main Table */}
+            <div className="glass-panel" style={{ padding: '0', overflowX: 'auto', borderRadius: '16px', flex: 1 }}>
+                <table style={{ width: '100%', minWidth: '950px', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead>
-                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-secondary)', background: 'rgba(0,0,0,0.2)' }}>
-                            <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Player</th>
-                            <th style={{ padding: '12px', textAlign: 'center', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase' }}>Pos</th>
-                            <th style={{ padding: '12px', textAlign: 'center', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase' }}>Age</th>
-                            <th style={{ padding: '12px', textAlign: 'center', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--primary)' }}>OVR</th>
-
+                        <tr style={{ borderBottom: '1px solid var(--border)', background: 'rgba(0,0,0,0.2)' }}>
+                            <th style={{ padding: '14px 16px', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-secondary)' }}>Player</th>
+                            <th style={{ padding: '14px 4px', fontSize: '0.7rem', textTransform: 'uppercase', textAlign: 'center', color: 'var(--text-secondary)' }}>Pos</th>
+                            <th style={{ padding: '14px 4px', fontSize: '0.7rem', textTransform: 'uppercase', textAlign: 'center', color: 'var(--text-secondary)' }}>Age</th>
+                            <th style={{ padding: '14px 4px', fontSize: '0.7rem', textTransform: 'uppercase', textAlign: 'center', color: 'var(--primary)' }}>OVR</th>
                             {columns.map(col => (
-                                <th key={col} style={{ padding: '12px 4px', textAlign: 'center', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase', minWidth: '36px' }}>
-                                    {col}
-                                </th>
+                                <th key={col} style={{ padding: '14px 4px', fontSize: '0.65rem', textTransform: 'uppercase', textAlign: 'center', color: 'var(--text-secondary)', minWidth: '40px' }}>{col}</th>
                             ))}
                         </tr>
                     </thead>
                     <tbody>
-                        {report.map((entry, idx) => {
+                        {filteredReport.map((entry, idx) => {
                             const player = players.find(p => p.id === entry.playerId);
                             if (!player) return null;
-                            const isEven = idx % 2 === 0;
-
+                            const isUserPlayer = player.teamId === userTeamId;
+                            
                             return (
-                                <tr
-                                    key={entry.playerId}
-                                    style={{
-                                        borderBottom: '1px solid rgba(255,255,255,0.05)',
-                                        transition: 'background 0.2s',
-                                        background: isEven ? 'transparent' : 'rgba(255,255,255,0.02)'
-                                    }}
-                                    className="hover:bg-white/5"
-                                >
-                                    {/* Player Name */}
+                                <tr key={entry.playerId} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', background: idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)' }}>
                                     <td style={{ padding: '12px 16px' }}>
-                                        <div className="flex flex-col">
-                                            <div className="text-[0.95rem] font-bold text-[var(--text)] leading-none">
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: isUserPlayer ? 'var(--text)' : 'var(--text-secondary)' }}>
                                                 {player.firstName} {player.lastName}
                                             </div>
-                                            <div className="text-[10px] text-[var(--text-secondary)] mt-1 opacity-60 flex items-center">
-                                                <Target size={10} className="mr-1" /> {entry.focus}
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                                                <Target size={10} style={{ color: 'var(--primary)', opacity: 0.7 }} />
+                                                <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', opacity: 0.6 }}>{entry.focus}</span>
                                             </div>
                                         </div>
                                     </td>
-
-                                    {/* Pos & Age */}
-                                    <td style={{ padding: '12px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{player.position}</td>
-                                    <td style={{ padding: '12px', textAlign: 'center', color: 'var(--text-secondary)', opacity: 0.7, fontSize: '0.85rem' }}>{player.age}</td>
-
-                                    {/* OVR Cell */}
-                                    <td style={{ padding: '12px', textAlign: 'center', background: 'rgba(255,255,255,0.03)' }}>
+                                    <td style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>{player.position}</td>
+                                    <td style={{ textAlign: 'center', color: 'var(--text-secondary)', opacity: 0.7, fontSize: '0.8rem' }}>{player.age}</td>
+                                    <td style={{ textAlign: 'center' }}>
                                         <OvrCellDisplay value={player.overall} delta={entry.overallChange} />
                                     </td>
-
-                                    {/* Stats Grid */}
                                     {columns.map(col => (
-                                        <td key={col} style={{ padding: '8px 4px', textAlign: 'center' }}>
-                                            <StatCell
-                                                label={col}
-                                                value={(player.attributes as any)[
-                                                    col === 'FIN' ? 'finishing' :
-                                                        col === 'MID' ? 'midRange' :
-                                                            col === '3PT' ? 'threePointShot' :
-                                                                col === 'FT' ? 'freeThrow' :
-                                                                    col === 'PLY' ? 'playmaking' :
-                                                                        col === 'HND' ? 'ballHandling' :
-                                                                            col === 'IQ' ? 'basketballIQ' :
-                                                                                col === 'IDEF' ? 'interiorDefense' :
-                                                                                    col === 'PDEF' ? 'perimeterDefense' :
-                                                                                        col === 'STL' ? 'stealing' :
-                                                                                            col === 'BLK' ? 'blocking' :
-                                                                                                col === 'ORB' ? 'offensiveRebound' :
-                                                                                                    col === 'DRB' ? 'defensiveRebound' :
-                                                                                                        col === 'ATH' ? 'athleticism' : ''
-                                                ]}
-                                                changes={entry.changes}
+                                        <td key={col} style={{ padding: '8px 4px' }}>
+                                            <StatCell 
+                                                label={col} 
+                                                value={(player.attributes as any)[mapAttribute(col)]} 
+                                                changes={entry.changes} 
                                             />
                                         </td>
                                     ))}
@@ -270,4 +236,15 @@ export const TrainingReportView: React.FC<{ onBack: () => void }> = ({ onBack })
             </div>
         </div>
     );
+};
+
+// Internal Helper for Mapping
+const mapAttribute = (label: string): string => {
+    const map: Record<string, string> = {
+        'FIN': 'finishing', 'MID': 'midRange', '3PT': 'threePointShot', 'FT': 'freeThrow',
+        'PLY': 'playmaking', 'HND': 'ballHandling', 'IQ': 'basketballIQ',
+        'IDEF': 'interiorDefense', 'PDEF': 'perimeterDefense', 'STL': 'stealing', 'BLK': 'blocking',
+        'ORB': 'offensiveRebound', 'DRB': 'defensiveRebound', 'ATH': 'athleticism'
+    };
+    return map[label];
 };

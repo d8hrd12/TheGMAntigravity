@@ -46,20 +46,29 @@ export function generateCoach(teamId: string | null = null): Coach {
         maxRating = 88;
     }
 
+    const offense = randomInt(minRating, maxRating);
+    const defense = randomInt(minRating, maxRating);
+    const talentDevelopment = randomInt(minRating, maxRating);
+
     return {
         id: generateUUID(),
         firstName: FIRST_NAMES[randomInt(0, FIRST_NAMES.length - 1)],
         lastName: LAST_NAMES[randomInt(0, LAST_NAMES.length - 1)],
         rating: {
-            offense: randomInt(minRating, maxRating),
-            defense: randomInt(minRating, maxRating),
-            talentDevelopment: randomInt(minRating, maxRating)
+            offense,
+            defense,
+            talentDevelopment
         },
         style: STYLES[randomInt(0, STYLES.length - 1)],
         teamId,
         contract: {
-            salary: randomInt(3, 12) * 1000000,
-            yearsRemaining: teamId ? randomInt(1, 5) : 0 // Free agents start with 0 years remaining? Or maybe 1?
+            salary: (() => {
+                const actualAvg = (offense + defense + talentDevelopment) / 3;
+                // Skill-based salary: 1M base + scale based on OVR above 60
+                const skillBonus = Math.max(0, (actualAvg - 60) * 250000); 
+                return Math.floor((1000000 + skillBonus) / 500000) * 500000; // Round to nearest 500k
+            })(),
+            yearsRemaining: teamId ? randomInt(1, 4) : 0
         }
     };
 }

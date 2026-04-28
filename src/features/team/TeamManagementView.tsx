@@ -22,6 +22,7 @@ interface TeamManagementViewProps {
 import { PageHeader } from '../ui/PageHeader';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { useGame } from '../../store/GameContext';
+import { ConfirmationModal } from '../ui/ConfirmationModal';
 
 export const TeamManagementView: React.FC<TeamManagementViewProps> = ({
     players,
@@ -36,6 +37,7 @@ export const TeamManagementView: React.FC<TeamManagementViewProps> = ({
     const { userFireCoach } = useGame();
     const activeCoach = coaches.find(c => c.teamId === team.id);
     const [activeTab, setActiveTab] = useState<'rotation' | 'strategy'>('rotation');
+    const [showFireConfirmation, setShowFireConfirmation] = useState(false);
 
     // Shared Tab Styles
     const tabStyle = (isActive: boolean): React.CSSProperties => ({
@@ -106,7 +108,7 @@ export const TeamManagementView: React.FC<TeamManagementViewProps> = ({
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                     <h4 style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Personnel</h4>
                                     <button
-                                        onClick={() => userFireCoach(team.id)}
+                                        onClick={() => setShowFireConfirmation(true)}
                                         style={{
                                             background: 'rgba(239, 68, 68, 0.1)',
                                             color: '#ef4444',
@@ -137,6 +139,21 @@ export const TeamManagementView: React.FC<TeamManagementViewProps> = ({
                     </div>
                 )}
             </div>
+
+            {showFireConfirmation && activeCoach && (
+                <ConfirmationModal
+                    title="Fire Head Coach"
+                    message={`Are you sure you want to fire ${activeCoach.firstName} ${activeCoach.lastName}? This action cannot be undone.`}
+                    confirmText="Fire Coach"
+                    cancelText="Keep Coach"
+                    isDestructive={true}
+                    onConfirm={() => {
+                        userFireCoach(team.id);
+                        setShowFireConfirmation(false);
+                    }}
+                    onCancel={() => setShowFireConfirmation(false)}
+                />
+            )}
         </div>
     );
 };

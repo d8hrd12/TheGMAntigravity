@@ -46,7 +46,9 @@ export const TradeProposalModal: React.FC<TradeProposalModalProps> = ({ offer, t
                                 <li key={p.id} style={{ marginBottom: '5px' }}>{p.firstName} {p.lastName} <span style={{ fontSize: '0.8em', color: '#888' }}>({p.position})</span></li>
                             ))}
                             {offer.proposerAssets.picks.map((p: any) => (
-                                <li key={p.id} style={{ marginBottom: '5px' }}>{p.year} {p.originalTeamName} R{p.round}</li>
+                                <li key={p.id} style={{ marginBottom: '5px', fontSize: '0.85rem' }}>
+                                    {p.year} | Round {p.round} | {proposer?.name} | {(p.originalTeamName || 'Unknown')}®
+                                </li>
                             ))}
                         </ul>
                     </div>
@@ -64,7 +66,9 @@ export const TradeProposalModal: React.FC<TradeProposalModalProps> = ({ offer, t
                                 <li key={p.id} style={{ marginBottom: '5px' }}>{p.firstName} {p.lastName} <span style={{ fontSize: '0.8em', color: '#888' }}>({p.position})</span></li>
                             ))}
                             {offer.targetAssets.picks.map((p: any) => (
-                                <li key={p.id} style={{ marginBottom: '5px' }}>{p.year} {p.originalTeamName} R{p.round}</li>
+                                <li key={p.id} style={{ marginBottom: '5px', fontSize: '0.85rem' }}>
+                                    {p.year} | Round {p.round} | {teams.find(t => t.id === offer.targetTeamId)?.name} | {(p.originalTeamName || 'Unknown')}®
+                                </li>
                             ))}
                         </ul>
                     </div>

@@ -217,7 +217,16 @@ const ScoutingView: React.FC = () => {
                         <div style={{ flex: 1, overflowY: 'auto', padding: '15px' }}>
                             <h3 style={{ marginTop: 0 }}>Prospects</h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                {draftClass.filter(p => filterPos === 'All' || p.position === filterPos).map(p => {
+                                {
+                                    [...draftClass]
+                                        .sort((a, b) => {
+                                            const rankA = Array.from(projections.keys()).indexOf(a.id);
+                                            const rankB = Array.from(projections.keys()).indexOf(b.id);
+                                            return rankA - rankB;
+                                        })
+                                        .filter(p => filterPos === 'All' || p.position === filterPos)
+                                        .map(p => {
+
                                     const visibility = getVisibility(p.id);
                                     return (
                                         <div

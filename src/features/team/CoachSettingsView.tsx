@@ -9,9 +9,10 @@ interface CoachSettingsViewProps {
     team: Team;
     onBack: () => void;
     onSave: (settings: TeamStrategy) => void;
+    onFire?: () => void;
 }
 
-export const CoachSettingsView: React.FC<CoachSettingsViewProps> = ({ team, onBack, onSave }) => {
+export const CoachSettingsView: React.FC<CoachSettingsViewProps> = ({ team, onBack, onSave, onFire }) => {
     // Default to 'Normal' / 'Balanced' / 'Man-to-Man' if undefined
     const [strategy, setStrategy] = useState<TeamStrategy>(team.tactics || {
         pace: 'Normal',
@@ -75,7 +76,25 @@ export const CoachSettingsView: React.FC<CoachSettingsViewProps> = ({ team, onBa
 
 
                 {/* Save Changes Button */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px', gap: '12px' }}>
+                    {onFire && (
+                        <button
+                            onClick={onFire}
+                            style={{ 
+                                padding: '10px 24px', 
+                                borderRadius: '12px', 
+                                background: 'rgba(231, 76, 60, 0.1)', 
+                                color: '#e74c3c', 
+                                border: '1px solid rgba(231, 76, 60, 0.3)',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(231, 76, 60, 0.2)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(231, 76, 60, 0.1)'}
+                        >
+                            Fire Coach
+                        </button>
+                    )}
                     <button
                         onClick={handleSave}
                         className="btn-primary"

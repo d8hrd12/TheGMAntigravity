@@ -139,6 +139,15 @@ function AppContent() {
   const [modalMessage, setModalMessage] = useState<{ title: string, msg: string, type: 'error' | 'info' | 'success' } | null>(null);
   const [showNews, setShowNews] = useState(false);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // --- Scroll to Top on Navigation ---
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollTo(0, 0);
+    }
+  }, [view, selectedPlayerId, selectedGame]);
+
   const [showingAwards, setShowingAwards] = useState<SeasonAwards | null>(null);
   const isBackNavigating = useRef(false);
   const prevAwardsLength = useRef(awardsHistory.length);
@@ -765,7 +774,10 @@ function AppContent() {
   return (
     <>
       <div className="safe-area-top-bar" />
-      <div className={`app-container ${view === 'dashboard' ? 'with-ticker' : ''}`}>
+      <div 
+        ref={containerRef}
+        className={`app-container ${view === 'dashboard' ? 'with-ticker' : ''}`}
+      >
 
         {renderContent()}
         {tradeOffer && (

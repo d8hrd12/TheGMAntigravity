@@ -12,6 +12,7 @@ export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: 
     const [sortConfig, setSortConfig] = React.useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'ovr', direction: 'desc' });
     const [showResults, setShowResults] = React.useState(false);
     const [showConfirmation, setShowConfirmation] = React.useState(false);
+    const [showFocusInfo, setShowFocusInfo] = React.useState(false);
 
     const userRoster = players.filter(p => p.teamId === userTeamId);
 
@@ -194,7 +195,20 @@ export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: 
                             <HeaderCell label="Age" sortKey="age" align="center" />
                             <HeaderCell label="OVR" sortKey="ovr" align="center" />
                             <HeaderCell label="POT" sortKey="pot" align="center" />
-                            <th style={{ padding: '12px 4px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Focus</th>
+                            <th style={{ padding: '12px 4px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                                Focus
+                                <button
+                                    onClick={() => setShowFocusInfo(true)}
+                                    style={{
+                                        background: 'none', border: 'none', cursor: 'pointer',
+                                        color: 'var(--text-secondary)', fontSize: '0.8rem',
+                                        padding: '0 4px', verticalAlign: 'middle', opacity: 0.7
+                                    }}
+                                    title="What does each focus do?"
+                                >
+                                    ℹ️
+                                </button>
+                            </th>
                             <th style={{ padding: '12px 4px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Rec.</th>
                         </tr>
                     </thead>
@@ -293,6 +307,57 @@ export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: 
                     </div>
                 )
             }
+
+            {/* Focus Info Modal */}
+            {showFocusInfo && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.85)', zIndex: 1100,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: '20px'
+                }} onClick={() => setShowFocusInfo(false)}>
+                    <div className="glass-panel" onClick={e => e.stopPropagation()} style={{
+                        background: '#1a1a2e', maxWidth: '420px', width: '100%',
+                        padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)'
+                    }}>
+                        <h3 style={{ margin: '0 0 16px', fontSize: '1.15rem', color: '#fff' }}>Training Focus Guide</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {([
+                                { name: 'Balanced', icon: '⚖️', desc: 'Improves all attributes evenly.' },
+                                { name: 'Shooting', icon: '🎯', desc: 'Prioritizes Mid-Range, 3PT, Free Throw & Finishing.' },
+                                { name: 'Playmaking', icon: '🧠', desc: 'Boosts Playmaking, Ball Handling & Basketball IQ.' },
+                                { name: 'Defense', icon: '🛡️', desc: 'Focuses on Interior/Perimeter Defense, Steals, Blocks & Rebounds.' },
+                                { name: 'Physical', icon: '💪', desc: 'Targets Athleticism; slows physical decline for veterans.' },
+                                { name: 'Fundamentals', icon: '📚', desc: 'Improves IQ, Free Throw & Playmaking — ideal for young players.' },
+                                { name: 'Natural', icon: '🌱', desc: 'No specific boost; progression driven purely by potential.' },
+                                { name: 'None', icon: '❌', desc: 'Player does not participate in Training Camp.' },
+                            ] as const).map(f => (
+                                <div key={f.name} style={{
+                                    display: 'flex', alignItems: 'flex-start', gap: '10px',
+                                    padding: '8px 10px', borderRadius: '8px',
+                                    background: 'rgba(255,255,255,0.04)'
+                                }}>
+                                    <span style={{ fontSize: '1.1rem', flexShrink: 0, width: '24px' }}>{f.icon}</span>
+                                    <div>
+                                        <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)', marginBottom: '2px' }}>{f.name}</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>{f.desc}</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <button
+                            onClick={() => setShowFocusInfo(false)}
+                            style={{
+                                marginTop: '18px', width: '100%', padding: '10px',
+                                borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)',
+                                background: 'transparent', color: '#fff', cursor: 'pointer', fontWeight: 600
+                            }}
+                        >
+                            Got it
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Training Results (Full Page Overlay) */}
             {

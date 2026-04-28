@@ -227,7 +227,8 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
             players,
             contracts,
             currentYear,
-            salaryCap
+            salaryCap,
+            teams
         );
 
         if (suggestion) {
@@ -361,7 +362,6 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
                             );
                         })}
                         <h4 style={{ margin: '10px 0 5px 0', fontSize: '0.9rem', color: '#666' }}>Draft Picks</h4>
-                        <h4 style={{ margin: '10px 0 5px 0', fontSize: '0.9rem', color: '#666' }}>Draft Picks</h4>
                         {(userTeam.draftPicks || [])
                             .filter(p => {
                                 // Filter out "used" picks if we are in draft mode
@@ -413,10 +413,9 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
                                             display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                                         }}>
                                         <div>
-                                            <div style={{ fontWeight: 'bold' }}>
-                                                {p.year} {exactPick ? `Pick ${exactPick}` : `Round ${p.round}`}
+                                            <div style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>
+                                                {p.year} | Round {p.round} | {userTeam.name} | {(p.originalTeamName || 'Unknown')}®
                                             </div>
-                                            <div style={{ fontSize: '0.8rem', color: '#666' }}>From: {p.originalTeamName || 'Unknown'}</div>
                                         </div>
                                         <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(getDraftPickValue(p, currentYear, opponentTeam || null, exactPick || undefined))}</div>
                                     </div>
@@ -478,7 +477,6 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
                             );
                         })}
                         <h4 style={{ margin: '10px 0 5px 0', fontSize: '0.9rem', color: '#666' }}>Draft Picks</h4>
-                        <h4 style={{ margin: '10px 0 5px 0', fontSize: '0.9rem', color: '#666' }}>Draft Picks</h4>
                         {(opponentTeam?.draftPicks || [])
                             .filter(p => {
                                 if (seasonPhase === 'draft' && p.year === currentYear && draftOrder) {
@@ -501,10 +499,9 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
                                             display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                                         }}>
                                         <div>
-                                            <div style={{ fontWeight: 'bold' }}>
-                                                {p.year} {exactPick ? `Pick ${exactPick}` : `Round ${p.round}`}
+                                            <div style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>
+                                                {p.year} | Round {p.round} | {opponentTeam?.name} | {(p.originalTeamName || 'Unknown')}®
                                             </div>
-                                            <div style={{ fontSize: '0.8rem', color: '#666' }}>From: {p.originalTeamName || 'Unknown'}</div>
                                         </div>
                                         <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(getDraftPickValue(p, currentYear, opponentTeam || null, exactPick || undefined))}</div>
                                     </div>

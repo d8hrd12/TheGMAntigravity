@@ -25,6 +25,8 @@ const STYLE_ICONS: Record<string, string> = {
     'Defensive Wall': '🛡️',
 };
 
+import { ConfirmationModal } from '../ui/ConfirmationModal';
+
 export const MidSeasonFreeAgents: React.FC<MidSeasonFreeAgentsProps> = ({ players, userTeam, currentYear, onSelectPlayer }) => {
     const { signPlayerWithContract, userHireCoach, salaryCap, coaches } = useGame();
     const [activeTab, setActiveTab] = React.useState<'players' | 'coaches'>('players');
@@ -33,6 +35,16 @@ export const MidSeasonFreeAgents: React.FC<MidSeasonFreeAgentsProps> = ({ player
     const [showAffordableOnly, setShowAffordableOnly] = React.useState(false);
     const [coachSortBy, setCoachSortBy] = React.useState<'OVR' | 'OFF' | 'DEF' | 'DEV'>('OVR');
     const [expandedCoachId, setExpandedCoachId] = React.useState<string | null>(null);
+
+    // Modal States
+    const [modalConfig, setModalConfig] = React.useState<{
+        show: boolean;
+        title: string;
+        message: string;
+        confirmText: string;
+        onConfirm: () => void;
+        isDestructive?: boolean;
+    }>({ show: false, title: '', message: '', confirmText: '', onConfirm: () => { } });
 
     const calculateCost = (player: Player) => calculateContractAmount(player, salaryCap).amount;
     const formatMoney = (amount: number) =>
@@ -91,21 +103,65 @@ export const MidSeasonFreeAgents: React.FC<MidSeasonFreeAgentsProps> = ({ player
     const canSignGeneric = rosterSize < 13;
 
     const handleSign = (player: Player) => {
-        if (!canSignGeneric) { alert('Roster full! Release players first.'); return; }
-        const cost = calculateCost(player);
-        if (cost > userTeam.salaryCapSpace) { alert('Not enough Cap Space!'); return; }
-        if (confirm(`Sign ${player.lastName} for ${formatMoney(cost)} (1 Year)?`)) {
-            signPlayerWithContract(player.id, { amount: cost, years: 1, role: 'Bench' });
+        if (!canSignGeneric) {
+            setModalConfig({
+                show: true,
+                title: 'Roster Full',
+                message: 'Your roster is full (13 players). You must waive a player before signing a new one.',
+                confirmText: 'Understood',
+                onConfirm: () => setModalConfig(prev => ({ ...prev, show: false }))
+            });
+            return;
         }
+
+        const cost = calculateCost(player);
+        if (cost > userTeam.salaryCapSpace) {
+            setModalConfig({
+                show: true,
+                title: 'Not Enough Cap Space',
+                message: `The ${player.lastName} requires ${formatMoney(cost)}, but you only have ${formatMoney(userTeam.salaryCapSpace)} available.`,
+                confirmText: 'Understood',
+                onConfirm: () => setModalConfig(prev => ({ ...prev, show: false }))
+            });
+            return;
+        }
+
+        setModalConfig({
+            show: true,
+            title: 'Sign Player',
+            message: `Are you sure you want to sign ${player.firstName} ${player.lastName} to a 1-year contract worth ${formatMoney(cost)}?`,
+            confirmText: 'Sign Player',
+            onConfirm: () => {
+                signPlayerWithContract(player.id, { amount: cost, years: 1, role: 'Bench' });
+                setModalConfig(prev => ({ ...prev, show: false }));
+            }
+        });
     };
 
     const userCoach = (coaches || []).find(c => c.id === userTeam.coachId && c.teamId === userTeam.id);
 
     const handleSignCoach = (coach: Coach) => {
-        if (userCoach) { alert('You must fire your current coach before hiring a new one.'); return; }
-        if (confirm(`Hire ${coach.firstName} ${coach.lastName} for ${formatMoney(coach.contract.salary)}/yr?`)) {
-            userHireCoach(coach.id);
+        if (userCoach) {
+            setModalConfig({
+                show: true,
+                title: 'Coach Position Occupied',
+                message: 'You already have a head coach. You must fire your current coach before hiring a new one.',
+                confirmText: 'Understood',
+                onConfirm: () => setModalConfig(prev => ({ ...prev, show: false }))
+            });
+            return;
         }
+
+        setModalConfig({
+            show: true,
+            title: 'Hire Coach',
+            message: `Are you sure you want to hire ${coach.firstName} ${coach.lastName} as your head coach for ${formatMoney(coach.contract.salary)} per year?`,
+            confirmText: 'Hire Coach',
+            onConfirm: () => {
+                userHireCoach(coach.id);
+                setModalConfig(prev => ({ ...prev, show: false }));
+            }
+        });
     };
 
     return (
@@ -401,6 +457,18 @@ export const MidSeasonFreeAgents: React.FC<MidSeasonFreeAgentsProps> = ({ player
                         );
                     })}
                 </div>
+            )}
+
+            {modalConfig.show && (
+                <ConfirmationModal
+                    title={modalConfig.title}
+                    message={modalConfig.message}
+                    confirmText={modalConfig.confirmText}
+                    cancelText="Cancel"
+                    onConfirm={modalConfig.onConfirm}
+                    onCancel={() => setModalConfig(prev => ({ ...prev, show: false }))}
+                    isDestructive={modalConfig.isDestructive}
+                />
             )}
         </div>
     );

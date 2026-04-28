@@ -224,7 +224,7 @@ export function getPlayerTradeValue(
     return Math.max(0, value);
 }
 
-export function getDraftPickValue(pick: DraftPick, currentYear: number, receivingTeam: Team | null, pickNumber?: number): number {
+export function getDraftPickValue(pick: DraftPick, currentYear: number, receivingTeam: Team | null, pickNumber?: number, allTeams?: Team[]): number {
     let baseValue = 0;
     const isFuture = pick.year > currentYear;
 
@@ -240,39 +240,44 @@ export function getDraftPickValue(pick: DraftPick, currentYear: number, receivin
             else baseValue = 35 - (pickNumber - 20) * 1; // 21->34, 30->25
         } else {
             // UNKNOWN FUTURE PICK
+            // The value depends on the STRENGTH of the ORIGINAL team.
+            let strengthFactor = 1.0;
+            if (allTeams) {
+                const originalTeam = allTeams.find(t => t.id === pick.originalTeamId);
+                if (originalTeam) {
+                    const direction = getTeamDirection(originalTeam, []); // Use default empty roster for inference
+                    if (direction === 'Rebuilding') strengthFactor = 1.5; // High lottery potential
+                    else if (direction === 'Young_Developing') strengthFactor = 1.25;
+                    else if (direction === 'PlayoffTeam') strengthFactor = 0.9;
+                    else if (direction === 'Contender') strengthFactor = 0.6; // Low pick expected
+                }
+            }
+
             if (isFuture) {
                 const yearsOut = pick.year - currentYear;
-                // "Mystery Premium" Curve:
-                // Year 1-2: Value drops as certainty increases (Teams are locked in)
-                // Year 3-4+: Value rises as "Lottery Ticket" potential increases
                 if (yearsOut <= 2) {
-                    baseValue = 60 - (yearsOut * 10); // 1yr: 50, 2yr: 40
+                    baseValue = (60 - (yearsOut * 10)) * strengthFactor;
                 } else {
-                    // Mystery Boost
-                    baseValue = 40 + ((yearsOut - 2) * 8); // 3yr: 48, 4yr: 56
+                    baseValue = (40 + ((yearsOut - 2) * 8)) * strengthFactor;
                 }
             } else {
-                baseValue = 60;
+                baseValue = 60 * strengthFactor;
             }
         }
     } else {
         // Round 2
         if (pickNumber) {
-            if (pickNumber <= 40) baseValue = 22; // Early 2nd (31-40) - Decent prospect
-            else if (pickNumber <= 50) baseValue = 12; // Mid 2nd (41-50) - Flyer
-            else baseValue = 5; // Late 2nd (51-60) - Stash
+            if (pickNumber <= 40) baseValue = 22;
+            else if (pickNumber <= 50) baseValue = 12;
+            else baseValue = 5;
         } else {
-            // Future 2nd
             baseValue = 12;
-            if (isFuture && pick.year > currentYear + 1) baseValue = 8; // Deep future 2nd
+            if (isFuture && pick.year > currentYear + 1) baseValue = 8;
         }
     }
 
     if (receivingTeam) {
-        // Rebuilders value picks more
-        // We need roster to calculate direction fully, but for pick value basic state is OK mostly
-        // Or we pass generic Boost
-        const state = getTeamState(receivingTeam); // Using legacy for now or we need to pass Roster everywhere
+        const state = getTeamState(receivingTeam);
         if (state === 'Rebuilding') baseValue *= 1.3;
         if (state === 'Contender') baseValue *= 0.8;
     }
@@ -299,7 +304,8 @@ export function getPackageValue(
     receivingTeam: Team,
     contracts: Contract[],
     currentRoster: Player[], // Receiving team's roster
-    currentYear: number
+    currentYear: number,
+    allTeams: Team[]
 ): number {
     let totalValue = 0;
 
@@ -313,7 +319,7 @@ export function getPackageValue(
         else totalValue += val * 0.5;
     });
 
-    const pickValues = assets.picks.map(p => getDraftPickValue(p, currentYear, receivingTeam));
+    const pickValues = assets.picks.map(p => getDraftPickValue(p, currentYear, receivingTeam, undefined, allTeams));
     pickValues.forEach(val => totalValue += val);
 
     return totalValue;
@@ -371,10 +377,10 @@ export function evaluateTrade(
     const aiRosterPost = aiRoster.filter(p => !aiAssets.players.find(ap => ap.id === p.id));
 
     // Value of what AI RECEIVES (User Assets)
-    const valueReceived = getPackageValue(userAssets, aiTeam, contracts, aiRosterPost, currentYear);
+    const valueReceived = getPackageValue(userAssets, aiTeam, contracts, aiRosterPost, currentYear, allTeams);
 
     // Value of what AI GIVES (AI Assets) - Valued from THEIR perspective (Loss aversion)
-    const valueGiven = getPackageValue(aiAssets, aiTeam, contracts, aiRosterPost, currentYear);
+    const valueGiven = getPackageValue(aiAssets, aiTeam, contracts, aiRosterPost, currentYear, allTeams);
 
     // 3. DECISION LOGIC
     let ratio = valueReceived / (valueGiven || 1);
@@ -428,7 +434,8 @@ export function suggestTradePackage(
     allPlayers: Player[], // Needed for roster context
     contracts: Contract[],
     currentYear: number,
-    salaryCap: number
+    salaryCap: number,
+    allTeams: Team[]
 ): TradeProposal | null {
     // Goal: Find a package of User Assets that matches the value of DesiredAssets
 
@@ -438,7 +445,7 @@ export function suggestTradePackage(
 
     // 1. Calculate Value Needed
     const aiRosterPost = aiRoster.filter(p => !desiredAssets.players.some(dp => dp.id === p.id));
-    const valueToMatch = getPackageValue(desiredAssets, aiTeam, contracts, aiRosterPost, currentYear);
+    const valueToMatch = getPackageValue(desiredAssets, aiTeam, contracts, aiRosterPost, currentYear, allTeams);
     const targetValue = valueToMatch * 1.1; // AI wants a win
 
     // 2. Filter User Assets based on AI Needs
@@ -626,7 +633,7 @@ export function generateTradeOffers(
 
         if (currentOfferValue < valueToDistribute * 0.95) {
             for (const pick of aiPicks) {
-                const pickVal = getDraftPickValue(pick, currentYear, aiTeam);
+                const pickVal = getDraftPickValue(pick, currentYear, aiTeam, undefined, allTeams);
                 if (currentOfferValue + pickVal <= valueToDistribute * 1.2) {
                     proposedAiPicks.push(pick);
                     currentOfferValue += pickVal;
@@ -656,8 +663,8 @@ export function generateTradeOffers(
             );
 
             // MANUALLY CHECK RATIO BUFFER
-            const valReceived = getPackageValue(userBundle, aiTeam, contracts, aiRoster.filter(p => !aiBundle.players.includes(p)), currentYear);
-            const valGiven = getPackageValue(aiBundle, aiTeam, contracts, aiRoster.filter(p => !aiBundle.players.includes(p)), currentYear);
+            const valReceived = getPackageValue(userBundle, aiTeam, contracts, aiRoster.filter(p => !aiBundle.players.includes(p)), currentYear, allTeams);
+            const valGiven = getPackageValue(aiBundle, aiTeam, contracts, aiRoster.filter(p => !aiBundle.players.includes(p)), currentYear, allTeams);
             const ratio = valReceived / (valGiven || 1);
 
             // SUPERSTAR EXCEPTION: Contenders will accept a slight loss to land an elite player

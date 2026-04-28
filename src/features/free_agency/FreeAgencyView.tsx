@@ -10,7 +10,7 @@ import { NegotiationView } from '../negotiation/NegotiationView';
 import { DailyRecapModal } from './components/DailyRecapModal';
 import { FreeAgencySummaryModal } from './components/FreeAgencySummaryModal';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search } from 'lucide-react';
+import { Search, Trash2 } from 'lucide-react';
 
 const StatItem = ({ label, value }: { label: string; value: string | number }) => (
     <div style={{ textAlign: 'center' }}>
@@ -49,8 +49,8 @@ interface FreeAgencyViewProps {
 
 export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ players, team, onSign, onFinish, onSelectPlayer }) => {
     const {
-        salaryCap, freeAgencyDay, activeOffers, placeOffer, advanceFreeAgencyDay, userTeamId,
-        lastFreeAgencyResult, setGameState, teams, coaches
+        salaryCap, freeAgencyDay, activeOffers, activeCoachOffers, placeOffer, placeCoachOffer, advanceFreeAgencyDay, userTeamId,
+        lastFreeAgencyResult, setGameState, teams, coaches, userFireCoach
     } = useGame();
 
     const [activeTab, setActiveTab] = useState<'players' | 'coaches'>('players');
@@ -63,6 +63,8 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ players, team, o
 
     const [selectedPlayerForOffer, setSelectedPlayerForOffer] = useState<Player | null>(null);
     const [selectedPlayerForBids, setSelectedPlayerForBids] = useState<Player | null>(null);
+    const [selectedCoachForOffer, setSelectedCoachForOffer] = useState<any | null>(null);
+    const [selectedCoachForBids, setSelectedCoachForBids] = useState<any | null>(null);
     const [showDailyRecap, setShowDailyRecap] = useState(false);
     const [showFinalSummary, setShowFinalSummary] = useState(false);
 
@@ -113,6 +115,9 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ players, team, o
     const getExistingOffer = (playerId: string) =>
         activeOffers?.find(o => o.playerId === playerId && o.teamId === userTeamId && o.status === 'pending');
 
+    const getExistingCoachOffer = (coachId: string) =>
+        activeCoachOffers?.find(o => o.playerId === coachId && o.teamId === userTeamId && o.status === 'pending');
+
     const handleEndFreeAgency = () => setShowFinalSummary(true);
     const confirmFinish = () => { setShowFinalSummary(false); onFinish(); };
 
@@ -120,7 +125,8 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ players, team, o
     const counts = { PG: 0, SG: 0, SF: 0, PF: 0, C: 0 };
     myRoster.forEach(p => { if (p.position in counts) counts[p.position as keyof typeof counts]++; });
     const targets = { PG: 2, SG: 2, SF: 2, PF: 2, C: 2 };
-    const activeOffersCount = activeOffers?.filter(o => o.teamId === userTeamId && o.status === 'pending').length || 0;
+    const activeOffersCount = (activeOffers?.filter(o => o.teamId === userTeamId && o.status === 'pending').length || 0) + 
+                            (activeCoachOffers?.filter(o => o.teamId === userTeamId && o.status === 'pending').length || 0);
     const userCoach = (coaches || []).find(c => c.id === team.coachId && c.teamId === userTeamId);
 
     return (
@@ -381,17 +387,32 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ players, team, o
                                     {STYLE_ICONS[userCoach.style] || '🏀'} {userCoach.style} • {userCoach.contract.yearsRemaining} yr{userCoach.contract.yearsRemaining !== 1 ? 's' : ''} left • {formatMoney(userCoach.contract.salary)}/yr
                                 </div>
                             </div>
-                            <div style={{ display: 'flex', gap: '20px' }}>
-                                {[
-                                    { label: 'OFF', value: userCoach.rating.offense, color: '#3b82f6' },
-                                    { label: 'DEF', value: userCoach.rating.defense, color: '#ef4444' },
-                                    { label: 'DEV', value: userCoach.rating.talentDevelopment, color: '#f59e0b' },
-                                ].map(r => (
-                                    <div key={r.label} style={{ textAlign: 'center' }}>
-                                        <div style={{ fontSize: '1.4rem', fontWeight: 800, color: r.color }}>{r.value}</div>
-                                        <div style={{ fontSize: '0.65rem', color: '#888', fontWeight: 600, textTransform: 'uppercase' }}>{r.label}</div>
-                                    </div>
-                                ))}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                                <div style={{ display: 'flex', gap: '20px' }}>
+                                    {[
+                                        { label: 'OFF', value: userCoach.rating.offense, color: '#3b82f6' },
+                                        { label: 'DEF', value: userCoach.rating.defense, color: '#ef4444' },
+                                        { label: 'DEV', value: userCoach.rating.talentDevelopment, color: '#f59e0b' },
+                                    ].map(r => (
+                                        <div key={r.label} style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: r.color }}>{r.value}</div>
+                                            <div style={{ fontSize: '0.65rem', color: '#888', fontWeight: 600, textTransform: 'uppercase' }}>{r.label}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div style={{ width: '1px', height: '30px', background: 'rgba(255,255,255,0.1)' }} />
+                                <button
+                                    onClick={() => userFireCoach(userTeamId)}
+                                    style={{
+                                        padding: '8px 16px', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.4)',
+                                        background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', fontWeight: 700, fontSize: '0.85rem',
+                                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'}
+                                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+                                >
+                                    <Trash2 size={14} /> Fire
+                                </button>
                             </div>
                         </div>
                     )}
@@ -467,7 +488,36 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ players, team, o
                                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
                                             <div style={{ fontSize: '1.4rem', fontWeight: 800, color: ovrColor, lineHeight: 1 }}>{ovr}</div>
                                             <div style={{ fontSize: '0.6rem', color: '#666', fontWeight: 600, textTransform: 'uppercase' }}>OVR</div>
-                                            <div style={{ fontSize: '0.72rem', color: '#aaa', marginTop: '3px' }}>{formatMoney(coach.contract.salary)}/yr</div>
+                                        </div>
+
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', minWidth: '80px' }}>
+                                            {getExistingCoachOffer(coach.id) ? (
+                                                <div style={{ textAlign: 'right' }}>
+                                                    <div style={{ fontSize: '0.65rem', color: '#2ecc71', fontWeight: 700 }}>PENDING</div>
+                                                    <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>{formatMoney(getExistingCoachOffer(coach.id)!.amount)}</div>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); setSelectedCoachForOffer(coach); }}
+                                                    style={{
+                                                        padding: '6px 14px', background: '#8b5cf6', color: 'white',
+                                                        border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '0.8rem',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    Offer
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); setSelectedCoachForBids(coach); }}
+                                                style={{
+                                                    padding: '4px 10px', background: 'rgba(255,255,255,0.05)', color: '#aaa',
+                                                    border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', fontSize: '0.7rem',
+                                                    fontWeight: 600, cursor: 'pointer'
+                                                }}
+                                            >
+                                                Bids
+                                            </button>
                                         </div>
 
                                         <div style={{ color: '#555', fontSize: '0.85rem', flexShrink: 0, transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</div>
@@ -603,6 +653,125 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ players, team, o
 
                 {showFinalSummary && (
                     <FreeAgencySummaryModal players={players} teams={teams} onClose={confirmFinish} />
+                )}
+
+                {/* Coach Negotiation Modal */}
+                {selectedCoachForOffer && (
+                    <div style={{
+                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                        background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(5px)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000
+                    }} onClick={() => setSelectedCoachForOffer(null)}>
+                        <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }}
+                            onClick={e => e.stopPropagation()}
+                            style={{ width: '90%', maxWidth: '450px', background: '#1c1c1e', borderRadius: '16px', padding: '24px', border: '1px solid #333' }}>
+                            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🎽</div>
+                                <h3 style={{ margin: 0, fontSize: '1.5rem', color: 'white' }}>Hire Coach</h3>
+                                <p style={{ color: '#888', margin: '5px 0' }}>{selectedCoachForOffer.firstName} {selectedCoachForOffer.lastName}</p>
+                            </div>
+
+                            <div style={{ marginBottom: '20px' }}>
+                                <label style={{ display: 'block', fontSize: '0.9rem', color: '#aaa', marginBottom: '8px', fontWeight: 600 }}>ANNUAL SALARY</label>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                    <input
+                                        type="range" min="1000000" max="15000000" step="100000"
+                                        value={selectedCoachForOffer.contract.salary}
+                                        onChange={(e) => setSelectedCoachForOffer({ ...selectedCoachForOffer, contract: { ...selectedCoachForOffer.contract, salary: Number(e.target.value) } })}
+                                        style={{ flex: 1, accentColor: '#8b5cf6' }}
+                                    />
+                                    <div style={{ width: '100px', textAlign: 'right', fontWeight: 800, color: 'white' }}>{formatMoney(selectedCoachForOffer.contract.salary)}</div>
+                                </div>
+                            </div>
+
+                            <div style={{ marginBottom: '30px' }}>
+                                <label style={{ display: 'block', fontSize: '0.9rem', color: '#aaa', marginBottom: '8px', fontWeight: 600 }}>CONTRACT YEARS</label>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    {[1, 2, 3, 4, 5].map(y => (
+                                        <button
+                                            key={y}
+                                            onClick={() => setSelectedCoachForOffer({ ...selectedCoachForOffer, contract: { ...selectedCoachForOffer.contract, yearsRemaining: y } })}
+                                            style={{
+                                                flex: 1, padding: '10px', borderRadius: '10px', fontWeight: 700,
+                                                background: selectedCoachForOffer.contract.yearsRemaining === y ? '#8b5cf6' : '#2a2a2e',
+                                                color: selectedCoachForOffer.contract.yearsRemaining === y ? 'white' : '#888',
+                                                border: 'none', cursor: 'pointer'
+                                            }}
+                                        >
+                                            {y}Y
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                <button
+                                    onClick={() => setSelectedCoachForOffer(null)}
+                                    style={{ flex: 1, padding: '14px', borderRadius: '12px', background: '#333', color: 'white', border: 'none', fontWeight: 700, cursor: 'pointer' }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        placeCoachOffer(selectedCoachForOffer.id, selectedCoachForOffer.contract.salary, selectedCoachForOffer.contract.yearsRemaining);
+                                        setSelectedCoachForOffer(null);
+                                    }}
+                                    style={{ flex: 2, padding: '14px', borderRadius: '12px', background: '#8b5cf6', color: 'white', border: 'none', fontWeight: 800, cursor: 'pointer' }}
+                                >
+                                    Submit Offer
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+
+                {/* Coach Bids Modal */}
+                {selectedCoachForBids && (
+                    <div style={{
+                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                        background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(5px)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000
+                    }} onClick={() => setSelectedCoachForBids(null)}>
+                        <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }}
+                            onClick={e => e.stopPropagation()}
+                            style={{ width: '90%', maxWidth: '500px', background: '#1c1c1e', borderRadius: '16px', padding: '24px', border: '1px solid #333' }}>
+                            <h3 style={{ margin: '0 0 20px 0', fontSize: '1.5rem', color: 'white' }}>
+                                Active Bids for {selectedCoachForBids.lastName}
+                            </h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '60vh', overflowY: 'auto' }}>
+                                {(activeCoachOffers || []).filter(o => o.playerId === selectedCoachForBids.id && o.status === 'pending').length > 0 ? (
+                                    (activeCoachOffers || [])
+                                        .filter(o => o.playerId === selectedCoachForBids.id && o.status === 'pending')
+                                        .map(offer => {
+                                            const offeringTeam = teams.find(t => t.id === offer.teamId);
+                                            const isUser = offer.teamId === userTeamId;
+                                            return (
+                                                <div key={offer.id} style={{
+                                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                                    padding: '12px 16px', background: '#2c2c2e', borderRadius: '12px',
+                                                    borderLeft: isUser ? '4px solid #8b5cf6' : '4px solid #666'
+                                                }}>
+                                                    <div>
+                                                        <div style={{ fontWeight: 700, color: 'white' }}>{offeringTeam?.name || 'Unknown Team'}</div>
+                                                        <div style={{ fontSize: '0.85rem', color: '#888' }}>{isUser ? 'Your Bid' : 'AI Team Bid'}</div>
+                                                    </div>
+                                                    <div style={{ textAlign: 'right' }}>
+                                                        <div style={{ fontWeight: 700, color: '#8b5cf6', fontSize: '1.1rem' }}>{formatMoney(offer.amount)}</div>
+                                                        <div style={{ fontSize: '0.85rem', color: '#aaa' }}>{offer.years} years</div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                ) : (
+                                    <div style={{ padding: '40px', textAlign: 'center', color: '#888' }}>No active bids found. AI teams haven't placed offers yet.</div>
+                                )}
+                            </div>
+                            <button onClick={() => setSelectedCoachForBids(null)}
+                                style={{ width: '100%', marginTop: '20px', padding: '12px', background: '#333', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                                Close
+                             </button>
+                        </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
         </div>

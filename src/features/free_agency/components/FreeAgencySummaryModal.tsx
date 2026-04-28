@@ -30,9 +30,44 @@ export const FreeAgencySummaryModal: React.FC<FreeAgencySummaryModalProps> = ({ 
         .sort((a, b) => calculateOverall(b) - calculateOverall(a))
         .slice(0, 50);
 
-    const getTeamName = (id: string | null | undefined) => {
-        if (!id) return 'FA';
-        return teams.find(t => t.id === id)?.name || 'Unknown';
+    const getTeam = (id: string | null | undefined) => {
+        if (!id) return null;
+        return teams.find(t => t.id === id);
+    };
+
+    const TeamBadge = ({ team, isOld = false }: { team: Team | null | undefined, isOld?: boolean }) => {
+        if (!team) {
+            return (
+                <div style={{
+                    width: '32px', height: '32px', borderRadius: '50%', background: '#333',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '0.75rem', fontWeight: 'bold', color: '#999',
+                    border: '1px solid #444'
+                }} title="Free Agent">FA</div>
+            );
+        }
+
+        const opacity = isOld ? 0.6 : 1;
+        const filter = isOld ? 'grayscale(100%)' : 'none';
+
+        if (team.logo) {
+            return (
+                <div title={team.name} style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img src={team.logo} alt={team.abbreviation} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', opacity, filter }} />
+                </div>
+            );
+        }
+
+        return (
+            <div title={team.name} style={{
+                width: '32px', height: '32px', borderRadius: '50%', background: '#222',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '0.75rem', fontWeight: 'bold', color: isOld ? '#999' : '#fff',
+                border: `1px solid ${isOld ? '#444' : '#666'}`
+            }}>
+                {team.abbreviation || team.name.substring(0, 3).toUpperCase()}
+            </div>
+        );
     };
 
     return (
@@ -66,9 +101,8 @@ export const FreeAgencySummaryModal: React.FC<FreeAgencySummaryModalProps> = ({ 
                         </thead>
                         <tbody>
                             {significantSignings.map(p => {
-                                const prevTeamId = p.acquisition?.previousTeamId;
-                                const prevTeamName = getTeamName(prevTeamId);
-                                const newTeamName = getTeamName(p.teamId);
+                                const prevTeam = getTeam(p.acquisition?.previousTeamId);
+                                const newTeam = getTeam(p.teamId);
 
                                 return (
                                     <tr key={p.id} style={{ borderBottom: '1px solid #2c2c2e' }}>
@@ -80,10 +114,10 @@ export const FreeAgencySummaryModal: React.FC<FreeAgencySummaryModalProps> = ({ 
                                             {calculateOverall(p)}
                                         </td>
                                         <td style={{ textAlign: 'right', padding: '10px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
-                                                <span style={{ color: '#888' }}>{prevTeamName}</span>
-                                                <ArrowRight size={14} color="#555" />
-                                                <span style={{ color: '#3498db', fontWeight: 600 }}>{newTeamName}</span>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px' }}>
+                                                <TeamBadge team={prevTeam} isOld={true} />
+                                                <ArrowRight size={16} color="#555" />
+                                                <TeamBadge team={newTeam} />
                                             </div>
                                         </td>
                                     </tr>

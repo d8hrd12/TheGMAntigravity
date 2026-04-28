@@ -293,13 +293,88 @@ export const simulateFreeAgencyDay = (
         }
     });
 
+    // --- COACH NEGOTIATIONS ---
+    const coachSignings: { coachId: string; teamId: string; amount: number; years: number }[] = [];
+    const updatedCoachOffers = [...(nextState.activeCoachOffers || [])];
+
+    // AI Coaches bidding
+    // (Simplified AI bidding for coaches for now - mostly focuses on User competition)
+    // Actually, let's just process User and AI results.
+
+    // Group coach offers
+    const coachOffersByCoach: Record<string, FreeAgencyOffer[]> = {};
+    updatedCoachOffers.filter(o => o.status === 'pending').forEach(o => {
+        if (!coachOffersByCoach[o.playerId]) coachOffersByCoach[o.playerId] = [];
+        coachOffersByCoach[o.playerId].push(o);
+    });
+
+    Object.keys(coachOffersByCoach).forEach(coachId => {
+        const offers = coachOffersByCoach[coachId];
+        const coach = nextState.coaches.find(c => c.id === coachId);
+        if (!coach) return;
+
+        // Coaches decide on Day 1-3 with 40% chance, or Day 7
+        const shouldDecide = Math.random() < 0.4 || day === 7;
+        
+        if (shouldDecide && offers.length > 0) {
+            // Pick best offer
+            let bestScore = -1;
+            let chosenOffer: FreeAgencyOffer | null = null;
+            
+            for (const offer of offers) {
+                const team = nextState.teams.find(t => t.id === offer.teamId);
+                const score = offer.amount * (team && team.wins > team.losses ? 1.2 : 1.0);
+                if (score > bestScore) {
+                    bestScore = score;
+                    chosenOffer = offer;
+                }
+            }
+
+            if (chosenOffer) {
+                coachSignings.push({
+                    coachId: coachId,
+                    teamId: chosenOffer.teamId,
+                    amount: chosenOffer.amount,
+                    years: chosenOffer.years
+                });
+
+                // Update offer statuses
+                offers.forEach(o => {
+                    o.status = (o.id === chosenOffer?.id) ? 'accepted' : 'rejected';
+                });
+                
+                const t = nextState.teams.find(x => x.id === chosenOffer.teamId);
+                result.news.push(`Coach ${coach.firstName} ${coach.lastName} has signed with the ${t?.name}!`);
+            }
+        }
+    });
+
+    // Apply Coach Signings
+    let finalCoaches = [...nextState.coaches];
+    coachSignings.forEach(sign => {
+        const cIdx = finalCoaches.findIndex(c => c.id === sign.coachId);
+        if (cIdx > -1) {
+            finalCoaches[cIdx] = { 
+                ...finalCoaches[cIdx], 
+                teamId: sign.teamId,
+                contract: { salary: sign.amount, yearsRemaining: sign.years }
+            };
+        }
+        const tIdx = finalTeams.findIndex(t => t.id === sign.teamId);
+        if (tIdx > -1) {
+            finalTeams[tIdx].coachId = sign.coachId;
+        }
+    });
+
     return {
         newState: {
             ...nextState,
             players: finalPlayers,
             teams: finalTeams,
+            coaches: finalCoaches,
             contracts: updatedContracts,
             activeOffers: allOffers,
+            activeCoachOffers: updatedCoachOffers,
             freeAgencyDay: day
         },
         result

@@ -192,3 +192,21 @@ export const calculateTeamCapSpace = (team: Team, contracts: Contract[], salaryC
     const totalSalary = teamContracts.reduce((sum, c) => sum + c.amount, 0);
     return salaryCap - totalSalary;
 };
+
+export const calculateCoachMarket = (coach: { rating: { offense: number, defense: number, talentDevelopment: number } }): { amount: number, years: number } => {
+    const avgRating = (coach.rating.offense + coach.rating.defense + coach.rating.talentDevelopment) / 3;
+    
+    // Scale: 60 -> 1M, 70 -> 3M, 80 -> 6M, 90 -> 10M, 95 -> 15M
+    let amount = 1000000;
+    if (avgRating > 90) amount = 10000000 + (avgRating - 90) * 1000000;
+    else if (avgRating > 80) amount = 6000000 + (avgRating - 80) * 400000;
+    else if (avgRating > 70) amount = 3000000 + (avgRating - 70) * 300000;
+    else if (avgRating > 60) amount = 1000000 + (avgRating - 60) * 200000;
+    
+    // Years based on quality
+    let years = 2;
+    if (avgRating > 85) years = 4;
+    else if (avgRating > 75) years = 3;
+    
+    return { amount: Math.floor(amount), years };
+};

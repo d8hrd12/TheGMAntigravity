@@ -104,7 +104,8 @@ export const calculateProgression = (player: Player, focus: TrainingFocus): { up
         // Note: 1 OVR point != 1 Attribute point. 
         // 1 OVR point is roughly 15-20 attribute points spread out. 
         // Let's multiply growthPoints by a factor to get "Attribute Points"
-        const attributePool = growthPoints * 12;
+        // Reduced from 12 to 6 to prevent extreme single-season OVR jumps
+        const attributePool = growthPoints * 6;
 
         targetAttributes.forEach(attr => {
             const weight = weights[attr] || 0;
@@ -136,7 +137,8 @@ export const calculateProgression = (player: Player, focus: TrainingFocus): { up
         // Focus matters LESS for regression, but 'Physical' focus can slow physical decline.
         // 'Fundamentals' can slow skill decline.
 
-        const regressionPool = Math.abs(growthPoints) * 15; // Decline hits harder on raw stats
+        // Reduced from 15 to 8 to prevent extreme single-season OVR drops
+        const regressionPool = Math.abs(growthPoints) * 8; // Decline hits harder on raw stats
 
         // Decline affects PHYSICALS first regardless of focus, unless focus is PHYSICAL
         const physicalStats: Array<keyof PlayerAttributes> = ['athleticism'];
