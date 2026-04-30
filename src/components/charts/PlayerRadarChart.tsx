@@ -72,8 +72,8 @@ export const PlayerRadarChart: React.FC<PlayerRadarChartProps> = ({ player }) =>
                     <Radar
                         name="Scale"
                         data={(data as any).map((d: any) => ({ ...d, A: 100 }))}
-                        stroke="rgba(255, 255, 255, 0.1)"
-                        fill="rgba(255, 255, 255, 0.02)"
+                        stroke="rgba(255, 255, 255, 0.2)"
+                        fill="rgba(200, 200, 200, 0.15)"
                         fillOpacity={1}
                         isAnimationActive={false}
                     />
