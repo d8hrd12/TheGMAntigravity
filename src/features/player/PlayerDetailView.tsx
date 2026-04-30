@@ -342,7 +342,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                 </div>
 
                 {/* Chart Section with Toggle */}
-                <div style={{ marginBottom: '30px', background: 'var(--surface-glass)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                <div style={{ marginBottom: '30px', background: 'var(--bg-card-hover)', padding: '24px', borderRadius: '16px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
                         <div style={{ display: 'flex', background: 'var(--surface-active)', borderRadius: '20px', padding: '2px', border: '1px solid var(--border)' }}>
                             <button

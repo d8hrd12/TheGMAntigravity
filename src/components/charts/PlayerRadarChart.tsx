@@ -59,6 +59,14 @@ export const PlayerRadarChart: React.FC<PlayerRadarChartProps> = ({ player }) =>
                     />
                     <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                     <Radar
+                        name="Max"
+                        data={(data as any).map((d: any) => ({ ...d, A: 100 }))}
+                        stroke="rgba(255, 255, 255, 0.05)"
+                        fill="rgba(255, 255, 255, 0.03)"
+                        fillOpacity={1}
+                        isAnimationActive={false}
+                    />
+                    <Radar
                         name={player.lastName}
                         dataKey="A"
                         stroke="var(--primary)"
