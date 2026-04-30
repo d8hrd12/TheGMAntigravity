@@ -72,8 +72,8 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
         const potential = attributeKey && !isProspect ? getAttributePotential(player, attributeKey) : null;
 
         return (
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
-                <span style={{ color: '#ccc' }}>{label}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', borderBottom: '1px solid var(--border-color)', paddingBottom: '4px' }}>
+                <span style={{ color: 'var(--text-main)', fontWeight: 700, fontSize: '0.85rem' }}>{label}</span>
                 <div>
                     <span style={{ fontWeight: 'bold', color: getRatingColor(typeof displayValue === 'number' ? displayValue : 50) }}>{displayValue}</span>
                     {indicator}
