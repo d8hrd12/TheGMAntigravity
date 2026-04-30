@@ -1,4 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+@font-face {
+  font-family: 'ESPN Ignite';
+  src: url('https://a.espncdn.com/fonts/ignite/v1/espn-ignite-bold.woff2') format('woff2');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'ESPN Ignite';
+  src: url('https://a.espncdn.com/fonts/ignite/v1/espn-ignite-regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 :root {
   /* Light Theme Palette */
@@ -28,8 +42,8 @@
   --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
 
-  --font-main: 'Fraunces', serif;
-  --font-title: 'Fraunces', serif;
+  --font-main: 'ESPN Ignite', 'Inter', sans-serif;
+  --font-title: 'ESPN Ignite', 'Outfit', sans-serif;
 }
 
 * {
