@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+
 @font-face {
   font-family: 'ESPN Ignite';
   src: url('https://a.espncdn.com/fonts/ignite/v1/espn-ignite-bold.woff2') format('woff2');
@@ -11,8 +13,6 @@
   font-weight: normal;
   font-style: normal;
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 :root {
   /* Light Theme Palette */
