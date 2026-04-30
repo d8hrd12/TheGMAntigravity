@@ -49,34 +49,70 @@ export const PlayerRadarChart: React.FC<PlayerRadarChartProps> = ({ player }) =>
     ];
 
     return (
-        <div style={{ width: '100%', height: '300px', margin: '0 auto', pointerEvents: 'none', WebkitTapHighlightColor: 'transparent' }}>
+        <div style={{ 
+            width: '100%', 
+            height: '320px', 
+            margin: '0 auto', 
+            pointerEvents: 'none', 
+            WebkitTapHighlightColor: 'transparent',
+            position: 'relative',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%)',
+            borderRadius: '50%'
+        }}>
             <ResponsiveContainer width="100%" height="100%">
                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
-                    <PolarGrid stroke="rgba(255, 255, 255, 0.4)" />
+                    <PolarGrid stroke="rgba(255, 255, 255, 0.1)" gridType="polygon" />
                     <PolarAngleAxis
                         dataKey="subject"
-                        tick={{ fill: 'var(--text-secondary)', fontSize: 12, fontWeight: 'bold' }}
+                        tick={{ fill: 'var(--text-main)', fontSize: 13, fontWeight: 900, letterSpacing: '1px' }}
                     />
                     <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                    
+                    {/* FIFA style background "Full" hexagon */}
                     <Radar
-                        name="Max"
+                        name="Scale"
                         data={(data as any).map((d: any) => ({ ...d, A: 100 }))}
-                        stroke="rgba(255, 255, 255, 0.05)"
-                        fill="rgba(255, 255, 255, 0.03)"
+                        stroke="rgba(255, 255, 255, 0.1)"
+                        fill="rgba(255, 255, 255, 0.02)"
                         fillOpacity={1}
                         isAnimationActive={false}
                     />
+
+                    {/* FIFA style mid-marks (50%) */}
+                    <Radar
+                        name="Mid"
+                        data={(data as any).map((d: any) => ({ ...d, A: 50 }))}
+                        stroke="rgba(255, 255, 255, 0.05)"
+                        fill="none"
+                        isAnimationActive={false}
+                    />
+
+                    {/* Player Skill Shape - Neon Glow */}
                     <Radar
                         name={player.lastName}
                         dataKey="A"
-                        stroke="var(--primary)"
-                        strokeWidth={3}
-                        fill="var(--primary)"
-                        fillOpacity={0.4}
+                        stroke="#00f2ff"
+                        strokeWidth={2.5}
+                        fill="#00f2ff"
+                        fillOpacity={0.3}
                         isAnimationActive={true}
                     />
                 </RadarChart>
             </ResponsiveContainer>
+            
+            {/* Center Dot */}
+            <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                width: '6px',
+                height: '6px',
+                background: '#00f2ff',
+                borderRadius: '50%',
+                transform: 'translate(-50%, -50%)',
+                boxShadow: '0 0 10px #00f2ff',
+                opacity: 0.5
+            }} />
         </div>
     );
 };
