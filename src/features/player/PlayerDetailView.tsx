@@ -325,18 +325,18 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                     </div>
 
                     {(viewMode === 'Average' || viewMode === 'Total') && (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '15px 10px', textAlign: 'center', background: 'var(--surface-active)', padding: '15px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                            <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{ppg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'PTS' : 'TPTS'}</div></div>
-                            <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{apg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'AST' : 'TAST'}</div></div>
-                            <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{rpg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'REB' : 'TREB'}</div></div>
-                            <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{mpg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>MIN</div></div>
-                            <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{spg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'STL' : 'TSTL'}</div></div>
-                            <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{bpg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'BLK' : 'TBLK'}</div></div>
-                            <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{topg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'TO' : 'TTO'}</div></div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '15px 10px', textAlign: 'center', background: 'var(--bg-card-hover)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+                            <div className="stat-frame"><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text-main)' }}>{ppg}</div><div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 800 }}>{viewMode === 'Average' ? 'PTS' : 'TPTS'}</div></div>
+                            <div className="stat-frame"><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text-main)' }}>{apg}</div><div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 800 }}>{viewMode === 'Average' ? 'AST' : 'TAST'}</div></div>
+                            <div className="stat-frame"><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text-main)' }}>{rpg}</div><div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 800 }}>{viewMode === 'Average' ? 'REB' : 'TREB'}</div></div>
+                            <div className="stat-frame"><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text-main)' }}>{mpg}</div><div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 800 }}>MIN</div></div>
+                            <div className="stat-frame"><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text-main)' }}>{spg}</div><div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 800 }}>{viewMode === 'Average' ? 'STL' : 'TSTL'}</div></div>
+                            <div className="stat-frame"><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text-main)' }}>{bpg}</div><div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 800 }}>{viewMode === 'Average' ? 'BLK' : 'TBLK'}</div></div>
+                            <div className="stat-frame"><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text-main)' }}>{topg}</div><div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 800 }}>{viewMode === 'Average' ? 'TO' : 'TTO'}</div></div>
 
-                            <div><div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text)' }}>{fgDisplay}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>FG</div></div>
-                            <div><div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text)' }}>{threeDisplay}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>3PT</div></div>
-                            <div><div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text)' }}>{ftDisplay}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>FT</div></div>
+                            <div className="stat-frame"><div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text-main)' }}>{fgDisplay}</div><div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 800 }}>FG</div></div>
+                            <div className="stat-frame"><div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text-main)' }}>{threeDisplay}</div><div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 800 }}>3PT</div></div>
+                            <div className="stat-frame"><div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text-main)' }}>{ftDisplay}</div><div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 800 }}>FT</div></div>
                         </div>
                     )}
                 </div>
@@ -395,8 +395,8 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
 
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
                         {/* OFFENSE */}
-                        <div style={{ flex: '1 1 250px', background: 'rgba(255,255,255,0.03)', padding: '15px', borderRadius: '8px' }}>
-                            <h4 style={{ margin: '0 0 10px 0', color: 'var(--text-secondary)', fontSize: '0.9rem', textTransform: 'uppercase' }}>Offense</h4>
+                        <div style={{ flex: '1 1 250px', background: 'var(--bg-card-hover)', padding: '18px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                            <h4 style={{ margin: '0 0 15px 0', color: 'var(--text-dim)', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.1em' }}>Offense</h4>
                             <AttributeRow label="Finishing" value={player.attributes.finishing} prevValue={player.previousAttributes?.finishing} attributeKey="finishing" />
                             <AttributeRow label="Mid-Range" value={player.attributes.midRange} prevValue={player.previousAttributes?.midRange} attributeKey="midRange" />
                             <AttributeRow label="3PT Shot" value={player.attributes.threePointShot} prevValue={player.previousAttributes?.threePointShot} attributeKey="threePointShot" />
@@ -404,8 +404,8 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                         </div>
 
                         {/* PLAYMAKING & PHYSICAL */}
-                        <div style={{ flex: '1 1 250px', background: 'rgba(255,255,255,0.03)', padding: '15px', borderRadius: '8px' }}>
-                            <h4 style={{ margin: '0 0 10px 0', color: 'var(--text-secondary)', fontSize: '0.9rem', textTransform: 'uppercase' }}>Playmaking & Phys</h4>
+                        <div style={{ flex: '1 1 250px', background: 'var(--bg-card-hover)', padding: '18px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                            <h4 style={{ margin: '0 0 15px 0', color: 'var(--text-dim)', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.1em' }}>Playmaking & Phys</h4>
                             <AttributeRow label="Playmaking" value={player.attributes.playmaking} prevValue={player.previousAttributes?.playmaking} attributeKey="playmaking" />
                             <AttributeRow label="Ball Hand." value={player.attributes.ballHandling} prevValue={player.previousAttributes?.ballHandling} attributeKey="ballHandling" />
                             <AttributeRow label="IQ" value={player.attributes.basketballIQ} prevValue={player.previousAttributes?.basketballIQ} attributeKey="basketballIQ" />
@@ -413,8 +413,8 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                         </div>
 
                         {/* DEFENSE & REBOUNDING */}
-                        <div style={{ flex: '1 1 250px', background: 'rgba(255,255,255,0.03)', padding: '15px', borderRadius: '8px' }}>
-                            <h4 style={{ margin: '0 0 10px 0', color: 'var(--text-secondary)', fontSize: '0.9rem', textTransform: 'uppercase' }}>Defense & Reb</h4>
+                        <div style={{ flex: '1 1 250px', background: 'var(--bg-card-hover)', padding: '18px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                            <h4 style={{ margin: '0 0 15px 0', color: 'var(--text-dim)', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.1em' }}>Defense & Reb</h4>
                             <AttributeRow label="Int. Def" value={player.attributes.interiorDefense} prevValue={player.previousAttributes?.interiorDefense} attributeKey="interiorDefense" />
                             <AttributeRow label="Per. Def" value={player.attributes.perimeterDefense} prevValue={player.previousAttributes?.perimeterDefense} attributeKey="perimeterDefense" />
                             <AttributeRow label="Stealing" value={player.attributes.stealing} prevValue={player.previousAttributes?.stealing} attributeKey="stealing" />
@@ -426,12 +426,12 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
 
                     {/* POTENTIAL (Standalone below attributes) */}
                     {!isProspect && (
-                        <div style={{ marginTop: '20px', background: 'rgba(255,255,255,0.03)', padding: '15px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ marginTop: '20px', background: 'var(--bg-card-hover)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <div>
-                                <h4 style={{ margin: '0 0 4px 0', color: 'var(--text)', fontSize: '1.1rem' }}>Player Potential</h4>
-                                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Projected Maximum Overall</div>
+                                <h4 style={{ margin: '0 0 4px 0', color: 'var(--text-main)', fontSize: '1.1rem', fontWeight: 900 }}>Player Potential</h4>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700 }}>PROJECTED CAREER CEILING</div>
                             </div>
-                            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: getRatingColor(player.potential) }}>
+                            <div style={{ fontSize: '2rem', fontWeight: 900, color: getRatingColor(player.potential) }}>
                                 {getPotentialGrade(player.potential)}
                             </div>
                         </div>
@@ -439,9 +439,9 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                 </div>
 
                 {/* TENDENCY TREE (Dynamic Role-Based) */}
-                <div style={{ marginBottom: '30px', background: 'var(--surface-active)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                    <h3 style={{ margin: '0 0 20px 0', color: 'var(--text)', borderBottom: '1px solid var(--border)', paddingBottom: '10px' }}>
-                        Tendency Tree <span style={{ fontSize: '0.8rem', opacity: 0.7, fontWeight: 'normal' }}>(Dynamic based on {player.minutes} min role)</span>
+                <div style={{ marginBottom: '30px', background: 'var(--bg-card)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
+                    <h3 style={{ margin: '0 0 20px 0', color: 'var(--text-main)', borderBottom: '2px solid var(--team-primary)', paddingBottom: '10px', fontWeight: 900 }}>
+                        Tendency Tree <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 800, marginLeft: '8px' }}>DYNAMIC BASED ON {player.minutes} MIN ROLE</span>
                     </h3>
 
                     {(() => {

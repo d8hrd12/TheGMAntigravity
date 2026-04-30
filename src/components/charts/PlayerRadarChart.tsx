@@ -52,7 +52,7 @@ export const PlayerRadarChart: React.FC<PlayerRadarChartProps> = ({ player }) =>
         <div style={{ width: '100%', height: '300px', margin: '0 auto', pointerEvents: 'none', WebkitTapHighlightColor: 'transparent' }}>
             <ResponsiveContainer width="100%" height="100%">
                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
-                    <PolarGrid stroke="var(--border)" />
+                    <PolarGrid stroke="rgba(255, 255, 255, 0.15)" />
                     <PolarAngleAxis
                         dataKey="subject"
                         tick={{ fill: 'var(--text-secondary)', fontSize: 12, fontWeight: 'bold' }}
