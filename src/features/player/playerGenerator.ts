@@ -252,6 +252,7 @@ export function generatePlayer(forcedPosition?: Position, forcedTier?: 'star' | 
         isStarter: false,
         potential: overall + (tier === 'prospect' ? randomInt(10, 28) : randomInt(5, 12)),
         loveForTheGame: randomInt(1, 20),
+        yearsOfService: Math.max(0, age - 19),
         overall
     };
 

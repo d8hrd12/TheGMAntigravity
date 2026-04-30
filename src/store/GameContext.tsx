@@ -12,6 +12,8 @@ import { generatePlayer } from '../features/player/playerGenerator';
 import { generateCoach, getTacticsForStyle } from '../features/team/coachGenerator';
 import { shouldFireCoach, fireCoach, hireCoach } from '../features/team/CoachLogic';
 import { seedRealRosters } from '../features/player/rosterSeeder';
+import { processGMDismissals } from '../features/team/GMManagement';
+import { initializeLeagueGMs } from '../features/team/gmGenerator';
 import type { SocialMediaPost } from '../models/SocialMediaPost';
 
 import { LiveGameEngine } from '../features/simulation/LiveGameEngine';
@@ -48,6 +50,7 @@ import { TrainingFocus, type ProgressionResult } from '../models/Training';
 import { calculateProgression } from '../features/training/TrainingLogic';
 import { importNbaPlayers } from '../features/league/CsvImporter';
 import { applyRealWorldTrades } from '../data/tradeUpdates';
+
 
 
 // ... (imports)
@@ -121,6 +124,7 @@ export interface CumulativeRecord {
 export interface GameState {
     players: Player[];
     teams: Team[];
+    aiGms: import('../models/AI_GM').AI_GM[];
     news: NewsStory[];
     coaches: Coach[];
     userTeamId: string;
@@ -383,6 +387,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         seasonGamesPlayed: 0,
         isFirstSeasonPaid: false,
         activeCoachOffers: [],
+        aiGms: [],
         view: 'dashboard'
     });
 
@@ -841,24 +846,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
             const INITIAL_SALARY_CAP = 140000000;
 
-            // 4. Update Team Budgets & Draft Picks
+            // 4. Initialize AI GMs
+            const allTeamIds = teams.map(t => t.id);
+            const initialGms = initializeLeagueGMs(allTeamIds);
+
+            // Assign GMs to teams in the team objects
             teams.forEach(t => {
-                // Same logic as before
+                const teamGm = initialGms.find(g => g.teamId === t.id);
+                if (teamGm) {
+                    t.gmId = teamGm.id;
+                }
+            });
+
+            // 5. Update Team Budgets & Draft Picks
+            teams.forEach(t => {
                 const teamContracts = contracts.filter(c => c.teamId === t.id);
                 const totalSalary = teamContracts.reduce((sum, c) => sum + c.amount, 0);
                 t.salaryCapSpace = INITIAL_SALARY_CAP - totalSalary;
-                t.salaryCapSpace = INITIAL_SALARY_CAP - totalSalary;
-                t.salaryCapSpace = INITIAL_SALARY_CAP - totalSalary;
-                // HARD MODE RESPEC: Use the cash value from teams.ts if available, otherwise default to 100M?
-                // actually teams.ts values are already loaded into `t` (t comes from NBA_TEAMS)
-                // BUT we may want to ensure they aren't deducted twice if we restart?
-                // No, t.cash is just the raw value from teams.ts.
-
-                // If the user wants "Start with 80M" which INCLUDES salary payments?
-                // "Start with 80M" usually means "You have 80M cash".
-                // If we subtract salary (e.g. 150M), they go negative immediately.
-                // The previous logic was "350M - Salary".
-                // If Hard Mode says "Knicks Start with 80M", does it mean 80M - Salary? (Negative?)
+                
                 // Ensure healthy starting cash (Standard NBA Reserve)
                 t.cash = 350000000;
 
@@ -867,7 +872,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     if (difficulty === 'Hard') t.cash -= 50000000;
                 }
 
-                t.rosterIds = players.filter(p => p.teamId === t.id).map(p => p.id);
+                t.rosterIds = updatedPlayers.filter(p => p.teamId === t.id).map(p => p.id);
 
                 t.draftPicks = [];
                 const currentYear = 2025;
@@ -948,6 +953,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 coaches: initialCoaches, // Add coaches here
                 news: [],
                 isInitialized: true,
+                aiGms: initializeLeagueGMs(teams.map(t => t.id)),
                 isPotentialRevealed: false,
                 awardsHistory: [],
                 activeMerchCampaigns: [],
@@ -1044,6 +1050,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             setGameState({
                 teams,
                 players,
+                aiGms: initializeLeagueGMs(teams.map(t => t.id)),
                 userTeamId,
                 contracts,
                 games: [],
@@ -2085,6 +2092,38 @@ export function GameProvider({ children }: { children: ReactNode }) {
         completeOffseasonTask('retirements');
     };
 
+    const processAiGMFiring = () => {
+        setGameState(prev => {
+            const { updatedGms, newsItems } = processGMDismissals(prev.teams, prev.aiGms, prev.userTeamId);
+            
+            // Sync teams with new GMs
+            const updatedTeams = prev.teams.map(team => {
+                const gm = updatedGms.find(g => g.teamId === team.id);
+                if (gm && gm.id !== team.gmId) {
+                    return { ...team, gmId: gm.id };
+                }
+                return team;
+            });
+
+            // Create News Entries
+            const newMessages = newsItems.map(text => ({
+                id: generateUUID(),
+                date: prev.date,
+                title: 'Front Office Shakeup',
+                text,
+                type: 'news' as const,
+                read: false
+            }));
+
+            return {
+                ...prev,
+                aiGms: updatedGms,
+                teams: updatedTeams,
+                messages: [...prev.messages, ...newMessages]
+            };
+        });
+    };
+
     const endCoachFreeAgency = () => {
         setGameState(prev => {
             const updatedTeams = prev.teams.map(t => ({ ...t }));
@@ -2133,6 +2172,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
             for (let i = 0; i < toGenerate; i++) {
                 updatedCoaches.push(generateCoach(null));
             }
+
+            completeOffseasonTask('coaching');
+            processAiGMFiring();
 
             return {
                 ...prev,
@@ -2198,9 +2240,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     }
 
                     if (shouldSign) {
-                        const contractNeeds = generateContract(player, prev.date.getFullYear());
-                        // Discount for resigning (Home Team Discount)
-                        contractNeeds.amount = Math.floor(contractNeeds.amount * 0.95);
+                        const contractNeeds = generateContract(player, prev.date.getFullYear(), prev.salaryCap);
+                        
+                        // AI GM Negotiation Skill: High skill = better home discount
+                        const gm = prev.aiGms.find(g => g.id === team.gmId);
+                        const negotiationSkill = gm?.skills.negotiation || 50;
+                        const discountFactor = 0.95 - (negotiationSkill / 1000); // 0.95 (50 skill) to 0.85 (100 skill)
+                        
+                        contractNeeds.amount = Math.floor(contractNeeds.amount * discountFactor);
 
                         // Bird Rights check implicitly allowed by checking Cash ONLY
                         if (team.cash >= contractNeeds.amount) {
@@ -2323,6 +2370,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
             let targetPlayer: Player | null = null;
             let offerAmount = 0;
+            let targetYears = 1;
+            let targetRole: 'Starter' | 'Rotation' | 'Bench' = 'Bench';
 
             if (forceFill) {
                 targetPlayer = availableFAs[0];
@@ -2330,17 +2379,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
             } else {
                 // Try to sign a good player if we have space
                 for (const player of availableFAs) {
-                    // Logic for "Ask" - rough estimation
-                    const ovr = calculateOverall(player);
-                    let ask = 1000000;
-                    if (ovr > 85) ask = 40000000;
-                    else if (ovr > 80) ask = 25000000;
-                    else if (ovr > 75) ask = 12000000;
-                    else if (ovr > 70) ask = 5000000;
+                    const { amount: ask, years, role } = calculateContractAmount(player, currentState.salaryCap);
+                    
+                    // AI GM Negotiation Skill: Can convince player to take slightly less
+                    const gm = currentState.aiGms.find(g => g.id === team.gmId);
+                    const negotiationSkill = gm?.skills.negotiation || 50;
+                    const discountFactor = 1.05 - (negotiationSkill / 500); // 1.05 (25 skill) to 0.85 (100 skill)
+                    const adjustedOffer = Math.floor(ask * discountFactor);
 
-                    if (capSpace >= ask) {
+                    if (capSpace >= adjustedOffer) {
                         targetPlayer = player;
-                        offerAmount = ask;
+                        offerAmount = adjustedOffer;
+                        targetYears = years;
+                        targetRole = (role as any) || 'Rotation';
                         break;
                     }
                 }
@@ -2364,9 +2415,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         playerId: targetPlayer.id,
                         teamId: team.id,
                         amount: offerAmount,
-                        yearsLeft: 1,
+                        yearsLeft: targetYears,
                         startYear: currentState.date.getFullYear(),
-                        role: 'Bench'
+                        role: targetRole
                     });
 
                     activity = true;
@@ -4586,7 +4637,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     };
 
     const endScoutingPhase = () => {
-        completeOffseasonTask('scouting');
+        completeOffseasonTask('coaching');
+        processAiGMFiring();
     };
 
     const updateRotationSchedule = (teamId: string, schedule: RotationSegment[]) => {

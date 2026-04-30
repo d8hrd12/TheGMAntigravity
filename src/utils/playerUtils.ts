@@ -137,31 +137,26 @@ export const getPotentialGrade = (potential: number): string => {
  * Formula: Min Salary + (Normalized OVR ^ 2.5) * (Max - Min)
  */
 export const calculateFairSalary = (ovr: number): number => {
-    const MIN_SALARY = 1100000;
-    const MAX_SALARY = 50000000;
-    const MIN_OVR = 65;
-    const MAX_OVR = 99;
-
-    if (ovr <= MIN_OVR) return MIN_SALARY;
+    const SALARY_CAP = 140000000;
+    const MIN_SALARY = SALARY_CAP * 0.008; // Approx 1.1M
     
     let salary = MIN_SALARY;
     if (ovr >= 95) {
-        salary = 45000000 + ((ovr - 95) / 4) * 5000000; // 45M to 50M
+        salary = SALARY_CAP * 0.35; // Supermax
     } else if (ovr >= 90) {
-        salary = 35000000 + ((ovr - 90) / 5) * 10000000; // 35M to 45M
+        salary = SALARY_CAP * 0.28;
     } else if (ovr >= 85) {
-        salary = 25000000 + ((ovr - 85) / 5) * 10000000; // 25M to 35M
+        salary = SALARY_CAP * 0.20;
     } else if (ovr >= 80) {
-        salary = 15000000 + ((ovr - 80) / 5) * 10000000; // 15M to 25M
+        salary = SALARY_CAP * 0.12;
     } else if (ovr >= 75) {
-        salary = 8000000 + ((ovr - 75) / 5) * 7000000; // 8M to 15M
+        salary = SALARY_CAP * 0.06;
     } else if (ovr >= 70) {
-        salary = 3000000 + ((ovr - 70) / 5) * 5000000; // 3M to 8M
+        salary = SALARY_CAP * 0.03;
     } else {
-        salary = MIN_SALARY + ((ovr - 65) / 5) * (3000000 - MIN_SALARY);
+        salary = MIN_SALARY;
     }
 
-    // Round to nearest 100k for cleaner look
     return Math.round(salary / 100000) * 100000;
 };
 

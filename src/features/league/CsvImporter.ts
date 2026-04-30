@@ -234,7 +234,8 @@ export const importNbaPlayers = async (teams: Team[], existingPlayers: Player[])
                 tendencies: { // Defaults
                     shooting: 50, passing: 50, inside: 40, outside: 30,
                     defensiveAggression: 50, foulTendency: 50
-                }
+                },
+                yearsOfService: parseInt(row.years_in_the_nba) || 0,
             };
 
             // Calculate Secondary Position

@@ -61,6 +61,8 @@ import { FreeAgencyView } from './features/free_agency/FreeAgencyView';
 import { TrainingView } from './features/training/TrainingView';
 import { OffseasonMenuView } from './features/offseason/OffseasonMenuView';
 import { TrainingReportView } from './features/training/TrainingReportView';
+import { GMProfile } from './components/team/GMProfile';
+import { GMListView } from './features/league/GMListView';
 import { App as CapApp } from '@capacitor/app';
 
 function AppContent() {
@@ -123,6 +125,7 @@ function AppContent() {
   } = gameData;
   
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+  const [selectedGmId, setSelectedGmId] = useState<string | null>(null);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -137,7 +140,7 @@ function AppContent() {
 
   const userTeam = teams.find(t => t.id === userTeamId);
 
-  const [expandedCategory, setExpandedCategory] = useState<string | null>('team');
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   const navCategories = [
     { 
@@ -149,6 +152,7 @@ function AppContent() {
         { id: 'playoffs', label: 'Playoffs' },
         { id: 'league_history', label: 'History' },
         { id: 'transactions', label: 'Transactions' },
+        { id: 'league_gms', label: 'GMs' },
         { id: 'league_all_time', label: 'All-Time Leaders' },
       ]
     },
@@ -280,11 +284,14 @@ function AppContent() {
                 initialTeamId={selectedTeamId}
                 onBack={() => setSelectedTeamId(null)} 
                 onSelectPlayer={setSelectedPlayerId} 
+                onShowGm={setSelectedGmId}
             />;
         }
     }
 
     switch (view) {
+      case 'league_gms':
+        return <GMListView />;
       case 'dashboard': 
         return <Dashboard 
           onSelectGame={setSelectedGame} 
@@ -429,7 +436,7 @@ function AppContent() {
             <Dribbble size={24} />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.1rem', color: 'var(--text-main)', margin: 0 }}>BALLER</h2>
+            <h2 style={{ fontSize: '1.1rem', color: 'var(--text-main)', margin: 0 }}>THE GM 2026™</h2>
             <span style={{ fontSize: '0.6rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Manager v2.0</span>
           </div>
         </div>
@@ -505,7 +512,10 @@ function AppContent() {
         {isInitialized && !liveGameData && (
           <header className="app-header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <button className="menu-trigger" onClick={() => setIsSidebarOpen(true)}>
+              <button className="menu-trigger" onClick={() => {
+                setIsSidebarOpen(true);
+                setExpandedCategory(null);
+              }}>
                 <Menu size={24} />
               </button>
               {userTeam && (
@@ -618,6 +628,14 @@ function AppContent() {
             window.location.reload();
           }}
         />
+      )}
+      {selectedGmId && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.8)', padding: '20px' }}>
+            <GMProfile 
+                gm={aiGms.find(g => g.id === selectedGmId) || aiGms[0]} 
+                onClose={() => setSelectedGmId(null)} 
+            />
+        </div>
       )}
       {showPayrollModal && (
         <PayrollConfirmationModal 

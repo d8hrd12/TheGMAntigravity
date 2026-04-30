@@ -428,9 +428,18 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
                     </div>
                 </div>
 
-                {/* AI Team Col */}
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', border: '1px solid #eee', borderRadius: '8px', padding: '10px' }}>
-                    <h3 style={{ borderBottom: '2px solid #333', paddingBottom: '5px' }}>{opponentTeam?.abbreviation} Assets</h3>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #333', paddingBottom: '5px', marginBottom: '10px' }}>
+                        <h3 style={{ margin: 0 }}>{opponentTeam?.abbreviation} Assets</h3>
+                        {opponentTeam && (
+                            <div style={{ textAlign: 'right' }}>
+                                <div style={{ fontSize: '0.7rem', color: '#666', textTransform: 'uppercase' }}>Strategy</div>
+                                <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: opponentTeam.strategy.direction === 'Contender' ? '#f44336' : '#4caf50' }}>
+                                    {opponentTeam.strategy.direction}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                     {opponentTeam && <TradeFinancialHelper team={opponentTeam} selectedPlayerIds={aiSelected} incomingSalary={aiIncoming} title={opponentTeam.abbreviation} />}
                     <div style={{ overflowY: 'auto', flex: 1 }}>
                         <h4 style={{ margin: '5px 0', fontSize: '0.9rem', color: '#666' }}>Players</h4>

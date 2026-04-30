@@ -120,6 +120,7 @@ export interface Player {
     demandTrade?: boolean;
     yearsUnhappy?: number; // Consecutive years with poor morale
     tradeRequested?: boolean; // Formal trade request active
+    yearsOfService: number; // For NBA salary maxes (0-6, 7-9, 10+)
     contractType?: 'standard' | 'prove_it' | 'max';
     tradeRequestDeadline?: Date; // For prove-it deals
 

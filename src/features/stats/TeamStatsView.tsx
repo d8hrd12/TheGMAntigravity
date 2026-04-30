@@ -18,9 +18,11 @@ interface TeamStatsViewProps {
     onViewHistory?: () => void;
     onShowLeagueHistory?: () => void;
     onTeamChange?: (teamId: string) => void;
+    onShowGm?: (gmId: string) => void;
 }
 
-export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, userTeamId, onBack, onSelectPlayer, initialTeamId, onViewHistory, onShowLeagueHistory, onTeamChange }) => {
+export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, userTeamId, onBack, onSelectPlayer, initialTeamId, onViewHistory, onShowLeagueHistory, onTeamChange, onShowGm }) => {
+    const { aiGms } = useGame();
     const [selectedTeamId, setSelectedTeamId] = React.useState(initialTeamId || userTeamId);
     const [sortConfig, setSortConfig] = React.useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'ovr', direction: 'desc' });
 
@@ -130,6 +132,57 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                         </button>
                     )}
                 </div>
+            </div>
+
+            {/* Team Strategy & GM Info */}
+            <div style={{ 
+                display: 'flex', 
+                gap: '12px', 
+                marginBottom: '15px',
+                background: 'rgba(255,255,255,0.03)',
+                padding: '12px',
+                borderRadius: '12px',
+                border: '1px solid rgba(255,255,255,0.1)',
+                alignItems: 'center'
+            }}>
+                <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', marginBottom: '4px' }}>Strategic Direction</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ 
+                            fontSize: '0.9rem', 
+                            fontWeight: 'bold',
+                            color: teams.find(t => t.id === selectedTeamId)?.strategy.direction === 'Contender' ? '#f44336' : '#4caf50'
+                        }}>
+                            {teams.find(t => t.id === selectedTeamId)?.strategy.direction || 'Balanced'}
+                        </span>
+                        <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>•</span>
+                        <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)' }}>
+                            {teams.find(t => t.id === selectedTeamId)?.strategy.focus} Focused
+                        </span>
+                    </div>
+                </div>
+                {selectedTeamId !== userTeamId && (
+                    <button 
+                        onClick={() => {
+                            const team = teams.find(t => t.id === selectedTeamId);
+                            if (team?.gmId && onShowGm) onShowGm(team.gmId);
+                        }}
+                        style={{
+                            background: 'rgba(255,255,255,0.1)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            color: 'white',
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            fontSize: '0.8rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        View GM
+                    </button>
+                )}
             </div>
 
             {/* Stat Category Toggle Widget */}
