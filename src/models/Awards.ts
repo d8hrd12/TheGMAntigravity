@@ -22,4 +22,5 @@ export interface SeasonAwards {
         teamName: string;
     };
     finalsMvp?: AwardWinner;
+    coy?: AwardWinner;
 }

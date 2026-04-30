@@ -3,6 +3,8 @@ import { useGame } from '../../store/GameContext';
 import { calculateContractAmount, calculateAdjustedDemand } from '../../utils/contractUtils';
 import type { Player } from '../../models/Player';
 import { calculateOverall } from '../../utils/playerUtils';
+import { calculateStars } from '../../utils/starUtils';
+import { StarRating } from '../../components/StarRating';
 import { NegotiationView } from '../negotiation/NegotiationView';
 import { UpcomingFreeAgentsModal } from './UpcomingFreeAgentsModal';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -178,83 +180,67 @@ export const ResigningView: React.FC<ResigningViewProps> = ({ onSelectPlayer, on
                     return (
                         <motion.div
                             key={player.id}
-                            whileHover={{ y: -5, boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}
+                            whileHover={{ y: -5, background: 'rgba(255,255,255,0.95)' }}
                             onClick={() => setNegotiatingPlayer(player)}
                             style={{
-                                background: 'var(--surface)',
-                                border: '1px solid var(--border)',
-                                borderRadius: '16px',
-                                padding: '20px',
+                                background: 'rgba(255,255,255,0.9)', // Lighter background for dark text
+                                border: '1px solid rgba(255,255,255,0.2)',
+                                borderRadius: '24px',
+                                padding: '24px',
                                 cursor: 'pointer',
                                 position: 'relative',
-                                overflow: 'hidden'
+                                overflow: 'hidden',
+                                boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
                             }}
                         >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
-                                <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                            {/* Decorative Frame Line */}
+                            <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: 'var(--team-primary, #FF5F1F)' }} />
 
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+                                <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
                                     <div
                                         onClick={(e) => { e.stopPropagation(); onSelectPlayer?.(player.id); }}
                                         style={{ cursor: 'pointer' }}
                                     >
-                                        <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>{player.firstName} {player.lastName}</div>
-                                        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{player.position} • {player.age} yo</div>
+                                        <div style={{ fontWeight: 900, fontSize: '1.4rem', color: '#111', letterSpacing: '-0.5px' }}>
+                                            {player.firstName} <span style={{ color: '#555' }}>{player.lastName.toUpperCase()}</span>
+                                        </div>
+                                        <div style={{ fontSize: '0.8rem', color: '#666', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                                            {player.position} • {player.age} Years Old
+                                        </div>
                                     </div>
                                 </div>
-                                <div style={{
-                                    background: ovr >= 85 ? 'linear-gradient(135deg, #f1c40f, #f39c12)' : '#ecf0f1',
-                                    color: ovr >= 85 ? '#fff' : '#2c3e50',
-                                    padding: '5px 12px',
-                                    borderRadius: '8px',
-                                    fontWeight: 800,
-                                    fontSize: '0.9rem',
-                                    boxShadow: ovr >= 85 ? '0 2px 10px rgba(243, 156, 18, 0.3)' : 'none'
-                                }}>
-                                    {ovr}
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <StarRating stars={calculateStars(ovr, 75)} size={10} />
                                 </div>
                             </div>
 
-                            {/* Stats Preview */}
+                            {/* Stats Preview Frame */}
                             {player.careerStats && player.careerStats.length > 0 && (() => {
                                 const lastS = player.careerStats[player.careerStats.length - 1];
                                 const gp = lastS.gamesPlayed || 1;
                                 return (
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(9, 1fr)', gap: '4px', marginBottom: '15px', background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px' }}>
-                                        <div style={{ textAlign: 'center' }}>
-                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>PTS</div>
-                                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{(lastS.points / gp).toFixed(1)}</div>
+                                    <div style={{ 
+                                        display: 'grid', 
+                                        gridTemplateColumns: 'repeat(3, 1fr)', 
+                                        gap: '1px', 
+                                        background: 'rgba(0,0,0,0.1)', 
+                                        borderRadius: '16px', 
+                                        overflow: 'hidden',
+                                        border: '1px solid rgba(0,0,0,0.05)',
+                                        marginBottom: '20px'
+                                    }}>
+                                        <div style={{ background: 'rgba(0,0,0,0.02)', padding: '12px', textAlign: 'center' }}>
+                                            <div style={{ fontSize: '0.6rem', color: '#888', textTransform: 'uppercase', fontWeight: 800 }}>Points</div>
+                                            <div style={{ fontWeight: 900, fontSize: '1.2rem', color: '#111' }}>{(lastS.points / gp).toFixed(1)}</div>
                                         </div>
-                                        <div style={{ textAlign: 'center' }}>
-                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>REB</div>
-                                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{(lastS.rebounds / gp).toFixed(1)}</div>
+                                        <div style={{ background: 'rgba(0,0,0,0.02)', padding: '12px', textAlign: 'center' }}>
+                                            <div style={{ fontSize: '0.6rem', color: '#888', textTransform: 'uppercase', fontWeight: 800 }}>Rebounds</div>
+                                            <div style={{ fontWeight: 900, fontSize: '1.2rem', color: '#111' }}>{(lastS.rebounds / gp).toFixed(1)}</div>
                                         </div>
-                                        <div style={{ textAlign: 'center' }}>
-                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>AST</div>
-                                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{(lastS.assists / gp).toFixed(1)}</div>
-                                        </div>
-                                        <div style={{ textAlign: 'center' }}>
-                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>SPG</div>
-                                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{(lastS.steals / gp).toFixed(1)}</div>
-                                        </div>
-                                        <div style={{ textAlign: 'center' }}>
-                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>BPG</div>
-                                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{(lastS.blocks / gp).toFixed(1)}</div>
-                                        </div>
-                                        <div style={{ textAlign: 'center' }}>
-                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>MPG</div>
-                                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{(lastS.minutes / gp).toFixed(1)}</div>
-                                        </div>
-                                        <div style={{ textAlign: 'center' }}>
-                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>FG%</div>
-                                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{lastS.fgAttempted > 0 ? ((lastS.fgMade / lastS.fgAttempted) * 100).toFixed(0) + '%' : '-'}</div>
-                                        </div>
-                                        <div style={{ textAlign: 'center' }}>
-                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>3P%</div>
-                                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{lastS.threeAttempted > 0 ? ((lastS.threeMade / lastS.threeAttempted) * 100).toFixed(0) + '%' : '-'}</div>
-                                        </div>
-                                        <div style={{ textAlign: 'center' }}>
-                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>FT%</div>
-                                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{lastS.ftAttempted > 0 ? ((lastS.ftMade / lastS.ftAttempted) * 100).toFixed(0) + '%' : '-'}</div>
+                                        <div style={{ background: 'rgba(0,0,0,0.02)', padding: '12px', textAlign: 'center' }}>
+                                            <div style={{ fontSize: '0.6rem', color: '#888', textTransform: 'uppercase', fontWeight: 800 }}>Assists</div>
+                                            <div style={{ fontWeight: 900, fontSize: '1.2rem', color: '#111' }}>{(lastS.assists / gp).toFixed(1)}</div>
                                         </div>
                                     </div>
                                 );

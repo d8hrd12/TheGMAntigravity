@@ -26,13 +26,13 @@ export const InjuryReportView: React.FC = () => {
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '20px', padding: '20px' }}>
             {/* Filter */}
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <div style={{ display: 'flex', background: 'var(--surface)', padding: '4px', borderRadius: '8px' }}>
+                <div style={{ display: 'flex', background: 'var(--bg-card)', padding: '4px', borderRadius: '8px' }}>
                     <button
                         onClick={() => setFilter('all')}
                         style={{
                             padding: '6px 12px',
                             background: filter === 'all' ? 'var(--primary)' : 'transparent',
-                            color: filter === 'all' ? '#fff' : 'var(--text-secondary)',
+                            color: filter === 'all' ? '#fff' : 'var(--text-dim)',
                             border: 'none',
                             borderRadius: '6px',
                             cursor: 'pointer',
@@ -47,7 +47,7 @@ export const InjuryReportView: React.FC = () => {
                         style={{
                             padding: '6px 12px',
                             background: filter === 'my_team' ? 'var(--primary)' : 'transparent',
-                            color: filter === 'my_team' ? '#fff' : 'var(--text-secondary)',
+                            color: filter === 'my_team' ? '#fff' : 'var(--text-dim)',
                             border: 'none',
                             borderRadius: '6px',
                             cursor: 'pointer',
@@ -63,7 +63,7 @@ export const InjuryReportView: React.FC = () => {
             {/* List */}
             <div style={{ flex: 1, overflowY: 'auto' }}>
                 {filteredPlayers.length === 0 ? (
-                    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
+                    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dim)' }}>
                         <HeartPulse size={48} style={{ opacity: 0.5, marginBottom: '10px' }} />
                         <div>No active injuries reported.</div>
                     </div>
@@ -76,10 +76,10 @@ export const InjuryReportView: React.FC = () => {
 
                             return (
                                 <div key={player.id} style={{
-                                    background: 'var(--surface)',
+                                    background: 'var(--bg-card)',
                                     padding: '15px',
                                     borderRadius: '12px',
-                                    border: '1px solid var(--border)',
+                                    border: '1px solid var(--border-color)',
                                     display: 'flex',
                                     justifyContent: 'space-between',
                                     alignItems: 'center'
@@ -97,13 +97,13 @@ export const InjuryReportView: React.FC = () => {
                                         </div>
                                         <div>
                                             <div style={{ fontWeight: 700, fontSize: '1rem' }}>{player.firstName} {player.lastName}</div>
-                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
                                                 {team ? team.name : 'Free Agent'} • {player.position}
                                             </div>
                                         </div>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontWeight: 600, color: 'var(--text)' }}>{player.injury!.type}</div>
+                                        <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{player.injury!.type}</div>
                                         <div style={{ fontSize: '0.8rem', color: severityColor, fontWeight: 500 }}>
                                             Return: {formatDate(player.injury!.returnDate)} ({daysLeft} days)
                                         </div>

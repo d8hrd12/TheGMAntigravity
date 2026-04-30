@@ -13,6 +13,8 @@ import { calculateOverall, calculateTendencies } from '../../utils/playerUtils';
 import { getFuzzyAttribute, getFuzzyPotential, getPotentialGrade } from '../../utils/scoutingUtils';
 import { getAttributePotential } from '../../utils/trainingUtils';
 import { DraftHistoryModal } from '../draft/DraftHistoryModal';
+import { calculateTeamBaseline, calculateStars } from '../../utils/starUtils';
+import { StarRating } from '../../components/StarRating';
 
 interface PlayerDetailViewProps {
     player: Player;
@@ -86,7 +88,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
     };
 
-    const [viewMode, setViewMode] = React.useState<'Average' | 'Total' | 'Distribution'>('Average');
+    const [viewMode, setViewMode] = React.useState<'Average' | 'Total'>('Average');
     const [careerMode, setCareerMode] = React.useState<'Regular' | 'Playoff'>('Regular');
     const [statsView, setStatsView] = React.useState<'Skills' | 'Development'>('Skills');
     const [viewDraftHistoryYear, setViewDraftHistoryYear] = React.useState<number | null>(null);
@@ -123,6 +125,11 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
     const ftDisplay = viewMode === 'Total' ? `${stats.ftMade}/${stats.ftAttempted}` : ftPrev;
 
     const overall = calculateOverall(player);
+    const targetTeamId = (player.teamId && player.teamId !== 'FA') ? player.teamId : userTeamId;
+    const teamPlayers = players.filter(p => p.teamId === targetTeamId);
+    const teamBaseline = calculateTeamBaseline(teamPlayers);
+    const stars = calculateStars(overall, teamBaseline);
+
 
     const playerAwards = React.useMemo(() => {
         const awards: string[] = [];
@@ -170,142 +177,111 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
             </div>
 
 
-            <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+            <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-md)' }}>
                 {/* Header Section */}
-                <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '20px', marginBottom: '20px' }}>
+                <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '20px', marginBottom: '20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div>
+                        <div style={{ flex: 1 }}>
                             {/* Name */}
-                            <h1 style={{ margin: 0, color: 'var(--text)', fontSize: '2rem', lineHeight: 1.2 }}>{player.firstName} {player.lastName}</h1>
+                            <h1 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.8rem', fontWeight: 900, lineHeight: 1.1 }}>{player.firstName} {player.lastName.toUpperCase()}</h1>
+
+                            {/* Position & Team & Jersey */}
+                            <div style={{ color: 'var(--text-dim)', marginTop: '8px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}>
+                                <span style={{
+                                    color: '#fff',
+                                    background: 'var(--team-primary)',
+                                    padding: '2px 8px',
+                                    borderRadius: '6px',
+                                    fontSize: '0.8rem'
+                                }}>
+                                    #{player.jerseyNumber !== undefined ? player.jerseyNumber : '??'}
+                                </span>
+                                <span>{player.position}{player.secondaryPosition ? ` / ${player.secondaryPosition}` : ''}</span>
+                                <span style={{ opacity: 0.3 }}>|</span>
+                                <span
+                                    onClick={() => team && onTeamClick && onTeamClick(team.id)}
+                                    style={{
+                                        cursor: team && onTeamClick ? 'pointer' : 'default',
+                                        color: team && onTeamClick ? 'var(--team-primary)' : 'inherit',
+                                        textDecoration: team && onTeamClick ? 'underline' : 'none'
+                                    }}
+                                >
+                                    {team ? team.abbreviation : 'Free Agent'}
+                                </span>
+                            </div>
+
+                            {/* Age, Height, Weight */}
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '6px', fontWeight: 600 }}>
+                                {player.age} YEARS OLD | {player.height}CM | {player.weight}KG
+                            </div>
 
                             {/* Description / Archetype / Personality */}
-                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '12px' }}>
                                 {player.archetype && (
                                     <div style={{
-                                        marginTop: '8px',
-                                        display: 'inline-block',
-                                        background: 'var(--surface-active)',
-                                        border: '1px solid var(--border)',
+                                        background: 'var(--bg-card-hover)',
+                                        border: '1px solid var(--border-color)',
                                         padding: '4px 10px',
                                         borderRadius: '6px',
-                                        color: 'var(--text-secondary)',
-                                        fontSize: '0.9rem'
+                                        color: 'var(--text-dim)',
+                                        fontSize: '0.7rem',
+                                        fontWeight: 800,
+                                        textTransform: 'uppercase'
                                     }}>
                                         {player.archetype}
                                     </div>
                                 )}
                                 {player.personality && (
                                     <div style={{
-                                        marginTop: '8px',
-                                        display: 'inline-block',
-                                        background: 'var(--surface-active)',
-                                        border: `1px solid var(--primary)`,
+                                        background: 'var(--primary-glow)',
+                                        border: `1px solid var(--team-primary)`,
                                         padding: '4px 10px',
                                         borderRadius: '6px',
-                                        color: 'var(--primary)',
-                                        fontSize: '0.9rem',
-                                        fontWeight: 'bold'
+                                        color: 'var(--team-primary)',
+                                        fontSize: '0.7rem',
+                                        fontWeight: 800,
+                                        textTransform: 'uppercase'
                                     }}>
                                         {player.personality}
                                     </div>
                                 )}
                             </div>
 
-                            {/* Position & Team & Jersey */}
-                            <div style={{ color: 'var(--text-secondary)', marginTop: '8px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span style={{
-                                    fontWeight: 'bold',
-                                    color: 'var(--text)',
-                                    background: 'var(--surface-active)',
-                                    padding: '4px 8px',
-                                    borderRadius: '6px',
-                                    border: '1px solid var(--border)'
-                                }}>
-                                    #{player.jerseyNumber !== undefined ? player.jerseyNumber : '??'}
-                                </span>
-                                <span>{player.position}{player.secondaryPosition ? ` / ${player.secondaryPosition}` : ''}</span>
-                                <span style={{ opacity: 0.5 }}>|</span>
-                                <span
-                                    onClick={() => team && onTeamClick && onTeamClick(team.id)}
-                                    style={{
-                                        cursor: team && onTeamClick ? 'pointer' : 'default',
-                                        color: team && onTeamClick ? 'var(--primary)' : 'inherit',
-                                        textDecoration: team && onTeamClick ? 'underline' : 'none'
-                                    }}
-                                >
-                                    {team ? `${team.city} ${team.name}` : 'Free Agent'}
-                                </span>
-                            </div>
-
-                            {/* Age, Height, Weight */}
-                            <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '5px' }}>
-                                Age: {player.age} | Height: {player.height}cm | Weight: {player.weight}kg
-                            </div>
-
-                            {/* Acquired Info */}
-                            {player.acquisition && (
-                                <div style={{ marginTop: '5px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                                    <span style={{ opacity: 0.7 }}>Acquired:</span>
-                                    <strong
-                                        onClick={() => player.acquisition?.type === 'draft' && setViewDraftHistoryYear(player.acquisition.year)}
-                                        style={{
-                                            color: player.acquisition.type === 'draft' ? 'var(--primary)' : 'var(--text)',
-                                            cursor: player.acquisition.type === 'draft' ? 'pointer' : 'default',
-                                            textDecoration: player.acquisition.type === 'draft' ? 'underline' : 'none',
-                                            marginLeft: '4px'
-                                        }}
-                                    >
-                                        {player.acquisition.year}
-                                    </strong>
-                                    via <span style={{ textTransform: 'capitalize', color: 'var(--text)' }}>{player.acquisition.type.replace('_', ' ')}</span>
-                                    {player.acquisition.details && <span style={{ color: 'var(--primary)', marginLeft: '4px' }}>{player.acquisition.details}</span>}
-                                    {player.acquisition.previousTeamId && (
-                                        <span style={{ marginLeft: '4px' }}>
-                                            from {teams.find(t => t.id === player.acquisition!.previousTeamId)?.abbreviation || 'UNK'}
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Draft History Modal */}
-                            {viewDraftHistoryYear && (
-                                <DraftHistoryModal
-                                    year={viewDraftHistoryYear}
-                                    onClose={() => setViewDraftHistoryYear(null)}
-                                    onPlayerClick={(pid) => {
-                                        // Optional: Navigate to that player? 
-                                        // For now just close or do nothing as we are already in player detail view.
-                                        // Usually user would want to switch player view.
-                                        // We don't have a direct 'history.push' here, but we pass onTradeFor etc.
-                                        // If we want to switch player, we need a prop for it or just re-render parent.
-                                        // Current props don't support "Switch Player", but we can just close for now.
-                                        setViewDraftHistoryYear(null);
-                                    }}
-                                />
-                            )}
-
                             {/* Contract Box */}
                             {contract && (
-                                <div style={{ marginTop: '12px', padding: '10px', background: 'var(--surface-glass)', borderRadius: '8px', fontSize: '0.9rem', border: '1px solid var(--border)', color: 'var(--text)', display: 'inline-block' }}>
-                                    <strong style={{ color: 'var(--primary)' }}>Contract:</strong> {formatMoney(contract.amount)} / yr  &bull;  {contract.yearsLeft} Years Left
+                                <div style={{ marginTop: '16px', padding: '10px 14px', background: 'var(--bg-card-hover)', borderRadius: '10px', fontSize: '0.8rem', border: '1px solid var(--border-color)', color: 'var(--text-main)', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                                    <DollarSign size={14} style={{ color: 'var(--accent)' }} />
+                                    <span style={{ fontWeight: 800 }}>{formatMoney(contract.amount)} / yr</span>
+                                    <span style={{ opacity: 0.3 }}>|</span>
+                                    <span style={{ fontWeight: 700, color: 'var(--text-dim)' }}>{contract.yearsLeft} YRS LEFT</span>
                                 </div>
                             )}
                         </div>
 
-                        {/* Overall Rating Box */}
-                        <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '3.5rem', fontWeight: 'bold', color: getRatingColor(overall), lineHeight: 1 }}>
-                                {isProspect && !isRevealed ? getFuzzyPotential(player.potential, scoutingPoints) : overall}
+                        {/* Star Rating Box - Vertical on Right */}
+                        <div style={{ 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            background: 'var(--bg-card-hover)',
+                            padding: '12px 8px',
+                            borderRadius: '12px',
+                            border: '1px solid var(--border-color)',
+                            minWidth: '60px'
+                        }}>
+                            {isProspect && !isRevealed ? (
+                                <div style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--team-primary)' }}>
+                                    {getFuzzyPotential(player.potential, scoutingPoints)}
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    <StarRating stars={stars} size={18} vertical />
+                                </div>
+                            )}
+                            <div style={{ fontSize: '0.5rem', fontWeight: 900, color: 'var(--text-muted)', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                                VALUE
                             </div>
-
-                            {/* Morale Icon (Minimal SVG) */}
-                            <div style={{ marginTop: '5px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                {player.demandTrade && <span style={{ color: 'var(--danger)', fontSize: '0.6rem', fontWeight: 'bold', marginTop: '2px', textTransform: 'uppercase' }}>Wants Out</span>}
-                            </div>
-                            <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>
-                                {isProspect ? 'Proj. Potential' : 'OVR'}
-                            </div>
-
                         </div>
                     </div>
                 </div>
@@ -345,62 +321,10 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                             >
                                 Totals
                             </button>
-                            <button
-                                onClick={() => setViewMode('Distribution')}
-                                style={{
-                                    background: viewMode === 'Distribution' ? 'var(--primary)' : 'transparent',
-                                    color: viewMode === 'Distribution' ? '#fff' : 'var(--text-secondary)',
-                                    border: 'none',
-                                    borderRadius: '18px',
-                                    padding: '4px 12px',
-                                    fontSize: '0.8rem',
-                                    fontWeight: 'bold',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Shot Dist
-                            </button>
                         </div>
                     </div>
 
-                    {viewMode === 'Distribution' ? (
-                        <div style={{ background: 'var(--surface-glass)', padding: '15px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(100px, 1fr) 1fr 1fr 1fr 1fr', borderBottom: '1px solid var(--border)', paddingBottom: '8px', marginBottom: '8px', fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                                <div style={{ textAlign: 'left' }}>Zone</div>
-                                <div>Made</div>
-                                <div>Att</div>
-                                <div>Pct</div>
-                                <div>%Ast</div>
-                            </div>
-                            {[
-                                { label: 'Rim', made: stats.rimMade || 0, att: stats.rimAttempted || 0, ast: stats.rimAssisted || 0, color: '#e74c3c' },
-                                { label: 'Mid-Range', made: stats.midRangeMade || 0, att: stats.midRangeAttempted || 0, ast: stats.midRangeAssisted || 0, color: '#f1c40f' },
-                                { label: '3-Point', made: stats.threeMade || 0, att: stats.threeAttempted || 0, ast: stats.threePointAssisted || 0, color: '#3498db' },
-                            ].map((zone) => {
-                                const pct = zone.att > 0 ? ((zone.made / zone.att) * 100).toFixed(1) : '0.0';
-                                const astPct = zone.made > 0 ? ((zone.ast / zone.made) * 100).toFixed(0) : '0';
-                                const totalShots = (stats.fgAttempted || 1);
-                                const frequency = ((zone.att / totalShots) * 100).toFixed(0);
-
-                                return (
-                                    <div key={zone.label} style={{ display: 'grid', gridTemplateColumns: 'minmax(100px, 1fr) 1fr 1fr 1fr 1fr', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem', alignItems: 'center' }}>
-                                        <div style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: zone.color }}></div>
-                                            <span style={{ fontWeight: 'bold' }}>{zone.label}</span>
-                                            <span style={{ fontSize: '0.7rem', opacity: 0.5 }}>({frequency}%)</span>
-                                        </div>
-                                        <div style={{ color: 'var(--text)' }}>{zone.made}</div>
-                                        <div style={{ color: 'var(--text)' }}>{zone.att}</div>
-                                        <div style={{ fontWeight: 'bold', color: parseFloat(pct) >= 50 ? 'var(--primary--text)' : 'var(--text)' }}>{pct}%</div>
-                                        <div style={{ color: 'var(--text-secondary)' }}>{astPct}%</div>
-                                    </div>
-                                );
-                            })}
-                            <div style={{ marginTop: '10px', fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic', textAlign: 'center' }}>
-                                Total FG%: {((stats.fgMade / (stats.fgAttempted || 1)) * 100).toFixed(1)}%
-                            </div>
-                        </div>
-                    ) : (
+                    {(viewMode === 'Average' || viewMode === 'Total') && (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '15px 10px', textAlign: 'center', background: 'var(--surface-active)', padding: '15px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                             <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{ppg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'PTS' : 'TPTS'}</div></div>
                             <div><div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text)' }}>{apg}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{viewMode === 'Average' ? 'AST' : 'TAST'}</div></div>

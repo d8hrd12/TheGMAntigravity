@@ -15,11 +15,11 @@ export const SegmentedControl = <T extends string>({ options, value, onChange, s
     return (
         <div style={{
             display: 'flex',
-            background: 'var(--surface)',
+            background: 'var(--bg-card)',
             padding: '4px',
             borderRadius: '8px', // Squarish
             position: 'relative',
-            border: '1px solid var(--border)',
+            border: '1px solid var(--border-color)',
             gap: '2px' // Tiny gap
         }}>
             {options.map((option) => {
@@ -34,7 +34,7 @@ export const SegmentedControl = <T extends string>({ options, value, onChange, s
                             padding: size === 'sm' ? '6px 12px' : size === 'lg' ? '12px 24px' : '8px 16px',
                             background: 'transparent',
                             border: 'none',
-                            color: isActive ? '#fff' : 'var(--text-secondary)',
+                            color: isActive ? '#fff' : 'var(--text-muted)',
                             fontWeight: 600,
                             fontSize: size === 'sm' ? '0.8rem' : '0.9rem',
                             cursor: 'pointer',
@@ -56,7 +56,7 @@ export const SegmentedControl = <T extends string>({ options, value, onChange, s
                                     left: 0,
                                     right: 0,
                                     bottom: 0,
-                                    background: 'var(--primary)', // Bright green or theme primary
+                                    background: 'var(--team-primary)', // Bright green or theme primary
                                     borderRadius: '6px',
                                     zIndex: -1,
                                     boxShadow: '0 2px 8px rgba(0,0,0,0.2)'

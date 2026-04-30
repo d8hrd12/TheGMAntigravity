@@ -70,8 +70,10 @@ export const simulateFreeAgencyDay = (
         // Optimization: Only look at top available or filtered set
         const eligibleTargets = freeAgents
             .filter(p => {
+                const isOwnPlayer = p.teamId === team.id || p.acquisition?.previousTeamId === team.id;
                 // Heuristic to save performace: 
-                if (effectiveBudget < 1000000) return false;
+                // Skip if no budget AND not own player
+                if (effectiveBudget < 1000000 && !isOwnPlayer) return false;
                 // If Contender, ignore players < 70 OVR unless desperate
                 if (direction === 'Contender' && calculateOverall(p) < 70) return false;
                 return true;
@@ -121,17 +123,21 @@ export const simulateFreeAgencyDay = (
 
                 let offerAmount = Math.floor(contractReq.amount * offerFactor);
 
-                // --- FINANCIAL FIX: Debt Signing Ban ---
-                // If team has negative cash, they can ONLY offer the league minimum.
-                const MIN_SALARY = nextState.salaryCap * 0.008;
-                if (team.cash < 0) {
-                    offerAmount = MIN_SALARY;
-                }
+            const isOwnPlayer = player.teamId === team.id || player.acquisition?.previousTeamId === team.id;
 
-                // Strict Cap Limit
-                if (offerAmount > team.salaryCapSpace) {
-                    offerAmount = team.salaryCapSpace;
-                }
+            // Check cap: Skip if over cap and not own player (unless it's minimum)
+            const VET_MINIMUM = 1100000;
+            if (effectiveBudget < offerAmount && !isOwnPlayer && offerAmount > VET_MINIMUM) continue;
+
+            // --- FINANCIAL FIX: Debt Signing Ban ---
+            if (team.cash < 0 && !isOwnPlayer) {
+                offerAmount = VET_MINIMUM;
+            }
+
+            // Strict Cap Limit for external players
+            if (offerAmount > effectiveBudget && !isOwnPlayer) {
+                offerAmount = Math.max(VET_MINIMUM, effectiveBudget);
+            }
 
                 // Sanity check: Don't offer $500k to a Max guy (unless it's the only option due to debt/cap)
                 // If in debt, we allow the min offer even if it's way below market, because that's their only tool.

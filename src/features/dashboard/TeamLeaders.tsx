@@ -21,62 +21,64 @@ export const TeamLeaders: React.FC<TeamLeadersProps> = ({ onSelectPlayer }) => {
 
     const LeaderRow = ({ player, label, statValue, statType }: any) => (
         <motion.div
-            whileHover={{ x: 4, backgroundColor: 'rgba(0,0,0,0.02)' }}
+            whileHover={{ x: 4, backgroundColor: 'var(--bg-card-hover)' }}
             onClick={() => onSelectPlayer && onSelectPlayer(player.id)}
             style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '8px 0',
-                borderBottom: '1px solid rgba(0,0,0,0.05)',
-                cursor: 'pointer'
+                padding: '12px 0',
+                borderBottom: '1px solid var(--border-color)',
+                cursor: 'pointer',
+                transition: 'background 0.2s ease'
             }}
         >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{
-                    width: '40px',
-                    height: '40px',
+                    width: '36px',
+                    height: '36px',
                     borderRadius: '50%',
-                    background: '#F3F4F6',
+                    background: 'var(--bg-card-hover)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#9CA3AF',
-                    fontSize: '0.75rem',
-                    fontWeight: 800
+                    color: 'var(--text-muted)',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    border: '1px solid var(--border-color)'
                 }}>
                     {player.position}
                 </div>
                 <div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1A1A1A' }}>{player.firstName[0]}. {player.lastName}</div>
-                    <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase' }}>{label}</div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>{player.firstName[0]}. {player.lastName}</div>
+                    <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>{label}</div>
                 </div>
             </div>
             <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#1A1A1A' }}>{statValue}</div>
-                <div style={{ fontSize: '0.6rem', fontWeight: 700, color: '#9CA3AF' }}>{statType}</div>
+                <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--primary)' }}>{statValue}</div>
+                <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{statType}</div>
             </div>
         </motion.div>
     );
 
     return (
-        <DashboardCard variant="white" title="Team Leaders" icon={<Users size={16} />}>
+        <DashboardCard variant="primary" title="Team Leaders" icon={<Users size={16} />}>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <LeaderRow
                     player={pointsLeader}
-                    label="Scoring Leader"
+                    label="Scoring"
                     statValue={pointsLeader.seasonStats?.gamesPlayed ? (pointsLeader.seasonStats.points / pointsLeader.seasonStats.gamesPlayed).toFixed(1) : "0.0"}
                     statType="PPG"
                 />
                 <LeaderRow
                     player={reboundsLeader}
-                    label="Rebounding Leader"
+                    label="Rebounding"
                     statValue={reboundsLeader.seasonStats?.gamesPlayed ? (reboundsLeader.seasonStats.rebounds / reboundsLeader.seasonStats.gamesPlayed).toFixed(1) : "0.0"}
                     statType="RPG"
                 />
                 <LeaderRow
                     player={assistsLeader}
-                    label="Playmaking Leader"
+                    label="Playmaking"
                     statValue={assistsLeader.seasonStats?.gamesPlayed ? (assistsLeader.seasonStats.assists / assistsLeader.seasonStats.gamesPlayed).toFixed(1) : "0.0"}
                     statType="APG"
                 />

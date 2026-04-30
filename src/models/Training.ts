@@ -11,6 +11,17 @@ export const TrainingFocus = {
 
 export type TrainingFocus = typeof TrainingFocus[keyof typeof TrainingFocus];
 
+export const TrainingFocusLabels: Record<TrainingFocus, string> = {
+    [TrainingFocus.BALANCED]: 'Balanced Development',
+    [TrainingFocus.SHOOTING]: 'Finishing & Shooting',
+    [TrainingFocus.PLAYMAKING]: 'Passing & Handling',
+    [TrainingFocus.DEFENSE]: 'Defense & Rebounding',
+    [TrainingFocus.PHYSICAL]: 'Athleticism & Conditioning',
+    [TrainingFocus.FUNDAMENTALS]: 'Basic Fundamentals',
+    [TrainingFocus.NONE]: 'No Focus (Rest)',
+    [TrainingFocus.NATURAL]: 'Natural Growth'
+};
+
 export interface AttributeChange {
     attributeName: string;
     oldValue: number;

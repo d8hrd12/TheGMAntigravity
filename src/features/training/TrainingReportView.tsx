@@ -5,6 +5,9 @@ import { ChevronLeft, TrendingUp, Target, Award, User, Users, Zap } from 'lucide
 import type { AttributeChange, ProgressionResult } from '../../models/Training';
 import { BackButton } from '../ui/BackButton';
 import { PageHeader } from '../ui/PageHeader';
+import { calculateOverall } from '../../utils/playerUtils';
+import { calculateStars, calculateTeamBaseline } from '../../utils/starUtils';
+import { StarRating } from '../../components/StarRating';
 
 // Helper for attribute color coding (Value)
 const getAttributeColor = (value: number) => {
@@ -49,20 +52,23 @@ const StatCell = ({ label, value, changes, isOvr = false }: { label: string, val
     );
 };
 
-const OvrCellDisplay = ({ value, delta }: { value: number, delta: number }) => {
-    const oldOvr = value - delta;
-    const deltaColor = delta > 0 ? '#2ecc71' : delta < 0 ? '#ff4444' : 'var(--text-secondary)';
+const StarCellDisplay = ({ player, delta, baseline }: { player: any, delta: number, baseline: number }) => {
+    const currentOvr = calculateOverall(player);
+    const oldOvr = currentOvr - delta;
+    const currentStars = calculateStars(currentOvr, baseline);
+    const oldStars = calculateStars(oldOvr, baseline);
+    const starDelta = currentStars - oldStars;
+    const deltaColor = starDelta > 0 ? '#2ecc71' : starDelta < 0 ? '#ff4444' : 'var(--text-secondary)';
 
     return (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.9rem' }}>
-            {delta !== 0 ? (
-                <>
-                    <span style={{ color: 'var(--text-secondary)', opacity: 0.6, fontSize: '0.8rem' }}>{oldOvr}</span>
-                    <span style={{ margin: '0 4px', color: 'var(--text-secondary)', opacity: 0.3, fontSize: '10px' }}>→</span>
-                    <span style={{ color: deltaColor, textShadow: delta > 0 ? '0 0 8px rgba(46, 204, 113, 0.3)' : 'none' }}>{value}</span>
-                </>
-            ) : (
-                <span style={{ color: 'var(--text-secondary)' }}>{value}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <StarRating stars={currentStars} size={14} />
+            </div>
+            {starDelta !== 0 && (
+                <div style={{ fontSize: '0.7rem', color: deltaColor, fontWeight: 'bold', marginTop: '2px' }}>
+                    {starDelta > 0 ? '+' : ''}{starDelta} Stars
+                </div>
             )}
         </div>
     );
@@ -135,7 +141,7 @@ export const TrainingReportView: React.FC<{ onBack: () => void }> = ({ onBack })
                     icon={Award} 
                     title="Top Prospect" 
                     value={stats?.top ? stats.top.name.split(' ').pop()! : 'N/A'} 
-                    subtitle={stats?.top ? `+${stats.top.overallChange} OVR gain` : 'No gains'}
+                    subtitle={stats?.top ? `+${(stats.top.overallChange / 8).toFixed(1)} Stars gain` : 'No gains'}
                     color="var(--primary)" 
                 />
                 <SummaryCard 
@@ -189,7 +195,7 @@ export const TrainingReportView: React.FC<{ onBack: () => void }> = ({ onBack })
                             <th style={{ padding: '14px 16px', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-secondary)' }}>Player</th>
                             <th style={{ padding: '14px 4px', fontSize: '0.7rem', textTransform: 'uppercase', textAlign: 'center', color: 'var(--text-secondary)' }}>Pos</th>
                             <th style={{ padding: '14px 4px', fontSize: '0.7rem', textTransform: 'uppercase', textAlign: 'center', color: 'var(--text-secondary)' }}>Age</th>
-                            <th style={{ padding: '14px 4px', fontSize: '0.7rem', textTransform: 'uppercase', textAlign: 'center', color: 'var(--primary)' }}>OVR</th>
+                            <th style={{ padding: '14px 4px', fontSize: '0.7rem', textTransform: 'uppercase', textAlign: 'center', color: 'var(--primary)' }}>Stars</th>
                             {columns.map(col => (
                                 <th key={col} style={{ padding: '14px 4px', fontSize: '0.65rem', textTransform: 'uppercase', textAlign: 'center', color: 'var(--text-secondary)', minWidth: '40px' }}>{col}</th>
                             ))}
@@ -217,7 +223,11 @@ export const TrainingReportView: React.FC<{ onBack: () => void }> = ({ onBack })
                                     <td style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>{player.position}</td>
                                     <td style={{ textAlign: 'center', color: 'var(--text-secondary)', opacity: 0.7, fontSize: '0.8rem' }}>{player.age}</td>
                                     <td style={{ textAlign: 'center' }}>
-                                        <OvrCellDisplay value={player.overall} delta={entry.overallChange} />
+                                        <StarCellDisplay 
+                                            player={player} 
+                                            delta={entry.overallChange} 
+                                            baseline={calculateTeamBaseline(players.filter(p => p.teamId === player.teamId))} 
+                                        />
                                     </td>
                                     {columns.map(col => (
                                         <td key={col} style={{ padding: '8px 4px' }}>

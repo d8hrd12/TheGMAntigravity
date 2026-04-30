@@ -1,0 +1,243 @@
+
+import React from 'react';
+import { useGame } from '../../store/GameContext';
+import { CheckCircle, Circle, Trophy, Search, Users, FileText, BarChart2, Calendar, DollarSign, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+export const OffseasonMenuView: React.FC = () => {
+    const { 
+        offseasonTasks, 
+        seasonPhase, 
+        setView, 
+        setGameState,
+        date,
+        userTeamId,
+        teams,
+        paySalaries,
+        startRegularSeason,
+        endCoachFreeAgency,
+        setModalMessage
+    } = useGame();
+
+    const userTeam = teams.find(t => t.id === userTeamId);
+    const currentYear = date.getFullYear();
+
+    const tasks = [
+        { 
+            id: 'retirements', 
+            label: 'Retirement Ceremony', 
+            description: 'Celebrate the legends hanging up their jerseys.',
+            icon: <Trophy size={24} />,
+            view: 'retirement',
+            phase: 'retirement_summary'
+        },
+        { 
+            id: 'scouting', 
+            label: 'Draft Scouting', 
+            description: 'Analyze the incoming draft class potential.',
+            icon: <Search size={24} />,
+            view: 'scouting',
+            phase: 'scouting',
+            skippable: true
+        },
+        { 
+            id: 'draft', 
+            label: 'NBA Draft Night', 
+            description: 'Select the future stars for your franchise.',
+            icon: <Users size={24} />,
+            view: 'draft',
+            phase: 'draft'
+        },
+        { 
+            id: 'resigning', 
+            label: 'Contract Resigning', 
+            description: 'Negotiate with your expiring players.',
+            icon: <FileText size={24} />,
+            view: 'resigning',
+            phase: 'resigning'
+        },
+        { 
+            id: 'freeAgency', 
+            label: 'Free Agency', 
+            description: 'Sign the best available talent in the league.',
+            icon: <DollarSign size={24} />,
+            view: 'free_agency',
+            phase: 'free_agency'
+        },
+        { 
+            id: 'training', 
+            label: 'Training Camp', 
+            description: 'Develop your players skills over the summer.',
+            icon: <BarChart2 size={24} />,
+            view: 'training',
+            phase: 'training'
+        },
+        { 
+            id: 'trainingResults', 
+            label: 'Training Results', 
+            description: 'See how much your players improved.',
+            icon: <CheckCircle size={24} />,
+            view: 'training_results', // We might need a specific view for this
+            phase: 'training'
+        },
+        { 
+            id: 'startSeason', 
+            label: 'Begin Next Season', 
+            description: 'Finalize your roster and start the new year.',
+            icon: <Calendar size={24} />,
+            view: 'dashboard',
+            phase: 'regular_season'
+        }
+    ];
+
+    const isTaskCompleted = (id: string) => offseasonTasks?.[id as keyof typeof offseasonTasks];
+
+    const isTaskLocked = (index: number) => {
+        if (index === 0) return false;
+        const prevTask = tasks[index - 1];
+        // Special case: scouting is skippable
+        if (prevTask.id === 'scouting' && index > 1) {
+            // If scouting is skipped, we still need the task before scouting (retirements) to be done
+            return !isTaskCompleted('retirements');
+        }
+        return !isTaskCompleted(prevTask.id);
+    };
+
+    const handleTaskClick = (task: any, index: number) => {
+        if (isTaskLocked(index)) return;
+
+        if (task.id === 'startSeason') {
+            // Handle season start logic
+            const paid = paySalaries();
+            if (!paid) {
+                setModalMessage("INSUFFICIENT FUNDS: Your franchise does not have enough cash to cover this year's player salaries. Try releasing expensive players or trading for cheaper assets.");
+                return;
+            }
+            startRegularSeason();
+            return;
+        }
+
+        if (task.id === 'resigning') {
+            endCoachFreeAgency();
+            return;
+        }
+
+        setGameState(prev => ({
+            ...prev,
+            view: task.view,
+            seasonPhase: task.phase
+        }));
+    };
+
+    return (
+        <div style={{ 
+            padding: '40px 20px', 
+            maxWidth: '1000px', 
+            margin: '0 auto',
+            minHeight: '100vh',
+            background: 'radial-gradient(circle at top right, rgba(var(--team-primary-rgb), 0.1), transparent 60%)'
+        }}>
+            <div style={{ marginBottom: '40px', textAlign: 'center' }}>
+                <h1 style={{ fontSize: '3rem', fontWeight: 900, marginBottom: '10px', letterSpacing: '-1.5px' }}>
+                    {currentYear} OFFSEASON
+                </h1>
+                <p style={{ color: 'var(--text-dim)', fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '2px' }}>
+                    Franchise Operations Center
+                </p>
+            </div>
+
+            <div style={{ display: 'grid', gap: '16px' }}>
+                {tasks.map((task, index) => {
+                    const completed = isTaskCompleted(task.id);
+                    const locked = isTaskLocked(index);
+                    const active = !completed && !locked;
+
+                    return (
+                        <motion.div
+                            key={task.id}
+                            whileHover={!locked ? { scale: 1.01, x: 10 } : {}}
+                            whileTap={!locked ? { scale: 0.99 } : {}}
+                            onClick={() => handleTaskClick(task, index)}
+                            style={{
+                                background: completed ? 'rgba(46, 204, 113, 0.05)' : (locked ? 'rgba(255,255,255,0.02)' : 'var(--bg-card)'),
+                                border: completed ? '1px solid #2ecc71' : (locked ? '1px solid rgba(255,255,255,0.05)' : '1px solid var(--border-color)'),
+                                borderRadius: '20px',
+                                padding: '24px',
+                                cursor: locked ? 'not-allowed' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '24px',
+                                transition: 'all 0.3s ease',
+                                opacity: locked ? 0.5 : 1,
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}
+                        >
+                            {/* Status Indicator */}
+                            <div style={{ color: completed ? '#2ecc71' : (locked ? 'var(--text-dim)' : 'var(--team-primary)') }}>
+                                {completed ? <CheckCircle size={32} /> : (locked ? <Circle size={32} opacity={0.3} /> : <Circle size={32} />)}
+                            </div>
+
+                            {/* Icon */}
+                            <div style={{
+                                width: '56px',
+                                height: '56px',
+                                borderRadius: '16px',
+                                background: locked ? 'rgba(255,255,255,0.05)' : 'rgba(var(--team-primary-rgb), 0.1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: locked ? 'var(--text-dim)' : 'var(--team-primary)',
+                                flexShrink: 0
+                            }}>
+                                {task.icon}
+                            </div>
+
+                            {/* Info */}
+                            <div style={{ flex: 1 }}>
+                                <h3 style={{ 
+                                    margin: 0, 
+                                    fontSize: '1.25rem', 
+                                    fontWeight: 800,
+                                    color: locked ? 'var(--text-dim)' : 'var(--text-main)'
+                                }}>
+                                    {task.label}
+                                </h3>
+                                <p style={{ 
+                                    margin: '4px 0 0 0', 
+                                    color: 'var(--text-dim)',
+                                    fontSize: '0.95rem'
+                                }}>
+                                    {task.description}
+                                </p>
+                            </div>
+
+                            {!locked && !completed && (
+                                <div style={{ color: 'var(--team-primary)' }}>
+                                    <ArrowRight size={24} />
+                                </div>
+                            )}
+
+                            {task.skippable && !completed && !locked && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '12px',
+                                    right: '12px',
+                                    fontSize: '0.7rem',
+                                    fontWeight: 800,
+                                    color: 'var(--text-dim)',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    padding: '4px 8px',
+                                    borderRadius: '6px',
+                                    textTransform: 'uppercase'
+                                }}>
+                                    Skippable
+                                </div>
+                            )}
+                        </motion.div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};

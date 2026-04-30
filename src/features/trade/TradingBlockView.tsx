@@ -2,8 +2,10 @@ import React from 'react';
 import type { Team } from '../../models/Team';
 import type { Player } from '../../models/Player';
 import type { Contract } from '../../models/Contract';
-import { getTeamState, type TeamState } from './TradeLogic';
+import { getTeamState, getTradingBlock, getTeamDirection, type TeamState } from './TradeLogic';
 import { calculateOverall } from '../../utils/playerUtils';
+import { calculateStars, calculateTeamBaseline } from '../../utils/starUtils';
+import { StarRating } from '../../components/StarRating';
 import { ArrowRight, TrendingUp, TrendingDown, Minus, Trophy, ShoppingBag, User } from 'lucide-react';
 
 interface TradingBlockViewProps {
@@ -28,52 +30,15 @@ export const TradingBlockView: React.FC<TradingBlockViewProps> = ({
 
     const analyzeTeam = (team: Team) => {
         const roster = players.filter(p => p.teamId === team.id);
+        const direction = getTeamDirection(team, roster);
+        const block = getTradingBlock(team, roster, direction);
         const state = getTeamState(team);
-        const needs: string[] = [];
-        const assets: Player[] = [];
 
-        // --- Refined Asset Logic ---
-
-        // 1. Identify "Surplus" players (3rd stringers with decent rating)
-        const depthChart: Record<string, Player[]> = { 'PG': [], 'SG': [], 'SF': [], 'PF': [], 'C': [] };
-        roster.forEach(p => { if (depthChart[p.position]) depthChart[p.position].push(p); });
-
-        // Sort depth chart by overall
-        Object.keys(depthChart).forEach(pos => {
-            depthChart[pos].sort((a, b) => calculateOverall(b) - calculateOverall(a));
-            // If depth > 2, the 3rd+ best player is potential trade bait if they are > 70 OVR
-            if (depthChart[pos].length > 2) {
-                const surplus = depthChart[pos].slice(2).filter(p => calculateOverall(p) > 70);
-                assets.push(...surplus);
-            }
-        });
-
-        // 2. Strategy Specific
-        if (state === 'Contender') {
-            needs.push('Veterans', 'Bench Defense');
-            // Willing to trade: Young prospects not in rotation, Picks (implied)
-            const youngBench = roster.filter(p => p.age < 24 && calculateOverall(p) < 78 && !assets.includes(p)).slice(0, 2);
-            assets.push(...youngBench);
-        } else if (state === 'Rebuilding') {
-            needs.push('Draft Picks', 'Young Talent');
-            // Willing to trade: Veterans (>27)
-            const vets = roster.filter(p => p.age > 26 && calculateOverall(p) > 74).sort((a, b) => calculateOverall(b) - calculateOverall(a)).slice(0, 3);
-            vets.forEach(v => { if (!assets.includes(v)) assets.push(v); });
-        } else if (state === 'Retooling') {
-            needs.push('Best Available');
-            // Willing to trade: Expiring contracts, unhappy players
-            const unhappy = roster.filter(p => p.morale < 40).slice(0, 2);
-            unhappy.forEach(u => { if (!assets.includes(u)) assets.push(u); });
-        } else {
-            // Playoff Team
-            needs.push('Upgrade at Starter');
-            // Trade: Rotation pieces for upgrade
-        }
-
-        // Deduplicate and limit assets
-        const uniqueAssets = Array.from(new Set(assets)).slice(0, 4);
-
-        return { state, needs, assets: uniqueAssets };
+        return { 
+            state, 
+            needs: block.needs, 
+            assets: block.assets 
+        };
     };
 
     // Group Teams Logic remains same
@@ -86,14 +51,15 @@ export const TradingBlockView: React.FC<TradingBlockViewProps> = ({
 
     const renderTeamCard = (team: Team) => {
         const { needs, assets, state } = analyzeTeam(team);
+        const teamBaseline = calculateTeamBaseline(players.filter(p => p.teamId === team.id));
 
         return (
             <div key={team.id} className="glass-panel" style={{
                 width: '100%',
                 padding: '16px',
                 borderRadius: '16px',
-                border: '1px solid var(--border)',
-                background: 'var(--surface)',
+                border: '1px solid var(--border-color)',
+                background: 'var(--bg-card)',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '12px',
@@ -117,7 +83,7 @@ export const TradingBlockView: React.FC<TradingBlockViewProps> = ({
                     </div>
                     <div>
                         <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{team.city} {team.name}</div>
-                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>
                             {team.wins}-{team.losses} • {state}
                         </div>
                     </div>
@@ -131,8 +97,8 @@ export const TradingBlockView: React.FC<TradingBlockViewProps> = ({
                             padding: '4px 10px',
                             borderRadius: '12px',
                             background: 'rgba(255, 255, 255, 0.05)',
-                            border: '1px solid var(--border)',
-                            color: 'var(--text-secondary)'
+                            border: '1px solid var(--border-color)',
+                            color: 'var(--text-dim)'
                         }}>
                             {need}
                         </span>
@@ -141,7 +107,7 @@ export const TradingBlockView: React.FC<TradingBlockViewProps> = ({
 
                 {/* Trading Block Assets - Interactive List */}
                 <div style={{ flex: 1, background: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '10px' }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-dim)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         On The Block
                     </div>
                     {assets.length > 0 ? (
@@ -162,17 +128,15 @@ export const TradingBlockView: React.FC<TradingBlockViewProps> = ({
                                         style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', flex: 1 }}
                                     >
                                         <div style={{
-                                            fontWeight: 'bold',
-                                            color: calculateOverall(p) > 85 ? '#e74c3c' : calculateOverall(p) > 80 ? '#f39c12' : '#2ecc71',
-                                            fontSize: '0.85rem',
                                             minWidth: '24px',
-                                            textAlign: 'center'
+                                            textAlign: 'center',
+                                            marginRight: '8px'
                                         }}>
-                                            {calculateOverall(p)}
+                                            <StarRating stars={calculateStars(calculateOverall(p), teamBaseline)} size={12} />
                                         </div>
                                         <div>
                                             <div style={{ fontWeight: 600 }}>{p.firstName.charAt(0)}. {p.lastName}</div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{p.position} • {p.age}yo</div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{p.position} • {p.age}yo</div>
                                         </div>
                                     </div>
 
@@ -180,7 +144,7 @@ export const TradingBlockView: React.FC<TradingBlockViewProps> = ({
                                         onClick={() => onTradeForPlayer(p.id)}
                                         style={{
                                             background: 'var(--primary)',
-                                            color: 'white',
+                                            color: 'var(--text-main)',
                                             border: 'none',
                                             borderRadius: '4px',
                                             padding: '4px 8px',
@@ -236,14 +200,14 @@ export const TradingBlockView: React.FC<TradingBlockViewProps> = ({
                     display: 'flex', alignItems: 'center', gap: '10px',
                     marginBottom: '15px',
                     paddingBottom: '10px',
-                    borderBottom: '1px solid var(--border)'
+                    borderBottom: '1px solid var(--border-color)'
                 }}>
                     <div style={{ padding: '8px', borderRadius: '8px', background: `${color}20` }}>
                         <Icon size={24} color={color} />
                     </div>
                     <div>
                         <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{title}</h3>
-                        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-dim)' }}>
                             {dataKey === 'Contender' ? 'Looking to buy veterans for a championship push.' :
                                 dataKey === 'Rebuilding' ? 'Looking to sell veterans for draft capital.' :
                                     'Looking for opportunistic upgrades.'}

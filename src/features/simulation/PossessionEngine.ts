@@ -236,25 +236,26 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
         // Mod -60 (from before) made Target 135 (Safe).
         // Let's apply -75 for swings.
         // Defender-driven safe pass erosion: elite on-ball defenders make even safe passes risky
+        // Base values keep avg defenders (60 steal/pD) fully immune; only elites breach immunity
         const onBallDefender = ctx.defenseLineup.find(p => p.position === handler.position) || ctx.defenseLineup[0];
         const defenderPressure = Math.max(0,
-            (onBallDefender.attributes.stealing - 60) * 0.4 +
-            (onBallDefender.attributes.perimeterDefense - 60) * 0.3
+            (onBallDefender.attributes.stealing - 60) * 0.35 +
+            (onBallDefender.attributes.perimeterDefense - 60) * 0.25
         );
 
         let defenseModifier = 0;
-        if (safePass) defenseModifier = -40 + defenderPressure;       // Safety valve but elite defenders still threaten
-        else if (passes === 1) defenseModifier = -35 + defenderPressure; // First swing: low risk
-        else if (passes === 2) defenseModifier = -25 + defenderPressure; // Building pressure
-        else if (passes >= 3)  defenseModifier = -15 + defenderPressure; // Multiple passes = defense scrambles
+        if (safePass) defenseModifier = -60 + defenderPressure;       // Safety valve: avg defender immune, elite can breach
+        else if (passes === 1) defenseModifier = -55 + defenderPressure; // First swing: very safe
+        else if (passes === 2) defenseModifier = -45 + defenderPressure; // Building pressure
+        else if (passes >= 3)  defenseModifier = -35 + defenderPressure; // Multiple passes = defense scrambles
 
         safePass = false; // Reset
 
-        // Update handler pressure based on their on-ball defender quality
-        const defPresenceBoost = ((onBallDefender.attributes.perimeterDefense - 60) * 0.004) +
-                                  ((onBallDefender.attributes.stealing - 60) * 0.003);
-        ctx.playerPressure[handler.id] = Math.max(0, Math.min(1,
-            (ctx.playerPressure[handler.id] || 0.2) + defPresenceBoost
+        // Update handler pressure based on their on-ball defender — capped at 0.45 to prevent snowballing
+        const defPresenceBoost = ((onBallDefender.attributes.perimeterDefense - 65) * 0.003) +
+                                  ((onBallDefender.attributes.stealing - 65) * 0.002);
+        ctx.playerPressure[handler.id] = Math.max(0, Math.min(0.45,
+            (ctx.playerPressure[handler.id] || 0.2) + Math.max(0, defPresenceBoost)
         ));
 
         const defender = onBallDefender;
@@ -271,19 +272,19 @@ export function simulatePossession(ctx: PossessionContext): PossessionResult {
 
         // 3. Resolution
         if (action === 'PASS') {
-            // Turnover Check (Bad Pass) — widened to 75, removed artificial 0.1 dampener
-            if (handler.attributes.playmaking < 75) {
-                const risk = (80 - handler.attributes.playmaking) / 200; // Max ~12.5% for PL=55
+            // Turnover Check (Bad Pass) — only truly poor passers risk it, very low per-pass rate
+            if (handler.attributes.playmaking < 65) {
+                const risk = (68 - handler.attributes.playmaking) / 400; // Max ~2% for PL=60; negligible for 63+
                 if (Math.random() < risk) return createTurnover(handler, ctx, events, currentTime);
             }
 
             const receiver = selectReceiver(handler, ctx, lastPasser);
 
-            // Passing Lane Interception: receiver's defender reads the play
+            // Passing Lane Interception: only elite IQ + elite stealers read passing lanes
             const receiverDefender = ctx.defenseLineup.find(p => p.position === receiver.position) || ctx.defenseLineup[0];
             const anticipationChance = Math.max(0,
-                (receiverDefender.attributes.basketballIQ - 65) * 0.004 +
-                (receiverDefender.attributes.stealing - 65) * 0.003
+                (receiverDefender.attributes.basketballIQ - 82) * 0.002 +
+                (receiverDefender.attributes.stealing - 82) * 0.0015
             );
             if (Math.random() < anticipationChance) {
                 return createSteal(handler, receiverDefender, ctx, events, currentTime);
@@ -793,10 +794,11 @@ export function decideAction(handler: Player, ctx: PossessionContext, territory:
     // 1. DECISION ACCURACY (Point 5)
     const accuracy = calculateDecisionAccuracy(handler, ctx);
 
-    // CHAOS EVENT: If decision roll is very low, possible turnover (Chaos Point 18)
-    if (Math.random() > accuracy - 0.05) {
-        // "Oops" moment - backcourt, travel, double dribble
-        return 'TURNOVER' as any; // Hack: PossessionEngine expects ActionType, but we can return special type if we handle it
+    // CHAOS EVENT: Mental error — travel, double dribble, backcourt (very rare, scales with poor IQ)
+    // Max 3% for terrible decision makers (accuracy=0.50), ~0% for stars (accuracy=0.90+)
+    const chaosChance = Math.max(0, (1 - accuracy) * 0.06);
+    if (Math.random() < chaosChance) {
+        return 'TURNOVER' as any;
     }
 
     // 2. TENDENCY SYSTEM v2 (Point 11)

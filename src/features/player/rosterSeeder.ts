@@ -227,6 +227,13 @@ export function seedRealRosters(teams: Team[]): { players: Player[], contracts: 
                 const physicals = generatePhysicals(position);
                 const tendencies = deriveTendenciesFromAttributes(attrs, position);
 
+                if (def.lastName === 'Flagg') {
+                    console.log('SEEDING FLAGG:', def.firstName, def.lastName);
+                    console.log('def.attributes:', def.attributes);
+                    console.log('attrs assigned:', attrs);
+                    console.log('calculated OVR:', calculateOverall(attrs, position));
+                }
+
                 const player: Player = {
                     id: generateUUID(),
                     firstName: def.firstName,
@@ -267,7 +274,12 @@ export function seedRealRosters(teams: Team[]): { players: Player[], contracts: 
                 };
                 // Generate Real Contract
                 const fairSalary = calculateFairSalary(player.overall);
-                const years = Math.floor(Math.random() * 4) + 1;
+                let years = Math.floor(Math.random() * 4) + 1; // 1-4 years
+
+                // CORNERSTONE PROTECTION: High-rated players get 3-5 year deals
+                if (player.overall >= 85) {
+                    years = Math.floor(Math.random() * 3) + 3; // 3-5 years
+                }
 
                 allContracts.push({
                     id: generateUUID(),

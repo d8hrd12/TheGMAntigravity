@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useGame } from '../../store/GameContext';
 import { BackButton } from '../ui/BackButton';
 import { calculateOverall } from '../../utils/playerUtils';
+import { calculateStars, getStarString } from '../../utils/starUtils';
 import type { Player } from '../../models/Player';
 import type { RetiredPlayer } from '../../store/GameContext';
 
@@ -194,7 +195,7 @@ export const LeagueHistoryView: React.FC<{ onBack: () => void; onSelectPlayer?: 
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
                                         <div style={{ fontWeight: 'bold', color: 'var(--primary)' }}>{player.isHallOfFame ? '🏆 Hall of Fame' : ''}</div>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Peak OVR: {calculateOverall(player)}</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Peak Stars: {getStarString(calculateStars(calculateOverall(player), 75))}</div>
                                     </div>
                                 </div>
                                 <div style={{ marginTop: '10px', fontSize: '0.8rem', display: 'flex', gap: '15px' }}>

@@ -2,6 +2,8 @@ import React from 'react';
 import type { Player } from '../../models/Player';
 import type { Team } from '../../models/Team';
 import { calculateOverall, calculateEWA } from '../../utils/playerUtils';
+import { calculateStars, calculateTeamBaseline } from '../../utils/starUtils';
+import { StarRating } from '../../components/StarRating';
 import { BackButton } from '../ui/BackButton';
 import { TeamSelect } from '../ui/TeamSelect';
 import { PageHeader } from '../ui/PageHeader';
@@ -15,16 +17,20 @@ interface TeamStatsViewProps {
     initialTeamId?: string;
     onViewHistory?: () => void;
     onShowLeagueHistory?: () => void;
+    onTeamChange?: (teamId: string) => void;
 }
 
-export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, userTeamId, onBack, onSelectPlayer, initialTeamId, onViewHistory, onShowLeagueHistory }) => {
+export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, userTeamId, onBack, onSelectPlayer, initialTeamId, onViewHistory, onShowLeagueHistory, onTeamChange }) => {
     const [selectedTeamId, setSelectedTeamId] = React.useState(initialTeamId || userTeamId);
-    const [sortConfig, setSortConfig] = React.useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'points', direction: 'desc' });
+    const [sortConfig, setSortConfig] = React.useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'ovr', direction: 'desc' });
 
-    console.log('TeamStatsView Debug:', { initialTeamId, userTeamId, selectedTeamId, totalPlayers: players.length });
+    const handleTeamChange = (id: string) => {
+        setSelectedTeamId(id);
+        if (onTeamChange) onTeamChange(id);
+    };
 
     const teamPlayers = players.filter(p => p.teamId === selectedTeamId);
-    console.log('TeamPlayers:', teamPlayers.length);
+    const teamBaseline = React.useMemo(() => calculateTeamBaseline(teamPlayers), [teamPlayers]);
 
     // Sort players
     const sortedPlayers = React.useMemo(() => {
@@ -81,14 +87,14 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
         { key: 'blocks', label: 'BLK', color: '#e67e22' },
         { key: 'turnovers', label: 'TOV', color: '#95a5a6' },
         { key: 'ewa', label: 'EWA', color: '#9b59b6' },
-        { key: 'all', label: 'ALL', color: '#7f8c8d' },
+        { key: 'all', label: 'ALL', color: 'var(--text-muted)' },
     ];
 
     const HeaderCell = ({ label, sortKey, align = 'left', visible = true }: { label: string, sortKey: string, align?: 'left' | 'right' | 'center', visible?: boolean }) => {
         if (!visible) return null;
         return (
             <th
-                style={{ padding: '10px', cursor: 'pointer', userSelect: 'none', textAlign: align, whiteSpace: 'nowrap' }}
+                style={{ padding: '12px 10px', cursor: 'pointer', userSelect: 'none', textAlign: align, whiteSpace: 'nowrap', borderBottom: '1px solid var(--border-color)' }}
                 onClick={() => requestSort(sortKey)}
             >
                 {label} {sortConfig.key === sortKey ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
@@ -97,57 +103,30 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
     };
 
     return (
-        <div style={{ padding: '20px', minHeight: '100vh', paddingBottom: '80px' }}>
+        <div style={{ padding: '20px', minHeight: '100vh', paddingBottom: '80px', background: 'var(--bg-main)' }}>
             <PageHeader
-                title="Team Season Stats"
+                title="Team Roster & Stats"
                 onBack={onBack!}
             />
 
             {/* Team Selector and History Buttons */}
-            <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', overflowX: 'auto' }}>
-                <div style={{ flex: '1 1 auto', minWidth: '120px' }}>
+            <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', overflowX: 'auto', scrollbarWidth: 'none' }}>
+                <div style={{ flex: '1 1 auto', minWidth: '160px' }}>
                     <TeamSelect
                         teams={teams}
                         selectedTeamId={selectedTeamId}
-                        onChange={setSelectedTeamId}
-                        style={{ width: '100%' }}
+                        onChange={handleTeamChange}
+                        style={{ width: '100%', background: '#fff', border: '1px solid var(--border-color)', borderRadius: '10px' }}
                     />
                 </div>
                 <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                     {onViewHistory && (
                         <button
                             onClick={onViewHistory}
-                            style={{
-                                padding: '8px 12px',
-                                background: 'rgba(255, 255, 255, 0.1)',
-                                border: '1px solid rgba(255, 255, 255, 0.2)',
-                                borderRadius: '12px',
-                                color: 'white',
-                                cursor: 'pointer',
-                                fontSize: '0.8rem',
-                                fontWeight: 600,
-                                whiteSpace: 'nowrap'
-                            }}
+                            className="btn-modern"
+                            style={{ padding: '8px 12px', fontSize: '0.75rem' }}
                         >
-                            Team History
-                        </button>
-                    )}
-                    {onShowLeagueHistory && (
-                        <button
-                            onClick={onShowLeagueHistory}
-                            style={{
-                                padding: '8px 12px',
-                                background: 'rgba(255, 255, 255, 0.1)',
-                                border: '1px solid rgba(255, 255, 255, 0.2)',
-                                borderRadius: '12px',
-                                color: 'white',
-                                cursor: 'pointer',
-                                fontSize: '0.8rem',
-                                fontWeight: 600,
-                                whiteSpace: 'nowrap'
-                            }}
-                        >
-                            League History
+                            History
                         </button>
                     )}
                 </div>
@@ -156,10 +135,10 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
             {/* Stat Category Toggle Widget */}
             <div style={{
                 display: 'flex',
-                background: 'rgba(0, 0, 0, 0.4)', // Darker background for the track
+                background: 'var(--bg-card)',
                 padding: '4px',
                 borderRadius: '12px',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                border: '1px solid var(--border-color)',
                 overflowX: 'auto',
                 scrollbarWidth: 'none',
                 marginBottom: '15px',
@@ -173,19 +152,16 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                             onClick={() => setVisibleStat(opt.key as any)}
                             style={{
                                 padding: '8px 16px',
-                                background: isActive ? (opt.key === 'all' ? '#7f8c8d' : opt.color) : 'transparent',
-                                color: isActive ? '#fff' : '#aaa',
+                                background: isActive ? (opt.key === 'all' ? 'var(--primary)' : opt.color) : 'transparent',
+                                color: isActive ? '#fff' : 'var(--text-muted)',
                                 border: 'none',
-                                borderRadius: '8px', // Inner buttons slightly smaller radius
+                                borderRadius: '8px',
                                 cursor: 'pointer',
                                 fontSize: '0.85rem',
                                 fontWeight: isActive ? 700 : 500,
                                 whiteSpace: 'nowrap',
                                 transition: 'all 0.2s',
-                                flex: '0 0 auto', // Prevent shrinking
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px'
+                                flex: '0 0 auto',
                             }}
                         >
                             {opt.label}
@@ -194,13 +170,13 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                 })}
             </div>
 
-            <div className="glass-panel" style={{ padding: '0', overflowX: 'auto', borderRadius: '12px' }}>
-                <table style={{ width: '100%', minWidth: visibleStat === 'all' ? '800px' : 'auto', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+            <div className="modern-card" style={{ padding: '0', overflowX: 'auto', borderRadius: '14px', border: '1px solid var(--border-color)' }}>
+                <table style={{ width: '100%', minWidth: visibleStat === 'all' ? '800px' : 'auto', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
                     <thead>
-                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-secondary)', background: 'rgba(0,0,0,0.2)' }}>
+                        <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)', background: 'var(--bg-card)' }}>
                             <th
                                 style={{
-                                    padding: '10px',
+                                    padding: '12px 10px',
                                     cursor: 'pointer',
                                     userSelect: 'none',
                                     textAlign: 'left',
@@ -208,15 +184,17 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                                     position: 'sticky',
                                     left: 0,
                                     zIndex: 10,
-                                    background: '#1e1e1e', // Solid background to prevent bleed-through
-                                    boxShadow: '2px 0 5px rgba(0,0,0,0.5)'
+                                    background: '#f8fafc', 
+                                    borderBottom: '1px solid var(--border-color)',
+                                    boxShadow: '2px 0 5px rgba(0,0,0,0.05)'
                                 }}
                                 onClick={() => requestSort('name')}
                             >
                                 Player {sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
                             </th>
                             <HeaderCell label="Pos" sortKey="pos" />
-                            <HeaderCell label="OVR" sortKey="ovr" />
+                            <HeaderCell label="Age" sortKey="age" />
+                            <HeaderCell label="Stars" sortKey="ovr" />
                             <HeaderCell label="GP" sortKey="gp" align="center" />
                             <HeaderCell label="MIN" sortKey="mpg" align="center" />
                             <HeaderCell label="PTS" sortKey="points" align="right" visible={visibleStat === 'all' || visibleStat === 'points'} />
@@ -227,7 +205,6 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                             <HeaderCell label="TOV" sortKey="turnovers" align="right" visible={visibleStat === 'all' || visibleStat === 'turnovers'} />
                             <HeaderCell label="FG%" sortKey="fgPct" align="right" visible={visibleStat === 'all'} />
                             <HeaderCell label="3P%" sortKey="threePct" align="right" visible={visibleStat === 'all'} />
-                            {/* FT% Not explicitly tracked in SeasonStats yet, assuming it is tracked or derived from ftMade/Attempted if available in SeasonStats interface */}
                             <HeaderCell label="FT%" sortKey="ftPct" align="right" visible={visibleStat === 'all'} />
                             <HeaderCell label="EWA" sortKey="ewa" align="center" visible={visibleStat === 'all' || visibleStat === 'ewa'} />
                         </tr>
@@ -245,44 +222,47 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                             return (
                                 <tr
                                     key={p.id}
-                                    style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', transition: 'background 0.2s', background: index % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}
+                                    style={{ borderBottom: '1px solid var(--border-color)', cursor: 'pointer', background: index % 2 === 0 ? '#fff' : '#fafafa' }}
                                     onClick={() => onSelectPlayer(p.id)}
-                                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                                    onMouseLeave={(e) => e.currentTarget.style.background = index % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)'}
                                 >
                                     <td style={{
                                         padding: '12px 10px',
                                         fontWeight: 'bold',
-                                        color: '#fff',
+                                        color: 'var(--text-main)',
                                         position: 'sticky',
                                         left: 0,
                                         zIndex: 10,
-                                        background: '#222', // Match approximate row color or dark solid
-                                        boxShadow: '2px 0 5px rgba(0,0,0,0.5)'
+                                        background: index % 2 === 0 ? '#fff' : '#fafafa',
+                                        boxShadow: '2px 0 5px rgba(0,0,0,0.05)'
                                     }}>
                                         {p.firstName} {p.lastName}
                                     </td>
-                                    <td style={{ padding: '12px 10px', color: '#aaa' }}>{p.position}</td>
-                                    <td style={{ padding: '12px 10px', color: getRatingColor(calculateOverall(p)), fontWeight: 'bold' }}>{calculateOverall(p)}</td>
-                                    <td style={{ padding: '12px 10px', color: '#ccc', textAlign: 'center' }}>{stats.gamesPlayed}</td>
-                                    <td style={{ padding: '12px 10px', color: '#ccc', textAlign: 'center' }}>{((stats.minutes || 0) / gp).toFixed(1)}</td>
-                                    {isVisible('points') && <td style={{ padding: '12px 10px', color: '#fff', textAlign: 'right', fontWeight: 'bold' }}>{(stats.points / gp).toFixed(1)}</td>}
-                                    {isVisible('assists') && <td style={{ padding: '12px 10px', textAlign: 'right', fontWeight: isVisible('assists') && visibleStat !== 'all' ? 'bold' : 'normal', color: isVisible('assists') && visibleStat !== 'all' ? '#fff' : '#ccc' }}>{(stats.assists / gp).toFixed(1)}</td>}
-                                    {isVisible('rebounds') && <td style={{ padding: '12px 10px', textAlign: 'right', fontWeight: isVisible('rebounds') && visibleStat !== 'all' ? 'bold' : 'normal', color: isVisible('rebounds') && visibleStat !== 'all' ? '#fff' : '#ccc' }}>{(stats.rebounds / gp).toFixed(1)}</td>}
-                                    {isVisible('steals') && <td style={{ padding: '12px 10px', textAlign: 'right', fontWeight: isVisible('steals') && visibleStat !== 'all' ? 'bold' : 'normal', color: isVisible('steals') && visibleStat !== 'all' ? '#fff' : '#ccc' }}>{(stats.steals / gp).toFixed(1)}</td>}
-                                    {isVisible('blocks') && <td style={{ padding: '12px 10px', textAlign: 'right', fontWeight: isVisible('blocks') && visibleStat !== 'all' ? 'bold' : 'normal', color: isVisible('blocks') && visibleStat !== 'all' ? '#fff' : '#ccc' }}>{(stats.blocks / gp).toFixed(1)}</td>}
-                                    {isVisible('turnovers') && <td style={{ padding: '12px 10px', textAlign: 'right', fontWeight: isVisible('turnovers') && visibleStat !== 'all' ? 'bold' : 'normal', color: isVisible('turnovers') && visibleStat !== 'all' ? '#fff' : '#ccc' }}>{((stats.turnovers || 0) / gp).toFixed(1)}</td>}
-                                    {visibleStat === 'all' && <td style={{ padding: '12px 10px', textAlign: 'right', color: '#ccc' }}>{fgPct}%</td>}
-                                    {visibleStat === 'all' && <td style={{ padding: '12px 10px', textAlign: 'right', color: '#ccc' }}>{threePct}%</td>}
-                                    {visibleStat === 'all' && <td style={{ padding: '12px 10px', textAlign: 'right', color: '#ccc' }}>{ftPct}%</td>}
-                                    {(visibleStat === 'all' || visibleStat === 'ewa') && <td style={{ padding: '12px 10px', color: '#9b59b6', textAlign: 'center', fontWeight: 'bold' }}>{calculateEWA(p)}</td>}
+                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{p.position}</td>
+                                    <td style={{ padding: '10px', textAlign: 'center', color: 'var(--text-muted)' }}>{p.age}</td>
+                                    <td style={{ padding: '10px', textAlign: 'center' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                            <StarRating stars={calculateStars(calculateOverall(p), teamBaseline)} size={12} />
+                                        </div>
+                                    </td>
+                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)', textAlign: 'center' }}>{stats.gamesPlayed}</td>
+                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)', textAlign: 'center' }}>{((stats.minutes || 0) / gp).toFixed(1)}</td>
+                                    {isVisible('points') && <td style={{ padding: '12px 10px', color: 'var(--text-main)', textAlign: 'right', fontWeight: 'bold' }}>{(stats.points / gp).toFixed(1)}</td>}
+                                    {isVisible('assists') && <td style={{ padding: '12px 10px', textAlign: 'right', color: 'var(--text-main)' }}>{(stats.assists / gp).toFixed(1)}</td>}
+                                    {isVisible('rebounds') && <td style={{ padding: '12px 10px', textAlign: 'right', color: 'var(--text-main)' }}>{(stats.rebounds / gp).toFixed(1)}</td>}
+                                    {isVisible('steals') && <td style={{ padding: '12px 10px', textAlign: 'right', color: 'var(--text-main)' }}>{(stats.steals / gp).toFixed(1)}</td>}
+                                    {isVisible('blocks') && <td style={{ padding: '12px 10px', textAlign: 'right', color: 'var(--text-main)' }}>{(stats.blocks / gp).toFixed(1)}</td>}
+                                    {isVisible('turnovers') && <td style={{ padding: '12px 10px', textAlign: 'right', color: 'var(--text-main)' }}>{((stats.turnovers || 0) / gp).toFixed(1)}</td>}
+                                    {visibleStat === 'all' && <td style={{ padding: '12px 10px', textAlign: 'right', color: 'var(--text-muted)' }}>{fgPct}%</td>}
+                                    {visibleStat === 'all' && <td style={{ padding: '12px 10px', textAlign: 'right', color: 'var(--text-muted)' }}>{threePct}%</td>}
+                                    {visibleStat === 'all' && <td style={{ padding: '12px 10px', textAlign: 'right', color: 'var(--text-muted)' }}>{ftPct}%</td>}
+                                    {(visibleStat === 'all' || visibleStat === 'ewa') && <td style={{ padding: '12px 10px', color: 'var(--primary)', textAlign: 'center', fontWeight: 'bold' }}>{calculateEWA(p)}</td>}
                                 </tr>
                             );
                         })}
                     </tbody>
                 </table>
             </div>
-        </div >
+        </div>
     );
 };
 

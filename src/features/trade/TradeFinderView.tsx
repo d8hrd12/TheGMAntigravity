@@ -5,6 +5,8 @@ import type { Player } from '../../models/Player';
 import type { Team } from '../../models/Team';
 import type { TradeProposal } from '../../models/TradeProposal';
 import { calculateOverall } from '../../utils/playerUtils';
+import { calculateStars, calculateTeamBaseline } from '../../utils/starUtils';
+import { StarRating } from '../../components/StarRating';
 import { ChevronRight, DollarSign, RefreshCw, X } from 'lucide-react';
 
 interface TradeFinderViewProps {
@@ -79,13 +81,13 @@ export const TradeFinderView: React.FC<TradeFinderViewProps> = ({ shopPlayerId, 
             padding: '20px'
         }}>
             <div style={{
-                background: 'var(--background)',
-                width: '100%', maxWidth: '600px',
-                height: '80%', maxHeight: '700px',
-                borderRadius: '16px',
+                background: '#0a0a0c',
+                width: '100%', maxWidth: '650px',
+                height: '85%', maxHeight: '800px',
+                borderRadius: '24px',
                 display: 'flex', flexDirection: 'column',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-                border: '1px solid var(--border)',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
+                border: '1px solid rgba(255,255,255,0.1)',
                 overflow: 'hidden'
             }}>
                 {/* Header */}
@@ -150,6 +152,9 @@ export const TradeFinderView: React.FC<TradeFinderViewProps> = ({ shopPlayerId, 
                                                     // Check for OVR
                                                     const ovr = calculateOverall(p);
 
+                                                    const aiTeamPlayers = players.filter(x => x.teamId === offer.aiTeamId);
+                                                    const aiTeamBaseline = calculateTeamBaseline(aiTeamPlayers);
+
                                                     return (
                                                         <div
                                                             key={p.id}
@@ -157,8 +162,8 @@ export const TradeFinderView: React.FC<TradeFinderViewProps> = ({ shopPlayerId, 
                                                             style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px', cursor: 'pointer' }}
                                                         >
                                                             <div style={{ fontWeight: 'bold' }}>{p.firstName} {p.lastName}</div>
-                                                            <div style={{ fontSize: '0.8rem', color: '#666' }}>
-                                                                {p.position} • {p.age}yo • <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{ovr} OVR</span>
+                                                            <div style={{ fontSize: '0.8rem', color: '#666', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                {p.position} • {p.age}yo • <StarRating stars={calculateStars(ovr, aiTeamBaseline)} size={12} />
                                                             </div>
                                                         </div>
                                                     );

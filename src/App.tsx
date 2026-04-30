@@ -1,22 +1,19 @@
 import { GameProvider, useGame } from './store/GameContext';
 import { formatDate } from './utils/dateUtils';
-import { useState, useEffect, useRef } from 'react';
-import type { Player } from './models/Player'; // Added Import
+import { useState, useEffect, useRef, useMemo } from 'react';
+import type { Player } from './models/Player'; 
 import { LeagueView } from './features/league/LeagueView';
 import { AwardsPopup } from './features/awards/AwardsPopup';
 import type { SeasonAwards } from './models/Awards';
 import { TeamStatsView } from './features/stats/TeamStatsView';
 import { MainMenu } from './features/menu/MainMenu';
-import { DraftView } from './features/draft/DraftView';
-import ScoutingView from './features/ui/ScoutingView';
 import { TradeView } from './features/trade/TradeView';
 import { ExpansionDraftView } from './features/draft/ExpansionDraftView';
-import { DraftSummaryView } from './features/draft/DraftSummaryView'; // New View
-import { TradeFinderView } from './features/trade/TradeFinderView'; // Import
+import { DraftSummaryView } from './features/draft/DraftSummaryView'; 
+import { TradeFinderView } from './features/trade/TradeFinderView'; 
 import { MessageModal } from './features/ui/MessageModal';
 import { TradeCenterView } from './features/trade/TradeCenterView';
 import { Dashboard } from './features/dashboard/Dashboard';
-
 import { LeagueLeaders } from './features/stats/LeagueLeaders';
 import { NewsTicker } from './features/ui/NewsTicker';
 import { GameResultsView } from './features/simulation/GameResultsView';
@@ -24,14 +21,22 @@ import { BoxScoreView } from './features/simulation/BoxScoreView';
 import { simulateMatch } from './features/simulation/MatchEngine';
 import type { MatchResult } from './features/simulation/SimulationTypes';
 import type { TradeProposal } from './models/TradeProposal';
-
 import { PlayerDetailView } from './features/player/PlayerDetailView';
 import { PlayoffView } from './features/league/PlayoffView';
 import { RotationView } from './features/team/RotationView';
 import { calculateOverall } from './utils/playerUtils';
 import { ensureColorVibrancy } from './utils/colorUtils';
+import { 
+  ChevronLeft, Menu, X, Star, Users, Trophy, Newspaper, UserCircle, Globe,
+  Home, ArrowLeftRight, Settings, Play, LayoutDashboard, BarChart2, Dribbble, 
+  Wallet, Calendar, ChevronRight, Coins, ArrowRight, Save, LogOut, Check, 
+  Smartphone, Smile, Frown, Gamepad2, Cpu, Rocket, Layout, Briefcase, 
+  DollarSign, Activity 
+} from 'lucide-react';
+import { TeamHistoryView } from './features/team/TeamHistoryView';
+import { LeagueHistoryView } from './features/info/LeagueHistoryView';
+import { NewsFeedView } from './features/news/NewsFeedView';
 import { TeamSelectionView } from './features/ui/TeamSelectionView';
-import { FreeAgencyView } from './features/free_agency/FreeAgencyView';
 import { NegotiationView } from './features/negotiation/NegotiationView';
 import { CoachSettingsView } from './features/team/CoachSettingsView';
 import { TeamManagementView } from './features/team/TeamManagementView';
@@ -43,892 +48,571 @@ import type { SimulatedTradeProposal } from './features/trade/TradeSimulation';
 import { ResigningView } from './features/free_agency/ResigningView';
 import { SaveLoadView } from './features/ui/SaveLoadView';
 import { RetiredPlayersSummaryView } from './features/history/RetiredPlayersSummaryView';
-import { TeamHistoryView } from './features/team/TeamHistoryView';
 import { HistoryView } from './features/history/HistoryView';
 import { SaveExitModal } from './features/ui/SaveExitModal';
 import { PayrollConfirmationModal } from './features/ui/PayrollConfirmationModal';
-import { LeagueHistoryView } from './features/history/LeagueHistoryView';
+import { TransactionsView } from './features/info/TransactionsView';
+import { PlayerLeagueListView } from './features/info/PlayerLeagueListView';
+import { AllTimeLeadersView } from './features/info/AllTimeLeadersView';
+import ScoutingView from './features/ui/ScoutingView';
+import { TeamRecordsView } from './features/info/TeamRecordsView';
+import { DraftView } from './features/draft/DraftView';
+import { FreeAgencyView } from './features/free_agency/FreeAgencyView';
 import { TrainingView } from './features/training/TrainingView';
-import { NewsFeedView } from './features/news/NewsFeedView';
-import { PulseFeed } from './features/news/PulseFeed';
-import { LiveGameView } from './features/simulation/LiveGameView';
-import { LayoutDashboard, Users, Calendar, Trophy, Settings, ChevronRight, BarChart2, Coins, ArrowRight, Save, LogOut, Check, X, Smartphone, Smile, Frown, ArrowLeftRight, Wallet, Dribbble, Play } from 'lucide-react';
+import { OffseasonMenuView } from './features/offseason/OffseasonMenuView';
+import { TrainingReportView } from './features/training/TrainingReportView';
 import { App as CapApp } from '@capacitor/app';
 
-// Helper to lighten color
-const lightenColor = (col: string, amt: number) => {
-  // Handle RGB/RGBA strings
-  if (col.startsWith('rgb')) {
-    const values = col.match(/\d+/g);
-    if (values) {
-      let r = parseInt(values[0]);
-      let g = parseInt(values[1]);
-      let b = parseInt(values[2]);
-
-      r = Math.max(0, Math.min(255, r + amt));
-      g = Math.max(0, Math.min(255, g + amt));
-      b = Math.max(0, Math.min(255, b + amt));
-
-      return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-    }
-  }
-
-  let usePound = false;
-  if (col[0] === "#") {
-    col = col.slice(1);
-    usePound = true;
-  }
-  const num = parseInt(col, 16);
-  let r = (num >> 16) + amt;
-  if (r > 255) r = 255;
-  else if (r < 0) r = 0;
-  let b = ((num >> 8) & 0x00FF) + amt;
-  if (b > 255) b = 255;
-  else if (b < 0) b = 0;
-  let g = (num & 0x0000FF) + amt;
-  if (g > 255) g = 255;
-  else if (g < 0) g = 0;
-  return (usePound ? "#" : "") + (g | (b << 8) | (r << 16)).toString(16).padStart(6, '0');
-}
-
-
-
-
-
-
-
 function AppContent() {
-  const { isInitialized, isFirstSeasonPaid, teams, players, coaches, executeTrade, draftClass, draftOrder, handleDraftPick, simulateNextPick, simulateToUserPick, endDraft, signFreeAgent, negotiateContract, signPlayerWithContract, endFreeAgency, endCoachFreeAgency, games, seasonPhase, contracts, updateRotation, updateCoachSettings, updateRotationSchedule, acceptTradeOffer, rejectTradeOffer, tradeOffer, userTeamId, isSimulating, isProcessing, date, tradeHistory, salaryCap, awardsHistory, retiredPlayersHistory, stopSimulation, advanceDay, currentSaveSlot, saveGame, startRegularSeason, startPlayoffs, news, liveGameData, startLiveGameFn, endLiveGameFn, tutorialFlags, setHasSeenNewsTutorial, simTarget, setGameState, paySalaries, isTrainingCampComplete } = useGame();
+  const gameData = useGame();
+  console.log('[AppContent] Context retrieved successfully');
+  const {
+    view, setView,
+    date, seasonPhase,
+    teams, userTeamId,
+    isInitialized,
+    selectedPlayerId, setSelectedPlayerId,
+    selectedGame, setSelectedGame,
+    currentNegotiation,
+    showingAwards, setShowingAwards,
+    showSaveLoad, setShowSaveLoad,
+    showExitModal, setShowExitModal,
+    showPayrollModal, setShowPayrollModal,
+    modalMessage, setModalMessage,
+    saveGame, advanceDay, stopSimulation,
+    isSimulating, simTarget,
+    isProcessing,
+    seasonGamesPlayed,
+    liveGameData,
+    isFirstSeasonPaid,
+    paySalaries,
+    startRegularSeason,
+    contracts,
+    tradeOffer, acceptTradeOffer, rejectTradeOffer,
+    shopPlayerId, setShopPlayerId,
+    setPrefilledTrade,
+    setInitialAiPlayerId,
+    players,
+    updateRotation,
+    executeTrade,
+    salaryCap,
+    initialAiPlayerId,
+    prefilledTrade,
+    coaches,
+    completeLiveGame,
+    games,
+    news,
+    tradeHistory,
+    signFreeAgent,
+    gmProfile,
+    draftOrder,
+    socialMediaPosts,
+    awardsHistory,
+    draftClass,
+    handleDraftPick,
+    simulateNextPick,
+    simulateToUserPick,
+    endDraft,
+    retiredPlayersHistory,
+    completeOffseasonTask,
+    triggerDraft,
+    continueFromRetirements,
+    endCoachFreeAgency,
+    endResigning,
+    endFreeAgency
+  } = gameData;
+  
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
 
-  // Unified Navigation State
-  interface NavState {
-    view: 'dashboard' | 'standings' | 'trade' | 'stats' | 'leaders' | 'results' | 'playoffs' | 'rotation' | 'transactions' | 'strategy' | 'financials' | 'team_management' | 'team_history' | 'league_history' | 'match' | 'scouting' | 'training';
-    selectedPlayerId: string | null;
-    selectedGame: MatchResult | null;
-
-    initialAiPlayerId: string | undefined;
-    currentNegotiation: string | null;
-    shopPlayerId: string | null;
-  }
-
-  const [navState, setNavState] = useState<NavState>({
-    view: 'dashboard',
-    selectedPlayerId: null,
-    selectedGame: null,
-    initialAiPlayerId: undefined,
-    currentNegotiation: null,
-    shopPlayerId: null
-  });
-
-  // Destructure for easy access in render
-  const { view, selectedPlayerId, selectedGame, initialAiPlayerId, currentNegotiation, shopPlayerId } = navState;
-
-  // Compatibility Setters (Helpers)
-  const setView = (v: NavState['view']) => setNavState(prev => ({ ...prev, view: v }));
-  const setSelectedPlayerId = (id: string | null) => setNavState(prev => ({ ...prev, selectedPlayerId: id }));
-  const setSelectedGame = (g: MatchResult | null) => setNavState(prev => ({ ...prev, selectedGame: g }));
-  const setInitialAiPlayerId = (id: string | undefined) => setNavState(prev => ({ ...prev, initialAiPlayerId: id }));
-  const setCurrentNegotiation = (id: string | null) => setNavState(prev => ({ ...prev, currentNegotiation: id }));
-  const setShopPlayerId = (id: string | null) => setNavState(prev => ({ ...prev, shopPlayerId: id }));
-
-  const [viewTeamId, setViewTeamId] = useState<string | null>(null); // State for Navigation (Still separate as it doesn't affect History deeply yet?)
-  const [showSaveLoad, setShowSaveLoad] = useState<'save' | 'load' | null>(null);
-  const [prefilledTrade, setPrefilledTrade] = useState<TradeProposal | undefined>(undefined);
-  const [showExitModal, setShowExitModal] = useState(false);
-  const [showPayrollModal, setShowPayrollModal] = useState(false);
-  const [modalMessage, setModalMessage] = useState<{ title: string, msg: string, type: 'error' | 'info' | 'success' } | null>(null);
-  const [showNews, setShowNews] = useState(false);
-
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const scrollCache = useRef<Record<string, number>>({});
 
-  // --- Scroll to Top on Navigation ---
   useEffect(() => {
+    const stateKey = `${view}-${selectedPlayerId || ''}-${selectedGame?.id || ''}-${currentNegotiation || ''}`;
     if (containerRef.current) {
-      containerRef.current.scrollTo(0, 0);
+      containerRef.current.scrollTop = scrollCache.current[stateKey] || 0;
     }
-  }, [view, selectedPlayerId, selectedGame]);
-
-  const [showingAwards, setShowingAwards] = useState<SeasonAwards | null>(null);
-  const isBackNavigating = useRef(false);
-  const prevAwardsLength = useRef(awardsHistory.length);
-  const prevLastAward = useRef<SeasonAwards | undefined>(awardsHistory[awardsHistory.length - 1]);
-
-  // Watch for new awards or updates (Champion)
-  useEffect(() => {
-    const currentLast = awardsHistory[awardsHistory.length - 1];
-
-    if (awardsHistory.length > prevAwardsLength.current) {
-      // New awards generated (Regular Season End)
-      setShowingAwards(currentLast);
-    } else if (currentLast && prevLastAward.current &&
-      currentLast.year === prevLastAward.current.year &&
-      !prevLastAward.current.champion && currentLast.champion) {
-      // Champion added (Playoffs End)
-      setShowingAwards(currentLast);
-    }
-
-    prevAwardsLength.current = awardsHistory.length;
-    prevLastAward.current = currentLast;
-  }, [awardsHistory]);
-
-  // --- Dynamic Theme Branding ---
-  useEffect(() => {
-    if (!userTeamId) {
-      // Reset to defaults if no team selected
-      document.documentElement.style.setProperty('--primary', '#FF5F1F');
-      document.documentElement.style.setProperty('--accent', '#FF5F1F');
-      document.documentElement.style.setProperty('--primary-glow', 'rgba(255, 95, 31, 0.4)');
-      return;
-    }
-
-    const team = teams.find(t => t.id === userTeamId);
-    if (team && team.colors) {
-      const primary = ensureColorVibrancy(team.colors.primary);
-      const secondary = ensureColorVibrancy(team.colors.secondary);
-
-      document.documentElement.style.setProperty('--primary', primary);
-      document.documentElement.style.setProperty('--accent', secondary);
-
-      // Calculate a subtle glow based on primary color
-      const glow = primary.startsWith('#')
-        ? `rgba(${parseInt(primary.slice(1, 3), 16)}, ${parseInt(primary.slice(3, 5), 16)}, ${parseInt(primary.slice(5, 7), 16)}, 0.4)`
-        : 'rgba(59, 130, 246, 0.4)';
-      document.documentElement.style.setProperty('--primary-glow', glow);
-    }
-  }, [userTeamId, teams]);
-
-  // --- View Synchronization with Phase ---
-  useEffect(() => {
-    // Automatically switch view based on phase to prevent render loops
-    if (seasonPhase === 'scouting' && view !== 'scouting') {
-      setView('scouting');
-    } else if (seasonPhase !== 'scouting' && view === 'scouting') {
-      setView('dashboard');
-    }
-
-    // Auto-redirect to Training when in Pre-Season
-    if (seasonPhase === 'pre_season' && !isTrainingCampComplete && view !== 'training') {
-      setView('training');
-    }
-    // Draft view handling is tricky as it has its own logic, but let's ensure we don't block manual navigation
-    // Actually, Dashboard usually handles the "Start Draft" button.
-    // If we want auto-redirect:
-    // if (seasonPhase === 'draft' && view !== 'dashboard' && view !== 'draft') {
-    //    // Do nothing? 
-    // }
-  }, [seasonPhase, view]);
-
-  // Initial History State
-  useEffect(() => {
-    const initialState: NavState = {
-      view: 'dashboard',
-      selectedPlayerId: null,
-      selectedGame: null,
-      initialAiPlayerId: undefined,
-      currentNegotiation: null,
-      shopPlayerId: null
-    };
-    // Ensure we have a base state
-    if (!window.history.state) {
-      window.history.replaceState(initialState, '');
-    }
-
-    const handlePopState = (event: PopStateEvent) => {
-      if (event.state) {
-        isBackNavigating.current = true;
-        // Atomic update from history state
-        setNavState(prev => ({
-          ...prev,
-          view: event.state.view || 'dashboard',
-          selectedPlayerId: event.state.selectedPlayerId || null,
-          selectedGame: event.state.selectedGame || null,
-          initialAiPlayerId: event.state.initialAiPlayerId || undefined,
-          currentNegotiation: event.state.currentNegotiation || null
-        }));
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-  // --- Android Back Button Handling ---
-  useEffect(() => {
-    const backListener = CapApp.addListener('backButton', ({ canGoBack }) => {
-      console.warn("DEBUG: Android Back Button Pressed", { canGoBack, view });
-
-      // If we are not at the dashboard, or we are in a sub-view of the dashboard (like selectedPlayerId)
-      // we try to navigate back.
-      if (view !== 'dashboard' || selectedPlayerId || selectedGame || currentNegotiation) {
-        window.history.back();
-      } else {
-        // At dashboard root. We could show an exit modal or just let it close.
-        CapApp.exitApp();
-      }
-    });
-
-    return () => {
-      backListener.then(l => l.remove());
-    };
   }, [view, selectedPlayerId, selectedGame, currentNegotiation]);
 
-  // Debug Phase Transitions
-  useEffect(() => {
-    console.warn("DEBUG: App seasonPhase changed to:", seasonPhase);
-  }, [seasonPhase]);
-
-  // Sync State changes TO History (Push State)
-  useEffect(() => {
-    if (isBackNavigating.current) {
-      isBackNavigating.current = false;
-      return;
-    }
-
-    const currentState = {
-      view,
-      selectedPlayerId,
-      selectedGame,
-      initialAiPlayerId,
-      currentNegotiation
-    };
-
-    const stateStr = JSON.stringify(currentState);
-    const historyStr = JSON.stringify(window.history.state);
-
-    if (stateStr !== historyStr) {
-      window.history.pushState(currentState, '');
-    }
-
-  }, [navState]); // Depend on the whole object!
-
-
-  const startTradeForPlayer = (playerId: string) => {
-    setInitialAiPlayerId(playerId);
-    setSelectedPlayerId(null);
-    setView('trade');
-  };
-
   const userTeam = teams.find(t => t.id === userTeamId);
-  const gamesPlayed = userTeam ? (userTeam.wins + userTeam.losses) : 0;
-  const isTradeDeadlinePassed = gamesPlayed > 40;
 
-  // Global Back Handler
-  const handleBack = () => {
-    // Now just trigger native back, which fires popstate, which updates state.
-    // Check if we can go back?
-    // If we are at root, we might not want to?
-    // If state is dashboard and everything null, we are at root.
-    if (view === 'dashboard' && !selectedPlayerId && !selectedGame && !currentNegotiation) {
-      // We are at root. Do nothing or let system handle exit?
-      // User said "gesture control not to close the app", but typically back at root closes app.
-      // OR user meant "don't close app when I just want to go back from a deep view".
-      // Assuming standard behavior: back() is correct.
-      // If history is strictly managed, back() works.
-    }
-    window.history.back();
-  };
+  const [expandedCategory, setExpandedCategory] = useState<string | null>('team');
 
-  // Render logic moved to renderContent causing duplicate block removal
-  // This block was previously the Player Detail View early return. 
-  // It is now handled inside renderContent().
+  const navCategories = [
+    { 
+      id: 'league', 
+      label: 'League', 
+      icon: <Globe size={20} />,
+      items: [
+        { id: 'standings', label: 'Standings' },
+        { id: 'playoffs', label: 'Playoffs' },
+        { id: 'league_history', label: 'History' },
+        { id: 'transactions', label: 'Transactions' },
+        { id: 'league_all_time', label: 'All-Time Leaders' },
+      ]
+    },
+    { 
+      id: 'team', 
+      label: 'Team', 
+      icon: <Trophy size={20} />,
+      items: [
+        { id: 'team_roster', label: 'Roster' },
+        { id: 'team_stats', label: 'Stats' },
+        { id: 'team_history', label: 'History' },
+        { id: 'financials', label: 'Finances' },
+        { id: 'team_records', label: 'Records' },
+        { id: 'team_all_time', label: 'All-Time Leaders' },
+      ]
+    },
+    { 
+      id: 'players', 
+      label: 'Players', 
+      icon: <Users size={20} />,
+      items: [
+        { id: 'trade', label: 'Market' },
+        { id: 'player_list', label: 'Player List' },
+        { id: 'player_stats', label: 'Player Stats' },
+        { id: 'player_history', label: 'Players Records' },
+      ]
+    },
+    { 
+      id: 'news_menu', 
+      label: 'News', 
+      icon: <Newspaper size={20} />,
+      items: [
+        { id: 'news', label: 'League News' },
+      ]
+    },
+  ];
 
+  const lastFive = useMemo(() => {
+    return games
+      .filter(g => g.homeScore !== undefined && (g.homeTeamId === userTeamId || g.awayTeamId === userTeamId))
+      .sort((a, b) => b.id.localeCompare(a.id)) 
+      .slice(0, 5)
+      .map(g => {
+        const isHome = g.homeTeamId === userTeamId;
+        const userScore = isHome ? g.homeScore! : g.awayScore!;
+        const oppScore = isHome ? g.awayScore! : g.homeScore!;
+        return userScore > oppScore ? 'W' : 'L';
+      }).reverse();
+  }, [games, userTeamId]);
 
   const renderContent = () => {
-    if (selectedPlayerId) {
-      let player = players.find(p => p.id === selectedPlayerId) || draftClass.find(p => p.id === selectedPlayerId);
-
-      // Search retired players if not found
-      if (!player && retiredPlayersHistory) {
-        for (const history of retiredPlayersHistory) {
-          const retired = history.players.find(p => p.id === selectedPlayerId);
-          if (retired) {
-            player = retired;
-            break;
-          }
+    if (!isInitialized) return <MainMenu />;
+    
+    if (liveGameData) {
+        const homeTeam = teams.find(t => t.id === liveGameData.home.id);
+        const awayTeam = teams.find(t => t.id === liveGameData.away.id);
+        if (homeTeam && awayTeam) {
+            const homeRoster = players.filter(p => p.teamId === liveGameData.home.id);
+            const awayRoster = players.filter(p => p.teamId === liveGameData.away.id);
+            const homeCoach = coaches.find(c => c.teamId === liveGameData.home.id);
+            const awayCoach = coaches.find(c => c.teamId === liveGameData.away.id);
+            return <LiveGameView 
+                homeTeam={homeTeam} 
+                awayTeam={awayTeam} 
+                homeRoster={homeRoster} 
+                awayRoster={awayRoster} 
+                homeCoach={homeCoach} 
+                awayCoach={awayCoach} 
+                onGameEnd={completeLiveGame} 
+                userTeamId={userTeamId} 
+                date={date} 
+            />;
         }
-      }
-
-      if (player) {
-        return <PlayerDetailView
-          player={player}
-          team={teams.find(t => t.id === player.teamId)}
-          teams={teams}
-          contract={contracts.find(c => c.playerId === player.id)}
-          onBack={() => setSelectedPlayerId(null)}
-          isUserTeam={player.teamId === userTeamId || (userTeam?.rosterIds.includes(player.id) ?? false)}
-          onTradeFor={startTradeForPlayer}
-          onShop={() => setShopPlayerId(player.id)}
-          onTeamClick={(id) => {
-            setViewTeamId(id);
-            setView('stats');
-            setSelectedPlayerId(null);
-          }}
-        />
-      }
     }
 
+    if (selectedPlayerId) {
+        let player = players.find(p => p.id === selectedPlayerId);
+        
+        // Check retired players if not found in active
+        if (!player) {
+            console.log(`[App] Player ${selectedPlayerId} not found in active roster. Searching retirement history...`);
+            (retiredPlayersHistory || []).forEach(history => {
+                const found = history.players.find(p => p.id === selectedPlayerId);
+                if (found) {
+                    player = found;
+                }
+            });
+        }
 
-
+        if (player) {
+            const isRetired = !players.find(p => p.id === player!.id);
+            console.log(`[App] Opening detail view for ${player.firstName} ${player.lastName} (Retired: ${isRetired})`);
+            const team = teams.find(t => t.id === player!.teamId);
+            const contract = contracts.find(c => c.playerId === player!.id);
+            return <PlayerDetailView 
+                player={player} 
+                team={team} 
+                teams={teams} 
+                contract={contract} 
+                onBack={() => setSelectedPlayerId(null)} 
+                isUserTeam={!isRetired && player.teamId === userTeamId}
+                onShop={() => {
+                    if (isRetired) return;
+                    setShopPlayerId(player!.id);
+                    setSelectedPlayerId(null);
+                }}
+                onTradeFor={(pid) => {
+                    setInitialAiPlayerId(pid);
+                    setSelectedPlayerId(null);
+                    setView('trade');
+                }}
+            />;
+        }
+    }
+    
     if (selectedGame) {
-      return <BoxScoreView
-        match={selectedGame}
-        homeTeam={teams.find(t => t.id === selectedGame.homeTeamId)}
-        awayTeam={teams.find(t => t.id === selectedGame.awayTeamId)}
-        onBack={() => setSelectedGame(null)}
-        onSelectPlayer={setSelectedPlayerId}
-      />
-    } else if (seasonPhase === 'scouting') {
-      // NOTE: Redirect handled in useEffect
+        const homeTeam = teams.find(t => t.id === selectedGame.homeTeamId);
+        const awayTeam = teams.find(t => t.id === selectedGame.awayTeamId);
+        return <BoxScoreView match={selectedGame} homeTeam={homeTeam} awayTeam={awayTeam} onBack={() => setSelectedGame(null)} onSelectPlayer={setSelectedPlayerId} />;
+    }
+    
+    if (selectedTeamId) {
+        const team = teams.find(t => t.id === selectedTeamId);
+        if (team) {
+            return <TeamStatsView 
+                players={players} 
+                teams={teams}
+                userTeamId={userTeamId}
+                initialTeamId={selectedTeamId}
+                onBack={() => setSelectedTeamId(null)} 
+                onSelectPlayer={setSelectedPlayerId} 
+            />;
+        }
     }
 
-    if (seasonPhase === 'draft') {
-      // NOTE: Redirect logic commented out or handled elsewhere
+    switch (view) {
+      case 'dashboard': 
+        return <Dashboard 
+          onSelectGame={setSelectedGame} 
+          onSelectPlayer={setSelectedPlayerId} 
+          onSelectTeam={setSelectedTeamId}
+          onEnterPlayoffs={() => setView('playoffs')} 
+          onStartSeasonTrigger={() => setShowPayrollModal(true)} 
+          onStartTrainingTrigger={() => setView('training')} 
+          onShowMessage={(t, m, type) => setModalMessage({ title: t, msg: m, type })} 
+        />;
+      case 'standings': 
+        return <LeagueView 
+          teams={teams} 
+          players={players} 
+          awardsHistory={awardsHistory} 
+          onBack={() => setView('dashboard')} 
+          onSelectPlayer={setSelectedPlayerId} 
+          onSelectTeam={setSelectedTeamId} 
+        />;
+      case 'league_history':
+        return <LeagueHistoryView onBack={() => setView('dashboard')} />;
+      case 'transactions':
+        return <TransactionsView onBack={() => setView('dashboard')} />;
+      case 'league_all_time':
+        return <AllTimeLeadersView mode="league" onBack={() => setView('dashboard')} />;
+      case 'team_roster': 
+        return userTeam ? <RotationView 
+          players={players.filter(p => p.teamId === userTeamId)} 
+          team={userTeam} 
+          onBack={() => setView('dashboard')} 
+          onSave={updateRotation} 
+          onSelectPlayer={setSelectedPlayerId} 
+        /> : null;
+      case 'team_stats':
+        return userTeam ? <TeamStatsView 
+          players={players} 
+          teams={teams}
+          userTeamId={userTeamId}
+          initialTeamId={userTeamId}
+          onBack={() => setView('dashboard')} 
+          onSelectPlayer={setSelectedPlayerId} 
+        /> : null;
+      case 'team_history':
+        return userTeam ? <TeamHistoryView 
+          team={userTeam} 
+          onBack={() => setView('dashboard')} 
+          onSelectPlayer={setSelectedPlayerId} 
+        /> : null;
+      case 'team_records':
+        return <TeamRecordsView onBack={() => setView('dashboard')} />;
+      case 'team_all_time':
+        return <AllTimeLeadersView mode="team" teamId={userTeamId} onBack={() => setView('dashboard')} />;
+      case 'player_list':
+        return <PlayerLeagueListView onBack={() => setView('dashboard')} onSelectPlayer={setSelectedPlayerId} initialMode="list" />;
+      case 'player_stats':
+        return <PlayerLeagueListView onBack={() => setView('dashboard')} onSelectPlayer={setSelectedPlayerId} initialMode="stats" />;
+      case 'player_history':
+        return <PlayerLeagueListView onBack={() => setView('dashboard')} onSelectPlayer={setSelectedPlayerId} initialMode="history" />;
+      case 'trade': 
+        return userTeam ? <TradeCenterView 
+          userTeam={userTeam} 
+          teams={teams} 
+          players={players} 
+          contracts={contracts} 
+          currentYear={date.getFullYear()} 
+          salaryCap={salaryCap} 
+          initialAiPlayerId={initialAiPlayerId} 
+          initialProposal={prefilledTrade} 
+          tradeHistory={tradeHistory}
+          onExecuteTrade={executeTrade} 
+          onSignFreeAgent={signFreeAgent}
+          onSelectPlayer={setSelectedPlayerId}
+          onSelectTeam={setSelectedTeamId}
+          onBack={() => setView('dashboard')} 
+          gmProfile={gmProfile}
+          draftOrder={draftOrder}
+          seasonPhase={seasonPhase}
+        /> : null;
+      case 'financials': 
+        return <TeamFinancialsView 
+          onBack={() => setView('dashboard')} 
+          onSelectPlayer={setSelectedPlayerId} 
+        />;
+      case 'news':
+        return <NewsFeedView 
+            news={news} 
+            teams={teams} 
+            onClose={() => setView('dashboard')} 
+            onSelectPlayer={setSelectedPlayerId} 
+            onSelectTeam={setSelectedTeamId} 
+        />;
+      case 'playoffs':
+        return <PlayoffView onBack={() => setView('dashboard')} />;
+      case 'offseason_menu':
+        return <OffseasonMenuView />;
+      case 'retirement':
+        return <RetiredPlayersSummaryView onSelectPlayer={setSelectedPlayerId} />;
+      case 'scouting':
+        return <ScoutingView onBack={() => completeOffseasonTask('scouting')} />;
+      case 'draft':
+        return <DraftView 
+            draftClass={draftClass}
+            draftOrder={draftOrder}
+            teams={teams}
+            userTeamId={userTeamId}
+            onPick={handleDraftPick}
+            onSimulateNext={simulateNextPick}
+            onSimulateToUser={simulateToUserPick}
+            onFinish={endDraft}
+            onSelectPlayer={setSelectedPlayerId}
+        />;
+      case 'resigning':
+        return <ResigningView onComplete={() => completeOffseasonTask('resigning')} />;
+      case 'free_agency':
+        return <FreeAgencyView onBack={() => setView('offseason_menu')} onComplete={() => completeOffseasonTask('freeAgency')} />;
+      case 'training':
+        return <TrainingView onBack={() => setView('offseason_menu')} onSelectPlayer={setSelectedPlayerId} />;
+      case 'training_results':
+        return <TrainingReportView onBack={() => completeOffseasonTask('trainingResults')} />;
+      default: 
+        return <Dashboard 
+          onSelectGame={setSelectedGame} 
+          onSelectPlayer={setSelectedPlayerId} 
+          onSelectTeam={setSelectedTeamId}
+          onEnterPlayoffs={() => setView('playoffs')} 
+          onStartSeasonTrigger={() => setShowPayrollModal(true)} 
+          onStartTrainingTrigger={() => setView('training')} 
+          onShowMessage={(t, m, type) => setModalMessage({ title: t, msg: m, type })} 
+        />;
     }
+  };
 
-    if (seasonPhase === 'expansion_draft') {
-      return <ExpansionDraftView />;
-    }
+  if (!isInitialized) return <MainMenu />;
 
-    if (seasonPhase === 'draft_summary') {
-      return <DraftSummaryView
-        onSelectPlayer={setSelectedPlayerId}
-        onSelectTeam={(id) => {
-          setViewTeamId(id);
-          setView('stats');
-        }}
-      />;
-    }
+  return (
+    <div className="app-layout" style={{ '--team-primary': userTeam?.colors?.primary || 'var(--primary)' } as any}>
+      {/* SIDEBAR */}
+      <div className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`} onClick={() => setIsSidebarOpen(false)} />
+      <aside className={`sidebar ${isSidebarOpen ? 'expanded' : ''}`}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px', padding: '0 8px' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--team-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+            <Dribbble size={24} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: '1.1rem', color: 'var(--text-main)', margin: 0 }}>BALLER</h2>
+            <span style={{ fontSize: '0.6rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Manager v2.0</span>
+          </div>
+        </div>
 
-    // Default Phase Views (Draft, etc)
-    // 1. Explicit View Checks (Navigation overrides Phase)
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <button 
+            className={`nav-link ${view === 'dashboard' ? 'active' : ''}`}
+            onClick={() => { setView('dashboard'); setIsSidebarOpen(false); }}
+          >
+            <LayoutDashboard size={20} />
+            <span>Dashboard</span>
+          </button>
 
-
-    if (view === 'standings') {
-      return <LeagueView
-        teams={teams}
-        players={players}
-        awardsHistory={awardsHistory}
-        onBack={() => setView('dashboard')}
-        onSelectPlayer={setSelectedPlayerId}
-        onSelectTeam={(id) => {
-          setViewTeamId(id);
-          setView('stats');
-        }}
-
-      />
-    }
-
-    if (view === 'playoffs') {
-      return (
-        <PlayoffView onNavigate={setView} onBack={() => setView('dashboard')} />
-      );
-    }
-
-    if (view === 'scouting') {
-      return <ScoutingView />;
-    }
-
-    if (view === 'stats') {
-      return <TeamStatsView
-        key={viewTeamId || 'stats'}
-        players={players}
-        teams={teams}
-        userTeamId={userTeamId}
-        initialTeamId={viewTeamId || undefined}
-        onBack={() => {
-          setView('dashboard');
-        }}
-        onSelectPlayer={setSelectedPlayerId}
-        onViewHistory={() => setView('team_history')}
-        onShowLeagueHistory={() => setView('league_history')}
-      />
-    }
-
-    if (view === 'results') {
-      return <GameResultsView games={games} teams={teams} onBack={() => setView('dashboard')} onSelectGame={setSelectedGame} />
-    }
-
-    if (view === 'trade' || view === 'transactions') {
-      const userTeam = teams.find(t => t.id === userTeamId);
-      if (!userTeam) return <div>Loading...</div>;
-
-      return <TradeCenterView
-        userTeam={teams.find(t => t.id === userTeamId)!}
-        teams={teams}
-        players={players}
-        contracts={contracts}
-        salaryCap={salaryCap}
-        currentYear={date.getFullYear()}
-        tradeHistory={tradeHistory}
-        initialAiPlayerId={shopPlayerId || initialAiPlayerId}
-        initialProposal={prefilledTrade}
-        initialTab={view === 'transactions' ? 'log' : 'new'}
-        draftOrder={draftOrder}
-        seasonPhase={seasonPhase}
-        onBack={() => { setView('dashboard'); setInitialAiPlayerId(undefined); }}
-        onSelectPlayer={(id) => setSelectedPlayerId(id)}
-        onSelectTeam={(teamId) => {
-          setViewTeamId(teamId);
-          setView('stats');
-        }}
-        onExecuteTrade={(userP: string[], userPick: string[], aiP: string[], aiPick: string[], aiTeamId: string) => {
-          const success = executeTrade(userP, userPick, aiP, aiPick, aiTeamId);
-          if (success) {
-            setPrefilledTrade(undefined);
-            setInitialAiPlayerId(undefined);
-            setView('dashboard');
-          }
-          return success;
-        }}
-        onSignFreeAgent={(playerId) => {
-          // Default MID-SEASON signing logic: 1 Year / Min Salary
-          signPlayerWithContract(playerId, { amount: 1000000, years: 1, role: 'Bench' });
-        }}
-      />;
-    }
-
-    if (view === 'rotation') {
-      const userTeam = teams.find(t => t.id === userTeamId);
-      if (!userTeam) return null; // Should not happen
-
-      return <RotationView
-        players={players}
-        team={userTeam}
-        onBack={() => setView('dashboard')}
-        onSelectPlayer={setSelectedPlayerId}
-        onSave={(updates) => {
-          updateRotation(updates);
-          setView('dashboard');
-        }}
-      />
-    }
-
-    if (view === 'team_management') {
-      const userTeam = teams.find(t => t.id === userTeamId);
-      if (!userTeam) return null;
-
-      return <TeamManagementView
-        players={players}
-        team={userTeam}
-        coaches={coaches}
-        onBack={() => setView('dashboard')}
-        onSelectPlayer={setSelectedPlayerId}
-        onSaveRotation={(updates) => {
-          updateRotation(updates);
-        }}
-        onSaveStrategy={(settings) => {
-          updateCoachSettings(userTeamId, settings);
-        }}
-        onSaveSchedule={(schedule) => {
-          updateRotationSchedule(userTeamId, schedule);
-        }}
-      />
-    }
-
-    if (view === 'strategy') {
-      const userTeam = teams.find(t => t.id === userTeamId);
-      if (!userTeam) return null;
-
-      return <CoachSettingsView
-        team={userTeam}
-        onBack={() => setView('dashboard')}
-        onSave={(settings) => {
-          updateCoachSettings(userTeamId, settings);
-          setView('dashboard');
-        }}
-      />
-    }
-
-    if (view === 'financials') {
-      return <TeamFinancialsView onBack={() => setView('dashboard')} onSelectPlayer={setSelectedPlayerId} />;
-    }
-
-    // 2. Phase-Specific Views (Acts as Dashboard for that phase)
-    if ((seasonPhase as any) === 'draft') {
-      return <DraftView
-        draftClass={draftClass}
-        draftOrder={draftOrder}
-        teams={teams}
-        userTeamId={userTeamId}
-        onPick={handleDraftPick}
-        onSimulateNext={simulateNextPick}
-        onSimulateToUser={simulateToUserPick}
-        onFinish={endDraft}
-        onSelectPlayer={setSelectedPlayerId}
-      />
-    }
-
-    if (seasonPhase === 'retirement_summary') {
-      return <RetiredPlayersSummaryView onSelectPlayer={setSelectedPlayerId} />;
-    }
-
-    if (seasonPhase === 'coach_free_agency') {
-      const freeAgentCoaches = coaches.filter(c => !c.teamId);
-      const userTeam = teams.find(t => t.id === userTeamId);
-      const userCoach = coaches.find(c => c.id === userTeam?.coachId && c.teamId === userTeamId);
-      return (
-        <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-          <h2 style={{ color: 'var(--text-primary)', marginBottom: '8px' }}>🏀 Coach Free Agency</h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}
-          >Review available coaches before the player free agency period begins. AI teams will automatically hire coaches they need.</p>
-
-          {userCoach ? (
-            <div style={{ background: 'var(--surface)', borderRadius: '12px', padding: '16px', marginBottom: '20px', border: '1px solid var(--border)' }}>
-              <h3 style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>Your Current Coach</h3>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{userCoach.firstName} {userCoach.lastName}</div>
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{userCoach.style} • {userCoach.contract.yearsRemaining} yr{userCoach.contract.yearsRemaining !== 1 ? 's' : ''} remaining</div>
+          {navCategories.map(cat => (
+            <div key={cat.id} style={{ display: 'flex', flexDirection: 'column' }}>
+              <button 
+                className={`nav-link ${expandedCategory === cat.id ? 'expanded' : ''}`}
+                onClick={() => {
+                  if (cat.items.length === 0) {
+                    setView(cat.id);
+                    setIsSidebarOpen(false);
+                  } else {
+                    setExpandedCategory(expandedCategory === cat.id ? null : cat.id);
+                  }
+                }}
+                style={{ justifyContent: 'space-between' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {cat.icon}
+                  <span>{cat.label}</span>
                 </div>
-                <div style={{ display: 'flex', gap: '16px', textAlign: 'center' }}>
-                  <div><div style={{ color: '#3498db', fontWeight: 'bold', fontSize: '1.2rem' }}>{userCoach.rating.offense}</div><div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>OFF</div></div>
-                  <div><div style={{ color: '#e74c3c', fontWeight: 'bold', fontSize: '1.2rem' }}>{userCoach.rating.defense}</div><div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>DEF</div></div>
+                {cat.items.length > 0 && (
+                  <div style={{ transform: expandedCategory === cat.id ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }}>
+                    <ChevronRight size={14} />
+                  </div>
+                )}
+              </button>
+
+              {expandedCategory === cat.id && cat.items.length > 0 && (
+                <div style={{ paddingLeft: '32px', display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '2px', marginBottom: '8px' }}>
+                  {cat.items.map(subItem => (
+                    <button
+                      key={subItem.id}
+                      className={`nav-sub-link ${view === subItem.id ? 'active' : ''}`}
+                      onClick={() => {
+                        setView(subItem.id);
+                        setIsSidebarOpen(false);
+                      }}
+                    >
+                      {subItem.label}
+                    </button>
+                  ))}
                 </div>
+              )}
+            </div>
+          ))}
+        </nav>
+
+        <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
+          <button className="nav-link" onClick={() => { setShowSaveLoad('save'); setIsSidebarOpen(false); }}>
+            <Save size={20} />
+            <span>Save Game</span>
+          </button>
+          <button className="nav-link" style={{ color: 'var(--danger)' }} onClick={() => { setShowExitModal(true); setIsSidebarOpen(false); }}>
+            <LogOut size={20} />
+            <span>Exit Game</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* MAIN CONTAINER */}
+      <div className="main-wrapper" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {isInitialized && !liveGameData && (
+          <header className="app-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <button className="menu-trigger" onClick={() => setIsSidebarOpen(true)}>
+                <Menu size={24} />
+              </button>
+              {userTeam && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <img src={userTeam.logo} alt="" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontWeight: '800', fontSize: '0.85rem', color: 'var(--text-main)' }}>{userTeam.city.toUpperCase()} {userTeam.name.toUpperCase()}</span>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800 }}>EST. {date.getFullYear()}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+              <div style={{ textAlign: 'right' }}>
+                 <div style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--team-primary)' }}>YEAR {date.getFullYear()} | GAME {seasonGamesPlayed}/82</div>
+                 <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>{seasonPhase.replace('_', ' ')}</div>
               </div>
             </div>
-          ) : (
-            <div style={{ background: 'rgba(231,76,60,0.1)', border: '1px solid #e74c3c', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
-              <p style={{ color: '#e74c3c', margin: 0 }}>⚠️ Your team has no head coach! Hire one from the free agent pool below.</p>
-            </div>
-          )}
+          </header>
+        )}
 
-          <h3 style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>Available Coaches ({freeAgentCoaches.length})</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px', maxHeight: '40vh', overflowY: 'auto' }}>
-            {freeAgentCoaches.sort((a, b) => (b.rating.offense + b.rating.defense) - (a.rating.offense + a.rating.defense)).map(coach => (
-              <div key={coach.id} style={{ background: 'var(--surface)', borderRadius: '10px', padding: '14px 16px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 'bold' }}>{coach.firstName} {coach.lastName}</div>
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>{coach.style}</div>
-                </div>
-                <div style={{ display: 'flex', gap: '16px', textAlign: 'center' }}>
-                  <div><div style={{ color: '#3498db', fontWeight: 'bold' }}>{coach.rating.offense}</div><div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>OFF</div></div>
-                  <div><div style={{ color: '#e74c3c', fontWeight: 'bold' }}>{coach.rating.defense}</div><div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>DEF</div></div>
-                  <div><div style={{ color: '#f1c40f', fontWeight: 'bold' }}>{coach.rating.talentDevelopment}</div><div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>DEV</div></div>
-                </div>
+        <main 
+          className="main-content" 
+          ref={containerRef}
+          style={{ flex: 1, overflowY: 'auto' }}
+        >
+          {renderContent()}
+        </main>
+      </div>
+
+      {/* OVERLAYS */}
+      {(isSimulating || simTarget !== 'none') && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(15px)', zIndex: 20000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          {userTeam && (
+            <img src={userTeam.logo} alt="" style={{ width: '120px', height: '120px', objectFit: 'contain', marginBottom: '20px', filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.2))' }} />
+          )}
+          
+          <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+            <div style={{ fontSize: '2.5rem', fontWeight: '900', color: '#fff', marginBottom: '4px' }}>
+              {userTeam?.wins} - {userTeam?.losses}
+            </div>
+            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', fontWeight: 800, letterSpacing: '0.2em' }}>CURRENT RECORD</div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '40px' }}>
+            {lastFive.map((res, i) => (
+              <div key={i} style={{ 
+                  width: '32px', 
+                  height: '32px', 
+                  borderRadius: '8px', 
+                  background: res === 'W' ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)', 
+                  color: res === 'W' ? '#2ecc71' : '#e74c3c',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.9rem',
+                  fontWeight: 900,
+                  border: `1px solid ${res === 'W' ? '#2ecc71' : '#e74c3c'}`
+              }}>
+                  {res}
               </div>
             ))}
           </div>
 
-          <button
-            onClick={endCoachFreeAgency}
-            style={{ width: '100%', padding: '14px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer' }}
-          >
-            Continue to Player Re-Signing →
-          </button>
+          <button onClick={stopSimulation} className="btn-modern" style={{ width: 'auto', padding: '12px 40px', background: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.2)' }}>CANCEL SIMULATION</button>
         </div>
-      );
-    }
+      )}
 
-    if (seasonPhase === 'resigning') {
-      return <ResigningView
-        onSelectPlayer={setSelectedPlayerId}
-        onShowMessage={(title, msg, type) => setModalMessage({ title, msg, type })}
-      />
-    }
-
-    if (seasonPhase === 'free_agency') {
-      if (currentNegotiation) {
-        const player = players.find(p => p.id === currentNegotiation);
-        const team = teams.find(t => t.id === userTeamId);
-        if (player && team) {
-          return <NegotiationView
-            player={player}
-            team={team}
-            onNegotiate={(offer) => negotiateContract(player.id, offer)}
-            onSign={(offer) => {
-              signPlayerWithContract(player.id, offer);
-              setCurrentNegotiation(null);
-            }}
-            onCancel={() => setCurrentNegotiation(null)}
-            onSelectPlayer={(id) => setSelectedPlayerId(id)}
-            salaryCap={salaryCap}
-          />
-        }
-      }
-
-      return <FreeAgencyView
-        players={players}
-        team={teams.find(t => t.id === userTeamId) || teams[0]}
-        onSign={(playerId) => setCurrentNegotiation(playerId)}
-        onFinish={endFreeAgency}
-        onSelectPlayer={(playerId) => setSelectedPlayerId(playerId)}
-      />;
-    }
-
-    if (view === 'training') {
-      return <TrainingView onBack={() => setView('dashboard')} onSelectPlayer={setSelectedPlayerId} />;
-    }
-
-    if (view === 'team_history') {
-      const team = teams.find(t => t.id === userTeamId);
-      if (!team) return <div>Error: Team not found</div>;
-      return <TeamHistoryView team={team} onBack={() => setView('stats')} onSelectPlayer={setSelectedPlayerId} />;
-    }
-
-    if (view === 'league_history') {
-      return <LeagueHistoryView onBack={() => setView('stats')} onSelectPlayer={setSelectedPlayerId} />;
-    }
-
-
-    if (view === ('dev_tools' as any)) {
-      return (
-        <div style={{ padding: '20px', color: 'white' }}>
-          <h2>Developer Tools</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <button onClick={() => {
-              setGameState(prev => ({ ...prev, seasonPhase: 'resigning' }));
-              setView('dashboard');
-            }}>Force Phase: Resigning</button>
-            <button onClick={() => {
-              setGameState(prev => ({ ...prev, seasonPhase: 'free_agency', freeAgencyDay: 1 }));
-              setView('dashboard');
-            }}>Force Phase: Free Agency (Day 1)</button>
-            <button onClick={() => {
-              setGameState(prev => ({ ...prev, seasonPhase: 'regular_season' }));
-              setView('dashboard');
-            }}>Force Phase: Regular Season</button>
-          </div>
+      {isProcessing && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '30px', height: '30px', border: '3px solid var(--primary)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
         </div>
-      );
-    }
+      )}
 
-
-
-
-    // Live Game Overlay
-    if (liveGameData) {
-      return (
-        <LiveGameView
-          homeTeam={liveGameData.home}
-          awayTeam={liveGameData.away}
-          homeRoster={players.filter(p => p.teamId === liveGameData.home.id)}
-          awayRoster={players.filter(p => p.teamId === liveGameData.away.id)}
-          homeCoach={coaches.find(c => c.teamId === liveGameData.home.id)}
-          awayCoach={coaches.find(c => c.teamId === liveGameData.away.id)}
-          onGameEnd={endLiveGameFn}
-          userTeamId={userTeamId}
-          date={liveGameData.date}
+      {tradeOffer && (
+        <TradeProposalModal
+          offer={tradeOffer as any}
+          teams={teams}
+          onAccept={acceptTradeOffer}
+          onReject={rejectTradeOffer}
+          onLookInto={() => {
+            setPrefilledTrade(tradeOffer);
+            rejectTradeOffer();
+            setView('trade');
+          }}
         />
-      );
-    }
-
-    // Default: Dashboard or Main Menu if not initialized
-    if (!isInitialized) {
-      return <MainMenu />;
-    }
-
-    // Default Dashboard view
-    if (view === 'dashboard') {
-      return (
-        <>
-          {showNews && <NewsFeedView teams={teams} news={news} onClose={() => setShowNews(false)} onTradeForPlayer={startTradeForPlayer} />}
-          <NewsTicker
-            teams={teams}
-            players={players}
-            news={news}
-            onClick={() => setShowNews(true)}
-            showTutorial={!tutorialFlags.hasSeenNewsTutorial}
-            onTutorialClose={setHasSeenNewsTutorial}
-          />
-
-          <Dashboard
-            onSelectGame={setSelectedGame}
-            onShowResults={() => setView('results')}
-            onSelectPlayer={setSelectedPlayerId}
-            onEnterPlayoffs={() => {
-              startPlayoffs();
-              setView('playoffs');
-            }}
-            onStartSeasonTrigger={() => {
-              setShowPayrollModal(true);
-            }}
-            onStartTrainingTrigger={() => {
-              setGameState(prev => ({ ...prev, trainingReport: null, isTrainingCampComplete: false }));
-              setView('training');
-            }}
-            onSaveExitTrigger={() => setShowExitModal(true)}
-            onShowMessage={(t, m, y) => setModalMessage({ title: t, msg: m, type: y })}
-            onSaveTrigger={async () => {
-              if (currentSaveSlot) {
-                await saveGame(currentSaveSlot);
-                setModalMessage({ title: 'Success', msg: 'Game saved successfully!', type: 'success' });
-              } else {
-                setModalMessage({ title: 'Error', msg: 'No active save slot found.', type: 'error' });
-              }
-            }}
-            onViewStandings={() => setView('standings')}
-            onViewFinancials={() => setView('financials')}
-          />
-        </>
-      );
-    }
-
-    // Fallback for any other view not explicitly handled above, should ideally not be reached
-    return (
-      <div style={{ padding: '20px' }}>
-        <h2>Unknown View: {view}</h2>
-        <button onClick={() => setView('dashboard')}>Go to Dashboard</button>
-      </div>
-    );
-  };
-
-  return (
-    <>
-      <div className="safe-area-top-bar" />
-      <div 
-        ref={containerRef}
-        className={`app-container ${view === 'dashboard' ? 'with-ticker' : ''}`}
-      >
-
-        {renderContent()}
-        {tradeOffer && (
-          <TradeProposalModal
-            offer={tradeOffer as any}
-            teams={teams}
-            onAccept={acceptTradeOffer}
-            onReject={rejectTradeOffer}
-            onLookInto={() => {
-              setPrefilledTrade(tradeOffer);
-              rejectTradeOffer(); // Close modal (clears offer from context)
-              setView('trade');
-            }}
-          />
-        )}
-        {shopPlayerId && <TradeFinderView
+      )}
+      {shopPlayerId && (
+        <TradeFinderView
           shopPlayerId={shopPlayerId}
           onClose={() => setShopPlayerId(null)}
           onAccept={(offer) => {
-            // "See Deal" flow
             setPrefilledTrade(offer);
             setShopPlayerId(null);
-            setSelectedPlayerId(null); // Fix: Clear player selection so Back button doesn't reopen Player Detail
+            setSelectedPlayerId(null);
             setView('trade');
           }}
           onSelectPlayer={setSelectedPlayerId}
         />
-        }
-      </div>
-
-      {showSaveLoad && (
-        <SaveLoadView mode={showSaveLoad} onClose={() => setShowSaveLoad(null)} />
       )}
 
-      {isInitialized && (
-        <nav className="nav-glass" style={{
-          position: 'fixed',
-          bottom: 20, /* Floating effect */
-          left: '5%',
-          width: '90%',
-          borderRadius: '24px',
-          display: 'flex',
-          justifyContent: 'space-around',
-          padding: '12px 0',
-          zIndex: 1000,
-          border: '1.5px solid var(--primary)', /* Highlight border */
-          boxShadow: '0 4px 15px rgba(0,0,0,0.3), 0 0 10px var(--primary-glow)', /* Premium depth with team glow */
-        }}>
-          <button onClick={() => { setView('dashboard'); setSelectedPlayerId(null); setInitialAiPlayerId(undefined); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: view === 'dashboard' ? 'var(--primary)' : '#666', gap: '4px' }}>
-            <LayoutDashboard size={24} />
-            <span style={{ fontSize: '10px', fontWeight: 500 }}>Home</span>
-          </button>
-
-          <button onClick={() => { setView('stats'); setSelectedPlayerId(null); setInitialAiPlayerId(undefined); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: view === 'stats' ? 'var(--primary)' : '#666', gap: '4px' }}>
-            <BarChart2 size={24} />
-            <span style={{ fontSize: '10px', fontWeight: 500 }}>My Team</span>
-          </button>
-
-          <button onClick={() => { setView('standings'); setSelectedPlayerId(null); setInitialAiPlayerId(undefined); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: view === 'standings' ? 'var(--primary)' : '#666', gap: '4px' }}>
-            <Trophy size={24} />
-            <span style={{ fontSize: '10px', fontWeight: 500 }}>League</span>
-          </button>
-
-          {String(seasonPhase).startsWith('playoffs') && (
-            <button onClick={() => { setView('playoffs'); setSelectedPlayerId(null); setInitialAiPlayerId(undefined); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: view === 'playoffs' ? 'var(--primary)' : '#666', gap: '4px' }}>
-              <Trophy size={24} />
-              <span style={{ fontSize: '10px', fontWeight: 500 }}>Playoffs</span>
-            </button>
-          )}
-
-          {(seasonPhase === 'regular_season' || seasonPhase === 'pre_season' || seasonPhase === 'free_agency' || seasonPhase === 'draft') && (
-            <button onClick={() => { setView('trade'); setSelectedPlayerId(null); setInitialAiPlayerId(undefined); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: (view === 'trade' || view === 'transactions') ? 'var(--primary)' : '#666', gap: '4px' }}>
-              <ArrowLeftRight size={24} />
-              <span style={{ fontSize: '10px', fontWeight: 500 }}>Players Market</span>
-            </button>
-          )}
-
-          {(seasonPhase === 'regular_season' || seasonPhase === 'pre_season' || seasonPhase === 'free_agency' || String(seasonPhase).startsWith('playoffs') || seasonPhase === 'resigning' || seasonPhase === 'draft') && (
-            <>
-              <button onClick={() => { setView('team_management'); setSelectedPlayerId(null); setInitialAiPlayerId(undefined); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: (view === 'team_management' || view === 'rotation' || view === 'strategy') ? 'var(--primary)' : '#666', gap: '4px' }}>
-                <Dribbble size={24} />
-                <span style={{ fontSize: '10px', fontWeight: 500 }}>OnCourt</span>
-              </button>
-
-              <button onClick={() => { setView('financials'); setSelectedPlayerId(null); setInitialAiPlayerId(undefined); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: view === 'financials' ? 'var(--primary)' : '#666', gap: '4px' }}>
-                <Wallet size={24} />
-                <span style={{ fontSize: '10px', fontWeight: 500 }}>Money</span>
-              </button>
-            </>
-          )}
-
-
-        </nav>
-      )}
-      {(isSimulating || simTarget !== 'none') && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 20000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)' }}>
-          <div className="loader" style={{ width: '50px', height: '50px', border: '5px solid rgba(255,255,255,0.3)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-          <h3 style={{ marginTop: '20px', color: '#fff', fontSize: '1.5rem', fontWeight: '800' }}>Simulating Season...</h3>
-          {/* Show User Record */}
-          {teams.find(t => t.id === userTeamId) && (
-            <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#fff', margin: '15px 0' }}>
-              {teams.find(t => t.id === userTeamId)!.wins} - {teams.find(t => t.id === userTeamId)!.losses}
-            </div>
-          )}
-          <p style={{ color: '#ccc', fontSize: '1.1rem' }}>{seasonPhase === 'regular_season' ? 'Simulating Games...' : 'Playoffs In Progress'}</p>
-          <button
-            onClick={() => {
-              console.log("Stop Multi-Day Sim Clicked");
-              stopSimulation();
-            }}
-            style={{
-              marginTop: '25px',
-              padding: '10px 24px',
-              background: '#e74c3c',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '50px',
-              cursor: 'pointer',
-              fontWeight: '600',
-              fontSize: '1rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: '0 4px 12px rgba(231, 76, 60, 0.4)', // Red glow
-              pointerEvents: 'auto',
-              zIndex: 20001,
-              transition: 'transform 0.2s, background 0.2s'
-            }}
-          >
-            <div style={{ width: '12px', height: '12px', background: 'white', borderRadius: '2px' }} />
-            Stop Simulation
-          </button>
-        </div>
-      )}
-      {isProcessing && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)' }}>
-          <div className="loader" style={{ width: '60px', height: '60px', border: '5px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-          <h2 style={{ color: 'white', marginTop: '30px', letterSpacing: '2px', fontWeight: '800' }}>SIMULATING</h2>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '10px' }}>Please wait while we calculate the results...</p>
-        </div>
-      )}
-      {showingAwards && (
-        <AwardsPopup
-          awards={showingAwards}
-          onClose={() => setShowingAwards(null)}
-        />
-      )}
-
+      {showingAwards && <AwardsPopup awards={showingAwards} onClose={() => setShowingAwards(null)} />}
+      {showSaveLoad && <SaveLoadView mode={showSaveLoad} onClose={() => setShowSaveLoad(null)} />}
       {showExitModal && (
-        <SaveExitModal
-          onClose={() => setShowExitModal(false)}
+        <SaveExitModal 
+          onClose={() => setShowExitModal(false)} 
           onSaveAndExit={async (slotId) => {
             await saveGame(slotId);
             window.location.reload();
@@ -936,48 +620,35 @@ function AppContent() {
         />
       )}
       {showPayrollModal && (
-        <PayrollConfirmationModal
+        <PayrollConfirmationModal 
           payrollAmount={contracts.filter(c => c.teamId === userTeamId).reduce((sum, c) => sum + c.amount, 0)}
           currentCash={teams.find(t => t.id === userTeamId)?.cash || 0}
-          onConfirm={() => {
+          onConfirm={() => { 
             if (isFirstSeasonPaid) {
-              startRegularSeason(); // Will handle logic to set isFirstSeasonPaid = false
+              startRegularSeason(); 
               setShowPayrollModal(false);
             } else {
               if (paySalaries()) {
                 startRegularSeason();
                 setShowPayrollModal(false);
               } else {
-                setModalMessage({ title: 'Error', msg: 'Insufficient funds.', type: 'error' });
+                setModalMessage({ title: 'ERROR', msg: 'INSUFFICIENT CREDITS.', type: 'error' });
               }
             }
-          }}
-          onCancel={() => setShowPayrollModal(false)}
+          }} 
+          onCancel={() => setShowPayrollModal(false)} 
           isFirstSeasonFree={isFirstSeasonPaid}
         />
       )}
-
-      {modalMessage && (
-        <MessageModal
-          title={modalMessage.title}
-          message={modalMessage.msg}
-          type={modalMessage.type}
-          onClose={() => setModalMessage(null)}
-        />
-      )}
-    </>
+      {modalMessage && <MessageModal title={modalMessage.title} message={modalMessage.msg} type={modalMessage.type} onClose={() => setModalMessage(null)} />}
+    </div>
   );
-};
+}
 
-
-
-
-function App() {
-  console.log('App rendering');
+export default function App() {
   return (
     <GameProvider>
       <AppContent />
     </GameProvider>
-  )
+  );
 }
-export default App

@@ -33,13 +33,13 @@ export const LeagueView: React.FC<LeagueViewProps> = ({ teams, players, awardsHi
                 onBack={onBack}
             />
 
-            <div style={{ display: 'flex', gap: '5px', background: 'var(--surface)', padding: '4px', borderRadius: '12px', overflowX: 'auto', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', gap: '5px', background: 'var(--bg-card)', padding: '4px', borderRadius: '12px', overflowX: 'auto', marginBottom: '20px' }}>
                 <button
                     onClick={() => setTab('standings')}
                     style={{
                         padding: '8px 10px',
                         background: tab === 'standings' ? 'var(--primary)' : 'transparent',
-                        color: tab === 'standings' ? '#fff' : 'var(--text-secondary)',
+                        color: tab === 'standings' ? '#fff' : 'var(--text-dim)',
                         border: 'none',
                         borderRadius: '8px',
                         cursor: 'pointer',
@@ -57,7 +57,7 @@ export const LeagueView: React.FC<LeagueViewProps> = ({ teams, players, awardsHi
                     style={{
                         padding: '8px 10px',
                         background: tab === 'players' ? 'var(--primary)' : 'transparent',
-                        color: tab === 'players' ? '#fff' : 'var(--text-secondary)',
+                        color: tab === 'players' ? '#fff' : 'var(--text-dim)',
                         border: 'none',
                         borderRadius: '8px',
                         cursor: 'pointer',
@@ -75,7 +75,7 @@ export const LeagueView: React.FC<LeagueViewProps> = ({ teams, players, awardsHi
                     style={{
                         padding: '8px 10px',
                         background: tab === 'leaders' ? 'var(--primary)' : 'transparent',
-                        color: tab === 'leaders' ? '#fff' : 'var(--text-secondary)',
+                        color: tab === 'leaders' ? '#fff' : 'var(--text-dim)',
                         border: 'none',
                         borderRadius: '8px',
                         cursor: 'pointer',
@@ -93,7 +93,7 @@ export const LeagueView: React.FC<LeagueViewProps> = ({ teams, players, awardsHi
                     style={{
                         padding: '8px 10px',
                         background: tab === 'stats' ? 'var(--primary)' : 'transparent',
-                        color: tab === 'stats' ? '#fff' : 'var(--text-secondary)',
+                        color: tab === 'stats' ? '#fff' : 'var(--text-dim)',
                         border: 'none',
                         borderRadius: '8px',
                         cursor: 'pointer',
@@ -113,9 +113,9 @@ export const LeagueView: React.FC<LeagueViewProps> = ({ teams, players, awardsHi
                 tab === 'standings' ? (
                     <StandingsTableOnly teams={teams} onSelectTeam={onSelectTeam} />
                 ) : tab === 'players' ? (
-                    <LeaguePlayersFullView players={players} teams={teams} onSelectPlayer={onSelectPlayer} />
+                    <LeaguePlayersFullView players={players} teams={teams} onSelectPlayer={onSelectPlayer} onSelectTeam={onSelectTeam} />
                 ) : tab === 'leaders' ? (
-                    <LeagueLeaders players={players} teams={teams} onSelectPlayer={onSelectPlayer} />
+                    <LeagueLeaders players={players} teams={teams} onSelectPlayer={onSelectPlayer} onSelectTeam={onSelectTeam} />
                 ) : tab === 'stats' ? (
                     <LeagueTeamStats teams={teams} players={players} onSelectTeam={onSelectTeam} />
                 ) : (
@@ -179,7 +179,7 @@ const StandingsTableOnly = ({ teams, onSelectTeam }: { teams: Team[], onSelectTe
             </h3>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', marginTop: '10px', fontSize: '0.85rem' }}>
                 <thead>
-                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                    <tr style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
                         <th style={{ padding: '6px', color: '#aaa' }}>#</th>
                         <HeaderCell label="Team" sortKey="name" />
                         <HeaderCell label="W" sortKey="wins" align="center" />
@@ -189,7 +189,7 @@ const StandingsTableOnly = ({ teams, onSelectTeam }: { teams: Team[], onSelectTe
                 </thead>
                 <tbody>
                     {teams.map((team, index) => (
-                        <tr key={team.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', background: index % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.03)' }}>
+                        <tr key={team.id} style={{ borderBottom: '1px solid rgba(0,0,0,0.05)', background: index % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.03)' }}>
                             <td style={{ padding: '6px', color: '#666' }}>{index + 1}</td>
                             <td
                                 onClick={() => onSelectTeam(team.id)}
@@ -204,11 +204,11 @@ const StandingsTableOnly = ({ teams, onSelectTeam }: { teams: Team[], onSelectTe
                                 ) : (
                                     <span style={{ color: team.colors?.primary || '#fff', fontSize: '1.2rem', lineHeight: 0 }}>●</span>
                                 )}
-                                <span style={{ color: '#fff', textDecoration: 'underline', textUnderlineOffset: '2px' }}>{team.city}</span>
+                                <span style={{ color: 'var(--text-main)' }}>{team.city}</span>
                             </td>
-                            <td style={{ padding: '6px', color: '#ccc', textAlign: 'center' }}>{team.wins}</td>
-                            <td style={{ padding: '6px', color: '#ccc', textAlign: 'center' }}>{team.losses}</td>
-                            <td style={{ padding: '6px', color: '#ccc', textAlign: 'right', fontFamily: 'monospace' }}>
+                            <td style={{ padding: '6px', color: 'var(--text-muted)', textAlign: 'center' }}>{team.wins}</td>
+                            <td style={{ padding: '6px', color: 'var(--text-muted)', textAlign: 'center' }}>{team.losses}</td>
+                            <td style={{ padding: '6px', color: 'var(--text-muted)', textAlign: 'right', fontFamily: 'monospace' }}>
                                 {(team.wins + team.losses) > 0
                                     ? (team.wins / (team.wins + team.losses)).toFixed(3)
                                     : '.000'}

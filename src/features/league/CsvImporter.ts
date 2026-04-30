@@ -3,6 +3,7 @@ import type { Player, Position, PlayerAttributes } from '../../models/Player';
 import type { Team } from '../../models/Team';
 import { calculateOverall, calculateFairSalary, calculateSecondaryPosition } from '../../utils/playerUtils';
 import { PERSONALITIES } from '../player/playerGenerator';
+import { REAL_ROSTERS } from '../../data/realRosters';
 
 // Helper to parse CSV line respecting quotes
 const parseCSVLine = (line: string): string[] => {
@@ -36,11 +37,11 @@ const mapAttributes = (row: Record<string, string>): PlayerAttributes => {
     // Bigs: Include standing dunk and post work.
     let finishing;
     if (isSmall) {
-        // Layup + Driving Dunk dominant. Close shot secondary.
-        finishing = Math.round((getVal('layup') * 1.5 + getVal('driving_dunk') * 1.2 + getVal('close_shot')) / 3.7);
+        // Layup + Driving Dunk dominant. Close shot secondary. Boosted to ensure guards reach 85+.
+        finishing = Math.round((getVal('layup') * 1.8 + getVal('driving_dunk') * 1.5 + getVal('close_shot')) / 4.3);
     } else {
-        // Bigs need standing dunk
-        finishing = Math.round((getVal('layup') + getVal('driving_dunk') + getVal('close_shot') + getVal('standing_dunk')) / 4);
+        // Bigs need standing dunk, but slightly nerfed to prevent all centers from having 90+ finishing
+        finishing = Math.round((getVal('layup') * 0.8 + getVal('driving_dunk') * 0.8 + getVal('close_shot') + getVal('standing_dunk')) / 3.6);
     }
 
     // 2. Mid Range
@@ -161,19 +162,33 @@ export const importNbaPlayers = async (teams: Team[], existingPlayers: Player[])
             const teamId = row.teamId;
             if (teamRosterCounts[teamId] >= 15) return; // Skip if roster full
 
-            const attributes = mapAttributes(row);
+            let attributes = mapAttributes(row);
+            const team = teams.find(t => t.id === teamId);
+            const firstName = row['name'].split(' ')[0];
+            const lastName = row['name'].split(' ').slice(1).join(' ');
+            let pos = (row['position_1'] as Position) || 'SG';
+            let ovr = parseInt(row.overall) || 75;
+
+            // OVERRIDE WITH 2025-26 REAL ROSTERS DATA
+            if (team && REAL_ROSTERS[team.abbreviation]) {
+                const realPlayer = REAL_ROSTERS[team.abbreviation].find(p => p.firstName === firstName && p.lastName === lastName);
+                if (realPlayer && realPlayer.attributes) {
+                    attributes = realPlayer.attributes;
+                    ovr = calculateOverall(attributes, pos);
+                }
+            }
 
             const player: Player = {
                 id: `nba_${row[''] || Math.random().toString(36).substr(2, 9)}`, // Use CSV ID if available (first col is empty name in header usually index)
-                firstName: row['name'].split(' ')[0],
-                lastName: row['name'].split(' ').slice(1).join(' '),
-                position: (row['position_1'] as Position) || 'SG',
+                firstName: firstName,
+                lastName: lastName,
+                position: pos,
                 age: parseInt(row.years_in_the_nba) + 19, // Approximation: years + 19
                 height: parseInt(row.height_cm) || 200,
                 weight: parseInt(row.weight_kg) || 95,
                 personality: PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)],
                 attributes: attributes,
-                overall: parseInt(row.overall) || 75,
+                overall: ovr,
                 teamId: teamId,
                 minutes: 0,
                 isStarter: false,
@@ -236,11 +251,14 @@ export const importNbaPlayers = async (teams: Team[], existingPlayers: Player[])
             teamRosterCounts[teamId]++;
 
             // Generate Contract for imported player
-            const ovr = player.overall;
-            const fairSalary = calculateFairSalary(ovr);
+            const fairOvr = player.overall;
+            const fairSalary = calculateFairSalary(fairOvr);
 
-            // Randomize years (1-4)
-            const years = Math.floor(Math.random() * 4) + 1;
+            // Randomize years (1-4), but stars get 3-5
+            let years = Math.floor(Math.random() * 4) + 1;
+            if (fairOvr >= 89) {
+                years = Math.floor(Math.random() * 3) + 3; // 3 to 5
+            }
 
             newContracts.push({
                 id: `cont_${player.id}`,

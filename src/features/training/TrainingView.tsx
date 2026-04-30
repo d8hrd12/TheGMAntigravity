@@ -1,7 +1,9 @@
 import React from 'react';
 import { useGame } from '../../store/GameContext';
-import { TrainingFocus } from '../../models/Training';
+import { TrainingFocus, TrainingFocusLabels } from '../../models/Training';
 import { calculateOverall } from '../../utils/playerUtils';
+import { calculateStars, calculateTeamBaseline } from '../../utils/starUtils';
+import { StarRating } from '../../components/StarRating';
 import { BackButton } from '../ui/BackButton';
 import { PageHeader } from '../ui/PageHeader';
 import { TrainingResultsModal } from './TrainingResultsModal';
@@ -15,6 +17,7 @@ export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: 
     const [showFocusInfo, setShowFocusInfo] = React.useState(false);
 
     const userRoster = players.filter(p => p.teamId === userTeamId);
+    const userTeamBaseline = React.useMemo(() => calculateTeamBaseline(userRoster), [userRoster]);
 
     // Count how many players have a valid focus selected
     const selectedCount = userRoster.filter(p => {
@@ -193,7 +196,7 @@ export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: 
                         <tr style={{ background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid var(--border)' }}>
                             <HeaderCell label="Player" sortKey="name" />
                             <HeaderCell label="Age" sortKey="age" align="center" />
-                            <HeaderCell label="OVR" sortKey="ovr" align="center" />
+                            <HeaderCell label="Stars" sortKey="ovr" align="center" />
                             <HeaderCell label="POT" sortKey="pot" align="center" />
                             <th style={{ padding: '12px 4px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                                 Focus
@@ -233,7 +236,9 @@ export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: 
                                     </td>
                                     <td style={{ padding: '10px 4px', textAlign: 'center' }}>{player.age}</td>
                                     <td style={{ padding: '10px 4px', textAlign: 'center' }}>
-                                        <span style={{ fontWeight: 700, color: getRatingColor(calculateOverall(player)) }}>{calculateOverall(player)}</span>
+                                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                            <StarRating stars={calculateStars(calculateOverall(player), userTeamBaseline)} size={14} />
+                                        </div>
                                     </td>
                                     <td style={{ padding: '10px 4px', textAlign: 'center' }}>
                                         <span style={{ fontWeight: 700, color: getPotentialLetter(player.potential) === 'A' ? '#e67e22' : '#bdc3c7' }}>
@@ -260,7 +265,9 @@ export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: 
                                             }}
                                         >
                                             {Object.values(TrainingFocus).map(focus => (
-                                                <option key={focus} value={focus}>{focus}</option>
+                                                <option key={focus} value={focus}>
+                                                    {TrainingFocusLabels[focus]}
+                                                </option>
                                             ))}
                                         </select>
                                     </td>

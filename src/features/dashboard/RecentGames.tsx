@@ -5,9 +5,10 @@ import { DashboardCard } from './DashboardCard';
 
 interface RecentGamesProps {
     onSelectGame: (game: any) => void;
+    conferencePosition?: string;
 }
 
-export const RecentGames: React.FC<RecentGamesProps> = ({ onSelectGame }) => {
+export const RecentGames: React.FC<RecentGamesProps> = ({ onSelectGame, conferencePosition }) => {
     const { games, userTeamId } = useGame();
 
     const teamGames = games
@@ -23,18 +24,18 @@ export const RecentGames: React.FC<RecentGamesProps> = ({ onSelectGame }) => {
                 key={game.id}
                 onClick={() => onSelectGame(game)}
                 style={{
-                    width: '36px',
-                    height: '36px',
+                    width: '32px',
+                    height: '32px',
                     borderRadius: '50%',
-                    background: win ? '#10B981' : '#EF4444',
+                    background: win ? 'var(--accent)' : 'var(--danger)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: 'white',
                     fontWeight: 800,
-                    fontSize: '0.9rem',
+                    fontSize: '0.8rem',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                    boxShadow: 'var(--shadow-sm)'
                 }}
             >
                 {win ? 'W' : 'L'}
@@ -43,12 +44,29 @@ export const RecentGames: React.FC<RecentGamesProps> = ({ onSelectGame }) => {
     };
 
     return (
-        <DashboardCard variant="white" title="Recent Form" icon={<TrendingUp size={16} />} action={<span style={{ fontWeight: 700, opacity: 0.4, fontSize: '0.7rem' }}>View All</span>}>
-            <div style={{ display: 'flex', gap: '10px', padding: '4px 0' }}>
-                {teamGames.length > 0 ? (
-                    teamGames.reverse().map(game => getFormCircle(game))
-                ) : (
-                    <div style={{ opacity: 0.3, fontSize: '0.8rem', fontStyle: 'italic' }}>No games played yet this season.</div>
+        <DashboardCard 
+            variant="primary" 
+            title="Recent Form" 
+            icon={<TrendingUp size={16} />} 
+            action={<button className="btn-modern" style={{ width: 'auto', padding: '4px 10px', fontSize: '0.6rem' }}>View All</button>}
+        >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    {teamGames.length > 0 ? (
+                        teamGames.reverse().map(game => getFormCircle(game))
+                    ) : (
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontStyle: 'italic' }}>No games played yet.</div>
+                    )}
+                </div>
+
+                {conferencePosition && (
+                    <div style={{ textAlign: 'right', paddingLeft: '16px', borderLeft: '1px solid var(--border-color)' }}>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1 }}>
+                            {conferencePosition.replace(/[^0-9]/g, '')}
+                            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{conferencePosition.replace(/[0-9]/g, '')}</span>
+                        </div>
+                        <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Rank</div>
+                    </div>
                 )}
             </div>
         </DashboardCard>

@@ -4,6 +4,9 @@ import { getPotentialGrade } from '../../utils/playerUtils';
 import { motion } from 'framer-motion';
 import { ArrowRight, Trophy } from 'lucide-react';
 import { ensureColorVibrancy } from '../../utils/colorUtils';
+import { calculateOverall } from '../../utils/playerUtils';
+import { calculateStars } from '../../utils/starUtils';
+import { StarRating } from '../../components/StarRating';
 
 interface DraftSummaryViewProps {
     onSelectPlayer: (playerId: string) => void;
@@ -18,7 +21,6 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
             padding: '20px',
             maxWidth: '900px',
             margin: '0 auto',
-            height: '100%',
             display: 'flex',
             flexDirection: 'column',
             fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
@@ -69,7 +71,6 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
 
             <div style={{
                 flex: 1,
-                overflowY: 'auto',
                 borderRadius: '20px',
                 padding: '10px'
             }}>
@@ -243,6 +244,7 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
                                                         }}>
                                                             {player.position}
                                                         </span>
+                                                        <StarRating stars={calculateStars(calculateOverall(player), 75)} size={10} />
                                                         <span style={{
                                                             fontFeatureSettings: '"tnum" on',
                                                             color: '#666',
@@ -250,7 +252,7 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
                                                             overflow: 'hidden',
                                                             textOverflow: 'ellipsis'
                                                         }}>
-                                                            {(player.height / 100).toFixed(2)}m • {player.weight}kg • {player.age}yo
+                                                            {(player.height / 100).toFixed(2)}m • {player.age}yo
                                                         </span>
                                                     </>
                                                 )}

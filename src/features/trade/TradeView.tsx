@@ -6,6 +6,8 @@ import type { Contract } from '../../models/Contract';
 import { evaluateTrade, getPlayerTradeValue, getDraftPickValue, validateTradeProposal, suggestTradePackage } from './TradeLogic';
 import { calculateTeamCapSpace } from '../../utils/contractUtils';
 import { calculateOverall } from '../../utils/playerUtils';
+import { calculateStars, calculateTeamBaseline } from '../../utils/starUtils';
+import { StarRating } from '../../components/StarRating';
 import type { TradeProposal } from '../../models/TradeProposal';
 import type { SimulatedTradeProposal } from './TradeSimulation';
 import { Info } from 'lucide-react';
@@ -146,6 +148,8 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
     const aiRoster = players
         .filter(p => p.teamId === selectedTeamId)
         .sort((a, b) => calculateOverall(b) - calculateOverall(a));
+
+    const opponentTeamBaseline = React.useMemo(() => calculateTeamBaseline(aiRoster), [aiRoster]);
 
     const toggleUserPlayer = (id: string) => {
         setUserSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -347,8 +351,8 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
                                         </div>
                                         <div>
                                             <div style={{ fontWeight: 'bold' }}>{p.firstName} {p.lastName}</div>
-                                            <div style={{ fontSize: '0.8rem', color: '#666' }}>
-                                                {p.position} • {p.age}yo • <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{calculateOverall(p)} OVR</span>
+                                            <div style={{ fontSize: '0.8rem', color: '#666', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                {p.position} • {p.age}yo • <StarRating stars={calculateStars(calculateOverall(p), opponentTeamBaseline)} size={12} />
                                             </div>
                                             {contract && (
                                                 <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '2px' }}>
@@ -462,8 +466,8 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
                                         </div>
                                         <div>
                                             <div style={{ fontWeight: 'bold' }}>{p.firstName} {p.lastName}</div>
-                                            <div style={{ fontSize: '0.8rem', color: '#666' }}>
-                                                {p.position} • {p.age}yo • <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{calculateOverall(p)} OVR</span>
+                                            <div style={{ fontSize: '0.8rem', color: '#666', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                {p.position} • {p.age}yo • <StarRating stars={calculateStars(calculateOverall(p), opponentTeamBaseline)} size={12} />
                                             </div>
                                             {contract && (
                                                 <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '2px' }}>

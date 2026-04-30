@@ -122,7 +122,7 @@ const ScoutingView: React.FC = () => {
     const showDetail = !isMobile || (isMobile && selectedProspectId);
 
     return (
-        <div style={{ padding: '20px', margin: '0 auto', height: '100%', display: 'flex', flexDirection: 'column', color: '#333' }}>
+        <div style={{ padding: '20px', margin: '0 auto', display: 'flex', flexDirection: 'column', color: '#333' }}>
             <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <div>
                     <h1 style={{ margin: 0, color: 'white', fontSize: isMobile ? '1.5em' : '2em' }}>Scouting Phase</h1>
@@ -214,7 +214,7 @@ const ScoutingView: React.FC = () => {
                 {/* Prospect List */}
                 {showList && (
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'white', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-                        <div style={{ flex: 1, overflowY: 'auto', padding: '15px' }}>
+                        <div style={{ flex: 1, padding: '15px' }}>
                             <h3 style={{ marginTop: 0 }}>Prospects</h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                 {
@@ -293,7 +293,7 @@ const ScoutingView: React.FC = () => {
 
                 {/* Detail Panel */}
                 {showDetail && (
-                    <div style={{ flex: 2, background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', overflowY: 'auto' }}>
+                    <div style={{ flex: 2, background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
                         {isMobile && (
                             <button
                                 onClick={() => setSelectedProspectId(null)}

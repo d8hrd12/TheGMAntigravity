@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import type { Player } from '../../models/Player';
 import type { Team } from '../../models/Team';
 import { calculateOverall } from '../../utils/playerUtils';
+import { calculateStars, calculateTeamBaseline } from '../../utils/starUtils';
+import { StarRating } from '../../components/StarRating';
 import { optimizeRotation, type RotationStrategy } from '../../utils/rotationUtils';
 import { Info, Play, Users, BarChart2, Plus, Minus } from 'lucide-react';
 import { PageHeader } from '../ui/PageHeader';
@@ -21,6 +23,7 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
     const [selectedStrategy, setSelectedStrategy] = useState<RotationStrategy>(50);
     const isFirstRun = React.useRef(true);
     const lastSavedRoster = React.useRef<string>('');
+    const teamBaseline = React.useMemo(() => calculateTeamBaseline(players.filter(p => p.teamId === team.id)), [players, team.id]);
 
     useEffect(() => {
         // Only initialize if roster is empty or team changed
@@ -41,12 +44,29 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                 const bIdx = b.rotationIndex ?? 99;
                 return aIdx - bIdx;
             });
-            setRoster(sorted);
+
+            // CUSTOM SORT FOR STARTERS (Top 5)
+            // User requested: C, PF, SF, SG, PG
+            const posOrder: Record<string, number> = { 'C': 1, 'PF': 2, 'SF': 3, 'SG': 4, 'PG': 5 };
+            const starters = sorted.slice(0, 5).sort((a, b) => {
+                return (posOrder[a.position] || 99) - (posOrder[b.position] || 99);
+            });
+            const bench = sorted.slice(5);
+
+            setRoster([...starters, ...bench]);
             setSelectedStrategy('Custom'); // Assuming it's already customized
         } else {
             // Apply initial optimization only if no valid state
             const optimized = optimizeRotation(teamPlayers, 50);
-            setRoster(optimized);
+            
+            // CUSTOM SORT FOR STARTERS (Top 5)
+            const posOrder: Record<string, number> = { 'C': 1, 'PF': 2, 'SF': 3, 'SG': 4, 'PG': 5 };
+            const starters = optimized.slice(0, 5).sort((a, b) => {
+                return (posOrder[a.position] || 99) - (posOrder[b.position] || 99);
+            });
+            const bench = optimized.slice(5);
+
+            setRoster([...starters, ...bench]);
         }
 
         isFirstRun.current = false;
@@ -132,7 +152,7 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                     onClick={handleSave}
                     style={{
                         background: '#2ecc71',
-                        color: '#fff',
+                        color: 'var(--text-main)',
                         border: 'none',
                         borderRadius: '8px',
                         padding: '8px 16px',
@@ -148,8 +168,8 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
             {/* Rotation Strategy Slider */}
             <div className="glass-panel" style={{ marginBottom: '15px', padding: '15px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 'bold' }}>Rotation Depth</span>
-                    <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>
+                    <span style={{ color: 'var(--text-main)', fontSize: '0.9rem', fontWeight: 'bold' }}>Rotation Depth</span>
+                    <span style={{ color: 'var(--team-primary)', fontWeight: 'bold' }}>
                         {typeof selectedStrategy === 'number' ? selectedStrategy : (selectedStrategy === 'Custom' ? 'Custom' : 50)}
                     </span>
                 </div>
@@ -166,7 +186,7 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                     }}
                     style={{
                         width: '100%',
-                        accentColor: 'var(--primary)',
+                        accentColor: 'var(--team-primary)',
                         cursor: 'pointer'
                     }}
                 />
@@ -182,24 +202,24 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
 
             <div className="glass-panel" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', padding: '10px', fontSize: '0.85rem' }}>
                 <div>
-                    <span style={{ color: '#fff' }}>
+                    <span style={{ color: 'var(--text-main)' }}>
                         {selectedPlayerId ? 'Tap another to swap' : 'Tap two to swap order.'}
                     </span>
                 </div>
                 <div>
-                    <strong style={{ color: '#fff' }}>Mins:</strong> <span style={{ color: totalMinutes === 240 ? '#2ecc71' : (Math.abs(totalMinutes - 240) < 10 ? '#f1c40f' : '#e74c3c') }}>{totalMinutes}/240</span>
+                    <strong style={{ color: 'var(--text-main)' }}>Mins:</strong> <span style={{ color: totalMinutes === 240 ? '#2ecc71' : (Math.abs(totalMinutes - 240) < 10 ? '#f1c40f' : '#e74c3c') }}>{totalMinutes}/240</span>
                 </div>
             </div>
 
             <div className="glass-panel" style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                    <thead style={{ background: 'rgba(255,255,255,0.05)', borderBottom: '2px solid rgba(255,255,255,0.1)' }}>
+                    <thead style={{ background: 'rgba(255,255,255,0.05)', borderBottom: '2px solid rgba(0,0,0,0.05)' }}>
                         <tr>
-                            <th style={{ padding: '8px', textAlign: 'center', color: '#aaa', width: '30px' }}>#</th>
-                            <th style={{ padding: '8px', textAlign: 'left', color: '#aaa' }}>Player</th>
-                            <th style={{ padding: '8px', textAlign: 'center', color: '#aaa' }}>Pos</th>
-                            <th style={{ padding: '8px', textAlign: 'center', color: '#aaa' }}>OVR</th>
-                            <th style={{ padding: '8px', textAlign: 'center', color: '#aaa' }}>Min</th>
+                            <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-muted)', width: '30px' }}>#</th>
+                            <th style={{ padding: '8px', textAlign: 'left', color: 'var(--text-muted)' }}>Player</th>
+                            <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-muted)' }}>Pos</th>
+                            <th style={{ padding: '8px', textAlign: 'center', color: '#888' }}>Stars</th>
+                            <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-muted)' }}>Min</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -210,7 +230,7 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                             // Selection Glow Logic
                             let rowBackground = isStarter ? 'rgba(var(--primary-rgb), 0.1)' : 'transparent';
                             let rowBoxShadow = 'none';
-                            let rowBorder = index === 4 ? '2px solid var(--primary)' : '1px solid rgba(255,255,255,0.1)';
+                            let rowBorder = index === 4 ? '2px solid var(--team-primary)' : '1px solid rgba(0,0,0,0.05)';
 
                             if (isSelected) {
                                 if (isStarter) {
@@ -227,75 +247,106 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                             }
 
                             return (
-                                <tr
-                                    key={player.id}
-                                    onClick={() => handlePlayerClick(player.id, index)}
-                                    style={{
-                                        borderBottom: rowBorder,
-                                        background: rowBackground,
-                                        boxShadow: rowBoxShadow,
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s',
-                                        position: 'relative' // Needed for z-index if shadow overlaps?
-                                    }}
-                                >
-                                    <td style={{ padding: '8px', textAlign: 'center', color: '#888', fontWeight: 'bold' }}>
-                                        {index + 1}
-                                    </td>
-                                    <td style={{ padding: '8px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <div
-                                                onClick={(e) => { e.stopPropagation(); onSelectPlayer(player.id); }}
-                                                style={{ fontWeight: 'bold', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                            >
-                                                {player.firstName.charAt(0)}. {player.lastName}
-                                                <Info size={12} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                                <React.Fragment key={player.id}>
+                                    {/* Bench Divider Line */}
+                                    {index === 5 && (
+                                        <tr>
+                                            <td colSpan={5} style={{ padding: '0' }}>
+                                                <div style={{
+                                                    height: '2px',
+                                                    background: 'linear-gradient(90deg, transparent, var(--team-primary), transparent)',
+                                                    margin: '10px 0',
+                                                    opacity: 0.6,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                }}>
+                                                    <span style={{
+                                                        background: 'var(--bg-main)',
+                                                        padding: '0 12px',
+                                                        fontSize: '0.65rem',
+                                                        color: 'var(--text-dim)',
+                                                        fontWeight: 'bold',
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: '0.1em'
+                                                    }}>Bench Unit</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                    <tr
+                                        onClick={() => handlePlayerClick(player.id, index)}
+                                        style={{
+                                            borderBottom: rowBorder,
+                                            background: rowBackground,
+                                            boxShadow: rowBoxShadow,
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            position: 'relative' // Needed for z-index if shadow overlaps?
+                                        }}
+                                    >
+                                        <td style={{ padding: '8px', textAlign: 'center', color: '#888', fontWeight: 'bold' }}>
+                                            {index + 1}
+                                        </td>
+                                        <td style={{ padding: '8px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <div
+                                                    onClick={(e) => { e.stopPropagation(); onSelectPlayer(player.id); }}
+                                                    style={{ fontWeight: 'bold', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                                >
+                                                    {player.firstName.charAt(0)}. {player.lastName}
+                                                    <Info size={12} style={{ color: 'var(--team-primary)', flexShrink: 0 }} />
+                                                </div>
                                             </div>
-                                        </div>
-                                        {isStarter && <span style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: 'bold' }}>START</span>}
-                                    </td>
-                                    <td style={{ padding: '8px', textAlign: 'center', color: '#ccc' }}>{player.position}{player.secondaryPosition ? `/${player.secondaryPosition}` : ''}</td>
-                                    <td style={{ padding: '8px', textAlign: 'center', fontWeight: 'bold', color: '#fff' }}>{calculateOverall(player)}</td>
-                                    <td style={{ padding: '8px', textAlign: 'center' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', width: '100%' }}>
-                                            <button
-                                                onClick={(e) => changeMinutes(e, index, -1)}
-                                                style={{
-                                                    background: 'rgba(255,255,255,0.1)',
-                                                    border: 'none',
-                                                    color: '#fff',
-                                                    borderRadius: '4px',
-                                                    width: '24px',
-                                                    height: '24px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                <Minus size={12} />
-                                            </button>
-                                            <span style={{ color: '#fff', width: '25px', textAlign: 'center', fontWeight: 'bold', fontSize: '0.9rem' }}>{player.minutes}</span>
-                                            <button
-                                                onClick={(e) => changeMinutes(e, index, 1)}
-                                                style={{
-                                                    background: 'rgba(255,255,255,0.1)',
-                                                    border: 'none',
-                                                    color: '#fff',
-                                                    borderRadius: '4px',
-                                                    width: '24px',
-                                                    height: '24px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                <Plus size={12} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
+                                            {isStarter && <span style={{ fontSize: '0.65rem', color: 'var(--team-primary)', fontWeight: 'bold' }}>START</span>}
+                                        </td>
+                                        <td style={{ padding: '8px', textAlign: 'center', color: 'var(--text-dim)' }}>{player.position}{player.secondaryPosition ? `/${player.secondaryPosition}` : ''}</td>
+                                        <td style={{ padding: '8px', textAlign: 'center' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                                <StarRating stars={calculateStars(calculateOverall(player), teamBaseline)} size={12} />
+                                            </div>
+                                        </td>
+                                        <td style={{ padding: '8px', textAlign: 'center' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', width: '100%' }}>
+                                                <button
+                                                    onClick={(e) => changeMinutes(e, index, -1)}
+                                                    style={{
+                                                        background: 'rgba(0,0,0,0.05)',
+                                                        border: 'none',
+                                                        color: 'var(--text-main)',
+                                                        borderRadius: '4px',
+                                                        width: '24px',
+                                                        height: '24px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    <Minus size={12} />
+                                                </button>
+                                                <span style={{ color: 'var(--text-main)', width: '25px', textAlign: 'center', fontWeight: 'bold', fontSize: '0.9rem' }}>{player.minutes}</span>
+                                                <button
+                                                    onClick={(e) => changeMinutes(e, index, 1)}
+                                                    style={{
+                                                        background: 'rgba(0,0,0,0.05)',
+                                                        border: 'none',
+                                                        color: 'var(--text-main)',
+                                                        borderRadius: '4px',
+                                                        width: '24px',
+                                                        height: '24px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    <Plus size={12} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </React.Fragment>
                             );
                         })}
                     </tbody>

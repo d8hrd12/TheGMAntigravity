@@ -5,6 +5,8 @@ import type { Team } from '../../models/Team';
 import { STYLE_DESCRIPTIONS } from '../../models/Coach';
 import { calculateContractAmount } from '../../utils/contractUtils';
 import { calculateOverall } from '../../utils/playerUtils';
+import { calculateStars, calculateTeamBaseline } from '../../utils/starUtils';
+import { StarRating } from '../../components/StarRating';
 import { useGame } from '../../store/GameContext';
 import { NegotiationView } from '../negotiation/NegotiationView';
 import { DailyRecapModal } from './components/DailyRecapModal';
@@ -40,18 +42,22 @@ const STYLE_ICONS: Record<string, string> = {
 };
 
 interface FreeAgencyViewProps {
-    players: Player[];
-    team: Team;
-    onSign: (playerId: string) => void;
-    onFinish: () => void;
-    onSelectPlayer: (playerId: string) => void;
+    onBack: () => void;
+    onComplete: () => void;
 }
 
-export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ players, team, onSign, onFinish, onSelectPlayer }) => {
+export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComplete }) => {
     const {
-        salaryCap, freeAgencyDay, activeOffers, activeCoachOffers, placeOffer, placeCoachOffer, advanceFreeAgencyDay, userTeamId,
-        lastFreeAgencyResult, setGameState, teams, coaches, userFireCoach
+        players, teams, userTeamId,
+        salaryCap, freeAgencyDay, activeOffers, activeCoachOffers, placeOffer, placeCoachOffer, advanceFreeAgencyDay,
+        lastFreeAgencyResult, setGameState, coaches, userFireCoach
     } = useGame();
+
+    const team = teams.find(t => t.id === userTeamId)!;
+    const onSelectPlayer = (id: string) => {
+        setGameState(prev => ({ ...prev, selectedPlayerId: id }));
+    };
+    const onFinish = onComplete;
 
     const [activeTab, setActiveTab] = useState<'players' | 'coaches'>('players');
     const [filterPos, setFilterPos] = useState<'All' | 'PG' | 'SG' | 'SF' | 'PF' | 'C'>('All');
@@ -60,6 +66,10 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ players, team, o
     const [coachSearch, setCoachSearch] = useState('');
     const [coachSortBy, setCoachSortBy] = useState<'OVR' | 'OFF' | 'DEF' | 'DEV'>('OVR');
     const [expandedCoachId, setExpandedCoachId] = useState<string | null>(null);
+
+    const userTeamBaseline = React.useMemo(() => {
+        return calculateTeamBaseline(players.filter(p => p.teamId === userTeamId));
+    }, [players, userTeamId]);
 
     const [selectedPlayerForOffer, setSelectedPlayerForOffer] = useState<Player | null>(null);
     const [selectedPlayerForBids, setSelectedPlayerForBids] = useState<Player | null>(null);
@@ -260,7 +270,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ players, team, o
                         </div>
                         <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)}
                             style={{ padding: '10px 20px', borderRadius: '12px', border: 'none', background: '#2c2c2e', color: 'white', fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>
-                            <option value="OVR">Sort by Overall</option>
+                            <option value="OVR">Sort by Stars</option>
                             <option value="PRICE">Sort by Price</option>
                             <option value="AGE">Sort by Age</option>
                             <option value="POT">Sort by Potential</option>
@@ -305,12 +315,8 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ players, team, o
                                                 {player.position} • {player.age}yo
                                             </div>
                                         </div>
-                                        <div style={{
-                                            background: ovr >= 85 ? 'rgba(231,76,60,0.2)' : ovr >= 75 ? 'rgba(46,204,113,0.2)' : 'rgba(241,196,15,0.2)',
-                                            padding: '5px 10px', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '50px'
-                                        }}>
-                                            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#ccc', textTransform: 'uppercase' }}>OVR</span>
-                                            <span style={{ fontSize: '1.2rem', fontWeight: 800, color: ovr >= 85 ? '#e74c3c' : ovr >= 75 ? '#2ecc71' : '#f1c40f' }}>{ovr}</span>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '50px' }}>
+                                            <StarRating stars={calculateStars(ovr, userTeamBaseline)} size={16} />
                                         </div>
                                     </div>
 
@@ -457,13 +463,13 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ players, team, o
                                 >
                                     <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
                                         {/* Name + Style */}
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'white', lineHeight: 1.2 }}>
+                                        <div style={{ flex: '1 1 200px', minWidth: 0, paddingRight: '12px' }}>
+                                            <div style={{ fontWeight: 800, fontSize: '1.2rem', color: 'white', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                 {coach.firstName} {coach.lastName}
                                             </div>
-                                            <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                                <span>{STYLE_ICONS[coach.style] || '🏀'}</span>
-                                                <span>{coach.style}</span>
+                                            <div style={{ fontSize: '0.85rem', color: '#aaa', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                <span style={{ fontSize: '1rem' }}>{STYLE_ICONS[coach.style] || '🏀'}</span>
+                                                <span style={{ fontWeight: 600 }}>{coach.style}</span>
                                             </div>
                                         </div>
 
@@ -664,7 +670,15 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ players, team, o
                     }} onClick={() => setSelectedCoachForOffer(null)}>
                         <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }}
                             onClick={e => e.stopPropagation()}
-                            style={{ width: '90%', maxWidth: '450px', background: '#1c1c1e', borderRadius: '16px', padding: '24px', border: '1px solid #333' }}>
+                            style={{ 
+                                width: '90%', 
+                                maxWidth: '450px', 
+                                background: '#121214', 
+                                borderRadius: '24px', 
+                                padding: '32px', 
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                            }}>
                             <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                                 <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🎽</div>
                                 <h3 style={{ margin: 0, fontSize: '1.5rem', color: 'white' }}>Hire Coach</h3>

@@ -39,32 +39,36 @@ const POSITION_WEIGHTS: Record<string, Record<keyof PlayerAttributes, number>> =
 export const calculateOverall = (input: Player | PlayerAttributes, positionArg?: string): number => {
     const isPlayer = 'attributes' in input;
     const attr = isPlayer ? (input as Player).attributes : (input as PlayerAttributes);
-    const position = positionArg || (isPlayer ? (input as Player).position : 'SF'); // Default to SF (Balanced)
+    
+    // Calculate the max OVR across all positions to give players a true rating
+    // regardless of their arbitrarily assigned position (e.g. Tatum at PF)
+    let maxOverall = 0;
+    const positionsToTest = ['PG', 'SG', 'SF', 'PF', 'C'];
+    
+    positionsToTest.forEach(pos => {
+        const weights = POSITION_WEIGHTS[pos];
+        if (!weights) return;
 
-    const weights = POSITION_WEIGHTS[position] || POSITION_WEIGHTS['SF'];
+        let totalWeightedScore = 0;
+        let totalMaxWeight = 0;
 
-    let totalWeightedScore = 0;
-    let totalMaxWeight = 0;
+        (Object.keys(weights) as Array<keyof PlayerAttributes>).forEach(key => {
+            const weight = weights[key] as number;
+            const val = attr[key];
+            if (typeof val === 'number') {
+                totalWeightedScore += val * weight;
+                totalMaxWeight += 99 * weight;
+            }
+        });
 
-    // Iterate over defined weights to check only relevant stats
-    (Object.keys(weights) as Array<keyof PlayerAttributes>).forEach(key => {
-        const weight = weights[key];
-        // Only use stats that exist in the attributes object (handling potential partial objects)
-        if (typeof attr[key] === 'number') {
-            totalWeightedScore += (attr[key] || 50) * weight;
-            totalMaxWeight += 99 * weight;
+        if (totalMaxWeight > 0) {
+            const normalized = (totalWeightedScore / totalMaxWeight) * 99;
+            const finalOvr = Math.min(99, Math.round(normalized));
+            if (finalOvr > maxOverall) maxOverall = finalOvr;
         }
     });
 
-    if (totalMaxWeight === 0) return 50; // Fallback
-
-    const normalized = (totalWeightedScore / totalMaxWeight) * 99;
-
-    // Slight boost (1.1x) to allow specialists to reach 99 without being perfect at everything
-    // e.g. a C doesn't need 99 Passing to be a 99 OVR C.
-    const boosted = normalized * 1.1;
-
-    return Math.min(99, Math.round(boosted));
+    return maxOverall || 50; // Fallback
 };
 
 import type { SeasonAwards } from "../models/Awards";
@@ -139,174 +143,115 @@ export const calculateFairSalary = (ovr: number): number => {
     const MAX_OVR = 99;
 
     if (ovr <= MIN_OVR) return MIN_SALARY;
+    
+    let salary = MIN_SALARY;
+    if (ovr >= 95) {
+        salary = 45000000 + ((ovr - 95) / 4) * 5000000; // 45M to 50M
+    } else if (ovr >= 90) {
+        salary = 35000000 + ((ovr - 90) / 5) * 10000000; // 35M to 45M
+    } else if (ovr >= 85) {
+        salary = 25000000 + ((ovr - 85) / 5) * 10000000; // 25M to 35M
+    } else if (ovr >= 80) {
+        salary = 15000000 + ((ovr - 80) / 5) * 10000000; // 15M to 25M
+    } else if (ovr >= 75) {
+        salary = 8000000 + ((ovr - 75) / 5) * 7000000; // 8M to 15M
+    } else if (ovr >= 70) {
+        salary = 3000000 + ((ovr - 70) / 5) * 5000000; // 3M to 8M
+    } else {
+        salary = MIN_SALARY + ((ovr - 65) / 5) * (3000000 - MIN_SALARY);
+    }
 
-    // Normalize OVR between 0 and 1
-    const normalized = (ovr - MIN_OVR) / (MAX_OVR - MIN_OVR);
-
-    // Exponential scaling (power of 2.5)
-    // 65 OVR -> 1.1M
-    // 80 OVR -> ~5.2M
-    // 90 OVR -> ~16.5M
-    // 95 OVR -> ~33M
-    // 99 OVR -> 50M
-    const salary = MIN_SALARY + Math.pow(normalized, 2.5) * (MAX_SALARY - MIN_SALARY);
-
-    // Round to nearest 50k for cleaner look
-    return Math.round(salary / 50000) * 50000;
+    // Round to nearest 100k for cleaner look
+    return Math.round(salary / 100000) * 100000;
 };
 
 export const calculateTendencies = (player: Player, minutes: number = 0, teammates: Player[] = []): Player['tendencies'] => {
     const attr = player.attributes;
-
-    // 1. Determine "Point Allocation Budget" based on Role & Talent
-    // Star (>30m): 155 Points 
-    // Starter (>20m): 135 Points
-    // Role (<20m): 100 Points
-    // Bench End: 80 Points
-    let budget = 100;
-    if (minutes >= 30) budget = 155;
-    else if (minutes >= 20) budget = 135;
-    else if (minutes < 15) budget = 80;
-
-    // Talent-Based Scaling: Adjust budget based on OVR relative to league average (approx 76-78)
-    // Only give usage boost to perimeter players to prevent center dominance
     const ovr = calculateOverall(player);
     const position = player.position;
 
-    if (ovr > 88 && (position === 'PG' || position === 'SG' || position === 'SF')) {
-        budget += 20;  // Superstars get extra usage (guards/wings only)
-    } else if (ovr > 84 && (position === 'PG' || position === 'SG' || position === 'SF')) {
-        budget += 10;  // Stars get extra usage (guards/wings only)
-    } else if (ovr < 75) {
-        budget -= 15;  // Role players lose usage
-    } else if (ovr < 70) {
-        budget -= 30;  // Bench players lose significant usage
-    }
+    // 1. CORE PRINCIPLE: Tendencies are INDEPENDENT, skill-driven values.
+    //    NOT a zero-sum budget. Elite players score AND facilitate at high volume.
+    //    A Jokic-type (95 shoot, 96 pass) should have BOTH high, not one killing the other.
 
-    // 2. Base Skill Ratings
-    // BEST TRAIT FOCUS: Don't just average. An elite scorer relies on their best weapon.
-    // 60% Best, 30% Second Best, 10% Worst
     const scoringSkills = [attr.finishing, attr.midRange, attr.threePointShot].sort((a, b) => b - a);
     const shootSkill = (scoringSkills[0] * 0.60) + (scoringSkills[1] * 0.30) + (scoringSkills[2] * 0.10);
-    // Playmaking is the PRIMARY factor (60%), IQ helps (30%), ball handling minor (10%)
-    const passSkill = (attr.playmaking * 0.6) + (attr.basketballIQ * 0.3) + (attr.ballHandling * 0.1);
+    const passSkill  = (attr.playmaking * 0.6) + (attr.basketballIQ * 0.3) + (attr.ballHandling * 0.1);
 
-    // 3. Team Context Adjustment
-    // CRITICAL RULE: Elite scorers (85+ shootSkill) are NOT affected by teammate quality.
-    // They score regardless. teammateBias only affects role players and secondary options.
-    let teammateBias = 0;
+    // 2. BASE TENDENCIES directly from skill (70 skill = 70 base tendency)
+    let finalShooting = shootSkill;
+    let finalPassing  = passSkill;
 
-    if (teammates.length > 0 && shootSkill < 85) {
-        // Only apply teammate context to non-elite scorers
+    // 3. STAR MULTIPLIER: elite scorers see more looks and take more shots
+    //    Applied only to shooting — passing stays pure skill
+    if (ovr >= 89 && (position === 'PG' || position === 'SG' || position === 'SF')) {
+        finalShooting = Math.min(92, finalShooting * 1.10); // Superstar
+    } else if (ovr >= 85 && (position === 'PG' || position === 'SG' || position === 'SF')) {
+        finalShooting = Math.min(90, finalShooting * 1.05); // Star
+    } else if (ovr >= 88) {
+        // Elite big man scorer (Jokic etc) — smaller boost
+        finalShooting = Math.min(88, finalShooting * 1.06);
+    }
+
+    // 4. ROLE PLAYER DEFER: non-elite scorers pull back shooting, NOT passing
+    //    They still move the ball, they just don't create their own shot
+    if (shootSkill < 78) {
+        const deferFactor = 0.65 + (shootSkill - 60) * 0.01; // 60 skill → 0.65x, 77 skill → 0.82x
+        finalShooting = finalShooting * Math.max(0.55, deferFactor);
+    }
+
+    // 5. NON-SHOOTER HARD CAP
+    if (shootSkill < 65) finalShooting = Math.min(finalShooting, 52);
+    if (shootSkill < 55) finalShooting = Math.min(finalShooting, 38);
+
+    // 6. MINUTES SCALING: bench players don't get as many looks
+    if (minutes < 15) {
+        finalShooting *= 0.72;
+        finalPassing  *= 0.85;
+    } else if (minutes < 22) {
+        finalShooting *= 0.85;
+    }
+
+    // 7. POSITIONAL BIG-MAN CAP: one-dimensional bigs shouldn't ISO-shoot
+    if (position === 'C' || position === 'PF') {
+        const isOneDimensional = attr.midRange < 60 && attr.threePointShot < 60 && attr.playmaking < 60;
+        if (isOneDimensional) finalShooting = Math.min(finalShooting, 62);
+    }
+
+    // 8. TEAM CONTEXT: only affects non-elite scorers (84 and below)
+    //    Elite scorers (85+ shootSkill) create regardless of teammates
+    if (shootSkill < 85 && teammates.length > 0) {
         const totalThreat = teammates.reduce((sum, p) => {
             if (p.id === player.id) return sum;
-            const pThreat = (p.attributes.finishing + p.attributes.threePointShot + p.attributes.midRange) / 3;
-            return sum + pThreat;
+            return sum + (p.attributes.finishing + p.attributes.threePointShot + p.attributes.midRange) / 3;
         }, 0);
-        const avgThreat = totalThreat / (Math.max(1, teammates.length - 1));
-
-        // Thresholds — moderated to not completely kill scoring
-        if (avgThreat > 75) teammateBias = 12; // Good teammates -> pass a bit more (was 20)
-        else if (avgThreat < 65) teammateBias = -15; // No help -> carry harder (was -20)
+        const avgThreat = totalThreat / Math.max(1, teammates.length - 1);
+        if (avgThreat > 78) finalShooting *= 0.90; // Great teammates → share more
+        else if (avgThreat < 64) finalShooting = Math.min(92, finalShooting * 1.08); // No help → carry
     }
 
-    // 4. Weight Calculation (Zero-Sum Distribution)
-    let wShoot = shootSkill;
-    let wPass = passSkill + teammateBias;
+    // 9. CLAMP FINAL VALUES
+    finalShooting = Math.min(92, Math.max(15, Math.round(finalShooting)));
+    finalPassing  = Math.min(97, Math.max(20, Math.round(finalPassing)));
 
-    // Safety: poor passers don't bias toward passing
-    if (passSkill < 55) {
-        wPass = passSkill;
-    }
-
-    // ROLE PLAYER DEFER: Non-elite scorers pass more (nerfed from 40 to 25 to preserve their shot attempts)
-    if (shootSkill < 80) {
-        wPass += 25; // Was 40 — still defers but doesn't eliminate their scoring
-    }
-
-    // Normalize weights
-    wShoot = Math.max(10, wShoot);
-    wPass = Math.max(10, wPass);
-    const totalWeight = wShoot + wPass;
-
-    // Allocate Budget
-    let allocShoot = Math.round(budget * (wShoot / totalWeight));
-    let allocPass = Math.round(budget * (wPass / totalWeight));
-
-    // Min floor: 15 for shooting (allows role players to have genuinely low shooting tendency)
-    // Min floor: 20 for passing (everyone should be willing to swing the ball)
-    const clamp = (val: number, max: number = 100, min: number = 15) => Math.min(max, Math.max(min, val));
-
-    // HARD CAPS based on Talent
-    // Superstars get 100, Stars get 90, Starters get 80, Bench get 65
-    let maxShooting = 100;
-    if (shootSkill < 70) maxShooting = 60;       // Defensive Specialist / Non-Scorer
-    else if (shootSkill < 78) maxShooting = 75;  // Role Player
-    else if (shootSkill < 85) maxShooting = 88;  // Secondary Scorer
-
-    // VERSATILITY PENALTY (The 'Andre Drummond' check)
-    // Centers and PFs are penalized heavily if they ONLY have Finishing
-    if (position === 'C' || position === 'PF') {
-        const isOneDimensional = (attr.midRange < 60 && attr.threePointShot < 60 && attr.playmaking < 60);
-
-        if (isOneDimensional) {
-            maxShooting = 65; // Hard cap on raw rim-runners taking 20 shots
-        } else if (shootSkill < 85) {
-            maxShooting -= 10; // Standard positional subtraction
-        }
-    }
-
-    const finalShooting = clamp(allocShoot, maxShooting);
-
-    // Distribute unallocated budget to passing
-    let remainingBudget = budget - finalShooting;
-    let finalPassing = clamp(remainingBudget, 99, 20); // Min 20 — everyone swings the ball
-
-    // SUPERSTAR PLAYMAKER EXEMPTION (The 'Jokic/Luka' check)
-    // Generational offensive hubs do not obey zero-sum budgeting. They do everything at high volume.
-    if (passSkill > 85) {
-        const eliteFloor = Math.round(passSkill * 0.90);
-        if (finalPassing < eliteFloor) {
-            finalPassing = clamp(eliteFloor, 99, 20);
-        }
-    }
-
-    // SUPERSTAR SCORER EXEMPTION (The 'SGA/Luka/KD' check)
-    // Elite scorers (85+ shootSkill) MUST have higher shooting tendency than passing tendency.
-    // They are the primary option. Their passing is a bonus, not the primary role.
-    if (shootSkill >= 85) {
-        if (finalShooting <= finalPassing) {
-            // Force scoring to dominate by at least 10 points
-            finalPassing = Math.max(20, finalShooting - 10);
-        }
-    }
-
-    // 6. Inside vs Outside Split (Preference within Scoring)
+    // 10. INSIDE vs OUTSIDE SPLIT
     const totalShootSkill = attr.finishing + attr.threePointShot;
-    let insideBias = totalShootSkill > 0 ? (attr.finishing / totalShootSkill) : 0.5;
-    let outsideBias = totalShootSkill > 0 ? (attr.threePointShot / totalShootSkill) : 0.5;
+    let insideBias  = totalShootSkill > 0 ? attr.finishing      / totalShootSkill : 0.5;
+    let outsideBias = totalShootSkill > 0 ? attr.threePointShot / totalShootSkill : 0.5;
 
-    // SCALER: Penalize Outside Tendency for poor shooters
-    if (attr.threePointShot < 60) {
-        outsideBias *= 0.25; // Aggressive Penalty for non-shooters (Target ~20 for 50-skill)
-    } else if (attr.threePointShot < 70) {
-        outsideBias *= 0.55; // Moderate Penalty
-    } else if (attr.threePointShot >= 80) {
-        outsideBias *= 1.1; // Small boost for elites
-    }
+    if (attr.threePointShot < 60) outsideBias *= 0.25;
+    else if (attr.threePointShot < 70) outsideBias *= 0.55;
+    else if (attr.threePointShot >= 80) outsideBias *= 1.10;
 
-    // Scale them. Since Inside/Outside are independent checks in PossessionEngine,
-    // We can just set them based on skill ratios relative to the *ShootingTendency*.
-
-    const finalInside = clamp(finalShooting * (insideBias * 2), 100, 15);
-    const finalOutside = clamp(finalShooting * (outsideBias * 2), 100, 15);
+    const finalInside  = Math.min(99, Math.max(15, Math.round(finalShooting * insideBias  * 2)));
+    const finalOutside = Math.min(99, Math.max(15, Math.round(finalShooting * outsideBias * 2)));
 
     return {
         ...player.tendencies,
         shooting: finalShooting,
-        passing: finalPassing,
-        inside: finalInside,
-        outside: finalOutside
+        passing:  finalPassing,
+        inside:   finalInside,
+        outside:  finalOutside
     };
 };
 

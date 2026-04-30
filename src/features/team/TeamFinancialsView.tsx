@@ -5,6 +5,8 @@ import { calculateExpectation, AVAILABLE_MERCH_CAMPAIGNS } from '../finance/Fina
 import { DollarSign, TrendingUp, TrendingDown, Wallet, Trash2, Users, Briefcase, Building2, AlertTriangle, Info, X, ShoppingBag, Activity, Heart, HeartOff } from 'lucide-react';
 import { getPlayerTradeValue, getTeamDirection } from '../trade/TradeLogic';
 import { calculateOverall } from '../../utils/playerUtils';
+import { calculateStars, calculateTeamBaseline } from '../../utils/starUtils';
+import { StarRating } from '../../components/StarRating';
 
 import { BackButton } from '../ui/BackButton';
 import { PageHeader } from '../ui/PageHeader';
@@ -50,7 +52,11 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
     const totalPayroll = teamContracts.reduce((sum, c) => sum + c.amount, 0);
     const capSpace = salaryCap - totalPayroll;
     const isOverCap = capSpace < 0;
-    const sortedContracts = [...teamContracts].sort((a, b) => b.amount - a.amount);
+    const sortedContracts = [...teamContracts].sort((a, b) => {
+        const playerA = players.find(p => p.id === a.playerId);
+        const playerB = players.find(p => p.id === b.playerId);
+        return (playerB?.overall || 0) - (playerA?.overall || 0);
+    });
     const expectation = calculateExpectation(team, teamRoster, teams, teamContracts);
     const handleCut = (playerId: string, name: string) => { setPlayerToCut({ id: playerId, name }); };
     const getPatienceColor = (patience: number) => {
@@ -65,13 +71,13 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
             minHeight: '100%',
             padding: '20px',
             paddingBottom: '140px',
-            color: 'var(--text)',
+            color: 'var(--text-main)',
             maxWidth: '600px',
             margin: '0 auto',
             display: 'flex',
             flexDirection: 'column',
             gap: '16px',
-            background: '#2A2A2A' // Standard dashboard background to avoid "gray bottom"
+            background: 'var(--bg-main)'
         }}>
             {/* Header */}
             <PageHeader
@@ -98,9 +104,9 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                 <button
                     onClick={() => setShowRules(true)}
                     style={{
-                        background: 'var(--surface)',
-                        border: '1px solid var(--border)',
-                        color: 'var(--text-secondary)',
+                        background: 'var(--bg-card)',
+                        border: '1px solid var(--border-color)',
+                        color: 'var(--text-dim)',
                         padding: '8px',
                         borderRadius: '50%',
                         cursor: 'pointer',
@@ -125,7 +131,7 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                                 {activeMerchCampaigns.map(campaign => (
                                     <div key={campaign.id} style={{
                                         background: 'var(--surface-glass)',
-                                        border: '1px solid var(--border)',
+                                        border: '1px solid var(--border-color)',
                                         borderRadius: '16px',
                                         padding: '16px'
                                     }}>
@@ -133,10 +139,10 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                                             <div style={{ fontWeight: 600 }}>{campaign.name}</div>
                                             <div style={{ fontWeight: 700, color: '#2ecc71' }}>+{formatMoney(campaign.revenueGenerated)}</div>
                                         </div>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: '8px' }}>
                                             {campaign.gamesRemaining} games remaining
                                         </div>
-                                        <div style={{ height: '6px', background: 'var(--surface)', borderRadius: '3px', overflow: 'hidden' }}>
+                                        <div style={{ height: '6px', background: 'var(--bg-card)', borderRadius: '3px', overflow: 'hidden' }}>
                                             <div style={{
                                                 height: '100%',
                                                 width: `${((campaign.durationInGames - campaign.gamesRemaining) / campaign.durationInGames) * 100}%`,
@@ -147,7 +153,7 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                                 ))}
                             </div>
                         ) : (
-                            <div style={{ padding: '24px', textAlign: 'center', background: 'var(--surface)', borderRadius: '16px', color: 'var(--text-secondary)' }}>
+                            <div style={{ padding: '24px', textAlign: 'center', background: 'var(--bg-card)', borderRadius: '16px', color: 'var(--text-dim)' }}>
                                 No active campaigns. Start one below!
                             </div>
                         )}
@@ -178,7 +184,7 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                                 return (
                                     <div key={campaign.id} style={{
                                         background: 'var(--surface-glass)',
-                                        border: canRun ? '1px solid var(--border)' : '1px solid var(--border)',
+                                        border: canRun ? '1px solid var(--border-color)' : '1px solid var(--border-color)',
                                         borderRadius: '16px',
                                         padding: '16px',
                                         opacity: canRun ? 1 : 0.6
@@ -186,24 +192,24 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                                             <div>
                                                 <div style={{ fontWeight: 700, fontSize: '1.05rem', marginBottom: '2px' }}>{campaign.name}</div>
-                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{campaign.description}</div>
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{campaign.description}</div>
                                             </div>
                                             <div style={{ textAlign: 'right' }}>
-                                                <div style={{ fontWeight: 700, color: 'var(--text)' }}>{formatMoney(campaign.cost)}</div>
+                                                <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{formatMoney(campaign.cost)}</div>
                                             </div>
                                         </div>
 
-                                        <div style={{ display: 'flex', gap: '12px', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-                                            <span style={{ background: 'var(--surface)', padding: '4px 8px', borderRadius: '6px' }}>
+                                        <div style={{ display: 'flex', gap: '12px', fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: '12px' }}>
+                                            <span style={{ background: 'var(--bg-card)', padding: '4px 8px', borderRadius: '6px' }}>
                                                 Duration: {campaign.durationInGames} Games
                                             </span>
-                                            <span style={{ background: 'var(--surface)', padding: '4px 8px', borderRadius: '6px', color: campaign.riskFactor > 0.2 ? '#e74c3c' : '#2ecc71' }}>
+                                            <span style={{ background: 'var(--bg-card)', padding: '4px 8px', borderRadius: '6px', color: campaign.riskFactor > 0.2 ? '#e74c3c' : '#2ecc71' }}>
                                                 Risk: {campaign.riskFactor > 0.3 ? 'High' : campaign.riskFactor > 0.1 ? 'Medium' : 'Low'}
                                             </span>
-                                            <span style={{ background: 'var(--surface)', padding: '4px 8px', borderRadius: '6px' }}>
+                                            <span style={{ background: 'var(--bg-card)', padding: '4px 8px', borderRadius: '6px' }}>
                                                 ROI: {(campaign.baseRoi * 100 - 100).toFixed(0)}%
                                             </span>
-                                            <span style={{ background: 'var(--surface)', padding: '4px 8px', borderRadius: '6px', color: '#2ecc71', fontWeight: 600 }}>
+                                            <span style={{ background: 'var(--bg-card)', padding: '4px 8px', borderRadius: '6px', color: '#2ecc71', fontWeight: 600 }}>
                                                 Est. Profit: +{formatMoney(campaign.cost * (campaign.baseRoi - 1))}
                                             </span>
                                         </div>
@@ -237,7 +243,7 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                         background: 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)',
                         padding: '24px',
                         borderRadius: '24px',
-                        color: 'white',
+                        color: 'var(--text-main)',
                         boxShadow: '0 8px 32px rgba(46, 204, 113, 0.3)',
                         position: 'relative'
                     }}>
@@ -251,7 +257,7 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                                     fontSize: '2.8rem',
                                     fontWeight: 800,
                                     letterSpacing: '-1px',
-                                    color: 'white',
+                                    color: 'var(--text-main)',
                                     lineHeight: '1.2'
                                 }}>
                                     {formatMoney(Number(team.cash) || 0)}
@@ -265,7 +271,7 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                             {(team.debt || 0) > 0 && (
                                 <div style={{ background: 'rgba(0,0,0,0.2)', padding: '6px 12px', borderRadius: '12px', textAlign: 'right' }}>
                                     <div style={{ fontSize: '0.7rem', opacity: 0.9, color: '#ffadad' }}>Debt</div>
-                                    <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'white' }}>-{formatMoney(team.debt)}</div>
+                                    <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)' }}>-{formatMoney(team.debt)}</div>
                                 </div>
                             )}
                         </div>
@@ -293,9 +299,9 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                             background: 'var(--surface-glass)',
                             padding: '16px',
                             borderRadius: '20px',
-                            border: '1px solid var(--border)'
+                            border: '1px solid var(--border-color)'
                         }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-secondary)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-dim)' }}>
                                 <Briefcase size={16} />
                                 <span style={{ fontSize: '0.85rem' }}>Owner Patience</span>
                             </div>
@@ -303,7 +309,7 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                                 {Math.round(team.ownerPatience || 0)}%
                             </div>
                             {/* Progress Bar */}
-                            <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                            <div style={{ height: '6px', background: 'rgba(0,0,0,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
                                 <div style={{
                                     height: '100%',
                                     width: `${team.ownerPatience || 0}%`,
@@ -318,16 +324,16 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                             background: 'var(--surface-glass)',
                             padding: '16px',
                             borderRadius: '20px',
-                            border: '1px solid var(--border)'
+                            border: '1px solid var(--border-color)'
                         }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-secondary)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-dim)' }}>
                                 <Users size={16} />
                                 <span style={{ fontSize: '0.85rem' }}>Fan Interest</span>
                             </div>
                             <div style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>
                                 {(team.fanInterest || 1.0).toFixed(2)}x
                             </div>
-                            <div style={{ fontSize: '0.75rem', color: (team.fanInterest || 1.0) < 0.8 ? '#f1c40f' : 'var(--text-secondary)' }}>
+                            <div style={{ fontSize: '0.75rem', color: (team.fanInterest || 1.0) < 0.8 ? '#f1c40f' : 'var(--text-dim)' }}>
                                 {(team.fanInterest || 1.0) <= 0.75 ? 'Floor Applied (Debt)' : 'Revenue Multiplier'}
                             </div>
                         </div>
@@ -345,7 +351,7 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                                 <AlertTriangle size={18} />
                                 <span style={{ fontWeight: 700, fontSize: '0.9rem', textTransform: 'uppercase' }}>Financial Distress: Sell Assets</span>
                             </div>
-                            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, marginBottom: '10px' }}>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', margin: 0, marginBottom: '10px' }}>
                                 You are low on cash. You can sell players to other teams for their annual salary amount to regain liquidity.
                             </p>
                         </div>
@@ -379,12 +385,12 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                             background: 'var(--surface-glass)',
                             padding: '16px',
                             borderRadius: '16px',
-                            border: '1px solid var(--border)',
+                            border: '1px solid var(--border-color)',
                             display: 'flex',
                             flexDirection: 'column',
                             justifyContent: 'center'
                         }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', color: 'var(--text-secondary)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', color: 'var(--text-dim)' }}>
                                 <Building2 size={16} />
                                 <span style={{ fontSize: '0.8rem' }}>Market Size</span>
                             </div>
@@ -395,13 +401,13 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                             background: 'var(--surface-glass)',
                             padding: '16px',
                             borderRadius: '16px',
-                            border: '1px solid var(--border)',
+                            border: '1px solid var(--border-color)',
                             display: 'flex',
                             flexDirection: 'column',
                             justifyContent: 'center'
                         }}>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Expert Expectation</div>
-                            <div style={{ fontSize: '1.0rem', fontWeight: 700, color: 'var(--primary)' }}>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: '4px' }}>Expert Expectation</div>
+                            <div style={{ fontSize: '1.0rem', fontWeight: 700, color: 'var(--team-primary)' }}>
                                 {expectation.replace(/_/g, ' ')}
                             </div>
                         </div>
@@ -413,13 +419,13 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                             background: 'var(--surface-glass)',
                             padding: '16px',
                             borderRadius: '20px',
-                            border: '1px solid var(--border)'
+                            border: '1px solid var(--border-color)'
                         }}>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Active Payroll ({isPreSeason ? 'Pending' : 'Paid'})</div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: '5px' }}>Active Payroll ({isPreSeason ? 'Pending' : 'Paid'})</div>
                             <div style={{ fontSize: '1.4rem', fontWeight: 700 }}>
                                 {formatMoney(totalPayroll)}
                             </div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '5px' }}>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '5px' }}>
                                 Cap: {formatMoney(salaryCap)}
                             </div>
                         </div>
@@ -427,13 +433,13 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                             background: 'var(--surface-glass)',
                             padding: '16px',
                             borderRadius: '20px',
-                            border: '1px solid var(--border)'
+                            border: '1px solid var(--border-color)'
                         }}>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Cap Space</div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: '5px' }}>Cap Space</div>
                             <div style={{ fontSize: '1.4rem', fontWeight: 700, color: isOverCap ? '#e74c3c' : '#2ecc71' }}>
                                 {formatMoney(capSpace)}
                             </div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '5px' }}>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '5px' }}>
                                 {isOverCap ? 'Over Limit' : 'Available'}
                             </div>
                         </div>
@@ -443,43 +449,49 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                     <div>
                         <h3 style={{ fontSize: '1.1rem', marginBottom: '15px' }}>Payroll Breakdown</h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            {sortedContracts.map((contract, index) => {
-                                const player = useGame().players.find(p => p.id === contract.playerId);
-                                if (!player) return null;
+                            {(() => {
+                                const teamBaseline = calculateTeamBaseline(useGame().players.filter(p => p.teamId === team.id));
+                                return sortedContracts.map((contract, index) => {
+                                    const player = useGame().players.find(p => p.id === contract.playerId);
+                                    if (!player) return null;
+                                    const stars = calculateStars(calculateOverall(player), teamBaseline);
 
                                 return (
                                     <div
                                         key={contract.id}
                                         onClick={() => onSelectPlayer(player.id)}
                                         style={{
-                                            background: 'var(--surface)',
+                                            background: 'var(--bg-card)',
                                             padding: '15px',
                                             borderRadius: '16px',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'space-between',
-                                            border: '1px solid var(--border)',
+                                            border: '1px solid var(--border-color)',
                                             cursor: 'pointer',
                                             transition: 'background 0.2s'
                                         }}
                                         onMouseEnter={(e) => e.currentTarget.style.background = 'var(--surface-active)'}
-                                        onMouseLeave={(e) => e.currentTarget.style.background = 'var(--surface)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-card)'}
                                     >
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                             <div style={{
                                                 width: '32px', height: '32px', borderRadius: '50%',
                                                 background: 'var(--surface-active)',
-                                                color: 'var(--text-secondary)',
+                                                color: 'var(--text-dim)',
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                 fontWeight: '700', fontSize: '0.8rem',
-                                                border: '1px solid var(--border)'
+                                                border: '1px solid var(--border-color)'
                                             }}>
                                                 {player.position}
                                             </div>
                                             <div>
-                                                <div style={{ fontWeight: 600 }}>{player.firstName} {player.lastName}</div>
-                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                                    <span style={{ color: 'var(--text)' }}>#{typeof player.rotationIndex === 'number' ? player.rotationIndex + 1 : '-'} in Rot</span>
+                                                <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    {player.firstName} {player.lastName}
+                                                    <StarRating stars={stars} size={12} />
+                                                </div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                                                    <span style={{ color: 'var(--text-main)' }}>#{typeof player.rotationIndex === 'number' ? player.rotationIndex + 1 : '-'} in Rot</span>
                                                     <span style={{ margin: '0 6px', opacity: 0.3 }}>|</span>
                                                     {contract.yearsLeft} Yrs
                                                     <span style={{ margin: '0 6px', opacity: 0.3 }}>|</span>
@@ -532,7 +544,8 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                                         </div>
                                     </div>
                                 );
-                            })}
+                                });
+                            })()}
                         </div>
                     </div>
 
@@ -565,26 +578,26 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                                 padding: '20px'
                             }}>
                                 <div style={{
-                                    background: 'var(--surface)',
+                                    background: 'var(--bg-card)',
                                     borderRadius: '28px',
                                     maxWidth: '480px',
                                     width: '100%',
                                     maxHeight: '75vh',
                                     display: 'flex',
                                     flexDirection: 'column',
-                                    border: '1px solid var(--border)',
+                                    border: '1px solid var(--border-color)',
                                     boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
                                     overflow: 'hidden'
                                 }}>
-                                    <div style={{ padding: '24px', borderBottom: '1px solid var(--border)' }}>
+                                    <div style={{ padding: '24px', borderBottom: '1px solid var(--border-color)' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                                             <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Sell Player: {playerToSell.name}</h3>
                                             <button onClick={() => setPlayerToSell(null)} style={{ background: 'var(--surface-glass)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                 <X size={18} />
                                             </button>
                                         </div>
-                                        <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                                            Select a team to buy this player for <b style={{ color: 'var(--text)' }}>{formatMoney(playerToSell.amount)}</b> in cash.
+                                        <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-dim)' }}>
+                                            Select a team to buy this player for <b style={{ color: 'var(--text-main)' }}>{formatMoney(playerToSell.amount)}</b> in cash.
                                         </p>
                                     </div>
 
@@ -640,7 +653,7 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                                                         }}
                                                         style={{
                                                             background: 'var(--surface-glass)',
-                                                            border: canAfford && interestLevel !== 'None' ? `1px solid ${statusColor}` : '1px solid var(--border)',
+                                                            border: canAfford && interestLevel !== 'None' ? `1px solid ${statusColor}` : '1px solid var(--border-color)',
                                                             borderRadius: '16px',
                                                             padding: '16px',
                                                             display: 'flex',
@@ -659,7 +672,7 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                                                                 {interestLevel === 'Strong' && <Heart size={14} fill="#2ecc71" color="#2ecc71" />}
                                                                 {interestLevel === 'Low' && <Heart size={14} color="#f1c40f" />}
                                                             </div>
-                                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '4px' }}>
                                                                 Cash: {formatMoney(t.cash)} | Direction: {tDirection.replace('_', ' ')}
                                                             </div>
                                                         </div>
@@ -693,8 +706,8 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                                         </div>
                                     </div>
 
-                                    <div style={{ padding: '20px', background: 'var(--surface-glass)', borderTop: '1px solid var(--border)', textAlign: 'center' }}>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                    <div style={{ padding: '20px', background: 'var(--surface-glass)', borderTop: '1px solid var(--border-color)', textAlign: 'center' }}>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
                                             Transaction involves direct cash transfer from buyer to seller.
                                         </div>
                                     </div>
@@ -715,14 +728,14 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                             padding: '20px'
                         }}>
                             <div style={{
-                                background: 'var(--surface)',
+                                background: 'var(--bg-card)',
                                 borderRadius: '24px',
                                 maxWidth: '500px',
                                 width: '100%',
                                 maxHeight: '80vh',
                                 overflowY: 'auto',
                                 padding: '24px',
-                                border: '1px solid var(--border)',
+                                border: '1px solid var(--border-color)',
                                 position: 'relative'
                             }}>
                                 <button
@@ -731,67 +744,67 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                                         position: 'absolute', top: '16px', right: '16px',
                                         background: 'rgba(0,0,0,0.1)', border: 'none', borderRadius: '50%',
                                         width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        cursor: 'pointer', color: 'var(--text)'
+                                        cursor: 'pointer', color: 'var(--text-main)'
                                     }}
                                 >
                                     <X size={18} />
                                 </button>
 
                                 <h2 style={{ fontSize: '1.4rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <Info style={{ color: 'var(--primary)' }} /> League Financial Rules
+                                    <Info style={{ color: 'var(--team-primary)' }} /> League Financial Rules
                                 </h2>
 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                    <div style={{ background: 'var(--surface-glass)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                                    <div style={{ background: 'var(--surface-glass)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
                                         <div style={{ fontWeight: 700, marginBottom: '6px', color: '#2ecc71', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <TrendingUp size={18} /> Dynamic Salary Cap
                                         </div>
-                                        <p style={{ fontSize: '0.9rem', lineHeight: '1.5', color: 'var(--text-secondary)', margin: 0 }}>
+                                        <p style={{ fontSize: '0.9rem', lineHeight: '1.5', color: 'var(--text-dim)', margin: 0 }}>
                                             The Salary Cap is no longer fixed! It recalculates every season based on total League Revenue (~48% of Basketball Related Income).
                                             <br /><br />
-                                            <b style={{ color: 'var(--text)' }}>Strategy:</b> If the league is booming, the cap rises, allowing you to sign more stars. If revenue drops, the cap shrinks, forcing tough trades.
+                                            <b style={{ color: 'var(--text-main)' }}>Strategy:</b> If the league is booming, the cap rises, allowing you to sign more stars. If revenue drops, the cap shrinks, forcing tough trades.
                                         </p>
                                     </div>
 
-                                    <div style={{ background: 'var(--surface-glass)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                                    <div style={{ background: 'var(--surface-glass)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
                                         <div style={{ fontWeight: 700, marginBottom: '6px', color: '#3498db', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <Users size={18} /> Revenue Sharing
                                         </div>
-                                        <p style={{ fontSize: '0.9rem', lineHeight: '1.5', color: 'var(--text-secondary)', margin: 0 }}>
+                                        <p style={{ fontSize: '0.9rem', lineHeight: '1.5', color: 'var(--text-dim)', margin: 0 }}>
                                             Small markets are protected. A portion of all Luxury Tax payments is redistributed to teams that stay <b>under the Salary Cap</b>.
                                             <br /><br />
-                                            <b style={{ color: 'var(--text)' }}>Payout:</b> Can amount to $10M-$30M per season for eligible teams, boosting your cash reserves.
+                                            <b style={{ color: 'var(--text-main)' }}>Payout:</b> Can amount to $10M-$30M per season for eligible teams, boosting your cash reserves.
                                         </p>
                                     </div>
 
-                                    <div style={{ background: 'var(--surface-glass)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                                    <div style={{ background: 'var(--surface-glass)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
                                         <div style={{ fontWeight: 700, marginBottom: '6px', color: '#e74c3c', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <AlertTriangle size={18} /> Debt & Signing Ban
                                         </div>
-                                        <p style={{ fontSize: '0.9rem', lineHeight: '1.5', color: 'var(--text-secondary)', margin: 0 }}>
+                                        <p style={{ fontSize: '0.9rem', lineHeight: '1.5', color: 'var(--text-dim)', margin: 0 }}>
                                             Teams with <b style={{ color: '#e74c3c' }}>negative cash</b> are placed under a signing ban. You can only offer <b>League Minimum</b> contracts in Free Agency.
                                             <br /><br />
-                                            <b style={{ color: 'var(--text)' }}>Note:</b> Fan Interest is floor-capped at <b>0.70</b> for teams in debt to ensure you can eventually crawl back to profitability.
+                                            <b style={{ color: 'var(--text-main)' }}>Note:</b> Fan Interest is floor-capped at <b>0.70</b> for teams in debt to ensure you can eventually crawl back to profitability.
                                         </p>
                                     </div>
 
-                                    <div style={{ background: 'var(--surface-glass)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                                    <div style={{ background: 'var(--surface-glass)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
                                         <div style={{ fontWeight: 700, marginBottom: '6px', color: '#f1c40f', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <Briefcase size={18} /> Emergency Bailouts
                                         </div>
-                                        <p style={{ fontSize: '0.9rem', lineHeight: '1.5', color: 'var(--text-secondary)', margin: 0 }}>
+                                        <p style={{ fontSize: '0.9rem', lineHeight: '1.5', color: 'var(--text-dim)', margin: 0 }}>
                                             If your debt reaches <b style={{ color: '#e74c3c' }}>$100M</b>, the league will force an emergency sale of your highest next-year 1st round pick for <b>$15M</b> cash relief.
                                         </p>
                                     </div>
 
-                                    <div style={{ background: 'var(--surface-glass)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                                    <div style={{ background: 'var(--surface-glass)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
                                         <div style={{ fontWeight: 700, marginBottom: '6px', color: '#3498db', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <DollarSign size={18} /> Asset Liquidation (Sell to Team)
                                         </div>
-                                        <p style={{ fontSize: '0.9rem', lineHeight: '1.5', color: 'var(--text-secondary)', margin: 0 }}>
+                                        <p style={{ fontSize: '0.9rem', lineHeight: '1.5', color: 'var(--text-dim)', margin: 0 }}>
                                             You can sell any player on your roster to another team in exchange for their <b>1-year salary in cash</b>.
                                             <br /><br />
-                                            <b style={{ color: 'var(--text)' }}>Conditions:</b> The buying team must have enough <b style={{ color: 'var(--primary)' }}>Available Cash</b> and <b style={{ color: '#2ecc71' }}>Salary Cap Space</b> to absorb the contract.
+                                            <b style={{ color: 'var(--text-main)' }}>Conditions:</b> The buying team must have enough <b style={{ color: 'var(--team-primary)' }}>Available Cash</b> and <b style={{ color: '#2ecc71' }}>Salary Cap Space</b> to absorb the contract.
                                         </p>
                                     </div>
                                 </div>
@@ -813,7 +826,7 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                             <div key={t.id} style={{
                                 background: 'var(--surface-glass)',
                                 borderRadius: '16px',
-                                border: '1px solid var(--border)',
+                                border: '1px solid var(--border-color)',
                                 overflow: 'hidden'
                             }}>
                                 <div
@@ -833,26 +846,26 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                                             width: '40px', height: '40px',
                                             borderRadius: '8px',
                                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            color: '#fff', fontWeight: 'bold'
+                                            color: 'var(--text-main)', fontWeight: 'bold'
                                         }}>
                                             {t.city.substring(0, 1)}
                                         </div>
                                         <div>
                                             <div style={{ fontWeight: 700 }}>{t.city} {t.name}</div>
-                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
                                                 {tContracts.length} Contracts
                                             </div>
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '24px', textAlign: 'right' }}>
                                         <div>
-                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Cash</div>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>Cash</div>
                                             <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
                                                 {formatMoney(t.cash)}
                                             </div>
                                         </div>
                                         <div>
-                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Space</div>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>Space</div>
                                             <div style={{
                                                 fontWeight: 700,
                                                 color: tIsOver ? '#e74c3c' : '#2ecc71'
@@ -864,41 +877,53 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                                 </div>
 
                                 {isExpanded && (
-                                    <div style={{ padding: '0 16px 16px 16px', borderTop: '1px solid var(--border)' }}>
+                                    <div style={{ padding: '0 16px 16px 16px', borderTop: '1px solid var(--border-color)' }}>
                                         <div style={{
                                             display: 'flex', justifyContent: 'space-between',
-                                            padding: '12px 0', borderBottom: '1px dashed var(--border)',
-                                            fontSize: '0.85rem', color: 'var(--text-secondary)'
+                                            padding: '12px 0', borderBottom: '1px dashed var(--border-color)',
+                                            fontSize: '0.85rem', color: 'var(--text-dim)'
                                         }}>
                                             <span>Used Cap: <b>{formatMoney(tPayroll)}</b></span>
                                             <span>Cap Limit: <b>{formatMoney(salaryCap)}</b></span>
                                         </div>
 
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
-                                            {tContracts
-                                                .sort((a, b) => b.amount - a.amount)
-                                                .map(c => {
-                                                    const p = players.find(pl => pl.id === c.playerId);
-                                                    if (!p) return null;
+                                            {(() => {
+                                                const tRoster = players.filter(p => p.teamId === t.id);
+                                                const tBaseline = calculateTeamBaseline(tRoster);
+                                                return tContracts
+                                                    .sort((a, b) => {
+                                                        const playerA = players.find(p => p.id === a.playerId);
+                                                        const playerB = players.find(p => p.id === b.playerId);
+                                                        return (playerB?.overall || 0) - (playerA?.overall || 0);
+                                                    })
+                                                    .map(c => {
+                                                        const p = players.find(pl => pl.id === c.playerId);
+                                                        if (!p) return null;
+                                                        const stars = calculateStars(calculateOverall(p), tBaseline);
                                                     return (
                                                         <div key={c.id}
                                                             onClick={() => onSelectPlayer(p.id)}
                                                             style={{
                                                                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                                                padding: '8px', background: 'var(--surface)', borderRadius: '8px',
+                                                                padding: '8px', background: 'var(--bg-card)', borderRadius: '8px',
                                                                 cursor: 'pointer'
                                                             }}>
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                                 <span style={{ fontSize: '0.8rem', fontWeight: 600, width: '25px', textAlign: 'center', background: 'var(--surface-active)', borderRadius: '4px' }}>{p.position}</span>
-                                                                <span style={{ fontWeight: 500 }}>{p.firstName} {p.lastName}</span>
+                                                                <span style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                    {p.firstName} {p.lastName}
+                                                                    <StarRating stars={stars} size={10} />
+                                                                </span>
                                                             </div>
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{c.yearsLeft}y</span>
+                                                                <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{c.yearsLeft}y</span>
                                                                 <span style={{ fontWeight: 600, fontFamily: 'monospace' }}>{formatMoney(c.amount)}</span>
                                                             </div>
                                                         </div>
                                                     );
-                                                })}
+                                                    });
+                                            })()}
                                         </div>
                                     </div>
                                 )}

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import type { Player, PlayerAttributes } from '../../models/Player';
 import type { Team } from '../../models/Team';
 import { calculateOverall } from '../../utils/playerUtils';
+import { calculateStars, calculateTeamBaseline } from '../../utils/starUtils';
+import { StarRating } from '../../components/StarRating';
 
 interface LeaguePlayersViewProps {
     players: Player[];
@@ -28,6 +30,12 @@ export const LeaguePlayersView: React.FC<LeaguePlayersViewProps> = ({ players, t
         const ovrB = calculateOverall(b);
         return ovrB - ovrA;
     });
+
+    const baseline = React.useMemo(() => {
+        if (selectedTeamId === 'all' || selectedTeamId === 'free_agent') return 75;
+        const teamPlayers = players.filter(p => p.teamId === selectedTeamId);
+        return calculateTeamBaseline(teamPlayers);
+    }, [selectedTeamId, players]);
 
     const getAttributeDiff = (player: Player, attr: keyof PlayerAttributes) => {
         if (!player.previousAttributes) return 0;
@@ -73,7 +81,7 @@ export const LeaguePlayersView: React.FC<LeaguePlayersViewProps> = ({ players, t
                             <th style={{ padding: '10px', textAlign: 'left', color: 'var(--text-secondary)' }}>Team</th>
                             <th style={{ padding: '10px', textAlign: 'left', color: 'var(--text-secondary)' }}>Pos</th>
                             <th style={{ padding: '10px', textAlign: 'left', color: 'var(--text-secondary)' }}>Age</th>
-                            <th style={{ padding: '10px', textAlign: 'left', color: 'var(--text-secondary)' }}>OVR</th>
+                            <th style={{ padding: '10px', textAlign: 'left', color: 'var(--text-secondary)' }}>Stars</th>
                             {ATTRIBUTE_KEYS.map(key => (
                                 <th key={key} style={{ padding: '10px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{key.substring(0, 3).toUpperCase()}</th>
                             ))}
@@ -89,7 +97,9 @@ export const LeaguePlayersView: React.FC<LeaguePlayersViewProps> = ({ players, t
                                     <td style={{ padding: '10px', color: 'var(--text-secondary)' }}>{team ? team.abbreviation : 'FA'}</td>
                                     <td style={{ padding: '10px', color: 'var(--text-secondary)' }}>{p.position}</td>
                                     <td style={{ padding: '10px', color: 'var(--text-secondary)' }}>{p.age}</td>
-                                    <td style={{ padding: '10px', fontWeight: 'bold', color: 'var(--text)' }}>{ovr}</td>
+                                    <td style={{ padding: '10px' }}>
+                                        <StarRating stars={calculateStars(ovr, baseline)} size={14} />
+                                    </td>
                                     {ATTRIBUTE_KEYS.map(key => (
                                         <td key={key} style={{ padding: '10px', textAlign: 'center', fontSize: '0.9rem', color: '#aaa' }}>
                                             {p.attributes[key]}

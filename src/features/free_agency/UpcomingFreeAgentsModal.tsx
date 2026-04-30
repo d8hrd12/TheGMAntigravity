@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import { useGame } from '../../store/GameContext';
 import { calculateOverall } from '../../utils/playerUtils';
+import { calculateStars } from '../../utils/starUtils';
+import { StarRating } from '../../components/StarRating';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 
@@ -131,7 +133,7 @@ export const UpcomingFreeAgentsModal: React.FC<UpcomingFreeAgentsModalProps> = (
                                                 <div style={{ fontSize: '0.9rem', color: '#999', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
                                                     <span style={{ fontWeight: 700, color: '#white', background: '#444', padding: '2px 6px', borderRadius: '4px' }}>{p.position}</span>
                                                     <span>•</span>
-                                                    <span style={{ color: p.ovr >= 85 ? '#ffd60a' : '#ddd', fontWeight: 700 }}>{p.ovr} OVR</span>
+                                                    <StarRating stars={calculateStars(p.ovr, 75)} size={12} />
                                                     <span>•</span>
                                                     <span>{p.age}yo</span>
                                                 </div>

@@ -4,52 +4,44 @@ import { ArrowLeft } from 'lucide-react';
 interface PageHeaderProps {
     title: string;
     onBack: () => void;
-    children?: React.ReactNode; // For content below the header (filters, toggles, etc.)
+    children?: React.ReactNode; 
 }
 
 export const PageHeader: React.FC<PageHeaderProps> = ({ title, onBack, children }) => {
     return (
-        <div style={{ marginBottom: children ? '20px' : '15px' }}>
-            {/* Header Row: Back Arrow + Title (Alone) */}
+        <div style={{ marginBottom: '30px' }}>
             <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
-                marginBottom: children ? '15px' : '0'
+                gap: '16px',
             }}>
                 <button
                     onClick={onBack}
+                    className="btn-pixel"
                     style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        border: 'none',
-                        borderRadius: '50%',
-                        width: '36px',
-                        height: '36px',
+                        padding: '8px',
+                        width: '40px',
+                        height: '40px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        cursor: 'pointer',
-                        color: '#fff',
-                        transition: 'all 0.2s'
+                        boxShadow: '0 4px 0px #00a8b3'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
                 >
                     <ArrowLeft size={20} />
                 </button>
                 <h2 style={{
                     margin: 0,
-                    color: '#fff',
-                    fontSize: '1.4rem',
-                    fontWeight: '700'
+                    color: 'var(--primary)',
+                    fontSize: '1.2rem',
+                    textShadow: 'var(--neon-glow)'
                 }}>
                     {title}
                 </h2>
             </div>
 
-            {/* Optional content below header (filters, toggles, etc.) */}
             {children && (
-                <div>{children}</div>
+                <div style={{ marginTop: '20px' }}>{children}</div>
             )}
         </div>
     );

@@ -27,7 +27,7 @@ export const TradesSummaryView: React.FC<TradesSummaryViewProps> = ({ trades, te
                         const team2 = teams.find(t => t.id === trade.team2Id);
 
                         return (
-                            <div key={trade.id} className="glass-panel" style={{ padding: '15px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                            <div key={trade.id} className="glass-panel" style={{ padding: '15px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                                 <div style={{ marginBottom: '10px', fontSize: '0.85rem', color: '#666', borderBottom: '1px solid #eee', paddingBottom: '5px' }}>
                                     {formatDate(trade.date)}
                                 </div>
@@ -49,7 +49,7 @@ export const TradesSummaryView: React.FC<TradesSummaryViewProps> = ({ trades, te
                                                         <span
                                                             style={{
                                                                 cursor: item.type === 'player' ? 'pointer' : 'default',
-                                                                color: item.type === 'player' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                                                color: item.type === 'player' ? 'var(--text-primary)' : 'var(--text-dim)',
                                                                 textDecoration: item.type === 'player' ? 'underline' : 'none',
                                                                 textDecorationColor: '#444' // Subtle underline
                                                             }}
@@ -88,7 +88,7 @@ export const TradesSummaryView: React.FC<TradesSummaryViewProps> = ({ trades, te
                                                         <span
                                                             style={{
                                                                 cursor: item.type === 'player' ? 'pointer' : 'default',
-                                                                color: item.type === 'player' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                                                color: item.type === 'player' ? 'var(--text-primary)' : 'var(--text-dim)',
                                                                 textDecoration: item.type === 'player' ? 'underline' : 'none',
                                                                 textDecorationColor: '#444'
                                                             }}

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useGame } from '../../store/GameContext';
 import { calculateOverall } from '../../utils/playerUtils';
+import { calculateStars } from '../../utils/starUtils';
+import { StarRating } from '../../components/StarRating';
 import type { Player } from '../../models/Player';
 import type { Team } from '../../models/Team';
 import { AlertCircle, Check, Users } from 'lucide-react';
@@ -51,7 +53,7 @@ export const ExpansionDraftView: React.FC = () => {
     });
 
     return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--background)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--background)' }}>
             <div style={{ padding: '20px', borderBottom: '1px solid var(--border)', background: 'var(--surface)' }}>
                 <h1 style={{ margin: 0, fontSize: '1.8rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Users size={32} color="var(--primary)" />
@@ -100,7 +102,7 @@ export const ExpansionDraftView: React.FC = () => {
                 </div>
             </div>
 
-            <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
+            <div style={{ flex: 1, padding: '10px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '10px' }}>
                     {sortedPool.map(player => {
                         const isSelected = selectedIds.includes(player.id);
@@ -133,12 +135,8 @@ export const ExpansionDraftView: React.FC = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div style={{
-                                        fontSize: '1.2rem',
-                                        fontWeight: 800,
-                                        color: overall >= 80 ? '#2ecc71' : overall >= 75 ? '#f1c40f' : 'var(--text-secondary)'
-                                    }}>
-                                        {overall}
+                                    <div style={{ textAlign: 'right' }}>
+                                        <StarRating stars={calculateStars(overall, 75)} size={14} />
                                     </div>
                                 </div>
                             </div>

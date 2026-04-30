@@ -7,6 +7,7 @@ interface LeagueLeadersProps {
     players: Player[];
     teams: Team[];
     onSelectPlayer: (playerId: string) => void;
+    onSelectTeam: (teamId: string) => void;
 }
 
 interface LeaderCategory {
@@ -31,7 +32,7 @@ const CATEGORIES: LeaderCategory[] = [
     { title: 'FTA', key: 'ftAttempted', format: (v) => v.toFixed(1) },
 ];
 
-export const LeagueLeaders: React.FC<LeagueLeadersProps> = ({ players, teams, onSelectPlayer }) => {
+export const LeagueLeaders: React.FC<LeagueLeadersProps> = ({ players, teams, onSelectPlayer, onSelectTeam }) => {
     // Only consider qualified players (e.g., played > 0 games, or just > 0 for now)
     const qualifiedPlayers = players.filter(p => p.seasonStats && p.seasonStats.gamesPlayed > 0);
 
@@ -95,10 +96,10 @@ export const LeagueLeaders: React.FC<LeagueLeadersProps> = ({ players, teams, on
                 {CATEGORIES.map(cat => {
                     const leaders = getTop5(cat.key);
                     return (
-                        <div className="glass-panel" key={cat.key} style={{ padding: '15px' }}>
-                            <h4 style={{ margin: '0 0 10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '5px', color: '#fff' }}>{cat.title}</h4>
-                            {leaders.length === 0 ? <p style={{ color: '#888', fontStyle: 'italic', fontSize: '0.8rem' }}>No stats yet</p> : (
-                                <table style={{ width: '100%', fontSize: '0.9rem', borderCollapse: 'collapse' }}>
+                        <div className="modern-card" key={cat.key} style={{ padding: '15px' }}>
+                            <h4 style={{ margin: '0 0 10px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '5px', color: 'var(--text-main)', fontSize: '0.85rem' }}>{cat.title}</h4>
+                            {leaders.length === 0 ? <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.8rem' }}>No stats yet</p> : (
+                                <table style={{ width: '100%', fontSize: '0.85rem', borderCollapse: 'collapse' }}>
                                     <tbody>
                                         {leaders.map((p, i) => {
                                             const team = teams.find(t => t.id === p.teamId);
@@ -123,17 +124,31 @@ export const LeagueLeaders: React.FC<LeagueLeadersProps> = ({ players, teams, on
                                             return (
                                                 <tr
                                                     key={p.id}
-                                                    onClick={() => onSelectPlayer(p.id)}
                                                     style={{ cursor: 'pointer', transition: 'background 0.2s' }}
-                                                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                                                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'}
                                                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                                                 >
-                                                    <td style={{ width: '20px', color: '#888', padding: '4px' }}>{i + 1}.</td>
+                                                    <td style={{ width: '20px', color: 'var(--text-muted)', padding: '4px' }}>{i + 1}.</td>
                                                     <td style={{ padding: '4px' }}>
-                                                        <div style={{ fontWeight: 'bold', color: '#fff' }}>{p.lastName}</div>
-                                                        <div style={{ fontSize: '0.7em', color: '#aaa' }}>{team?.abbreviation}</div>
+                                                        <div 
+                                                            onClick={() => onSelectPlayer(p.id)}
+                                                            style={{ fontWeight: 'bold', color: 'var(--text-main)' }}
+                                                        >
+                                                            {p.lastName}
+                                                        </div>
+                                                        <div 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (team) {
+                                                                    onSelectTeam(team.id);
+                                                                }
+                                                            }}
+                                                            style={{ fontSize: '0.7em', color: 'var(--text-muted)', fontWeight: 800 }}
+                                                        >
+                                                            {team?.abbreviation}
+                                                        </div>
                                                     </td>
-                                                    <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--primary)', padding: '4px' }}>{cat.format(displayVal)}</td>
+                                                    <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--team-primary)', padding: '4px' }}>{cat.format(displayVal)}</td>
                                                 </tr>
                                             );
                                         })}

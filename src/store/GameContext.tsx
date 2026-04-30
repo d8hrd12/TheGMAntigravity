@@ -15,7 +15,7 @@ import { seedRealRosters } from '../features/player/rosterSeeder';
 import type { SocialMediaPost } from '../models/SocialMediaPost';
 
 import { LiveGameEngine } from '../features/simulation/LiveGameEngine';
-import { simulateMatchII as simulateMatch } from '../features/simulation/MatchEngineII';
+import { simulateMatchV3 as simulateMatch } from '../features/simulation/v3/MatchEngineV3';
 import { generateDailyPosts } from '../socialMediaUtils';
 import type { MatchResult, TeamRotationData, PlayerStats, MerchCampaign, ActiveMerchCampaign } from '../features/simulation/SimulationTypes';
 
@@ -30,6 +30,7 @@ import { optimizeRotation } from '../utils/rotationUtils';
 import { formatDate } from '../utils/dateUtils';
 
 import { calculateOverall, checkHallOfFameEligibility, calculateFairSalary, calculateSecondaryPosition } from '../utils/playerUtils';
+import { calculateStars, calculateTeamBaseline, getStarString } from '../utils/starUtils';
 import { NBA_TEAMS } from '../data/teams';
 import { REAL_ROSTERS } from '../data/realRosters';
 import {
@@ -41,6 +42,7 @@ import {
     type SeasonResult,
     type ExpectationLevel
 } from '../features/finance/FinancialEngine';
+import { generate82GameSchedule } from '../utils/scheduleGenerator';
 import { saveToDB, loadFromDB, deleteFromDB, type SaveMeta } from '../utils/storage';
 import { TrainingFocus, type ProgressionResult } from '../models/Training';
 import { calculateProgression } from '../features/training/TrainingLogic';
@@ -96,6 +98,26 @@ export interface GMProfile {
     perkPoints: number;
 }
 
+export interface GameRecord {
+    category: string;
+    value: number;
+    playerId: string;
+    playerName: string;
+    teamId: string;
+    teamName: string;
+    year: number;
+    date: Date;
+    opponentName: string;
+}
+
+export interface CumulativeRecord {
+    playerId: string;
+    playerName: string;
+    total: number;
+    category: string;
+    teamId?: string;
+}
+
 export interface GameState {
     players: Player[];
     teams: Team[];
@@ -113,7 +135,6 @@ export interface GameState {
     draftHistory: Record<number, DraftResult[]>; // Historical results by year
     seasonPhase: 'regular_season' | 'playoffs_r1' | 'playoffs_r2' | 'playoffs_r3' | 'playoffs_finals' | 'offseason' | 'pre_season' | 'draft' | 'draft_summary' | 'resigning' | 'free_agency' | 'retirement_summary' | 'expansion_draft' | 'scouting' | 'coach_free_agency';
     expansionPool: Player[];
-    playoffs: PlayoffSeries[];
     salaryCap: number;
     transactions: { date: Date; type: string; description: string }[];
     messages: Message[];
@@ -122,29 +143,40 @@ export interface GameState {
     tradeOffer: TradeProposal | null;
     awardsHistory: SeasonAwards[];
     retiredPlayersHistory: { year: number; players: RetiredPlayer[] }[];
-    scoutingPoints: Record<string, number>; // teamId -> points remaining
+    offseasonTasks: {
+        retirements: boolean;
+        scouting: boolean;
+        draft: boolean;
+        resigning: boolean;
+        freeAgency: boolean;
+        training: boolean;
+        trainingResults: boolean;
+    };
+    scoutingPoints: Record<string, number>; 
     isPotentialRevealed: boolean;
-    scoutingReports: Record<string, Record<string, { points: number, isPotentialRevealed: boolean }>>; // teamId -> (prospectId -> {points, revealed})
     settings: {
         difficulty: 'Easy' | 'Medium' | 'Hard';
         showLoveForTheGame: boolean;
     };
     currentSaveSlot: number | null;
+    // Records
+    leagueRecords: GameRecord[];
+    teamRecords: Record<string, GameRecord[]>;
+    leagueAllTimeLeaders: Record<string, CumulativeRecord[]>; // Category -> Top 50
+    teamAllTimeLeaders: Record<string, Record<string, CumulativeRecord[]>>; // TeamId -> Category -> Top 50
     // Training
-    trainingSettings: Record<string, TrainingFocus>; // PlayerID -> Focus
-    trainingReport: ProgressionResult[] | null; // Results from the last camp
+    trainingSettings: Record<string, TrainingFocus>;
+    trainingReport: ProgressionResult[] | null;
     isTrainingCampComplete: boolean;
     dailyMatchups: { homeId: string, awayId: string }[];
     pendingUserResult: MatchResult | null;
-
     tutorialFlags: {
         hasSeenNewsTutorial: boolean;
     };
     isProcessing: boolean;
-
     socialMediaPosts: SocialMediaPost[];
     activeMerchCampaigns: ActiveMerchCampaign[];
-    seasonGamesPlayed: number; // 0 to 82
+    seasonGamesPlayed: number;
     isFirstSeasonPaid: boolean;
     activeCoachOffers: FreeAgencyOffer[];
     lastFreeAgencyResult?: {
@@ -154,6 +186,7 @@ export interface GameState {
     };
     activeOffers: FreeAgencyOffer[];
     freeAgencyDay: number;
+    view: string;
 }
 
 // --- New Trade Interface for Interactivity ---
@@ -241,6 +274,32 @@ interface GameContextType extends GameState {
     setSimSpeed: (speed: number) => void;
     updatePlayerAttribute: (id: string, attr: string, val: any) => void;
     setGameState: (state: GameState | ((prev: GameState) => GameState)) => void;
+    // UI State in Context for deep access
+    selectedPlayerId: string | null;
+    setSelectedPlayerId: (id: string | null) => void;
+    selectedGame: MatchResult | null;
+    setSelectedGame: (game: MatchResult | null) => void;
+    shopPlayerId: string | null;
+    setShopPlayerId: (id: string | null) => void;
+    initialAiPlayerId: string | undefined;
+    setInitialAiPlayerId: (id: string | undefined) => void;
+    prefilledTrade: any | null;
+    setPrefilledTrade: (proposal: any | null) => void;
+    completeLiveGame: (result: MatchResult) => void;
+    showingAwards: SeasonAwards | null;
+    setShowingAwards: (awards: SeasonAwards | null) => void;
+    showSaveLoad: 'save' | 'load' | null;
+    setShowSaveLoad: (mode: 'save' | 'load' | null) => void;
+    showExitModal: boolean;
+    setShowExitModal: (show: boolean) => void;
+    showPayrollModal: boolean;
+    setShowPayrollModal: (show: boolean) => void;
+    modalMessage: { title: string, msg: string, type: 'error' | 'info' | 'success' } | null;
+    setModalMessage: (msg: { title: string, msg: string, type: 'error' | 'info' | 'success' } | null) => void;
+    currentNegotiation: any | null;
+    year: number;
+    setView: (view: string) => void;
+
     // Training
     updateTrainingFocus: (playerId: string, focus: TrainingFocus) => void;
     runTrainingCamp: () => void;
@@ -258,6 +317,7 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 export function useGame() {
     const context = useContext(GameContext);
     if (context === undefined) {
+        console.error('[GameContext] useGame was called outside of a GameProvider!');
         throw new Error('useGame must be used within a GameProvider');
     }
     return context;
@@ -272,7 +332,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         userTeamId: NBA_TEAMS[0].id,
         contracts: [],
         games: [],
-        date: new Date(2024, 9, 22), // Start of season (approx)
+        date: new Date(2026, 9, 22), // Start of season (approx)
         isInitialized: false,
         gmProfile: {
             firstName: 'GM',
@@ -293,8 +353,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
         messages: [],
         awardsHistory: [],
         retiredPlayersHistory: [],
-        scoutingPoints: {}, // Changed from 0 to {}
+        scoutingPoints: {},
         isPotentialRevealed: false,
+        leagueRecords: [],
+        teamRecords: {},
+        leagueAllTimeLeaders: {},
+        teamAllTimeLeaders: {},
         settings: {
             difficulty: 'Medium',
             showLoveForTheGame: false
@@ -318,7 +382,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         activeMerchCampaigns: [],
         seasonGamesPlayed: 0,
         isFirstSeasonPaid: false,
-        activeCoachOffers: []
+        activeCoachOffers: [],
+        view: 'dashboard'
     });
 
     // Ref to hold the latest state, avoiding stale closures in async functions or event handlers
@@ -340,20 +405,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const generateDailyMatchups = () => {
         setGameState(prev => {
-            const playingTeams = [...prev.teams];
+            // NBA Schedule Simulation: Teams play ~ every 2 days.
+
+            // NBA Schedule Simulation Fallback: Teams play ~ every 2 days.
+            const activeTeams = prev.teams.filter(t => (t.wins + t.losses) < 82);
+            const playingTeams = activeTeams.filter(() => Math.random() < 0.5);
+
+            const shuffled = [...playingTeams].sort(() => Math.random() - 0.5);
             const matchups: { homeId: string, awayId: string }[] = [];
 
-            // Shuffle for random pairings
-            for (let i = playingTeams.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [playingTeams[i], playingTeams[j]] = [playingTeams[j], playingTeams[i]];
-            }
-
-            for (let i = 0; i < playingTeams.length; i += 2) {
-                if (i + 1 < playingTeams.length) {
+            for (let i = 0; i < shuffled.length; i += 2) {
+                if (i + 1 < shuffled.length) {
                     matchups.push({
-                        homeId: playingTeams[i].id,
-                        awayId: playingTeams[i + 1].id
+                        homeId: shuffled[i].id,
+                        awayId: shuffled[i + 1].id
                     });
                 }
             }
@@ -393,13 +458,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
         });
     };
 
-    const endLiveGame = (result: MatchResult) => {
-        setGameState(prev => ({
-            ...prev,
-            pendingUserResult: result
-        }));
-        setLiveGame(null);
-    };
+    // UI State for Deep Navigation & Modals
+    const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+    const [selectedGame, setSelectedGame] = useState<MatchResult | null>(null);
+    const [shopPlayerId, setShopPlayerId] = useState<string | null>(null);
+    const [initialAiPlayerId, setInitialAiPlayerId] = useState<string | undefined>(undefined);
+    const [prefilledTrade, setPrefilledTrade] = useState<any | null>(null);
+    const [showingAwards, setShowingAwards] = useState<SeasonAwards | null>(null);
+    const [showSaveLoad, setShowSaveLoad] = useState<'save' | 'load' | null>(null);
+    const [showExitModal, setShowExitModal] = useState<boolean>(false);
+    const [showPayrollModal, setShowPayrollModal] = useState<boolean>(false);
+    const [modalMessage, setModalMessage] = useState<{ title: string, msg: string, type: 'error' | 'info' | 'success' } | null>(null);
+    const [currentNegotiation, setCurrentNegotiation] = useState<any | null>(null);
+
+    const setView = (v: string) => setGameState(prev => ({ ...prev, view: v }));
 
     // Auto-advance after manual game
     useEffect(() => {
@@ -408,13 +480,46 @@ export function GameProvider({ children }: { children: ReactNode }) {
         }
     }, [gameState.pendingUserResult]);
 
+    const completeLiveGame = (result: MatchResult) => {
+        setGameState(prev => {
+            const { leagueRecords, teamRecords } = checkAndUpdateRecords(
+                prev.leagueRecords || [],
+                prev.teamRecords || {},
+                [result],
+                prev.date,
+                prev.teams
+            );
+            const isRegularSeason = prev.seasonPhase === 'regular_season';
+            const { leagueLeaders, teamLeaders } = isRegularSeason 
+                ? updateCumulativeTotals(
+                    prev.leagueAllTimeLeaders || {},
+                    prev.teamAllTimeLeaders || {},
+                    [result]
+                )
+                : { leagueLeaders: prev.leagueAllTimeLeaders, teamLeaders: prev.teamAllTimeLeaders };
+            return {
+                ...prev,
+                pendingUserResult: result,
+                leagueRecords,
+                teamRecords,
+                leagueAllTimeLeaders: leagueLeaders,
+                teamAllTimeLeaders: teamLeaders
+            };
+        });
+        setLiveGame(null);
+    };
+
     // Ensure dailyMatchups are initialized for existing saves
     useEffect(() => {
-        if (gameState.isInitialized && gameState.seasonPhase === 'regular_season' && gameState.dailyMatchups.length === 0 && (gameState.seasonGamesPlayed || 0) < 82) {
-            console.log("Initializing dailyMatchups for existing save...");
+        if (gameState.isInitialized && 
+            gameState.seasonPhase === 'regular_season' && 
+            gameState.dailyMatchups.length === 0 && 
+            (gameState.seasonGamesPlayed || 0) < 82
+        ) {
+            console.log("Initializing dailyMatchups for regular season...");
             generateDailyMatchups();
         }
-    }, [gameState.isInitialized, gameState.seasonPhase, gameState.dailyMatchups]);
+    }, [gameState.isInitialized, gameState.seasonPhase, gameState.dailyMatchups.length]);
 
     // RECOVERY: Check for orphaned playoff stats (Fix for missing history)
     useEffect(() => {
@@ -754,18 +859,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 // If we subtract salary (e.g. 150M), they go negative immediately.
                 // The previous logic was "350M - Salary".
                 // If Hard Mode says "Knicks Start with 80M", does it mean 80M - Salary? (Negative?)
-                // Or 80M liquid cash?
-                // User text: "Knicks... Start with $80M" ... "Start: $350M • Salaries Paid Upfront"
-                // It seems the user wants the "Start" amount to be lower.
-                // If we set t.cash = 80M, and then DON'T deduct salary, they have 80M liquid.
-                // If we set t.cash = 80M and deduct salary (150M), they are bankrupt.
-                // So we should NOT deduct salary if we trust the teams.ts values are the "Liquid Starting Cash".
-                // Let's assume teams.ts values = Initial Cash Reserve.
-                // We keep the logic "t.cash = t.cash" (do nothing to it).
+                // Ensure healthy starting cash (Standard NBA Reserve)
+                t.cash = 350000000;
 
                 if (t.id === userTeamId) {
-                    if (difficulty === 'Easy') t.cash += 20000000;
-                    if (difficulty === 'Hard') t.cash -= 15000000;
+                    if (difficulty === 'Easy') t.cash += 50000000;
+                    if (difficulty === 'Hard') t.cash -= 50000000;
                 }
 
                 t.rosterIds = players.filter(p => p.teamId === t.id).map(p => p.id);
@@ -844,7 +943,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 userTeamId: finalUserTeamId,
                 contracts,
                 games: [],
-                date: new Date(2024, 9, 20), // Oct 20
+                date: new Date(2025, 9, 22), // Oct 22
                 salaryCap: INITIAL_SALARY_CAP,
                 coaches: initialCoaches, // Add coaches here
                 news: [],
@@ -892,7 +991,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 isFirstSeasonPaid: true, // First season is free, so we don't get blocked by the budget gate
                 activeOffers: [],
                 activeCoachOffers: [],
-                freeAgencyDay: 1
+                freeAgencyDay: 1,
+                leagueRecords: [],
+                teamRecords: {},
+                leagueAllTimeLeaders: {},
+                teamAllTimeLeaders: {},
+                view: "dashboard"
             });
 
             // Apply Real-World Trades (Post-Init Patch)
@@ -943,7 +1047,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 userTeamId,
                 contracts,
                 games: [],
-                date: new Date(2024, 9, 20), // Oct 20
+                date: new Date(2025, 9, 22), // Oct 22
                 salaryCap: 140000000,
                 coaches: initialCoaches, // Add coaches here
                 news: [],
@@ -991,7 +1095,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 isFirstSeasonPaid: true,
                 activeOffers: [],
                 activeCoachOffers: [],
-                freeAgencyDay: 1
+                freeAgencyDay: 1,
+                view: "dashboard"
             });
 
             setGameState(prev => applyRealWorldTrades(prev));
@@ -1088,7 +1193,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
             try {
                 // New Season Date: Oct 1st
-                const nextSeasonDate = new Date(prev.date.getFullYear(), 9, 1);
+                const nextSeasonDate = new Date(prev.date.getFullYear(), 9, 22);
 
                 // 1. Initialize updatedPlayers with current players (and archive playoff stats)
                 // RESET SEASON STATS HERE
@@ -1188,21 +1293,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     const teamContracts = updatedContracts.filter(c => c.teamId === t.id);
                     const payroll = teamContracts.reduce((sum, c) => sum + c.amount, 0);
 
-                    return { ...t, draftPicks: currentPicks, history: newHistory, wins: 0, losses: 0, cash: t.cash - payroll };
+                    const isUser = t.id === prev.userTeamId;
+                    const finalCash = isUser ? t.cash : t.cash - payroll;
+
+                    return { ...t, draftPicks: currentPicks, history: newHistory, wins: 0, losses: 0, cash: finalCash };
                 });
 
-                // 4. Initial Matchups
-                const initialMatchups: { homeId: string, awayId: string }[] = [];
-                const playingTeamsList = [...finalTeams];
-                for (let i = playingTeamsList.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [playingTeamsList[i], playingTeamsList[j]] = [playingTeamsList[j], playingTeamsList[i]];
-                }
-                for (let i = 0; i < playingTeamsList.length; i += 2) {
-                    if (i + 1 < playingTeamsList.length) {
-                        initialMatchups.push({ homeId: playingTeamsList[i].id, awayId: playingTeamsList[i + 1].id });
-                    }
-                }
+
 
                 return {
                     ...prev,
@@ -1212,7 +1309,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     contracts: updatedContracts,
                     date: nextSeasonDate,
                     seasonPhase: 'regular_season',
-                    dailyMatchups: initialMatchups,
+                    view: 'dashboard',
+                    dailyMatchups: [], // Will be generated by effect
                     pendingUserResult: null,
                     isFirstSeasonPaid: firstSeasonPaid,
                     seasonGamesPlayed: 0
@@ -1272,7 +1370,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 date: new Date(prev.date.getTime() + 86400000),
                 awardsHistory: [...prev.awardsHistory, awards],
                 dailyMatchups: [],
-                pendingUserResult: null
+                pendingUserResult: null,
+                view: 'playoffs'
             };
         });
     };
@@ -1441,12 +1540,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
             });
 
             // 4. Log Trade (Updated for Interactivity)
+            const team1Baseline = calculateTeamBaseline(prev.players.filter(p => p.teamId === userTeamId));
+            const team2Baseline = calculateTeamBaseline(prev.players.filter(p => p.teamId === aiTeamId));
+
             const t1Items: TradeAssetItem[] = [
                 ...updatedPlayers.filter(p => userPlayerIds.includes(p.id)).map(p => ({
                     type: 'player' as const,
                     id: p.id,
                     description: `${p.firstName} ${p.lastName}`,
-                    subText: `${calculateOverall(p)} OVR`,
+                    subText: getStarString(calculateStars(calculateOverall(p), team1Baseline)),
                     color: '#22c55e' // Green for player
                 })),
                 ...prev.teams.find(t => t.id === userTeamId)!.draftPicks.filter(pk => userPickIds.includes(pk.id)).map(pk => {
@@ -1468,7 +1570,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     type: 'player' as const,
                     id: p.id,
                     description: `${p.firstName} ${p.lastName}`,
-                    subText: `${calculateOverall(p)} OVR`,
+                    subText: getStarString(calculateStars(calculateOverall(p), team2Baseline)),
                     color: '#22c55e'
                 })),
                 ...prev.teams.find(t => t.id === aiTeamId)!.draftPicks.filter(pk => aiPickIds.includes(pk.id)).map(pk => {
@@ -1531,198 +1633,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setGameState(prev => ({ ...prev, isSimulating: true }));
     };
 
-
     const triggerDraft = () => {
         setGameState(prev => {
-            if (prev.seasonPhase !== 'offseason') {
-                console.warn("GameContext: triggerDraft called but phase is not offseason:", prev.seasonPhase);
+            if (prev.seasonPhase !== 'offseason' && prev.seasonPhase !== 'scouting') {
+                console.warn("GameContext: triggerDraft called but phase is not valid:", prev.seasonPhase);
                 return prev;
             }
 
-            console.log("GameContext: Triggering Draft...");
-
-
-            // 0. Handle Contract Expiry (Before Draft)
-            const updatedContracts: Contract[] = [];
-            const updatedPlayers = prev.players.map(p => ({ ...p, age: p.age + 1 }));
-            const updatedTeams = [...prev.teams]; // Updates will happen to rosterIds
-
-            // Simplified Contract Expiry
-            prev.contracts.forEach(c => {
-                const player = updatedPlayers.find(p => p.id === c.playerId);
-                if (c.yearsLeft > 1) {
-                    updatedContracts.push({ ...c, yearsLeft: c.yearsLeft - 1 });
-                } else {
-                    // Expired - release to free agency
-                    if (player) {
-                        player.teamId = null;
-                        if (!player.acquisition) player.acquisition = { type: 'free_agent', year: prev.date.getFullYear() };
-                        player.acquisition.previousTeamId = c.teamId;
-
-                        const team = updatedTeams.find(t => t.id === c.teamId);
-                        if (team) {
-                            team.rosterIds = team.rosterIds.filter(id => id !== player.id);
-                            team.salaryCapSpace += c.amount;
-                        }
-                    }
-                }
-            });
-
-            // Coach Contract Decrement
-            const updatedCoaches = prev.coaches.map(coach => {
-                if (coach.contract.yearsRemaining > 1) {
-                    return { ...coach, contract: { ...coach.contract, yearsRemaining: coach.contract.yearsRemaining - 1 } };
-                } else if (coach.contract.yearsRemaining === 1) {
-                    // Contract expired - release to free agency
-                    const team = updatedTeams.find(t => t.id === coach.teamId);
-                    if (team) {
-                        team.coachId = undefined;
-                    }
-                    return { ...coach, teamId: null, contract: { ...coach.contract, yearsRemaining: 0 } };
-                }
-                return coach; // Already a free agent
-            });
-
-            // 1. Generate Draft Class
-            const draftClass: Player[] = [];
-            const draftYear = prev.date.getFullYear();
-
-            // Distribution Logic
-            // Distribution Logic (NERFED for Raw Prospects)
-            const hasGenerational = Math.random() < 0.05; // Was 0.15
-            const numAllStars = Math.floor(Math.random() * 2); // 0-1 (Was 2-4)
-            const numStarters = 4 + Math.floor(Math.random() * 4); // 4-7 (Was 10-15)
-
-            // Generate Generational
-            if (hasGenerational) {
-                const p = generatePlayer(undefined, 'star');
-                p.potential = 96 + Math.floor(Math.random() * 4);
-                p.loveForTheGame = 18 + Math.floor(Math.random() * 3);
-                draftClass.push(p);
-            }
-
-            // Generate All-Stars
-            for (let i = 0; i < numAllStars; i++) {
-                draftClass.push(generatePlayer(undefined, 'star'));
-            }
-
-            // Generate Starters
-            for (let i = 0; i < numStarters; i++) {
-                draftClass.push(generatePlayer(undefined, 'starter'));
-            }
-
-            // Fill remainder (Mostly Prospects)
-            const currentCount = draftClass.length;
-            const remainder = 70 - currentCount; // Increased to 70 for safety
-
-            for (let i = 0; i < remainder; i++) {
-                const tier = Math.random() > 0.8 ? 'bench' : 'prospect'; // 80% Prospects
-                draftClass.push(generatePlayer(undefined, tier));
-            }
-
-            // Age reset
-            draftClass.forEach(p => {
-                p.age = 19 + Math.floor(Math.random() * 4);
-            });
-
-            // CUSTOM INJECTION: Season 2 (2026 Draft)
-            // Use date from state
-            if (prev.date.getFullYear() === 2026) {
-                console.log("Injecting Custom Players for 2026 Draft");
-                const customPlayers = [
-                    { firstName: 'Giannis', lastName: 'Tsetselis', position: 'PF', height: 208, weight: 109 }, // 6'10", 240lbs
-                    { firstName: 'Ilias', lastName: 'Kokpasoglou', position: 'C', height: 216, weight: 118 }, // 7'1", 260lbs
-                    { firstName: 'Petros', lastName: 'Pantelias', position: 'PG', height: 191, weight: 86 }, // 6'3", 190lbs
-                    { firstName: 'Lefteris', lastName: 'Sfinarolakis', position: 'SF', height: 201, weight: 100 }, // 6'7", 220lbs
-                    { firstName: 'Vaggelis', lastName: 'Tselelpis', position: 'SF', height: 203, weight: 102 } // 6'8", 225lbs
-                ];
-
-                customPlayers.forEach((cp, idx) => {
-                    // Generate base player
-                    const p = generatePlayer(undefined, 'starter'); // Use 'starter' base (nerfed)
-                    p.firstName = cp.firstName;
-                    p.lastName = cp.lastName;
-                    p.position = cp.position as any;
-                    p.height = cp.height;
-                    p.weight = cp.weight;
-                    p.age = 19 + Math.floor(Math.random() * 2); // Young
-
-                    // Potential: B+ (85) to A+ (99)
-                    p.potential = 85 + Math.floor(Math.random() * 15);
-                    if (p.potential > 99) p.potential = 99;
-
-                    // Ensure current ability isn't higher than potential
-                    // Start them decent (70-75) so they are draftable high
-                    const currentOvr = 70 + Math.floor(Math.random() * 8);
-                    // Adjust attributes to match OVR roughly (simplified)
-                    // We can just trust the generator but boost potential
-
-                    // Replace a random player in the draft class logic? Or just push to top?
-                    // Let's unshift them to be at the start (high visibility)
-                    // But array order doesn't dictate rank, sorting does.
-                    // Generator usually makes random stats. Let's Ensure they are good.
-
-                    draftClass.push(p);
-                });
-            }
-
-            // 2. Set Draft Order (Reverse Standings)
-            // The position is determined by the ORIGINAL team's record.
-            const sortedTeams = [...updatedTeams].sort((a, b) => {
-                if ((a.losses || 0) !== (b.losses || 0)) return (b.losses || 0) - (a.losses || 0); // Most losses = Lower pick #
-                return Math.random() - 0.5;
-            });
-
-            let order: string[] = [];
-
-            // Round 1
-            sortedTeams.forEach(originalTeam => {
-                // Find who currently owns the 1st round pick that originally belonged to this team
-                const owner = updatedTeams.find(t =>
-                    t.draftPicks && t.draftPicks.some(dp => dp.year === draftYear && dp.round === 1 && dp.originalTeamId === originalTeam.id)
-                );
-                order.push(owner ? owner.id : originalTeam.id);
-            });
-
-            // Round 2
-            sortedTeams.forEach(originalTeam => {
-                // Find who currently owns the 2nd round pick that originally belonged to this team
-                const owner = updatedTeams.find(t =>
-                    t.draftPicks && t.draftPicks.some(dp => dp.year === draftYear && dp.round === 2 && dp.originalTeamId === originalTeam.id)
-                );
-                order.push(owner ? owner.id : originalTeam.id);
-            });
-
-
-            // 3. Initialize Scouting Points
-            const scoutingPoints: Record<string, number> = {};
-            const scoutingReports: Record<string, Record<string, { points: number, isPotentialRevealed: boolean }>> = {};
-
-            const westTeams = updatedTeams.filter(t => t.conference === 'West').sort((a, b) => (b.wins || 0) - (a.wins || 0));
-            const eastTeams = updatedTeams.filter(t => t.conference === 'East').sort((a, b) => (b.wins || 0) - (a.wins || 0));
-
-            [...westTeams, ...eastTeams].forEach((team) => {
-                const confTeams = team.conference === 'West' ? westTeams : eastTeams;
-                const rank = confTeams.findIndex(t => t.id === team.id);
-                const points = rank < 8 ? 20 : 35;
-                scoutingPoints[team.id] = points;
-                scoutingReports[team.id] = {};
-            });
-
-            console.log("GameContext: Draft Triggered. Transitioning to Scouting Phase.", { scoutingPoints });
+            console.log("GameContext: Transitioning to Draft Phase.");
 
             return {
                 ...prev,
-                players: updatedPlayers,
-                teams: updatedTeams,
-                contracts: updatedContracts,
-                coaches: updatedCoaches,
-                draftClass,
-                draftOrder: order,
-                scoutingPoints,
-                scoutingReports,
-                seasonPhase: 'scouting',
-                draftResults: [] // Reset for new draft
+                seasonPhase: 'draft',
+                view: 'draft'
             };
         });
     };
@@ -1846,8 +1769,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
             const sortedMvp = [...activePlayers].sort((a, b) => getMvpScore(b) - getMvpScore(a));
             const mvp = sortedMvp.length > 0 ? createWinner(sortedMvp[0]) : createWinner(players[0]);
 
-            // Rookie of the Year: Better detection (no career stats OR very young age + low experience)
-            const rookies = activePlayers.filter(p => (!p.careerStats || p.careerStats.length === 0) || (p.age <= 21 && (!p.careerStats || p.careerStats.length <= 1)));
+            // Rookie of the Year: Better detection (exclude players with prior-season experience)
+            const rookies = activePlayers.filter(p => {
+                // 1. Explicitly drafted before this season
+                if (p.acquisition?.type === 'draft' && p.acquisition.year === year - 1) return true;
+                // 2. Year 1 Fallback: No prior career stats and very young
+                if ((!p.careerStats || p.careerStats.length === 0) && p.age <= 22) return true;
+                return false;
+            });
             const sortedRoty = [...rookies].sort((a, b) => getRotyScore(b) - getRotyScore(a));
             const roty = sortedRoty.length > 0 ? createWinner(sortedRoty[0]) : (rookies.length > 0 ? createWinner(rookies[0]) : mvp);
 
@@ -1896,12 +1825,25 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 east: eastPlayers.sort((a, b) => getMvpScore(b) - getMvpScore(a)).slice(0, 12).map(createWinner)
             };
 
+            // COY (Coach of the Year) - Simple logic: Best record coach
+            const sortedTeamsList = [...teams].sort((a, b) => b.wins - a.wins);
+            const bestTeam = sortedTeamsList[0];
+            const bestCoach = (prev as any).coaches?.find((c: any) => c.teamId === bestTeam.id) || (prev as any).coaches?.[0];
+            const coy: AwardWinner = {
+                playerId: bestCoach?.id || 'err',
+                playerName: bestCoach?.name || 'Unknown',
+                teamId: bestTeam.id,
+                teamName: bestTeam.name,
+                statsSummary: `${bestTeam.wins}-${bestTeam.losses} Record`,
+            };
+
             return {
                 year,
                 mvp,
                 roty,
                 dpoy,
                 mip,
+                coy,
                 allStars
             };
 
@@ -2101,88 +2043,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const endDraft = () => {
         setGameState(prev => {
-            try {
-
-                // RETIREMENT LOGIC
-                // Happens after Draft, before Resigning
-                let updatedPlayers = [...prev.players];
-                const retiredPlayers: RetiredPlayer[] = [];
-                const retiredIds: string[] = [];
-
-                updatedPlayers = updatedPlayers.filter(p => {
-                    let shouldRetire = false;
-
-                    // 1. HARD CAP at 42
-                    if (p.age >= 42) {
-                        shouldRetire = true;
-                    }
-                    // 2. Normal Retirement Logic (Age 33+)
-                    else if (p.age >= 33) {
-                        let retireChance = 0;
-
-                        if (p.age >= 38) retireChance = 0.5;
-                        else if (p.age >= 35) retireChance = 0.2;
-                        else retireChance = 0.05;
-
-                        // Love for game modifier
-                        if (p.loveForTheGame > 15) retireChance *= 0.5;
-                        if (p.loveForTheGame < 8) retireChance *= 1.5;
-
-                        // Performance modifier
-                        const ovr = calculateOverall(p);
-                        if (ovr < 70 && p.age > 32) retireChance += 0.3;
-
-                        if (Math.random() < retireChance) {
-                            shouldRetire = true;
-                        }
-                    }
-
-                    if (shouldRetire) {
-                        retiredIds.push(p.id);
-
-                        const isHOF = checkHallOfFameEligibility(p, prev.awardsHistory);
-
-                        retiredPlayers.push({
-                            ...p,
-                            exitYear: prev.date.getFullYear(),
-                            ageAtRetirement: p.age,
-                            isHallOfFame: isHOF
-                        });
-                        return false; // Remove from active
-                    }
-                    return true; // Keep
-                });
-
-                // Clean up rosterIds and contracts for retired players
-                const updatedTeams = prev.teams.map(t => ({
-                    ...t,
-                    rosterIds: t.rosterIds.filter(id => !retiredIds.includes(id))
-                }));
-
-                const updatedContracts = prev.contracts.filter(c => !retiredIds.includes(c.playerId));
-
-                // Per User: "Ad a page with all the players that retired this year... after the draft and before the resign phase"
-
-                return {
-                    ...prev,
-                    players: updatedPlayers,
-                    teams: updatedTeams,
-                    contracts: updatedContracts,
-                    retiredPlayersHistory: [
-                        ...(prev.retiredPlayersHistory || []),
-                        { year: prev.date.getFullYear(), players: retiredPlayers }
-                    ],
-                    draftHistory: {
-                        ...prev.draftHistory,
-                        [prev.date.getFullYear()]: prev.draftResults
-                    },
-                    seasonPhase: 'draft_summary', // Show Summary First
-                };
-            } catch (error) {
-                console.error("End Draft Error:", error);
-                alert("Critical Error Ending Draft. Check console.");
-                return prev;
-            }
+            const updatedState = {
+                ...prev,
+                draftHistory: {
+                    ...prev.draftHistory,
+                    [prev.date.getFullYear()]: prev.draftResults
+                },
+                offseasonTasks: {
+                    ...prev.offseasonTasks,
+                    draft: true
+                },
+                seasonPhase: 'offseason',
+                view: 'offseason_menu'
+            };
+            return updatedState;
         });
     };
 
@@ -2195,21 +2069,28 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 
 
-    const continueFromRetirements = () => {
+    const completeOffseasonTask = (taskName: keyof GameState['offseasonTasks']) => {
         setGameState(prev => ({
             ...prev,
-            seasonPhase: 'coach_free_agency'
+            offseasonTasks: {
+                ...prev.offseasonTasks,
+                [taskName]: true
+            },
+            view: 'offseason_menu',
+            seasonPhase: 'offseason'
         }));
+    };
+
+    const continueFromRetirements = () => {
+        completeOffseasonTask('retirements');
     };
 
     const endCoachFreeAgency = () => {
         setGameState(prev => {
-            let updatedCoaches = [...prev.coaches];
-            let updatedTeams = prev.teams.map(t => ({ ...t }));
-
-            // AI teams without a coach hire from the free agent pool
+            const updatedTeams = prev.teams.map(t => ({ ...t }));
+            const updatedCoaches = prev.coaches.map(c => ({ ...c }));
+            const teamsNeedingCoach = updatedTeams.filter(t => !t.coachId);
             const freeAgentCoaches = updatedCoaches.filter(c => !c.teamId);
-            const teamsNeedingCoach = updatedTeams.filter(t => !t.coachId || !updatedCoaches.find(c => c.id === t.coachId && c.teamId === t.id));
 
             teamsNeedingCoach.forEach(team => {
                 if (freeAgentCoaches.length === 0) {
@@ -2257,7 +2138,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 ...prev,
                 coaches: updatedCoaches,
                 teams: updatedTeams,
-                seasonPhase: 'resigning' as const
+                seasonPhase: 'resigning' as const,
+                view: 'resigning'
             };
         });
     };
@@ -2348,10 +2230,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 teams: updatedTeams,
                 players: updatedPlayers,
                 contracts: updatedContracts,
-                seasonPhase: 'free_agency',
                 date: new Date(prev.date.getFullYear(), 6, 1), // July 1st
                 activeOffers: [], // Initialize for Free Agency
-                freeAgencyDay: 1 // Initialize for Free Agency
+                freeAgencyDay: 1,
+                offseasonTasks: {
+                    ...prev.offseasonTasks,
+                    resigning: true
+                },
+                view: 'offseason_menu',
+                seasonPhase: 'offseason'
             };
         });
     };
@@ -2380,7 +2267,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
             return {
                 ...nextState,
                 players: nextState.players,
-                seasonPhase: 'pre_season',
+                offseasonTasks: {
+                    ...prev.offseasonTasks,
+                    freeAgency: true
+                },
+                view: 'offseason_menu',
+                seasonPhase: 'offseason',
                 date: new Date(prev.date.getFullYear(), 9, 1),
                 isTrainingCampComplete: false, // Reset for new season
                 trainingSettings: {}, // Reset selections
@@ -2687,6 +2579,152 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const mapTeamsForSimulation = (teams: Team[]) => teams.map(t => ({ ...t }));
 
+    const checkAndUpdateRecords = (
+        prevLeagueRecords: GameRecord[],
+        prevTeamRecords: Record<string, GameRecord[]>,
+        results: MatchResult[],
+        date: Date,
+        teams: Team[]
+    ) => {
+        let leagueRecords = [...prevLeagueRecords];
+        let teamRecords = { ...prevTeamRecords };
+
+        results.forEach(game => {
+            const homeTeam = teams.find(t => t.id === game.homeTeamId);
+            const awayTeam = teams.find(t => t.id === game.awayTeamId);
+            
+            const allStats = [
+                ...Object.values(game.boxScore.homeStats).map(s => ({ ...s, teamId: game.homeTeamId, teamName: homeTeam?.name || 'Unknown', oppName: awayTeam?.name || 'Unknown' })),
+                ...Object.values(game.boxScore.awayStats).map(s => ({ ...s, teamId: game.awayTeamId, teamName: awayTeam?.name || 'Unknown', oppName: homeTeam?.name || 'Unknown' }))
+            ];
+
+            allStats.forEach(stat => {
+                const categories = [
+                    { id: 'Points', val: stat.points },
+                    { id: 'Rebounds', val: stat.rebounds },
+                    { id: 'Assists', val: stat.assists },
+                    { id: 'Steals', val: stat.steals },
+                    { id: 'Blocks', val: stat.blocks },
+                    { id: 'Threes', val: stat.threeMade }
+                ];
+
+                categories.forEach(cat => {
+                    if (cat.val <= 0) return; // Ignore zero stats
+
+                    // League Record
+                    const leagueIdx = leagueRecords.findIndex(r => r.category === cat.id);
+                    if (leagueIdx === -1 || cat.val > leagueRecords[leagueIdx].value) {
+                        const newRec: GameRecord = {
+                            category: cat.id,
+                            value: cat.val,
+                            playerId: stat.playerId,
+                            playerName: stat.name,
+                            teamId: stat.teamId,
+                            teamName: stat.teamName,
+                            year: date.getFullYear(),
+                            date: new Date(date),
+                            opponentName: stat.oppName
+                        };
+                        if (leagueIdx === -1) leagueRecords.push(newRec);
+                        else leagueRecords[leagueIdx] = newRec;
+                    }
+
+                    // Team Record
+                    if (!teamRecords[stat.teamId]) teamRecords[stat.teamId] = [];
+                    const teamIdx = teamRecords[stat.teamId].findIndex(r => r.category === cat.id);
+                    if (teamIdx === -1 || cat.val > teamRecords[stat.teamId][teamIdx].value) {
+                        const newRec: GameRecord = {
+                            category: cat.id,
+                            value: cat.val,
+                            playerId: stat.playerId,
+                            playerName: stat.name,
+                            teamId: stat.teamId,
+                            teamName: stat.teamName,
+                            year: date.getFullYear(),
+                            date: new Date(date),
+                            opponentName: stat.oppName
+                        };
+                        if (teamIdx === -1) teamRecords[stat.teamId].push(newRec);
+                        else teamRecords[stat.teamId][teamIdx] = newRec;
+                    }
+                });
+            });
+        });
+
+        return { leagueRecords, teamRecords };
+    };
+
+    const updateCumulativeTotals = (
+        prevLeagueLeaders: Record<string, CumulativeRecord[]>,
+        prevTeamLeaders: Record<string, Record<string, CumulativeRecord[]>>,
+        results: MatchResult[]
+    ) => {
+        let leagueLeaders = { ...prevLeagueLeaders };
+        let teamLeaders = { ...prevTeamLeaders };
+
+        results.forEach(game => {
+            const allStats = [
+                ...Object.values(game.boxScore.homeStats).map(s => ({ ...s, teamId: game.homeTeamId })),
+                ...Object.values(game.boxScore.awayStats).map(s => ({ ...s, teamId: game.awayTeamId }))
+            ];
+
+            allStats.forEach(stat => {
+                const categories = [
+                    { id: 'Points', val: stat.points },
+                    { id: 'Rebounds', val: stat.rebounds },
+                    { id: 'Assists', val: stat.assists },
+                    { id: 'Steals', val: stat.steals },
+                    { id: 'Blocks', val: stat.blocks },
+                    { id: 'Threes', val: stat.threeMade }
+                ];
+
+                categories.forEach(cat => {
+                    if (cat.val <= 0) return;
+
+                    // League Totals
+                    if (!leagueLeaders[cat.id]) leagueLeaders[cat.id] = [];
+                    const lIdx = leagueLeaders[cat.id].findIndex(r => r.playerId === stat.playerId);
+                    if (lIdx !== -1) {
+                        leagueLeaders[cat.id][lIdx].total += cat.val;
+                        leagueLeaders[cat.id][lIdx].playerName = stat.name; // Keep name fresh
+                    } else {
+                        leagueLeaders[cat.id].push({
+                            playerId: stat.playerId,
+                            playerName: stat.name,
+                            total: cat.val,
+                            category: cat.id
+                        });
+                    }
+                    // Sort and trim
+                    leagueLeaders[cat.id].sort((a, b) => b.total - a.total);
+                    if (leagueLeaders[cat.id].length > 50) leagueLeaders[cat.id] = leagueLeaders[cat.id].slice(0, 50);
+
+                    // Team Totals
+                    if (!teamLeaders[stat.teamId]) teamLeaders[stat.teamId] = {};
+                    if (!teamLeaders[stat.teamId][cat.id]) teamLeaders[stat.teamId][cat.id] = [];
+                    const tIdx = teamLeaders[stat.teamId][cat.id].findIndex(r => r.playerId === stat.playerId);
+                    if (tIdx !== -1) {
+                        teamLeaders[stat.teamId][cat.id][tIdx].total += cat.val;
+                        teamLeaders[stat.teamId][cat.id][tIdx].playerName = stat.name;
+                    } else {
+                        teamLeaders[stat.teamId][cat.id].push({
+                            playerId: stat.playerId,
+                            playerName: stat.name,
+                            total: cat.val,
+                            category: cat.id,
+                            teamId: stat.teamId
+                        });
+                    }
+                    // Sort and trim
+                    teamLeaders[stat.teamId][cat.id].sort((a, b) => b.total - a.total);
+                    if (teamLeaders[stat.teamId][cat.id].length > 50) teamLeaders[stat.teamId][cat.id] = teamLeaders[stat.teamId][cat.id].slice(0, 50);
+                });
+            });
+        });
+
+        return { leagueLeaders, teamLeaders };
+    };
+
     const simulateDay = (prev: GameState): GameState => {
         const nextDate = new Date(prev.date.getTime() + 86400000);
         let nextDayMatchups: { homeId: string, awayId: string }[] = [];
@@ -2723,8 +2761,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
         let currentTeams = [...prev.teams];
         let currentPlayers = [...toxicUpdatedPlayers];
         let currentContracts = [...prev.contracts];
+        let currentCoaches = [...prev.coaches];
         let currentTradeHistory = [...(prev.tradeHistory || [])];
         let currentNews: NewsStory[] = [];
+        let results: MatchResult[] = [];
 
         // SEASON PHASE 1: REGULAR SEASON
         if (prev.seasonPhase === 'regular_season') {
@@ -2899,11 +2939,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         return c;
                     });
 
-                    const createItems = (players: Player[], picks: DraftPick[], teamId: string) => [
-                        ...players.map(p => ({
-                            type: 'player' as const, id: p.id, description: `${p.firstName} ${p.lastName}`, subText: `${calculateOverall(p)} OVR`, color: '#22c55e'
-                        })),
-                        ...picks.map(pk => {
+                    const createItems = (playersArr: Player[], picksArr: DraftPick[], teamId: string) => {
+                        const teamBaseline = calculateTeamBaseline(currentPlayers.filter(p => p.teamId === teamId));
+                        return [
+                            ...playersArr.map(p => ({
+                                type: 'player' as const, id: p.id, description: `${p.firstName} ${p.lastName}`, subText: getStarString(calculateStars(calculateOverall(p), teamBaseline)), color: '#22c55e'
+                            })),
+                        ...picksArr.map(pk => {
                             const originalTeam = currentTeams.find(t => t.id === pk.originalTeamId);
                             const owner = currentTeams.find(t => t.id === teamId);
                             return {
@@ -2915,7 +2957,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                                 originalTeamId: pk.originalTeamId
                             };
                         })
-                    ];
+                        ];
+                    };
 
                     const t1Items = createItems(tradeProposal.proposerAssets.players, tradeProposal.proposerAssets.picks, t1.id);
                     const t2Items = createItems(tradeProposal.targetAssets.players, tradeProposal.targetAssets.picks, t2.id);
@@ -3024,7 +3067,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
             }
 
             // --- AI COACH EVALUATION (Every ~20 games) ---
-            let currentCoaches = [...prev.coaches];
             if (prev.seasonGamesPlayed > 0 && prev.seasonGamesPlayed % 20 === 0) {
                 const recentCutoff = new Date(prev.date.getTime() - 30 * 86400000);
                 const recentTradesByTeam: Record<string, number> = {};
@@ -3067,7 +3109,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 });
             }
 
-            const results: MatchResult[] = [];
 
 
 
@@ -3171,20 +3212,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
             const newSocialPosts = generateDailyPosts(results, currentTeams, currentPlayers);
             const updatedSocialPosts = [...newSocialPosts, ...(prev.socialMediaPosts || [])].slice(0, 30);
 
-            // After loop, generate NEXT day's matchups ONLY if we haven't reached 82 games
-            if ((prev.seasonGamesPlayed || 0) < 81) {
-                const playingTeamsForNextDay = [...currentTeams];
-                for (let i = playingTeamsForNextDay.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [playingTeamsForNextDay[i], playingTeamsForNextDay[j]] = [playingTeamsForNextDay[j], playingTeamsForNextDay[i]];
-                }
-                for (let i = 0; i < playingTeamsForNextDay.length; i += 2) {
-                    if (i + 1 < playingTeamsForNextDay.length) {
-                        nextDayMatchups.push({
-                            homeId: playingTeamsForNextDay[i].id,
-                            awayId: playingTeamsForNextDay[i + 1].id
-                        });
-                    }
+            // Matchup generation for next day
+            const activeTeams = currentTeams.filter(t => (t.wins + t.losses) < 82);
+            const playingTeams = activeTeams.filter(() => Math.random() < 0.5);
+            const shuffled = [...playingTeams].sort(() => Math.random() - 0.5);
+            const nextDayMatchups: { homeId: string, awayId: string }[] = [];
+
+            for (let i = 0; i < shuffled.length; i += 2) {
+                if (i + 1 < shuffled.length) {
+                    nextDayMatchups.push({
+                        homeId: shuffled[i].id,
+                        awayId: shuffled[i + 1].id
+                    });
                 }
             }
 
@@ -3284,6 +3323,28 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 });
             });
 
+            // Update games played based on user team (most reliable indicator for season progress)
+            const userTeamRecord = currentTeams.find(t => t.id === prev.userTeamId);
+            const totalGamesPlayed = userTeamRecord ? (userTeamRecord.wins + userTeamRecord.losses) : prev.seasonGamesPlayed;
+
+            // Update Records
+            const { leagueRecords, teamRecords } = checkAndUpdateRecords(
+                prev.leagueRecords || [],
+                prev.teamRecords || {},
+                results,
+                nextDate,
+                currentTeams
+            );
+
+            const isRegularSeason = prev.seasonPhase === 'regular_season';
+            const { leagueLeaders, teamLeaders } = isRegularSeason
+                ? updateCumulativeTotals(
+                    prev.leagueAllTimeLeaders || {},
+                    prev.teamAllTimeLeaders || {},
+                    results
+                )
+                : { leagueLeaders: prev.leagueAllTimeLeaders, teamLeaders: prev.teamAllTimeLeaders };
+
             return {
                 ...prev,
                 teams: currentTeams,
@@ -3295,11 +3356,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 date: nextDate,
                 news: [...currentNews, ...prev.news].slice(0, 100),
                 dailyMatchups: nextDayMatchups,
+                seasonGamesPlayed: totalGamesPlayed,
                 pendingUserResult: null,
                 socialMediaPosts: updatedSocialPosts,
-                seasonGamesPlayed: prev.seasonPhase === 'regular_season' && results.length > 0
-                    ? (prev.seasonGamesPlayed ?? 0) + 1
-                    : (prev.seasonGamesPlayed ?? 0)
+                leagueRecords,
+                teamRecords,
+                leagueAllTimeLeaders: leagueLeaders,
+                teamAllTimeLeaders: teamLeaders,
+                isSimulating: nextDayMatchups.length > 0 && prev.isSimulating,
             };
         }
         else if (prev.seasonPhase.startsWith('playoffs')) {
@@ -3743,16 +3807,135 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         };
                     });
 
+                    // --- CONSOLIDATED OFFSEASON INITIALIZATION ---
+                    // This logic handles aging, contract expiry, retirements, and draft class generation IN ONE GO.
+                    
+                    // 1. Age everyone and Handle Contracts
+                    const updatedContracts: Contract[] = [];
+                    const playersWithNewAge = aiUpdatedPlayers.map(p => ({ ...p, age: p.age + 1 }));
+                    const teamsWithDraftOrder = [...updatedTeams];
+
+                    prev.contracts.forEach(c => {
+                        const player = playersWithNewAge.find(p => p.id === c.playerId);
+                        if (c.yearsLeft > 1) {
+                            updatedContracts.push({ ...c, yearsLeft: c.yearsLeft - 1 });
+                        } else {
+                            // Expired - release to free agency
+                            if (player) {
+                                player.teamId = null;
+                                if (!player.acquisition) player.acquisition = { type: 'free_agent', year: finishedSeasonYear };
+                                player.acquisition.previousTeamId = c.teamId;
+
+                                const team = teamsWithDraftOrder.find(t => t.id === c.teamId);
+                                if (team) {
+                                    team.rosterIds = team.rosterIds.filter(id => id !== player.id);
+                                    team.salaryCapSpace += c.amount;
+                                }
+                            }
+                        }
+                    });
+
+                    // Coach Contract Decrement
+                    const updatedCoaches = prev.coaches.map(coach => {
+                        if (coach.contract.yearsRemaining > 1) {
+                            return { ...coach, contract: { ...coach.contract, yearsRemaining: coach.contract.yearsRemaining - 1 } };
+                        } else if (coach.contract.yearsRemaining === 1) {
+                            const team = teamsWithDraftOrder.find(t => t.id === coach.teamId);
+                            if (team) team.coachId = undefined;
+                            return { ...coach, teamId: null, contract: { ...coach.contract, yearsRemaining: 0 } };
+                        }
+                        return coach;
+                    });
+
+                    // 2. RETIREMENT CALCULATION
+                    const retiredPlayers: RetiredPlayer[] = [];
+                    const retiredIds: string[] = [];
+                    const activePlayersAfterRetirement = playersWithNewAge.filter(p => {
+                        let shouldRetire = false;
+                        if (p.age >= 40) shouldRetire = true;
+                        else if (p.age >= 33) {
+                            let retireChance = (p.age - 32) * 0.1;
+                            if (calculateOverall(p) < 75) retireChance += 0.2;
+                            if (Math.random() < retireChance) shouldRetire = true;
+                        }
+
+                        if (shouldRetire) {
+                            retiredIds.push(p.id);
+                            retiredPlayers.push({
+                                ...p,
+                                ageAtRetirement: p.age,
+                                exitYear: finishedSeasonYear,
+                                isHallOfFame: checkHallOfFameEligibility(p, updatedAwardsHistory)
+                            });
+                            return false;
+                        }
+                        return true;
+                    });
+
+                    const finalTeams = teamsWithDraftOrder.map(t => ({
+                        ...t,
+                        rosterIds: t.rosterIds.filter(id => !retiredIds.includes(id))
+                    }));
+
+                    const finalContracts = updatedContracts.filter(c => !retiredIds.includes(c.playerId));
+
+                    // 3. GENERATE DRAFT CLASS
+                    const draftClass: Player[] = [];
+                    while (draftClass.length < 80) {
+                        const tier = Math.random() > 0.8 ? 'star' : (Math.random() > 0.5 ? 'starter' : 'prospect');
+                        draftClass.push(generatePlayer(undefined, tier));
+                    }
+
+                    // 4. SET DRAFT ORDER (Based on regular season record)
+                    const sortedTeamsForDraft = [...finalTeams].sort((a, b) => {
+                        const winsA = a.wins || 0;
+                        const winsB = b.wins || 0;
+                        return winsA - winsB; // Lowest wins = Highest pick
+                    });
+
+                    let draftOrder: string[] = [];
+                    // Simple 2 rounds
+                    [1, 2].forEach(round => {
+                        sortedTeamsForDraft.forEach(t => {
+                            draftOrder.push(t.id);
+                        });
+                    });
+
+                    // 5. SCOUTING POINTS
+                    const scoutingPoints: Record<string, number> = {};
+                    finalTeams.forEach(t => {
+                        scoutingPoints[t.id] = (t.wins || 0) < 30 ? 40 : 25;
+                    });
+
                     return {
                         ...prev,
-                        players: aiUpdatedPlayers,
-                        contracts: aiUpdatedContracts,
-                        games: [...prev.games, ...newGames], // Correctly append games instead of overwriting
+                        players: activePlayersAfterRetirement,
+                        contracts: finalContracts,
+                        coaches: updatedCoaches,
+                        games: [...prev.games, ...newGames],
                         playoffs: updatedPlayoffs,
                         seasonPhase: 'offseason',
+                        view: 'offseason_menu',
+                        offseasonTasks: {
+                            retirements: false,
+                            scouting: false,
+                            draft: false,
+                            resigning: false,
+                            freeAgency: false,
+                            training: false,
+                            trainingResults: false
+                        },
                         salaryCap: finalSalaryCap,
-                        teams: updatedTeams,
+                        teams: finalTeams,
                         awardsHistory: updatedAwardsHistory,
+                        retiredPlayersHistory: [
+                            ...(prev.retiredPlayersHistory || []),
+                            { year: finishedSeasonYear, players: retiredPlayers }
+                        ],
+                        draftClass,
+                        draftOrder,
+                        scoutingPoints,
+                        scoutingReports: {},
                         dailyMatchups: [],
                         pendingUserResult: null
                     };
@@ -3921,9 +4104,28 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
         setTimeout(() => {
             setGameState(prev => {
-                const newState = simulateDay(prev);
+                let currentState = prev;
+                let loopCount = 0;
+                const maxLoops = 14; // Failsafe (NBA teams play every 2-4 days usually)
+
+                while (loopCount < maxLoops) {
+                    const userTeamBefore = currentState.teams.find(t => t.id === currentState.userTeamId);
+                    const gpBefore = userTeamBefore ? (userTeamBefore.wins + userTeamBefore.losses) : 0;
+
+                    currentState = simulateDay(currentState);
+                    loopCount++;
+
+                    const userTeamAfter = currentState.teams.find(t => t.id === currentState.userTeamId);
+                    const gpAfter = userTeamAfter ? (userTeamAfter.wins + userTeamAfter.losses) : 0;
+
+                    // Stop if user team played a game, or we are out of regular season
+                    if (gpAfter > gpBefore || currentState.seasonPhase !== 'regular_season' || (gpAfter >= 82)) {
+                        break;
+                    }
+                }
+
                 return {
-                    ...newState,
+                    ...currentState,
                     isProcessing: false
                 };
             });
@@ -4196,16 +4398,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     const gamesPlayed = userTeam.wins + userTeam.losses;
                     if (gamesPlayed >= 40 || prev.seasonPhase !== 'regular_season') {
                         setSimTarget('none');
-                        // Stop simulation at deadline. No AI proposals to user.
                         return prev;
                     }
                 } else if (simTarget === 'playoffs') {
-                    if (prev.seasonPhase !== 'regular_season' && !prev.seasonPhase.startsWith('playoffs')) {
-                        setSimTarget('none');
-                        return prev;
-                    }
-                    if (prev.seasonPhase.startsWith('playoffs')) {
-                        // Successfully reached playoffs
+                    const userTeam = prev.teams.find(t => t.id === prev.userTeamId) || prev.teams[0];
+                    const gamesPlayed = userTeam.wins + userTeam.losses;
+                    if (gamesPlayed >= 82 || prev.seasonPhase !== 'regular_season') {
                         setSimTarget('none');
                         return prev;
                     }
@@ -4215,7 +4413,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         setSimTarget('none');
                         return prev;
                     }
-                    // Otherwise continue simulating
                 }
 
                 // FAILSAFE: If not in a playable phase, stop sim
@@ -4389,11 +4586,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     };
 
     const endScoutingPhase = () => {
-        // Transition to Draft
-        setGameState(prev => ({
-            ...prev,
-            seasonPhase: 'draft'
-        }));
+        completeOffseasonTask('scouting');
     };
 
     const updateRotationSchedule = (teamId: string, schedule: RotationSegment[]) => {
@@ -4627,7 +4820,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             // Logic for signing (simplified for restoration)
             const VET_MINIMUM = 1100000;
             const isOwnPlayer = player.teamId === team.id || player.acquisition?.previousTeamId === team.id;
-            const canExceedCap = (prev.seasonPhase === 'resigning' && isOwnPlayer) || offer.amount <= VET_MINIMUM;
+            const canExceedCap = isOwnPlayer || offer.amount <= VET_MINIMUM;
 
             // Strict check if not exception
             if (trueCapSpace < offer.amount && !canExceedCap) {
@@ -4893,6 +5086,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 ...prev,
                 players: updatedPlayers,
                 trainingReport: reports,
+                offseasonTasks: {
+                    ...prev.offseasonTasks,
+                    training: true
+                },
+                view: 'training_results',
                 messages: [
                     {
                         id: Date.now().toString(),
@@ -4912,6 +5110,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return (
         <GameContext.Provider value={{
             ...gameState,
+            isSimulating: simTarget !== 'none',
             startNewGame,
             advanceDay,
             simTarget,
@@ -4935,6 +5134,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             signPlayerWithContract,
             releasePlayer,
             endFreeAgency,
+            completeOffseasonTask,
             negotiateContract,
             updateRotation,
             updateCoachSettings,
@@ -4943,13 +5143,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
             rejectTradeOffer,
             liveGameData: liveGame,
             startLiveGameFn: startLiveGame,
-            endLiveGameFn: endLiveGame,
+            endLiveGameFn: completeLiveGame,
             startMerchCampaign,
             saveGame,
             loadGame,
             deleteSave,
             userHireCoach,
             userFireCoach,
+            setView,
 
             simSpeed,
             setSimSpeed,
@@ -4969,7 +5170,34 @@ export function GameProvider({ children }: { children: ReactNode }) {
             placeCoachOffer,
             advanceFreeAgencyDay,
             sellPlayer,
-            sellPlayerToTeam
+            sellPlayerToTeam,
+            // UI
+            selectedPlayerId,
+            setSelectedPlayerId,
+            selectedGame,
+            setSelectedGame,
+            shopPlayerId,
+            setShopPlayerId,
+            initialAiPlayerId,
+            setInitialAiPlayerId,
+            prefilledTrade,
+            setPrefilledTrade,
+            completeLiveGame,
+            showingAwards,
+            setShowingAwards,
+            showSaveLoad,
+            setShowSaveLoad,
+            showExitModal,
+            setShowExitModal,
+            showPayrollModal,
+            setShowPayrollModal,
+            modalMessage,
+            setModalMessage,
+            currentNegotiation,
+            setShowPayrollModal,
+            startRegularSeason,
+            startPlayoffs,
+            year: gameState.date.getFullYear()
         }}>
             {children}
         </GameContext.Provider>

@@ -3,6 +3,9 @@ import type { Player } from '../../models/Player';
 import type { Team } from '../../models/Team';
 import { calculateContractAmount, calculateAdjustedDemand } from '../../utils/contractUtils';
 import { calculateOverall } from '../../utils/playerUtils';
+import { calculateStars, calculateTeamBaseline } from '../../utils/starUtils';
+import { StarRating } from '../../components/StarRating';
+import { useGame } from '../../store/GameContext';
 
 interface NegotiationViewProps {
     player: Player;
@@ -15,6 +18,14 @@ interface NegotiationViewProps {
 }
 
 export const NegotiationView: React.FC<NegotiationViewProps> = ({ player, team, onNegotiate, onSign, onCancel, onSelectPlayer, salaryCap }) => {
+    const { players } = useGame();
+    
+    // Calculate team baseline
+    const teamBaseline = useMemo(() => {
+        const teamPlayers = players.filter(p => p.teamId === team.id);
+        return calculateTeamBaseline(teamPlayers);
+    }, [players, team.id]);
+
     // Calculate base market value once
     const asking = useMemo(() => calculateContractAmount(player, salaryCap), [player, salaryCap]);
 
@@ -54,7 +65,16 @@ export const NegotiationView: React.FC<NegotiationViewProps> = ({ player, team, 
     const roles: ('Star' | 'Starter' | 'Rotation' | 'Bench' | 'Prospect')[] = ['Star', 'Starter', 'Rotation', 'Bench', 'Prospect'];
 
     return (
-        <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto', color: 'var(--text)' }}>
+        <div style={{ 
+            padding: '24px', 
+            maxWidth: '550px', 
+            margin: '0 auto', 
+            color: 'white',
+            background: '#0c0c0e',
+            borderRadius: '24px',
+            border: '1px solid rgba(255,255,255,0.08)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+        }}>
             {/* Header */}
             <div style={{ marginBottom: '30px', textAlign: 'center' }}>
                 <h2 style={{ margin: 0 }}>Contract Negotiation</h2>
@@ -71,8 +91,9 @@ export const NegotiationView: React.FC<NegotiationViewProps> = ({ player, team, 
                 >
                     {player.firstName} {player.lastName}
                 </div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                    {player.position} • Age: {player.age}
+                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginTop: '5px' }}>
+                    <span>{player.position} • Age: {player.age}</span>
+                    <StarRating stars={calculateStars(calculateOverall(player), teamBaseline)} size={16} />
                 </div>
 
                 {/* Asking Price Display */}

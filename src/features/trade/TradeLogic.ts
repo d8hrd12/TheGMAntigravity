@@ -4,6 +4,7 @@ import type { DraftPick } from '../../models/DraftPick';
 import type { Contract } from '../../models/Contract';
 import { calculateTeamCapSpace } from '../../utils/contractUtils';
 import { calculateOverall } from '../../utils/playerUtils';
+import { calculateStars } from '../../utils/starUtils';
 import type { TradeProposal } from '../../models/TradeProposal';
 
 // ----------------------------------------------------------------------------
@@ -66,15 +67,14 @@ export function getTradingBlock(team: Team, roster: Player[], direction: TeamDir
     roster.forEach(p => { if (depthChart[p.position]) depthChart[p.position].push(p); });
 
     roster.forEach(p => {
-        const ovr = p.overall || calculateOverall(p);
-
+        const stars = calculateStars(p.overall || calculateOverall(p), 75);
+        
         // Find rank at position
         const playersAtPos = depthChart[p.position].sort((a, b) => (b.overall || 0) - (a.overall || 0));
         const rank = playersAtPos.findIndex(x => x.id === p.id);
 
-        // Franchise Cornerstone Logic: Only the Top 2 at any position can be untouchable
-        // This prevents hoarding 3+ elite PGs and treating them all as untradeable
-        const isCornerstone = (ovr >= 90) || (ovr >= 85 && p.age < 25) || (ovr >= 80 && p.age < 22);
+        // Franchise Cornerstone Logic: 4.7+ Stars (Superstar) or 4.2+ Stars (High Potential Youth)
+        const isCornerstone = (stars >= 4.7) || (stars >= 4.2 && p.age < 25) || (stars >= 3.8 && p.age < 22);
 
         if (isCornerstone && rank < 2) {
             untouchables.push(p);
@@ -108,8 +108,14 @@ export function getTradingBlock(team: Team, roster: Player[], direction: TeamDir
         case 'Rebuilding':
             needs.push('Draft Picks', 'Bad Contracts (for assets)', 'Young High Potential');
             willingToTradePicks = false;
-            // Sell: Anyone over 25 with value
-            assets.push(...roster.filter(p => p.age > 25 && (p.overall || 0) > 72 && !untouchables.includes(p)));
+            // Sell: Vets over 26 with value. 
+            // BUT: Don't just "dump" 90+ superstars unless they are very old (33+) or have trade requests
+            assets.push(...roster.filter(p => {
+                const ovr = p.overall || calculateOverall(p);
+                if (untouchables.includes(p)) return false;
+                if (ovr >= 90 && p.age < 33 && !p.tradeRequested) return false; 
+                return p.age > 26 && ovr > 72;
+            }));
             break;
     }
 
@@ -160,32 +166,38 @@ export function getPlayerTradeValue(
     const amount = contract ? contract.amount : 0;
 
     let value = currentOvr;
+    const stars = calculateStars(currentOvr, 75);
 
-    // E. STAR SCALING (Exponential Value for Elites)
-    if (currentOvr >= 94) value *= 2.0;
-    else if (currentOvr >= 90) value *= 1.5;
-    else if (currentOvr >= 85) value *= 1.1;
+    // E. STAR SCALING (Exponential Value for Elites - NBA Style)
+    // Using Star Rating as the source of truth for "Quality"
+    if (stars >= 5.0) value *= 5.0;      // Generational (Jokic/Luka Tier) - Hard to get
+    else if (stars >= 4.5) value *= 3.5; // Superstar Tier
+    else if (stars >= 4.0) value *= 2.0; // All-Star/Elite Starter Tier
+    else if (stars >= 3.5) value *= 1.2; // Quality Rotation
 
     // A. DIRECTION-BASED ADJUSTMENTS
     switch (teamDirection) {
         case 'Rebuilding':
         case 'Young_Developing':
-            if (player.age <= 23) value *= 1.3;
-            if (player.age <= 21) value *= 1.1;
-            if (potential >= 85) value += (potential - 70) * 0.5;
+            if (player.age <= 23) value *= 1.4;
+            if (player.age <= 21) value *= 1.2;
+            if (potential >= 85) value += (potential - 70) * 0.8;
 
-            if (player.age >= 29) value *= 0.6;
-            if (player.age >= 32) value *= 0.3;
+            // ELITE PLAYER AGE FLOOR:
+            // High Star players don't lose value as fast even for rebuilders
+            const agePenaltyFactor = stars >= 4.2 ? 0.90 : 0.6;
+            if (player.age >= 29) value *= agePenaltyFactor;
+            if (player.age >= 32) value *= (stars >= 4.5 ? 0.75 : 0.4);
 
             // Cap Space Eaters
-            if (yearsLeft > 2 && amount > 20000000 && currentOvr < 85) value *= 0.7;
+            if (yearsLeft > 2 && amount > 25000000 && stars < 4.0) value *= 0.6;
             break;
 
         case 'Contender':
-            if (currentOvr >= 85) value *= 1.25;
-            if (currentOvr >= 80) value *= 1.1;
+            if (stars >= 4.5) value *= 1.5; // Desperate for superstars
+            if (stars >= 4.0) value *= 1.2;
             // Win NOW
-            if (player.age <= 22 && currentOvr < 75) value *= 0.7; // Can't wait
+            if (player.age <= 22 && stars < 3.5) value *= 0.6; // Can't wait
             break;
     }
 
@@ -195,8 +207,6 @@ export function getPlayerTradeValue(
         needMultiplier = getPositionalNeed(receivingTeam, roster, player.position);
 
         // Internal Diminishing Returns:
-        // If the team VALUING the player (receivingTeam) already has elite talent at that position,
-        // they value ADDING another one significantly less.
         const elitesAtPos = roster.filter(p => p.position === player.position && (p.overall || calculateOverall(p)) >= 82);
         if (elitesAtPos.length >= 2) {
             value *= 0.7; // Heavy penalty for 3rd elite player at same pos
@@ -210,16 +220,18 @@ export function getPlayerTradeValue(
     if (contract) {
         if (contract.yearsLeft === 1) {
             // Expiring
-            if (teamDirection === 'Rebuilding') value *= 1.15; // Asset flip
-        } else if (contract.yearsLeft >= 4 && contract.amount > 25000000) {
+            if (teamDirection === 'Rebuilding') value *= 1.25; // Massive asset flip potential
+        } else if (contract.yearsLeft >= 4 && contract.amount > 30000000) {
             // Bad Contract Risk
-            if (currentOvr < 85) value *= 0.8;
-            if (player.age > 30) value *= 0.5;
+            if (currentOvr < 82) value *= 0.7;
+            if (player.age > 31 && currentOvr < 85) value *= 0.5;
         }
     }
 
-    // D. INJURY RISK 
-    if (player.age >= 33) value *= 0.9;
+    // D. STAR TAX (Loss Aversion)
+    // If a team is GIVING AWAY a star, they demand a premium because it hurts their brand/fanbase
+    if (currentOvr >= 92) value *= 2.0; // Elite Superstars are nearly untouchable
+    else if (currentOvr >= 88) value *= 1.5; 
 
     return Math.max(0, value);
 }
@@ -278,8 +290,8 @@ export function getDraftPickValue(pick: DraftPick, currentYear: number, receivin
 
     if (receivingTeam) {
         const state = getTeamState(receivingTeam);
-        if (state === 'Rebuilding') baseValue *= 1.3;
-        if (state === 'Contender') baseValue *= 0.8;
+        if (state === 'Rebuilding') baseValue *= 1.8; // Rebuilders value picks much more
+        if (state === 'Contender') baseValue *= 0.7; // Contenders prefer immediate help
     }
 
     return baseValue;
@@ -403,12 +415,36 @@ export function evaluateTrade(
             if (ratio < 1.5) return { accepted: false, message: "We are chasing a ring. Picks don't help us score points right now." };
         }
 
-        // SUPERSTAR EXCEPTION
+        // SUPERSTAR EXCEPTION (NBA Style)
         const gettingSuperstar = userAssets.players.some(p => (p.overall || calculateOverall(p)) >= 88);
         if (gettingSuperstar) {
-            requiredRatio = 0.95; // Willing to overpay for a star
+            requiredRatio = 0.90; // Desperate for a star
         }
-    }
+
+        // MANDATORY QUALITY CHECK (Anti-Scrub Rule)
+        // Using Star Rating thresholds (Baseline 75): 4.5+ Stars = Superstar, 5 Stars = Generational
+        const aiStars = calculateStars(aiAssets.players[0]?.overall || calculateOverall(aiAssets.players[0] || {}), 75);
+        const aiGivingStar = aiAssets.players.find(p => calculateStars(p.overall || calculateOverall(p), 75) >= 4.2);
+        
+        if (aiGivingStar) {
+            const userGivingQuality = userAssets.players.some(p => calculateStars(p.overall || calculateOverall(p), 75) >= 4.0);
+            const userGivingProspect = userAssets.players.some(p => p.age < 23 && (p.potential || 0) >= 88);
+            const userGivingMultipleFirsts = userAssets.picks.filter(p => p.round === 1).length >= 3;
+
+            if (!userGivingQuality && !userGivingProspect && !userGivingMultipleFirsts) {
+                return { accepted: false, message: `We are not trading a ${calculateStars(aiGivingStar.overall, 75).toFixed(1)}-star talent like ${aiGivingStar.lastName} for bench warmers. We need a 4-star starter, a blue-chip prospect, or at least three 1st round picks.` };
+            }
+            
+            // Generational Tier (5 Stars)
+            if (calculateStars(aiGivingStar.overall || calculateOverall(aiGivingStar), 75) >= 4.8) {
+                 const userGivingStar = userAssets.players.some(p => calculateStars(p.overall || calculateOverall(p), 75) >= 4.5);
+                 const userGivingManyPicks = userAssets.picks.filter(p => p.round === 1).length >= 4;
+                 if (!userGivingStar && !userGivingManyPicks) {
+                     return { accepted: false, message: `A player like ${aiGivingStar.lastName} is the face of our franchise. We aren't trading him unless we get a superstar in return or a historic haul of draft picks.` };
+                 }
+            }
+        }
+    } // End of Contender block
 
     if (gmProfile?.unlockedPerks?.includes('deal_1')) requiredRatio -= 0.05;
 
@@ -605,9 +641,16 @@ export function generateTradeOffers(
 
         // Try to find a single player match first (+/- 10%)
         const singleMatch = aiAssetsScored.find(a => {
-            if (a.player.overall > currentOvr + 4 && aiDirection !== 'Rebuilding') return false;
-            if (a.player.overall >= 88 && currentOvr < 85) return false;
-            if (a.player.overall >= 92 && a.player.age < 27) return false; // Untouchable check
+            const aiStars = calculateStars(a.player.overall || calculateOverall(a.player), 75);
+            const userStars = calculateStars(currentOvr, 75);
+
+            // ANTI-JOKIC-FOR-SCRUB RULE:
+            if (aiStars >= 4.5 && userStars < 4.0) return false;
+            if (aiStars >= 5.0 && userStars < 4.5) return false;
+
+            if (aiStars > userStars + 1.0 && aiDirection !== 'Rebuilding') return false;
+            if (aiStars >= 4.5 && userStars < 4.2) return false;
+            if (aiStars >= 5.0 && a.player.age < 27) return false; // Untouchable check
 
             return Math.abs(a.value - valueToDistribute) < valueToDistribute * 0.1;
         });

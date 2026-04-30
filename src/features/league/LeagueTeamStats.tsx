@@ -108,10 +108,10 @@ export const LeagueTeamStats: React.FC<LeagueTeamStatsProps> = ({ teams, players
 
     return (
         <div style={{ paddingBottom: '40px' }}>
-            <div className="glass-panel" style={{ padding: '0', overflowX: 'auto', borderRadius: '12px' }}>
-                <table style={{ width: '100%', minWidth: '900px', borderCollapse: 'collapse', textAlign: 'right', fontSize: '0.9rem' }}>
+            <div className="modern-card" style={{ padding: '0', overflowX: 'auto' }}>
+                <table style={{ width: '100%', minWidth: '900px', borderCollapse: 'collapse', textAlign: 'right', fontSize: '0.85rem' }}>
                     <thead>
-                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)' }}>
+                        <tr style={{ borderBottom: '1px solid var(--border-color)', background: 'var(--bg-card)' }}>
                             <HeaderCell label="Team" sortKey="city" align="left" />
                             <HeaderCell label="GP" sortKey="gp" align="center" />
                             <HeaderCell label="PPG" sortKey="ppg" />
@@ -126,35 +126,44 @@ export const LeagueTeamStats: React.FC<LeagueTeamStatsProps> = ({ teams, players
                         </tr>
                     </thead>
                     <tbody>
-                        {sortedStats.map((stat, index) => (
-                            <tr
-                                key={stat.teamId}
-                                style={{
-                                    borderBottom: '1px solid rgba(255,255,255,0.05)',
-                                    background: index % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)',
-                                    cursor: 'pointer',
-                                    transition: 'background 0.2s'
-                                }}
-                                onClick={() => onSelectTeam(stat.teamId)}
-                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                                onMouseLeave={(e) => e.currentTarget.style.background = index % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)'}
-                            >
-                                <td style={{ padding: '12px 10px', textAlign: 'left', fontWeight: 'bold' }}>
-                                    <span style={{ color: stat.primaryColor, marginRight: '8px' }}>●</span>
-                                    <span style={{ color: '#fff', textDecoration: 'underline', textUnderlineOffset: '2px' }}>{stat.city}</span>
-                                </td>
-                                <td style={{ padding: '12px 10px', color: '#ccc', textAlign: 'center' }}>{stat.gp}</td>
-                                <td style={{ padding: '12px 10px', color: '#fff', fontWeight: 'bold' }}>{stat.ppg.toFixed(1)}</td>
-                                <td style={{ padding: '12px 10px', color: '#ccc' }}>{stat.rpg.toFixed(1)}</td>
-                                <td style={{ padding: '12px 10px', color: '#ccc' }}>{stat.apg.toFixed(1)}</td>
-                                <td style={{ padding: '12px 10px', color: '#ccc' }}>{stat.spg.toFixed(1)}</td>
-                                <td style={{ padding: '12px 10px', color: '#ccc' }}>{stat.bpg.toFixed(1)}</td>
-                                <td style={{ padding: '12px 10px', color: '#ccc' }}>{stat.tpg.toFixed(1)}</td>
-                                <td style={{ padding: '12px 10px', color: '#ccc' }}>{stat.fgPct.toFixed(1)}%</td>
-                                <td style={{ padding: '12px 10px', color: '#ccc' }}>{stat.threePct.toFixed(1)}%</td>
-                                <td style={{ padding: '12px 10px', color: '#ccc' }}>{stat.ftPct.toFixed(1)}%</td>
-                            </tr>
-                        ))}
+                        {sortedStats.map((stat, index) => {
+                            const team = teams.find(t => t.id === stat.teamId);
+                            return (
+                                <tr
+                                    key={stat.teamId}
+                                    style={{
+                                        borderBottom: '1px solid var(--border-color)',
+                                        background: index % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.01)',
+                                        cursor: 'pointer',
+                                        transition: 'background 0.2s'
+                                    }}
+                                    onClick={() => onSelectTeam(stat.teamId)}
+                                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = index % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.01)'}
+                                >
+                                    <td style={{ padding: '12px 10px', textAlign: 'left', fontWeight: 'bold' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            {team?.logo ? (
+                                                <img src={team.logo} alt="" style={{ width: '24px', height: '24px', objectFit: 'contain' }} />
+                                            ) : (
+                                                <span style={{ color: stat.primaryColor, marginRight: '8px' }}>●</span>
+                                            )}
+                                            <span style={{ color: 'var(--text-main)' }}>{stat.city}</span>
+                                        </div>
+                                    </td>
+                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)', textAlign: 'center' }}>{stat.gp}</td>
+                                    <td style={{ padding: '12px 10px', color: 'var(--text-main)', fontWeight: '800' }}>{stat.ppg.toFixed(1)}</td>
+                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.rpg.toFixed(1)}</td>
+                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.apg.toFixed(1)}</td>
+                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.spg.toFixed(1)}</td>
+                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.bpg.toFixed(1)}</td>
+                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.tpg.toFixed(1)}</td>
+                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.fgPct.toFixed(1)}%</td>
+                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.threePct.toFixed(1)}%</td>
+                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.ftPct.toFixed(1)}%</td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>

@@ -1,125 +1,50 @@
 import React from 'react';
-import type { ReactNode, CSSProperties } from 'react';
-import { motion } from 'framer-motion';
-import type { HTMLMotionProps } from 'framer-motion';
 
-interface DashboardCardProps extends Omit<HTMLMotionProps<"div">, "title"> {
-    children: ReactNode;
-    title?: ReactNode;
-    icon?: ReactNode;
-    action?: ReactNode;
-    noPadding?: boolean;
-    className?: string;
-    style?: CSSProperties;
-    variant?: 'white' | 'glass' | 'hero' | 'dark';
+interface DashboardCardProps {
+  title: React.ReactNode;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+  action?: React.ReactNode;
+  noPadding?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+  variant?: 'primary' | 'secondary' | 'accent' | 'default';
 }
 
-export const DashboardCard: React.FC<DashboardCardProps> = ({
-    children,
-    title,
-    icon,
-    action,
-    noPadding = false,
-    className = "",
-    style,
-    variant = 'white',
-    ...props
+export const DashboardCard: React.FC<DashboardCardProps> = ({ 
+  title, 
+  icon, 
+  children, 
+  footer, 
+  action,
+  noPadding = false,
+  className = '', 
+  style,
+  variant = 'default'
 }) => {
-    // Base styles based on variants from screenshot
-    const getVariantStyles = (): CSSProperties => {
-        switch (variant) {
-            case 'hero':
-                return {
-                    background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
-                    color: 'white',
-                    borderRadius: '28px',
-                    boxShadow: '0 12px 40px rgba(37, 99, 235, 0.3)',
-                    border: '1px solid rgba(255,255,255,0.1)'
-                };
-            case 'dark':
-                return {
-                    background: 'rgba(30, 30, 30, 0.8)',
-                    backdropFilter: 'blur(16px)',
-                    color: 'white',
-                    borderRadius: '28px',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                };
-            case 'glass':
-                return {
-                    background: 'rgba(255, 255, 255, 0.06)',
-                    backdropFilter: 'blur(20px) saturate(160%)',
-                    borderRadius: '24px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                };
-            case 'white':
-            default:
-                return {
-                    background: 'rgba(255, 255, 255, 0.95)',
-                    backdropFilter: 'blur(10px)',
-                    color: '#1A1A1A',
-                    borderRadius: '28px',
-                    boxShadow: '0 12px 30px rgba(0, 0, 0, 0.1)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)'
-                };
-        }
-    };
+  return (
+    <div 
+      className={`modern-card animate-fade ${className}`} 
+      style={style}
+    >
+      <div className="card-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {icon && <span style={{ color: variant === 'default' ? 'var(--text-dim)' : `var(--${variant})` }}>{icon}</span>}
+          <h3 className="card-title">{title}</h3>
+        </div>
+        {action && <div className="card-action">{action}</div>}
+      </div>
+      
+      <div className="card-body" style={{ padding: noPadding ? '0' : '8px' }}>
+        {children}
+      </div>
 
-    const headerColor = variant === 'white' ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.6)';
-
-    return (
-        <motion.div
-            className={`replica-card ${className}`}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                position: 'relative',
-                width: '100%',
-                boxSizing: 'border-box',
-                ...getVariantStyles(),
-                ...style
-            }}
-            {...props}
-        >
-            {(title || icon || action) && (
-                <div style={{
-                    padding: '16px 24px 0 24px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        {icon && <span style={{ color: variant === 'white' ? '#1A1A1A' : 'white', display: 'flex', opacity: 0.7 }}>{icon}</span>}
-                        {title && (
-                            <h3 style={{
-                                margin: 0,
-                                fontSize: '0.65rem',
-                                fontWeight: 800,
-                                letterSpacing: '0.02em',
-                                color: variant === 'white' ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.7)',
-                                textTransform: 'uppercase',
-                                fontFamily: 'Inter, system-ui, sans-serif'
-                            }}>
-                                {title}
-                            </h3>
-                        )}
-                    </div>
-                    {action && <div style={{ fontSize: '0.8rem' }}>{action}</div>}
-                </div>
-            )}
-
-            <div style={{
-                padding: noPadding ? '0' : '16px 20px',
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column'
-            }}>
-                {children}
-            </div>
-        </motion.div>
-    );
+      {footer && (
+        <div className="card-footer" style={{ marginTop: '20px' }}>
+          {footer}
+        </div>
+      )}
+    </div>
+  );
 };

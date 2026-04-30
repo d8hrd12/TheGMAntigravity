@@ -3,6 +3,7 @@ import type { Player } from '../../models/Player';
 import type { Coach } from '../../models/Coach';
 import type { MatchResult, MatchInput, TeamRotationData, GameEvent } from './SimulationTypes';
 import type { TeamStrategy, PaceType, OffensiveFocus, DefensiveStrategy } from './TacticsTypes';
+import { calculateOverall } from '../../utils/playerUtils';
 
 // --- Configuration ---
 export const ENGINE_VERSION = "2.0.0-PossessionBased";
@@ -178,7 +179,22 @@ function generateNoSubsRotation(teamId: string, roster: Player[]): TeamRotationD
 }
 
 function generateDefaultRotation(teamId: string, roster: Player[]): TeamRotationData[] {
-    // Better logic: use minute-based if possible, else pattern
+    // For AI teams: always assign minutes based on OVR ranking so stars play 36+ min
+    const active = roster.filter(p => !p.isRetired);
+    const sorted = [...active].sort((a, b) => calculateOverall(b) - calculateOverall(a));
+
+    // Assign target minutes by rank — ensures stars (rank 1-2) get 36-38 min regardless of player.minutes
+    sorted.forEach((p, i) => {
+        if (i === 0) p.minutes = 37;        // Franchise star
+        else if (i === 1) p.minutes = 35;   // Co-star / 2nd option
+        else if (i === 2) p.minutes = 32;   // 3rd starter
+        else if (i < 5)  p.minutes = 28;    // Remaining starters
+        else if (i < 7)  p.minutes = 20;    // Primary rotation
+        else if (i < 9)  p.minutes = 14;    // Secondary rotation
+        else if (i < 11) p.minutes = 7;     // End of bench
+        else p.minutes = 0;                 // DNP
+    });
+
     return generateRotationFromMinutes(teamId, roster);
 }
 
@@ -288,7 +304,7 @@ export function simulateMatchII(input: MatchInput): MatchResult {
 
         // C. Check for NEW Fatigue
         activeLineup = activeLineup.map(p => {
-            if (p.stamina < 40 && !overrides.has(p.id)) {
+            if (p.stamina < 30 && !overrides.has(p.id)) {  // Lowered from 40 — stars stay on court longer
                 // Find Replacement (Fresh, Best OVR, Diff ID)
                 const candidates = teamRoster.filter(bencher =>
                     !activeLineup.find(al => al.id === bencher.id) &&
@@ -335,7 +351,7 @@ export function simulateMatchII(input: MatchInput): MatchResult {
             if (currentQuarter === 3) {
                 // Boost stamina at halftime
                 [...homeRoster, ...awayRoster].forEach(p => {
-                    p.stamina = Math.min(100, (p.stamina || 100) + 30); // Big boost
+                    p.stamina = Math.min(100, (p.stamina || 100) + 40); // Halftime: bigger recovery boost
                 });
             }
         }
@@ -428,8 +444,8 @@ export function simulateMatchII(input: MatchInput): MatchResult {
         }
 
         // --- STAMINA UPDATE ---
-        const drain = actualDuration * 0.04; // ~2.4 per min
-        const recover = actualDuration * 0.05; // ~3.0 per min
+        const drain = actualDuration * 0.018;   // Reduced from 0.04 — stars now last 36-38 min naturally
+        const recover = actualDuration * 0.025;  // Bench recovery
 
         const updateTeamStamina = (roster: Player[], activeLineup: Player[]) => {
             roster.forEach(p => {

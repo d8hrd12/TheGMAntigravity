@@ -14,42 +14,29 @@ export const TeamMoraleDashboard: React.FC<TeamMoraleProps> = () => {
     const status = "Stable";
 
     return (
-        <DashboardCard variant="white" title="Team Chemistry" icon={<Smile size={16} />}>
+        <DashboardCard variant="primary" title="Team Chemistry" icon={<Smile size={16} />}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                <div style={{
-                    position: 'relative',
-                    width: '70px',
-                    height: '70px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }}>
-                    {/* Ring */}
-                    <svg width="70" height="70" viewBox="0 0 70 70">
-                        <circle
-                            cx="35" cy="35" r="30"
-                            fill="none"
-                            stroke="#E5E7EB"
-                            strokeWidth="6"
-                        />
-                        <circle
-                            cx="35" cy="35" r="30"
-                            fill="none"
-                            stroke="#10B981"
-                            strokeWidth="6"
-                            strokeDasharray={`${(score / 100) * 188.4} 188.4`}
-                            strokeLinecap="round"
-                            transform="rotate(-90 35 35)"
+                <div className="gauge-container" style={{ width: '70px', height: '70px' }}>
+                    <svg className="gauge-svg" viewBox="0 0 100 100">
+                        <circle className="gauge-bg" cx="50" cy="50" r="45" />
+                        <circle 
+                            className="gauge-fill" 
+                            cx="50" cy="50" r="45" 
+                            style={{ 
+                                strokeDasharray: '283', 
+                                strokeDashoffset: (283 - (283 * score) / 100),
+                                stroke: 'var(--accent)'
+                            }} 
                         />
                     </svg>
-                    <div style={{ position: 'absolute', fontSize: '1.2rem', fontWeight: 900, color: '#1A1A1A' }}>
-                        {score}
+                    <div className="gauge-text">
+                        <span className="gauge-value" style={{ fontSize: '1.2rem' }}>{score}</span>
                     </div>
                 </div>
 
                 <div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#1A1A1A' }}>{status}</div>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#9CA3AF' }}>Locker Room Atmosphere</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>{status}</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Locker Room Atmosphere</div>
                 </div>
             </div>
         </DashboardCard>

@@ -1,6 +1,8 @@
 import React from 'react';
 import { useGame } from '../../store/GameContext';
 import { calculateOverall } from '../../utils/playerUtils';
+import { calculateStars, calculateTeamBaseline } from '../../utils/starUtils';
+import { StarRating } from '../../components/StarRating';
 
 interface RosterPreviewProps {
     onSelectPlayer: (id: string) => void;
@@ -16,9 +18,10 @@ export const RosterPreview: React.FC<RosterPreviewProps> = ({ onSelectPlayer }) 
 
     const teamPlayers = players.filter(p => p.teamId === userTeamId);
 
-    // Limit to 5
+    // Sort by OVR (Stars)
+    const teamBaseline = React.useMemo(() => calculateTeamBaseline(teamPlayers), [teamPlayers]);
     const topPlayers = teamPlayers
-        .sort((a, b) => b.overall - a.overall)
+        .sort((a, b) => calculateOverall(b) - calculateOverall(a))
         .slice(0, 5);
 
     return (
@@ -153,14 +156,8 @@ export const RosterPreview: React.FC<RosterPreviewProps> = ({ onSelectPlayer }) 
                                 )}
                             </div>
 
-                            <div style={{
-                                background: 'rgba(255,255,255,0.05)',
-                                padding: '4px 8px',
-                                borderRadius: '8px',
-                                fontWeight: 700,
-                                fontSize: '0.9rem'
-                            }}>
-                                {calculateOverall(player)}
+                            <div style={{ display: 'flex', justifyContent: 'center', width: '32px' }}>
+                                <StarRating stars={calculateStars(calculateOverall(player), teamBaseline)} size={12} />
                             </div>
                         </div>
                     )

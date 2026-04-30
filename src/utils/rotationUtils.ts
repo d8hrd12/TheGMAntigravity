@@ -1,5 +1,6 @@
 import type { Player, Position } from '../models/Player';
 import { calculateOverall } from './playerUtils';
+import { findValidStartingLineup } from './rotationSolver';
 
 /**
  * Optimizes the rotation for a given list of players.
@@ -53,21 +54,9 @@ export const optimizeRotation = (roster: Player[], strategy: RotationStrategy = 
 
     const starIds = new Set(stars.map(s => s.id));
 
-    // Identify Remaining Starters (Best available for remaining positions)
-    const positions: Position[] = ['C', 'PF', 'SF', 'SG', 'PG'];
-    const finalStarters: (typeof playersWithOvr[0])[] = [];
-    const usedIds = new Set<string>();
-
-    positions.forEach(pos => {
-        let best = stars.find(s => s.position === pos && !usedIds.has(s.id));
-        if (!best) best = playersWithOvr.find(p => p.position === pos && !usedIds.has(p.id));
-        if (!best) best = playersWithOvr.find(p => !usedIds.has(p.id));
-
-        if (best) {
-            finalStarters.push(best);
-            usedIds.add(best.id);
-        }
-    });
+    // Use the solver to find the best 5 players that can form a valid starting lineup
+    const finalStarters = findValidStartingLineup(playersWithOvr);
+    const usedIds = new Set(finalStarters.map(p => p.id));
 
     // 2. Define Distribution Curve based on Strategy (Numeric)
     // Map string strategies to numbers for backward compatibility
@@ -84,12 +73,13 @@ export const optimizeRotation = (roster: Player[], strategy: RotationStrategy = 
 
     // Interpolate Parameters
     // Deep Bench (0) -> Heavy Starters (100)
-    const starterMins = Math.round(lerp(28, 38, factor));
-    const starMins = Math.round(lerp(32, 42, factor));
+    // Adjusted for 48-minute games: Top stars should play 40+ mins in "Standard/Heavy"
+    const starterMins = Math.round(lerp(30, 40, factor));
+    const starMins = Math.round(lerp(36, 46, factor)); // 41 mins at 0.5 factor, 46 at 1.0
 
-    // Bench Curves
-    const benchDeep = [24, 22, 18, 16, 12];
-    const benchHeavy = [15, 12, 10, 8, 5];
+    // Bench Curves (Scaling the rest)
+    const benchDeep = [20, 18, 14, 10, 8];
+    const benchHeavy = [10, 6, 4, 2, 0];
 
     const benchCurve = benchDeep.map((val, i) => Math.round(lerp(val, benchHeavy[i], factor)));
 
