@@ -677,19 +677,28 @@ function AppContent() {
             {/* Center: Team Branding */}
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               {userTeam && (
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '16px', 
-                  padding: '6px 20px', 
-                  background: 'var(--bg-card)', 
-                  borderRadius: '30px', 
-                  border: '1px solid var(--border-color)',
-                  boxShadow: 'var(--shadow-sm)',
-                  transition: 'transform 0.2s ease'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                <div 
+                  onClick={() => setView('dashboard')}
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '16px', 
+                    padding: '6px 20px', 
+                    background: 'var(--bg-card)', 
+                    borderRadius: '30px', 
+                    border: '1px solid var(--border-color)',
+                    boxShadow: 'var(--shadow-sm)',
+                    transition: 'all 0.2s ease',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.background = 'var(--bg-card-hover)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.background = 'var(--bg-card)';
+                  }}
                 >
                   <div style={{ 
                     width: '36px', 
@@ -731,23 +740,27 @@ function AppContent() {
                     </div>
                   </div>
 
-                  {awardsHistory.some(h => h.champion?.teamId === userTeam.id) && (
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '4px',
-                      background: 'linear-gradient(135deg, #FFD700, #DAA520)',
-                      padding: '3px 8px',
-                      borderRadius: '12px',
-                      boxShadow: '0 2px 4px rgba(218, 165, 32, 0.4)',
-                      marginLeft: '4px'
+                  {/* Championship Bubble */}
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '4px',
+                    background: 'rgba(218, 165, 32, 0.1)',
+                    padding: '3px 10px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(218, 165, 32, 0.3)',
+                    marginLeft: '4px'
+                  }}>
+                    <Trophy size={10} color="#DAA520" fill="#DAA520" />
+                    <span style={{ 
+                      fontSize: '0.75rem', 
+                      color: '#DAA520', 
+                      fontWeight: 900,
+                      letterSpacing: '0.05em'
                     }}>
-                      <Trophy size={10} color="white" fill="white" />
-                      <span style={{ fontSize: '0.75rem', color: 'white', fontWeight: 900 }}>
-                        {awardsHistory.filter(h => h.champion?.teamId === userTeam.id).length}
-                      </span>
-                    </div>
-                  )}
+                      X{awardsHistory.filter(h => h.champion?.teamId === userTeam.id).length}
+                    </span>
+                  </div>
                 </div>
               )}
             </div>
