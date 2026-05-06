@@ -129,6 +129,13 @@ export const SeasonLeadersView: React.FC<SeasonLeadersViewProps> = ({ onBack, on
                     v => `${v.toFixed(1)}%`,
                     p => gpQual(p) && (p.seasonStats!.ftAttempted / p.seasonStats!.gamesPlayed) >= 2
                 )
+            },
+            {
+                title: "MINUTES PER GAME",
+                leaders: getLeaders(
+                    p => (p.seasonStats!.minutes / p.seasonStats!.gamesPlayed),
+                    v => v.toFixed(1)
+                )
             }
         ];
     }, [players, seasonGamesPlayed]);
