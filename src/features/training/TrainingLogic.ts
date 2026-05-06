@@ -37,7 +37,7 @@ const FOCUS_WEIGHTS: Record<TrainingFocus, Partial<Record<keyof PlayerAttributes
     }
 };
 
-export const calculateProgression = (player: Player, focus: TrainingFocus): { updatedPlayer: Player; report: ProgressionResult } => {
+export const calculateProgression = (player: Player, focus: TrainingFocus, coachDevRating?: number): { updatedPlayer: Player; report: ProgressionResult } => {
     const changes: AttributeChange[] = [];
     const oldAttributes = { ...player.attributes };
     const oldOverall = player.overall; // Assuming it is up to date
@@ -89,6 +89,19 @@ export const calculateProgression = (player: Player, focus: TrainingFocus): { up
     // For now random modifier if we don't have explicit work ethic
     // If we had workEthic (0-99): growthPoints *= (0.8 + (workEthic / 200))
 
+    // Apply Coach Development Rating modifier
+    // coachDev = 50 -> 1.0x (neutral)
+    // coachDev = 100 -> 1.3x (boost)
+    // coachDev = 0 -> 0.7x (penalty)
+    let devModifier = 1.0;
+    if (coachDevRating !== undefined) {
+        devModifier = 0.7 + (coachDevRating / 100) * 0.6;
+    }
+    
+    if (growthPoints > 0) {
+        growthPoints *= devModifier;
+    }
+
     // 2. Distribute Points
     const weights = FOCUS_WEIGHTS[focus];
     const targetAttributes = Object.keys(weights) as Array<keyof PlayerAttributes>;
@@ -137,8 +150,16 @@ export const calculateProgression = (player: Player, focus: TrainingFocus): { up
         // Focus matters LESS for regression, but 'Physical' focus can slow physical decline.
         // 'Fundamentals' can slow skill decline.
 
+        // Apply Coach modifier to slow regression
+        // If devModifier is > 1.0 (good coach), we divide the regression by it, so it's smaller.
+        // If devModifier is < 1.0 (bad coach), we divide by it, so regression is larger.
+        let regressionModifier = 1.0;
+        if (coachDevRating !== undefined) {
+             regressionModifier = devModifier; 
+        }
+
         // Reduced from 15 to 8 to prevent extreme single-season OVR drops
-        const regressionPool = Math.abs(growthPoints) * 8; // Decline hits harder on raw stats
+        const regressionPool = (Math.abs(growthPoints) / regressionModifier) * 8; // Decline hits harder on raw stats
 
         // Decline affects PHYSICALS first regardless of focus, unless focus is PHYSICAL
         const physicalStats: Array<keyof PlayerAttributes> = ['athleticism'];
@@ -215,4 +236,90 @@ export const calculateProgression = (player: Player, focus: TrainingFocus): { up
     };
 
     return { updatedPlayer, report };
+};
+
+// ----------------------------------------------------------------------------
+// IN-SEASON PROGRESSION (FLUID POTENTIAL & PERFORMANCE BOOSTS)
+// ----------------------------------------------------------------------------
+export const calculateInSeasonProgression = (player: Player, coachDevRating?: number): Player => {
+    const s = player.seasonStats;
+    if (!s || s.gamesPlayed < 10) return player; // Not enough data
+
+    const updatedPlayer = { 
+        ...player,
+        attributes: { ...player.attributes },
+        previousAttributes: { ...player.attributes } // Snapshot for UI diffs
+    };
+    
+    let ovrChange = 0;
+    const oldOverall = calculateOverall(player);
+
+    const mpg = s.minutes / s.gamesPlayed;
+    const gp = s.gamesPlayed;
+
+    // Calculate Valuation (similar to ContractUtils but slightly more forgiving)
+    const gmSc = (s.points + 0.4 * s.fgMade - 0.7 * s.fgAttempted - 0.4 * (s.ftAttempted - s.ftMade) + 0.5 * s.offensiveRebounds + 0.3 * s.defensiveRebounds + s.steals + 0.6 * s.assists + 0.6 * s.blocks - 0.4 * s.fouls - s.turnovers) / gp;
+    let perfOvr = 58 + (gmSc * 1.45); // Increased from 1.3 to make OVR scaling better
+    if (s.points / gp < 5 && perfOvr > 75) perfOvr -= 5;
+    perfOvr = Math.max(40, Math.min(99, perfOvr));
+
+    const diff = perfOvr - oldOverall;
+
+    // 1. FLUID POTENTIAL (Young players only)
+    if (updatedPlayer.age <= 24) {
+        if (mpg >= 15 && diff > 1.5) {
+            // Outperforming and playing a solid role: Outrun potential!
+            updatedPlayer.potential = Math.min(99, updatedPlayer.potential + Math.ceil(diff / 1.5));
+        } else if (mpg < 12 && updatedPlayer.potential > oldOverall + 3) {
+            // High potential but not playing: Potential drops (regression of ceiling)
+            updatedPlayer.potential = Math.max(oldOverall, updatedPlayer.potential - 2);
+        }
+    }
+
+    // 2. IN-SEASON ATTRIBUTE PROGRESSION / REGRESSION
+    // Only apply if the diff is significant
+    
+    // Check if coach can help push a player over the edge for progression, or save them from regression
+    const coachBoost = coachDevRating ? (coachDevRating - 50) / 100 : 0; // -0.5 to +0.5
+    
+    if ((diff + coachBoost) >= 2 && updatedPlayer.age < 30) {
+        // Player is balling out! Give them a slight bump (+1 OVR roughly)
+        ovrChange = 1;
+    } else if ((diff - coachBoost) <= -3 && updatedPlayer.age >= 30) {
+        // Veteran is completely washed this year! Give them a slight regression
+        ovrChange = -1;
+    }
+
+    if (ovrChange !== 0) {
+        // Distribute the change across trainable attributes
+        const attributesToChange = Object.keys(updatedPlayer.attributes) as Array<keyof PlayerAttributes>;
+        let pointsDistributed = 0;
+        const maxPoints = Math.abs(ovrChange) * 6; // Roughly 6 attribute points = 1 OVR
+
+        for (let i = 0; i < attributesToChange.length; i++) {
+            if (pointsDistributed >= maxPoints) break;
+            
+            // Pick a random attribute to adjust
+            const attr = attributesToChange[Math.floor(Math.random() * attributesToChange.length)];
+            const trainability = getAttributeTrainability(updatedPlayer, attr);
+
+            if (ovrChange > 0) {
+                // Progression: Must be trainable and under max potential
+                if (trainability.canTrain && updatedPlayer.attributes[attr] < trainability.maxPotential) {
+                    updatedPlayer.attributes[attr] = Math.min(trainability.maxPotential, updatedPlayer.attributes[attr] + 1);
+                    pointsDistributed++;
+                }
+            } else {
+                // Regression: Just drop the stat
+                updatedPlayer.attributes[attr] = Math.max(25, updatedPlayer.attributes[attr] - 1);
+                pointsDistributed++;
+            }
+        }
+    }
+
+    const newOverall = calculateOverall(updatedPlayer);
+    updatedPlayer.overall = newOverall;
+    updatedPlayer.inSeasonProgress = newOverall - oldOverall;
+
+    return updatedPlayer;
 };

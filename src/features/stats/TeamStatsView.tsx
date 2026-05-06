@@ -321,8 +321,17 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                                     <td style={{ padding: '12px 10px', color: 'var(--text-muted)', textAlign: 'center' }}>{p.position}</td>
                                     <td style={{ padding: '10px', textAlign: 'center', color: 'var(--text-muted)' }}>{p.age}</td>
                                     <td style={{ padding: '10px', textAlign: 'center' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '2px' }}>
                                             <StarRating stars={calculateStars(calculateOverall(p), teamBaseline)} size={12} />
+                                            {p.inSeasonProgress ? (
+                                                <span style={{ 
+                                                    color: p.inSeasonProgress > 0 ? '#2ecc71' : '#e74c3c', 
+                                                    fontSize: '0.8rem', 
+                                                    fontWeight: 800 
+                                                }}>
+                                                    {p.inSeasonProgress > 0 ? '+' : '-'}
+                                                </span>
+                                            ) : null}
                                         </div>
                                     </td>
                                     <td style={{ padding: '12px 10px', color: 'var(--text-muted)', textAlign: 'center' }}>{stats.gamesPlayed}</td>

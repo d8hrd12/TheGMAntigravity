@@ -161,25 +161,22 @@ export function updatePlayerMorale(
     };
 }
 
-export function applyTeamDynamics(roster: Player[], team?: Team): Player[] {
-    const toxicPlayers = roster.filter(p => (p.morale || 50) < 20);
-    const leaders = roster.filter(p =>
-        (p.personality === 'Silent Leader' || p.personality === 'Loyalist') &&
-        (p.morale || 50) > 80
-    );
+import { calculateTeamChemistry } from '../../utils/chemistryUtils';
 
-    const hasLeader = leaders.length > 0;
+export function applyTeamDynamics(roster: Player[], team?: Team): Player[] {
+    const chemistry = calculateTeamChemistry(roster, team);
     
-    // O1: Feuding Stars
-    // If multiple stars (OVR >= 85) exist and one is a Diva, and the team isn't dominating, they feud.
+    // Feuding Stars Logic
     const stars = roster.filter(p => p.overall >= 85);
     const hasDivaStar = stars.some(p => p.personality === 'Diva');
     const winPct = team && ((team.wins || 0) + (team.losses || 0)) > 0 ? (team.wins || 0) / ((team.wins || 0) + (team.losses || 0)) : 0.5;
     const isFeuding = stars.length >= 2 && hasDivaStar && winPct < 0.60;
 
-    let penalty = toxicPlayers.length * 0.5;
-    if (isFeuding) penalty += 2; // Extra toxicity from the feud
-    if (hasLeader) penalty = penalty * 0.5;
+    // Penalty based on how far below 60 the chemistry is
+    // If chemistry is 60+, no penalty. If 0, max penalty of 6 per game.
+    let penalty = Math.max(0, (60 - chemistry) / 10);
+    
+    if (isFeuding) penalty += 2; 
 
     return roster.map(p => {
         let newMorale = p.morale || 50;

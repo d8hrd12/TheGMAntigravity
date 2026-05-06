@@ -48,7 +48,7 @@ import {
 import { generate82GameSchedule } from '../utils/scheduleGenerator';
 import { saveToDB, loadFromDB, deleteFromDB, type SaveMeta } from '../utils/storage';
 import { TrainingFocus, type ProgressionResult } from '../models/Training';
-import { calculateProgression } from '../features/training/TrainingLogic';
+import { calculateProgression, calculateInSeasonProgression } from '../features/training/TrainingLogic';
 import { importNbaPlayers } from '../features/league/CsvImporter';
 import { applyRealWorldTrades } from '../data/tradeUpdates';
 
@@ -161,6 +161,7 @@ export interface GameState {
         paySalaries: boolean;
     };
     showAwardsModal: 'regular' | 'finals' | null;
+    showMidSeasonProgressionModal: boolean;
     currentHallOfFame: Player[];
     scoutingPoints: Record<string, number>;
     scoutingReports: Record<string, Record<string, { points: number, isPotentialRevealed: boolean }>>;
@@ -261,6 +262,7 @@ interface GameContextType extends GameState {
     addNewsStory: (story: NewsStory) => void;
     endScoutingPhase: () => void;
     updateRotation: (updates: { id: string, minutes: number, isStarter: boolean, rotationIndex?: number }[]) => void;
+    updateTeamHierarchy: (teamId: string, hierarchy: Record<string, number>) => void;
     simulateToTradeDeadline: () => void;
     simulateToPlayoffs: () => void;
     simulatePlayoffs: () => void;
@@ -372,6 +374,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             paySalaries: false
         },
         showAwardsModal: null,
+        showMidSeasonProgressionModal: false,
         currentHallOfFame: [],
         seasonPhase: 'regular_season',
         playoffs: [],
@@ -1039,6 +1042,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 leagueAllTimeLeaders: {},
                 teamAllTimeLeaders: {},
                 showAwardsModal: null,
+                showMidSeasonProgressionModal: false,
                 currentHallOfFame: [],
                 view: "dashboard"
             });
@@ -1157,6 +1161,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 leagueAllTimeLeaders: {},
                 teamAllTimeLeaders: {},
                 showAwardsModal: null,
+                showMidSeasonProgressionModal: false,
                 currentHallOfFame: [],
                 view: "dashboard"
             });
@@ -2032,7 +2037,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
             const getAiPerceivedValue = (p: Player) => {
                 const report = teamPoints[p.id];
                 const isRevealed = report?.isPotentialRevealed;
-                const noise = isRevealed ? 0 : ((p.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 31) - 15);
+                
+                // GM Drafting skill effect
+                // Drafting skill 100 -> multiplier 0 (no noise)
+                // Drafting skill 0 -> multiplier 1 (max noise)
+                const draftingSkill = gm?.skills.drafting ?? 50;
+                const draftNoiseMultiplier = Math.max(0, (100 - draftingSkill) / 100);
+                
+                // Base noise for unrevealed players, scaled by drafting skill
+                let noise = 0;
+                if (!isRevealed) {
+                    const randomNoise = (p.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 31) - 15;
+                    noise = randomNoise + (Math.random() * 20 - 10) * draftNoiseMultiplier; 
+                }
+                
                 const perceivedPotential = Math.max(0, Math.min(99, (p.potential || 70) + noise));
                 const currentOvr = calculateOverall(p);
                 const ageFactor = Math.max(0, 30 - p.age) * 2;
@@ -3001,6 +3019,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const simulateDay = (prev: GameState): GameState => {
         const nextDate = new Date(prev.date.getTime() + 86400000);
         let nextDayMatchups: { homeId: string, awayId: string }[] = [];
+        let shouldShowMidSeasonModal = false;
 
         // 1. HEALING LOGIC
         // Create a healed version of players first
@@ -3286,6 +3305,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 // We must update the global aiGms array, but we are inside simulateDay which returns GameState.
                 // We will assign this back to the returned state.
                 prev.aiGms = updatedGms; 
+
+                // Process in-season progression for all players exactly at 40 games
+                currentPlayers = currentPlayers.map(p => {
+                    const teamCoach = currentCoaches.find(c => c.teamId === p.teamId);
+                    return calculateInSeasonProgression(p, teamCoach?.rating.talentDevelopment);
+                });
+
+                shouldShowMidSeasonModal = true;
             }
 
             // --- AI IN-SEASON ROSTER MANAGEMENT ---
@@ -3665,6 +3692,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 teamRecords,
                 leagueAllTimeLeaders: leagueLeaders,
                 teamAllTimeLeaders: teamLeaders,
+                showMidSeasonProgressionModal: shouldShowMidSeasonModal ? true : prev.showMidSeasonProgressionModal,
                 isSimulating: nextDayMatchups.length > 0 && prev.isSimulating,
             };
         }
@@ -4896,6 +4924,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }, [simTarget, gameState.date, gameState.seasonPhase]);
 
 
+    const updateTeamHierarchy = (teamId: string, hierarchy: Record<string, number>) => {
+        setGameState(prev => ({
+            ...prev,
+            teams: prev.teams.map(t => t.id === teamId ? { ...t, hierarchy } : t)
+        }));
+    };
 
     const updateRotation = (updates: { id: string, minutes: number, isStarter: boolean, rotationIndex?: number }[]) => {
         setGameState(prev => ({
@@ -5238,6 +5272,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         startPlayoffs, spendScoutingPoints, // Not available in this context
         // endScoutingPhase, // Not available in this context
         updateRotation,
+        updateTeamHierarchy,
         setGameState
     };
 
@@ -5514,8 +5549,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     else if (p.position === 'C') focus = TrainingFocus.DEFENSE;
                     else focus = TrainingFocus.BALANCED;
                 }
+                
+                const teamCoach = prev.coaches.find(c => c.teamId === p.teamId);
 
-                const { updatedPlayer, report } = calculateProgression(p, focus);
+                const { updatedPlayer, report } = calculateProgression(p, focus, teamCoach?.rating.talentDevelopment);
                 reports.push(report);
                 return updatedPlayer;
             });
@@ -5582,6 +5619,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             completeOffseasonTask,
             negotiateContract,
             updateRotation,
+            updateTeamHierarchy,
             updateCoachSettings,
             updateRotationSchedule,
             acceptTradeOffer,

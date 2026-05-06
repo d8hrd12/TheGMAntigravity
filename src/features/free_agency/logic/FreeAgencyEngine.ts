@@ -146,7 +146,14 @@ export const simulateFreeAgencyDay = (
                 if (evalScore.totalScore > 75) offerFactor = 1.0 + ((evalScore.totalScore - 75) / 100); // e.g. 85 score -> 1.1x
                 if (evalScore.totalScore < 60) offerFactor = 0.9;
 
-                let offerAmount = Math.floor(contractReq.amount * offerFactor);
+                const gm = nextState.aiGms?.find(g => g.teamId === team.id);
+                // GM Negotiation skill effect
+                // negotiation 100 -> 0.85x base salary (good deal)
+                // negotiation 0 -> 1.15x base salary (overpay)
+                const negSkill = gm?.skills.negotiation ?? 50;
+                const negFactor = 1.15 - (negSkill / 100 * 0.30);
+
+                let offerAmount = Math.floor(contractReq.amount * offerFactor * negFactor);
 
             const isOwnPlayer = player.teamId === team.id || player.acquisition?.previousTeamId === team.id;
 
@@ -167,7 +174,6 @@ export const simulateFreeAgencyDay = (
             // GM4: Financial GM Logic
             // Financial GMs avoid giving long-term deals to older players unless they are elite stars
             let offerYears = contractReq.years;
-            const gm = nextState.aiGms?.find(g => g.teamId === team.id);
             if (gm?.philosophy === 'Financial' && player.age > 28 && calculateOverall(player) < 88) {
                 offerYears = Math.min(offerYears, 2); // Max 2 years for older non-stars
             }

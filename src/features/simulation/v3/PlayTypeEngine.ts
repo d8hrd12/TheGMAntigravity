@@ -1,5 +1,7 @@
 import type { Player } from '../../../models/Player';
 import { BASE_USAGE } from './Calibration';
+import type { OffensiveFocus } from '../TacticsTypes';
+import { FOCUS_BONUSES } from '../TacticsTypes';
 
 export type PlayType =
   | 'ISO' | 'DRIVE' | 'POST' | 'PNR_BALL' | 'PNR_ROLL'
@@ -49,7 +51,7 @@ function weightedPick<T>(options: { value: T; weight: number }[]): T {
 }
 
 /** Select play type and resolve shooter/assister based on player attributes */
-export function selectPlayType(handler: Player, lineup: Player[], isTransition = false): PlayTypeResult {
+export function selectPlayType(handler: Player, lineup: Player[], isTransition = false, offensiveFocus?: OffensiveFocus): PlayTypeResult {
   const a = handler.attributes;
   const pos = handler.position;
   const isBig = pos === 'C' || pos === 'PF';
@@ -74,11 +76,20 @@ export function selectPlayType(handler: Player, lineup: Player[], isTransition =
       if (r <= 0) { recipient = p; break; }
     }
 
-    // Determine zone for recipient
+    // Determine zone for recipient — apply offensive focus bias
     const ra = recipient.attributes;
-    const tot = ra.finishing + ra.midRange + ra.threePointShot;
+    let finW = ra.finishing;
+    let midW = ra.midRange;
+    let threeW = ra.threePointShot;
+    if (offensiveFocus) {
+      const fb = FOCUS_BONUSES[offensiveFocus];
+      finW *= (fb.drive ?? fb.post ?? 1.0);
+      midW *= (fb.shot ?? 1.0);
+      threeW *= (fb.shot ?? 1.0) * (offensiveFocus === 'Perimeter' ? 1.2 : 1.0);
+    }
+    const tot = finW + midW + threeW;
     const rv = Math.random() * tot;
-    const zone: 'RIM' | 'MID' | 'THREE' = rv < ra.finishing ? 'RIM' : rv < ra.finishing + ra.midRange ? 'MID' : 'THREE';
+    const zone: 'RIM' | 'MID' | 'THREE' = rv < finW ? 'RIM' : rv < finW + midW ? 'MID' : 'THREE';
 
     // Assisted shot bonus: open catch-and-shoot is more accurate
     const bonusAccuracy = zone === 'THREE' ? 0.07 : zone === 'RIM' ? 0.05 : 0.04;
@@ -93,18 +104,21 @@ export function selectPlayType(handler: Player, lineup: Player[], isTransition =
   }
 
   // Handler shoots — build play type options from attributes
+  // Apply coach offensive focus bonuses
+  const fb = offensiveFocus ? FOCUS_BONUSES[offensiveFocus] : { drive: 1.0, shot: 1.0, pass: 1.0, post: 1.0 };
   const options: { value: PlayType; weight: number }[] = [];
 
   if (!isBig) {
-    options.push({ value: 'ISO',    weight: (a.ballHandling * 0.35 + a.midRange * 0.35 + a.threePointShot * 0.15 + a.basketballIQ * 0.15) / 100 * 0.7 });
-    options.push({ value: 'DRIVE',  weight: (a.athleticism * 0.45 + a.finishing * 0.35 + a.ballHandling * 0.20) / 100 * 0.9 });
+    options.push({ value: 'ISO',    weight: (a.ballHandling * 0.35 + a.midRange * 0.35 + a.threePointShot * 0.15 + a.basketballIQ * 0.15) / 100 * 0.7 * (fb.shot ?? 1.0) });
+    options.push({ value: 'DRIVE',  weight: (a.athleticism * 0.45 + a.finishing * 0.35 + a.ballHandling * 0.20) / 100 * 0.9 * (fb.drive ?? 1.0) });
   }
   if (isBig) {
-    options.push({ value: 'POST',   weight: (a.finishing * 0.70 + a.interiorDefense * 0.30) / 100 * 0.8 });
+    options.push({ value: 'POST',   weight: (a.finishing * 0.70 + a.interiorDefense * 0.30) / 100 * 0.8 * (fb.post ?? 1.0) });
   }
-  options.push({ value: 'PNR_BALL', weight: (a.ballHandling * 0.45 + a.playmaking * 0.30 + a.basketballIQ * 0.25) / 100 * 0.6 });
+  options.push({ value: 'PNR_BALL', weight: (a.ballHandling * 0.45 + a.playmaking * 0.30 + a.basketballIQ * 0.25) / 100 * 0.6 * (fb.pass ?? 1.0) });
   if (a.threePointShot >= 65) {
-    options.push({ value: 'SPOT_3', weight: (a.threePointShot * 0.70 + a.basketballIQ * 0.30) / 100 * (isGuard ? 0.65 : 0.45) });
+    const perimeterBoost = offensiveFocus === 'Perimeter' ? 1.3 : 1.0;
+    options.push({ value: 'SPOT_3', weight: (a.threePointShot * 0.70 + a.basketballIQ * 0.30) / 100 * (isGuard ? 0.65 : 0.45) * perimeterBoost });
   }
 
   const playType: PlayType = weightedPick(options.length > 0 ? options : [{ value: 'ISO' as PlayType, weight: 1 }]);

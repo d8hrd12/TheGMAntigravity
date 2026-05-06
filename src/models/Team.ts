@@ -74,4 +74,5 @@ export interface Team {
         lastDirectionChangeYear: number;
     };
     tactics?: import('../features/simulation/TacticsTypes').TeamStrategy;
+    hierarchy?: Record<string, number>; // Maps playerId to Tier (1, 2, 3, 4)
 }

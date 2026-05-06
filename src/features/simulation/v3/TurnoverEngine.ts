@@ -1,5 +1,7 @@
 import type { Player } from '../../../models/Player';
 import { NBA } from './Calibration';
+import type { DefensiveStrategy } from '../TacticsTypes';
+import { DEFENSIVE_SCHEME_EFFECTS } from '../TacticsTypes';
 
 export interface TurnoverResult {
   isTurnover: boolean;
@@ -7,8 +9,19 @@ export interface TurnoverResult {
   stealerId?: string;
 }
 
-export function checkTurnover(handler: Player, defenseLineup: Player[], stamina: number = 100): TurnoverResult {
+export function checkTurnover(handler: Player, defenseLineup: Player[], stamina: number = 100, defenseScheme?: DefensiveStrategy, morale: number = 50): TurnoverResult {
   const def = defenseLineup.find(p => p.position === handler.position) ?? defenseLineup[0];
+
+  // Defensive scheme forced turnover bonus (Full Court Press)
+  const scheme = defenseScheme ? DEFENSIVE_SCHEME_EFFECTS[defenseScheme] : null;
+  const schemeTOBonus = scheme?.turnoverForced ?? 0;
+  if (schemeTOBonus > 0 && Math.random() < schemeTOBonus) {
+    // Scheme-forced turnover (press, trap)
+    const stealer = defenseLineup.reduce((b, p) =>
+      p.attributes.stealing > b.attributes.stealing ? p : b
+    );
+    return { isTurnover: true, isSteal: true, stealerId: stealer.id };
+  }
 
   // On-ball steal: top-tier defenders only
   const stealProb = Math.max(0,
@@ -33,9 +46,14 @@ export function checkTurnover(handler: Player, defenseLineup: Player[], stamina:
   // Fatigue increases errors
   const fatigueMod = stamina < 50 ? (50 - stamina) * 0.0003 : 0;
 
+  // Morale modifier: unhappy players make more careless mistakes
+  let moraleMod = 0;
+  if (morale < 30) moraleMod = 0.03;
+  else if (morale < 50) moraleMod = 0.015;
+
   // Baseline noise: offensive fouls, shot clock, bad reads
   // Calibrated so total TO rate ≈ 15/100 possessions (league average)
   const baseNoise = 0.095;
 
-  return { isTurnover: Math.random() < handlerRisk + fatigueMod + baseNoise, isSteal: false };
+  return { isTurnover: Math.random() < handlerRisk + fatigueMod + moraleMod + baseNoise, isSteal: false };
 }

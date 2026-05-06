@@ -484,7 +484,18 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                                             <div>
                                                 <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                     {player.firstName} {player.lastName}
-                                                    <StarRating stars={stars} size={12} />
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                                        <StarRating stars={stars} size={12} />
+                                                        {player.inSeasonProgress ? (
+                                                            <span style={{ 
+                                                                color: player.inSeasonProgress > 0 ? '#2ecc71' : '#e74c3c', 
+                                                                fontSize: '0.8rem', 
+                                                                fontWeight: 800 
+                                                            }}>
+                                                                {player.inSeasonProgress > 0 ? '+' : '-'}
+                                                            </span>
+                                                        ) : null}
+                                                    </div>
                                                 </div>
                                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
                                                     <span style={{ color: 'var(--text-main)' }}>#{typeof player.rotationIndex === 'number' ? player.rotationIndex + 1 : '-'} in Rot</span>

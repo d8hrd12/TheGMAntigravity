@@ -12,6 +12,7 @@ import { ExpansionDraftView } from './features/draft/ExpansionDraftView';
 import { DraftSummaryView } from './features/draft/DraftSummaryView'; 
 import { TradeFinderView } from './features/trade/TradeFinderView'; 
 import { MessageModal } from './features/ui/MessageModal';
+import { MidSeasonProgressionModal } from './features/ui/MidSeasonProgressionModal';
 import { TradeCenterView } from './features/trade/TradeCenterView';
 import { Dashboard } from './features/dashboard/Dashboard';
 import { LeagueLeaders } from './features/stats/LeagueLeaders';
@@ -55,6 +56,8 @@ import { PayrollConfirmationModal } from './features/ui/PayrollConfirmationModal
 import { TransactionsView } from './features/info/TransactionsView';
 import { PlayerLeagueListView } from './features/info/PlayerLeagueListView';
 import { AllTimeLeadersView } from './features/info/AllTimeLeadersView';
+import { SeasonLeadersView } from './features/stats/SeasonLeadersView';
+import { TeamChemistryView } from './features/team/TeamChemistryView';
 import ScoutingView from './features/ui/ScoutingView';
 import { TeamRecordsView } from './features/info/TeamRecordsView';
 import { DraftView } from './features/draft/DraftView';
@@ -97,6 +100,7 @@ function AppContent() {
     setInitialAiPlayerId,
     players,
     updateRotation,
+    updateTeamHierarchy,
     executeTrade,
     salaryCap,
     initialAiPlayerId,
@@ -124,7 +128,8 @@ function AppContent() {
     endResigning,
     endFreeAgency,
     aiGms,
-    showAwardsModal
+    showAwardsModal,
+    showMidSeasonProgressionModal
   } = gameData;
 
   // Trigger awards popup when simulation sets showAwardsModal
@@ -252,6 +257,7 @@ function AppContent() {
         { id: 'league_history', label: 'History' },
         { id: 'transactions', label: 'Transactions' },
         { id: 'league_gms', label: 'GMs' },
+        { id: 'season_leaders', label: 'Season Leaders' },
         { id: 'league_all_time', label: 'All-Time Leaders' },
       ]
     },
@@ -396,6 +402,7 @@ function AppContent() {
           onSelectGame={setSelectedGame} 
           onSelectPlayer={setSelectedPlayerId} 
           onSelectTeam={setSelectedTeamId}
+          onNavigate={setView}
         />;
       case 'standings': 
         return <LeagueView 
@@ -410,6 +417,8 @@ function AppContent() {
         return <LeagueHistoryView onBack={() => setView('dashboard')} />;
       case 'transactions':
         return <TransactionsView onBack={() => setView('dashboard')} />;
+      case 'season_leaders':
+        return <SeasonLeadersView onBack={() => setView('dashboard')} onSelectPlayer={setSelectedPlayerId} />;
       case 'league_all_time':
         return <AllTimeLeadersView mode="league" onBack={() => setView('dashboard')} />;
       case 'team_roster': 
@@ -439,6 +448,13 @@ function AppContent() {
         return <TeamRecordsView onBack={() => setView('dashboard')} />;
       case 'team_all_time':
         return <AllTimeLeadersView mode="team" teamId={userTeamId} onBack={() => setView('dashboard')} />;
+      case 'team_chemistry':
+        return userTeam ? <TeamChemistryView 
+          team={userTeam} 
+          players={players} 
+          onBack={() => setView('dashboard')} 
+          onSave={updateTeamHierarchy} 
+        /> : null;
       case 'player_list':
         return <PlayerLeagueListView onBack={() => setView('dashboard')} onSelectPlayer={setSelectedPlayerId} initialMode="list" />;
       case 'player_stats':
@@ -525,6 +541,7 @@ function AppContent() {
           onSelectGame={setSelectedGame} 
           onSelectPlayer={setSelectedPlayerId} 
           onSelectTeam={setSelectedTeamId}
+          onNavigate={setView}
         />;
     }
   };
@@ -789,6 +806,14 @@ function AppContent() {
             setView('trade');
           }}
           onSelectPlayer={setSelectedPlayerId}
+        />
+      )}
+
+      {showMidSeasonProgressionModal && (
+        <MidSeasonProgressionModal 
+            players={players} 
+            teams={teams} 
+            onClose={() => gameData.setGameState(prev => ({ ...prev, showMidSeasonProgressionModal: false }))} 
         />
       )}
 

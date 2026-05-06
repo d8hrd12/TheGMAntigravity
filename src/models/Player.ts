@@ -123,6 +123,7 @@ export interface Player {
     yearsOfService: number; // For NBA salary maxes (0-6, 7-9, 10+)
     contractType?: 'standard' | 'prove_it' | 'max';
     tradeRequestDeadline?: Date; // For prove-it deals
+    inSeasonProgress?: number; // Tracks OVR delta during the in-season progression event
 
     acquisition?: {
         type: 'draft' | 'free_agent' | 'trade' | 'initial';

@@ -17,6 +17,10 @@ import { calculateUsageWeights, selectPlayType } from './PlayTypeEngine';
 import { resolveShot, resolveFreeThrows }         from './ShotResolver';
 import { resolveRebound }                          from './ReboundEngine';
 import { checkTurnover }                           from './TurnoverEngine';
+import { getTacticsForStyle } from '../../team/coachGenerator';
+import { PACE_MULTIPLIERS } from '../TacticsTypes';
+import type { PaceType } from '../TacticsTypes';
+import { optimizeRotation } from '../../../utils/rotationUtils';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -55,52 +59,82 @@ function pickByUsage(lineup: Player[], weights: Map<string, number>): Player {
   return lineup[lineup.length - 1];
 }
 
-/** Build lineup for a given quarter based on OVR ranking */
-function buildLineup(roster: Player[], quarter: number, isBlowout: boolean = false): Player[] {
-  const active = roster.filter(p => !p.isRetired);
-  const sorted = [...active].sort((a, b) => calculateOverall(b) - calculateOverall(a));
+class TeamRotationTracker {
+    roster: Player[];
+    trackers: Map<string, { target: number; played: number; isStarter: boolean }>;
 
-  // If blowout in regular season, play the deep bench (garbage time)
-  if (isBlowout) {
-      const deepBench = sorted.slice(5, 10);
-      // Pad if roster is short
-      while (deepBench.length < 5 && sorted.length > 0) {
-          deepBench.push(sorted[Math.floor(Math.random() * sorted.length)]);
-      }
-      return deepBench.slice(0, 5);
-  }
+    constructor(roster: Player[], isPlayoffs: boolean = false) {
+        assignMinutes(roster, isPlayoffs);
+        this.roster = roster.filter(p => !p.isRetired && p.minutes && p.minutes > 0);
+        if (this.roster.length < 5) this.roster = roster.filter(p => !p.isRetired);
+        
+        this.trackers = new Map();
+        const totalMins = this.roster.reduce((sum, p) => sum + (p.minutes || 0), 0);
+        const factor = totalMins > 0 ? 240 / totalMins : 1;
 
-  // Starters (top 5) for Q1/Q3, rotate bench in Q2/Q4 at half
-  // Simple model: top 5 are starters, 6-9 are rotation
-  const starters = sorted.slice(0, 5);
-  const rotation = sorted.slice(5, 9);
+        for (const p of this.roster) {
+            const adjMins = (p.minutes || 0) * factor;
+            const targetPoss = (adjMins / 48) * 200;
+            this.trackers.set(p.id, { target: targetPoss, played: 0, isStarter: p.isStarter || false });
+        }
+        
+        const startersCount = Array.from(this.trackers.values()).filter(t => t.isStarter).length;
+        if (startersCount < 5) {
+            const sortedByMins = [...this.roster].sort((a, b) => (b.minutes || 0) - (a.minutes || 0));
+            for (let i = 0; i < 5 && i < sortedByMins.length; i++) {
+                this.trackers.get(sortedByMins[i].id)!.isStarter = true;
+            }
+        }
+    }
 
-  // Q2 and Q4 second half: mix rotation in
-  if (quarter === 2 || quarter === 4) {
-    // Sub 2 bench players in
-    const mixed = [...starters];
-    if (rotation[0]) mixed[3] = rotation[0];
-    if (rotation[1]) mixed[4] = rotation[1];
-    return mixed;
-  }
-  return starters;
+    getLineup(quarter: number, possessionInQuarter: number, isBlowout: boolean): Player[] {
+        if (isBlowout) {
+             const available = [...this.roster].sort((a, b) => calculateOverall(a) - calculateOverall(b));
+             const lineup = available.slice(0, 5);
+             lineup.forEach(p => this.trackers.get(p.id)!.played += 1);
+             return lineup;
+        }
+
+        const candidates = this.roster.map(p => {
+             const t = this.trackers.get(p.id)!;
+             const remaining = t.target - t.played;
+             let priority = remaining;
+             if ((quarter === 1 || quarter === 3) && possessionInQuarter < 15 && t.isStarter) {
+                 priority += 1000; 
+             }
+             return { p, priority, remaining };
+        });
+
+        let eligible = candidates.filter(c => c.remaining > 0).sort((a, b) => b.priority - a.priority);
+        if (eligible.length < 5) eligible = candidates.sort((a, b) => b.priority - a.priority);
+
+        const lineup = eligible.slice(0, 5).map(c => c.p);
+        lineup.forEach(p => this.trackers.get(p.id)!.played += 1);
+        return lineup;
+    }
 }
 
 /** Assign minutes based on role rank — only for players without pre-set minutes */
-function assignMinutes(roster: Player[]): void {
+function assignMinutes(roster: Player[], isPlayoffs?: boolean): void {
   const active = roster.filter(p => !p.isRetired);
   
-  // Check if this roster already has valid minutes assigned (user customization)
+  // Check if this roster already has exactly 240 minutes assigned
   const totalMinutes = active.reduce((sum, p) => sum + (p.minutes || 0), 0);
-  if (totalMinutes >= 200 && totalMinutes <= 260) {
-    // Minutes are already set (user rotation), respect them
+  if (totalMinutes === 240) {
+    // Minutes are already set perfectly, respect them
     return;
   }
   
-  // Only assign defaults if no valid rotation exists
-  const sorted = [...active].sort((a, b) => calculateOverall(b) - calculateOverall(a));
-  sorted.forEach((p, i) => {
-    p.minutes = MINUTES_BY_RANK[i] ?? 0;
+  // Use AI logic to allocate exactly 240 minutes based on Coach/Strategy
+  const optimized = optimizeRotation(active, isPlayoffs ? 'Playoffs' : 'Standard');
+  
+  // Apply the optimized minutes back to the original objects
+  optimized.forEach(optPlayer => {
+      const origPlayer = roster.find(r => r.id === optPlayer.id);
+      if (origPlayer) {
+          origPlayer.minutes = optPlayer.minutes;
+          origPlayer.isStarter = optPlayer.isStarter;
+      }
   });
 }
 
@@ -111,9 +145,8 @@ function assignMinutes(roster: Player[]): void {
 export function simulateMatchV3(input: MatchInput): MatchResult {
   const { homeTeam, awayTeam, homeRoster, awayRoster, date } = input;
 
-  // Assign minutes only for rosters without pre-set minutes
-  assignMinutes(homeRoster);
-  assignMinutes(awayRoster);
+  const homeTracker = new TeamRotationTracker(homeRoster, input.isPlayoffs);
+  const awayTracker = new TeamRotationTracker(awayRoster, input.isPlayoffs);
 
   // Stats accumulation
   const statsMap = new Map<string, PlayerStats>();
@@ -143,43 +176,65 @@ export function simulateMatchV3(input: MatchInput): MatchResult {
   const onCourt = { home: [] as string[], away: [] as string[] };
 
   // ---------------------------------------------------------------------------
-  // GAME LOOP: 4 quarters × 50 possessions each side = 200 total possessions
+  // GAME LOOP: 4 quarters × possessions
   // ---------------------------------------------------------------------------
-  const POSS_PER_QUARTER = 25; // per team per quarter → 25×4 = 100 per team
+  
+  // Extract tactics and coach bonuses
+  const homeTactics = input.homeTeam.tactics || (input.homeCoach ? getTacticsForStyle(input.homeCoach.style) : undefined);
+  const awayTactics = input.awayTeam.tactics || (input.awayCoach ? getTacticsForStyle(input.awayCoach.style) : undefined);
+  
+  const homePaceMult = homeTactics ? PACE_MULTIPLIERS[homeTactics.pace as PaceType] : 1.0;
+  const awayPaceMult = awayTactics ? PACE_MULTIPLIERS[awayTactics.pace as PaceType] : 1.0;
+  
+  const avgPaceMult = (homePaceMult + awayPaceMult) / 2;
+  const POSS_PER_QUARTER = Math.round(25 * avgPaceMult);
+
+  const homeOffBonus = input.homeCoach ? (input.homeCoach.rating.offense - 70) / 100 * 0.03 : 0;
+  const homeDefBonus = input.homeCoach ? (input.homeCoach.rating.defense - 70) / 100 * 0.03 : 0;
+  const awayOffBonus = input.awayCoach ? (input.awayCoach.rating.offense - 70) / 100 * 0.03 : 0;
+  const awayDefBonus = input.awayCoach ? (input.awayCoach.rating.defense - 70) / 100 * 0.03 : 0;
 
   for (let quarter = 1; quarter <= 4; quarter++) {
     homeFouls = 0;
     awayFouls = 0;
 
     const isBlowout = quarter === 4 && Math.abs(homeScore - awayScore) >= 25 && !input.isPlayoffs;
-    const homeLineup = buildLineup(homeRoster, quarter, isBlowout);
-    const awayLineup = buildLineup(awayRoster, quarter, isBlowout);
-
-    onCourt.home = homeLineup.map(p => p.id);
-    onCourt.away = awayLineup.map(p => p.id);
-
-    // Pre-compute usage weights once per quarter
-    const homeUsage = calculateUsageWeights(homeLineup);
-    const awayUsage  = calculateUsageWeights(awayLineup);
 
     // Track stamina per player this quarter (starts at 100, drains with activity)
     const stamina = new Map<string, number>();
-    [...homeLineup, ...awayLineup].forEach(p => stamina.set(p.id, p.stamina ?? 100));
+    [...homeRoster, ...awayRoster].forEach(p => stamina.set(p.id, p.stamina ?? 100));
 
     for (let poss = 0; poss < POSS_PER_QUARTER * 2; poss++) {
       const isHome = poss % 2 === 0;
+
+      // GET LINEUP FOR THIS POSSESSION
+      const homeLineup = homeTracker.getLineup(quarter, poss, isBlowout);
+      const awayLineup = awayTracker.getLineup(quarter, poss, isBlowout);
+
+      onCourt.home = homeLineup.map(p => p.id);
+      onCourt.away = awayLineup.map(p => p.id);
+
+      const homeUsage = calculateUsageWeights(homeLineup);
+      const awayUsage = calculateUsageWeights(awayLineup);
 
       const offLineup  = isHome ? homeLineup  : awayLineup;
       const defLineup  = isHome ? awayLineup  : homeLineup;
       const offUsage   = isHome ? homeUsage   : awayUsage;
       const offFouls   = isHome ? homeFouls   : awayFouls;
+      
+      const offTactics = isHome ? homeTactics : awayTactics;
+      const defTactics = isHome ? awayTactics : homeTactics;
+      
+      const offCoachBonus = isHome ? homeOffBonus : awayOffBonus;
+      const defCoachBonus = isHome ? awayDefBonus : homeDefBonus;
 
       // Select ball handler by usage weight
       const handler = pickByUsage(offLineup, offUsage);
       const handlerStamina = stamina.get(handler.id) ?? 100;
+      const handlerMorale = handler.morale ?? 50;
 
       // ---- Turnover check ----
-      const toResult = checkTurnover(handler, defLineup, handlerStamina);
+      const toResult = checkTurnover(handler, defLineup, handlerStamina, defTactics?.defense, handlerMorale);
       if (toResult.isTurnover) {
         add(handler.id, 'turnovers', 1);
         if (toResult.isSteal && toResult.stealerId) {
@@ -191,12 +246,13 @@ export function simulateMatchV3(input: MatchInput): MatchResult {
       }
 
       // ---- Select play type ----
-      const play = selectPlayType(handler, offLineup);
+      const play = selectPlayType(handler, offLineup, false, offTactics?.offensiveFocus);
       const { shooter, assister, zone } = play;
       const shooterStamina = stamina.get(shooter.id) ?? 100;
+      const shooterMorale = shooter.morale ?? 50;
 
       // ---- Shot resolution ----
-      const shot = resolveShot(play, defLineup, offFouls, shooterStamina);
+      const shot = resolveShot(play, defLineup, offFouls, shooterStamina, offCoachBonus, defCoachBonus, defTactics?.defense, shooterMorale);
 
       // Track FGA
       add(shooter.id, 'fgAttempted', 1);
@@ -306,27 +362,35 @@ export function simulateMatchV3(input: MatchInput): MatchResult {
   let otCount = 0;
   while (homeScore === awayScore && otCount < 3) {
     otCount++;
-    const homeLineup = buildLineup(homeRoster, 4);
-    const awayLineup = buildLineup(awayRoster, 4);
-    const homeUsage = calculateUsageWeights(homeLineup);
-    const awayUsage  = calculateUsageWeights(awayLineup);
-
     for (let poss = 0; poss < 24; poss++) {
       const isHome = poss % 2 === 0;
+
+      const homeLineup = homeTracker.getLineup(4, 50 + poss, false);
+      const awayLineup = awayTracker.getLineup(4, 50 + poss, false);
+
+      const homeUsage = calculateUsageWeights(homeLineup);
+      const awayUsage = calculateUsageWeights(awayLineup);
+
       const offLineup = isHome ? homeLineup : awayLineup;
       const defLineup = isHome ? awayLineup : homeLineup;
       const offUsage  = isHome ? homeUsage  : awayUsage;
 
+      const offTactics = isHome ? homeTactics : awayTactics;
+      const defTactics = isHome ? awayTactics : homeTactics;
+      
+      const offCoachBonus = isHome ? homeOffBonus : awayOffBonus;
+      const defCoachBonus = isHome ? awayDefBonus : homeDefBonus;
+
       const handler = pickByUsage(offLineup, offUsage);
-      const toResult = checkTurnover(handler, defLineup);
+      const toResult = checkTurnover(handler, defLineup, 100, defTactics?.defense, handler.morale ?? 50);
       if (toResult.isTurnover) {
         add(handler.id, 'turnovers', 1);
         if (toResult.stealerId) add(toResult.stealerId, 'steals', 1);
         continue;
       }
 
-      const play = selectPlayType(handler, offLineup);
-      const shot  = resolveShot(play, defLineup, 4);
+      const play = selectPlayType(handler, offLineup, false, offTactics?.offensiveFocus);
+      const shot  = resolveShot(play, defLineup, 4, 100, offCoachBonus, defCoachBonus, defTactics?.defense, play.shooter.morale ?? 50);
       add(play.shooter.id, 'fgAttempted', 1);
 
       if (shot.made) {
@@ -354,11 +418,13 @@ export function simulateMatchV3(input: MatchInput): MatchResult {
   // ---------------------------------------------------------------------------
   homeRoster.forEach(p => {
     const s = statsMap.get(p.id);
-    if (s) s.minutes = p.minutes ?? 0;
+    const played = homeTracker.trackers.get(p.id)?.played || 0;
+    if (s) s.minutes = Math.round((played / 200) * 48);
   });
   awayRoster.forEach(p => {
     const s = statsMap.get(p.id);
-    if (s) s.minutes = p.minutes ?? 0;
+    const played = awayTracker.trackers.get(p.id)?.played || 0;
+    if (s) s.minutes = Math.round((played / 200) * 48);
   });
 
   // ---------------------------------------------------------------------------

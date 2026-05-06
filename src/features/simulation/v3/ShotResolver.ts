@@ -1,6 +1,8 @@
 import type { Player } from '../../../models/Player';
 import { NBA } from './Calibration';
 import type { PlayTypeResult } from './PlayTypeEngine';
+import type { DefensiveStrategy } from '../TacticsTypes';
+import { DEFENSIVE_SCHEME_EFFECTS } from '../TacticsTypes';
 
 export interface ShotResult {
   made: boolean;
@@ -42,14 +44,23 @@ export function resolveShot(
   defenseLineup: Player[],
   teamFouls: number,
   stamina: number = 100,
+  coachOffBonus: number = 0,
+  coachDefBonus: number = 0,
+  defenseScheme?: DefensiveStrategy,
+  morale: number = 50,
 ): ShotResult {
   const { shooter, zone, bonusAccuracy, playType } = play;
   const defender = defenseLineup.find(p => p.position === shooter.position) ?? defenseLineup[0];
 
+  // --- Defensive scheme effects ---
+  const scheme = defenseScheme ? DEFENSIVE_SCHEME_EFFECTS[defenseScheme] : null;
+  const rimProtMod = scheme?.rimProtection ?? 1.0;
+  const perimContestMod = scheme?.perimeterContest ?? 1.0;
+
   // --- Block check (RIM only, on misses) ---
   const bestBlocker = defenseLineup.reduce((b, p) => p.attributes.blocking > b.attributes.blocking ? p : b);
   const blockProb = zone === 'RIM'
-    ? Math.max(0, (bestBlocker.attributes.blocking - 50) / (99 - 50) * 0.18)
+    ? Math.max(0, (bestBlocker.attributes.blocking - 50) / (99 - 50) * 0.18 * rimProtMod)
     : 0;
 
   // --- Shot accuracy ---
@@ -58,7 +69,26 @@ export function resolveShot(
   const base = getBasePct(zone);
   const skillEdge = (shooterAttr - defenderAttr) / 100 * 0.28;
   const fatiguePenalty = stamina < 50 ? (50 - stamina) * 0.0012 : 0;
-  const finalProb = Math.max(0.10, Math.min(0.90, base + skillEdge + bonusAccuracy - fatiguePenalty));
+
+  // Coach bonuses: offense coach helps shooter, defense coach helps defender
+  const coachMod = coachOffBonus - coachDefBonus;
+
+  // Morale modifier: happy players perform better
+  let moraleMod = 0;
+  if (morale >= 80) moraleMod = 0.02;
+  else if (morale >= 50) moraleMod = 0;
+  else if (morale >= 30) moraleMod = -0.02;
+  else moraleMod = -0.04;
+
+  // Defensive scheme zone modifier
+  let schemeShotMod = 0;
+  if (scheme) {
+    if (zone === 'RIM') schemeShotMod = -(rimProtMod - 1.0) * 0.08;
+    else if (zone === 'THREE') schemeShotMod = -(perimContestMod - 1.0) * 0.08;
+    else if (zone === 'MID' && scheme.midrangeModifier) schemeShotMod = scheme.midrangeModifier * 0.04;
+  }
+
+  const finalProb = Math.max(0.10, Math.min(0.90, base + skillEdge + bonusAccuracy - fatiguePenalty + coachMod + moraleMod + schemeShotMod));
   const made = Math.random() < finalProb;
 
   // Apply block only on misses
@@ -67,7 +97,7 @@ export function resolveShot(
   }
 
   // --- Foul check ---
-  const foulChance = FOUL_BY_PLAY[playType] ?? 0.06;
+  const foulChance = (FOUL_BY_PLAY[playType] ?? 0.06) * (scheme?.foulRisk ?? 1.0);
   const inBonus = teamFouls >= 5;
   const foulOccurred = !made && Math.random() < foulChance;
   const bonusFoul = !made && !foulOccurred && inBonus && Math.random() < 0.08;

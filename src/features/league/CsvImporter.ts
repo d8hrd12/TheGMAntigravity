@@ -183,7 +183,7 @@ export const importNbaPlayers = async (teams: Team[], existingPlayers: Player[])
                 firstName: firstName,
                 lastName: lastName,
                 position: pos,
-                age: parseInt(row.years_in_the_nba) + 19, // Approximation: years + 19
+                age: (parseInt(row.years_in_the_nba) || 0) + 19, // Approximation: years + 19
                 height: parseInt(row.height_cm) || 200,
                 weight: parseInt(row.weight_kg) || 95,
                 personality: PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)],

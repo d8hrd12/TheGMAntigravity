@@ -287,8 +287,18 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                                     {getFuzzyPotential(player.potential, scoutingPoints)}
                                 </div>
                             ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
                                     <StarRating stars={stars} size={18} vertical />
+                                    {player.inSeasonProgress ? (
+                                        <div style={{ 
+                                            color: player.inSeasonProgress > 0 ? '#2ecc71' : '#e74c3c', 
+                                            fontSize: '0.8rem', 
+                                            fontWeight: 800,
+                                            marginTop: '4px'
+                                        }}>
+                                            {player.inSeasonProgress > 0 ? `▲ +${player.inSeasonProgress}` : `▼ ${player.inSeasonProgress}`}
+                                        </div>
+                                    ) : null}
                                 </div>
                             )}
                             <div style={{ fontSize: '0.5rem', fontWeight: 900, color: 'var(--text-muted)', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>

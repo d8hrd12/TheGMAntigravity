@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useGame } from '../../store/GameContext';
 import { DashboardCard } from './DashboardCard';
 import { SimControls } from './SimControls';
+import { TeamMoraleDashboard } from './TeamMoraleDashboard';
 import { Users, BarChart3, TrendingUp, Zap, AlertCircle, ChevronRight } from 'lucide-react';
 import { calculateOverall } from '../../utils/playerUtils';
 import { StarRating } from '../../components/StarRating';
@@ -12,11 +13,13 @@ interface DashboardProps {
     onSelectGame: (game: any) => void;
     onSelectPlayer: (playerId: string) => void;
     onSelectTeam: (teamId: string) => void;
+    onNavigate: (view: string) => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
     onSelectPlayer,
     onSelectTeam,
+    onNavigate
 }) => {
     const {
         players,
@@ -201,6 +204,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         ))}
                     </div>
                 </DashboardCard>
+
+                {/* MORALE WIDGET */}
+                <div className="col-10">
+                    {userTeamId && userTeam && (
+                        <TeamMoraleDashboard players={players} team={userTeam} onSelectPlayer={onSelectPlayer} onNavigate={() => onNavigate('team_chemistry')} />
+                    )}
+                </div>
 
                 {/* 2. RECENT FORM & RANK */}
                 <DashboardCard title="SEASON STATUS" className="col-10" icon={<TrendingUp size={16} />}>
