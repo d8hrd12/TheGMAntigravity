@@ -292,19 +292,19 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
         const isIllegal = postTradeSpace < 0 && incomingSalary > (outgoingSalary * 1.25) + MATCH_BUFFER;
 
         return (
-            <div style={{ padding: '10px', background: 'rgba(0,0,0,0.03)', borderRadius: '8px', marginBottom: '10px', fontSize: '0.85rem' }}>
-                <div style={{ fontWeight: 'bold', marginBottom: '5px', color: '#666' }}>{title} Finance</div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ padding: '6px 10px', background: 'rgba(0,0,0,0.03)', borderRadius: '8px', marginBottom: '8px', fontSize: '0.75rem' }}>
+                <div style={{ fontWeight: '900', marginBottom: '4px', color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.65rem', letterSpacing: '0.05em' }}>{title} Finance</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
                     <span>Outgoing:</span>
-                    <span>{formatMoney(outgoingSalary)}</span>
+                    <span style={{ fontWeight: 700 }}>{formatMoney(outgoingSalary)}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
                     <span>Incoming:</span>
-                    <span style={{ color: incomingSalary > 0 ? 'var(--primary)' : 'inherit' }}>{formatMoney(incomingSalary)}</span>
+                    <span style={{ color: incomingSalary > 0 ? 'var(--primary)' : 'inherit', fontWeight: 700 }}>{formatMoney(incomingSalary)}</span>
                 </div>
-                <div style={{ borderTop: '1px solid #ddd', margin: '5px 0', paddingTop: '5px', display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Proj. Cap:</span>
-                    <span style={{ fontWeight: 'bold', color: isIllegal ? '#e74c3c' : (postTradeSpace >= 0 ? '#2ecc71' : '#f39c12') }}>
+                <div style={{ borderTop: '1px solid var(--border-color)', margin: '4px 0', paddingTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontWeight: 800 }}>Proj. Cap:</span>
+                    <span style={{ fontWeight: '900', color: isIllegal ? '#e74c3c' : (postTradeSpace >= 0 ? '#2ecc71' : '#f39c12') }}>
                         {formatMoney(postTradeSpace)}
                         {isIllegal && " (ILLEGAL)"}
                     </span>
@@ -322,7 +322,7 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
         .reduce((sum, p) => sum + (getPlayerContract(p.id)?.amount || 0), 0);
 
     return (
-        <div style={{ minHeight: '100vh', padding: '10px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ minHeight: '100vh', padding: '10px 4px', display: 'flex', flexDirection: 'column', maxWidth: '600px', margin: '0 auto' }}>
 
 
             <div style={{ marginBottom: '15px' }}>
@@ -336,10 +336,10 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
                 />
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', flex: 1, overflow: 'hidden' }}>
+            <div style={{ display: 'flex', gap: '6px', flex: 1, overflow: 'hidden' }}>
                 {/* User Team Col */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', border: '1px solid #eee', borderRadius: '8px', padding: '10px' }}>
-                    <h3 style={{ borderBottom: '2px solid var(--primary)', paddingBottom: '5px' }}>{userTeam.abbreviation} Assets</h3>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '8px', background: 'var(--bg-card)', minWidth: 0 }}>
+                    <h3 style={{ borderBottom: '2px solid var(--primary)', paddingBottom: '5px', fontSize: '0.9rem', marginBottom: '8px' }}>{userTeam.abbreviation} Assets</h3>
                     <TradeFinancialHelper team={userTeam} selectedPlayerIds={userSelected} incomingSalary={userIncoming} title={userTeam.abbreviation} />
                     <div style={{ overflowY: 'auto', flex: 1 }}>
                         <h4 style={{ margin: '5px 0', fontSize: '0.9rem', color: '#666' }}>Players</h4>
@@ -349,43 +349,43 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
                                 <div key={p.id}
                                     onClick={() => toggleUserPlayer(p.id)}
                                     style={{
-                                        padding: '8px',
-                                        borderBottom: '1px solid #f0f0f0',
-                                        background: userSelected.includes(p.id) ? '#fff3e0' : 'transparent',
+                                        padding: '6px 8px',
+                                        borderBottom: '1px solid var(--border-color)',
+                                        background: userSelected.includes(p.id) ? 'rgba(var(--primary-rgb), 0.1)' : 'transparent',
                                         cursor: 'pointer',
                                         display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                                     }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         <div
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 onSelectPlayer(p.id);
                                             }}
                                             style={{
-                                                padding: '4px',
+                                                padding: '2px',
                                                 borderRadius: '50%',
                                                 cursor: 'pointer',
-                                                color: '#666',
+                                                color: 'var(--text-muted)',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 zIndex: 5
                                             }}
                                         >
-                                            <Info size={16} />
+                                            <Info size={14} />
                                         </div>
                                         <div>
-                                            <div style={{ fontWeight: 'bold' }}>{p.firstName} {p.lastName}</div>
-                                            <div style={{ fontSize: '0.8rem', color: '#666', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                {p.position} • {p.age}yo • <StarRating stars={calculateStars(calculateOverall(p), opponentTeamBaseline)} size={12} />
+                                            <div style={{ fontWeight: '800', fontSize: '0.8rem', color: 'var(--text-main)' }}>{p.firstName[0]}. {p.lastName}</div>
+                                            <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                {p.position} • {p.age}yo • <StarRating stars={calculateStars(calculateOverall(p), opponentTeamBaseline)} size={10} />
                                             </div>
                                             {contract && (
-                                                <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '2px' }}>
+                                                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '1px', fontWeight: 600 }}>
                                                     {formatMoney(contract.amount)} / {contract.yearsLeft}y
                                                 </div>
                                             )}
                                         </div>
                                     </div>
-                                    <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(getPlayerTradeValue(p, opponentTeam, contracts, aiRoster))}</div>
+                                    <div style={{ fontWeight: '900', color: 'var(--team-primary)', fontSize: '0.85rem' }}>{Math.round(getPlayerTradeValue(p, opponentTeam, contracts, aiRoster))}</div>
                                 </div>
                             );
                         })}
@@ -452,9 +452,9 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
                     </div>
                 </div>
 
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', border: '1px solid #eee', borderRadius: '8px', padding: '10px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #333', paddingBottom: '5px', marginBottom: '10px' }}>
-                        <h3 style={{ margin: 0 }}>{opponentTeam?.abbreviation} Assets</h3>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '8px', background: 'var(--bg-card)', minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid var(--text-main)', paddingBottom: '5px', marginBottom: '8px' }}>
+                        <h3 style={{ margin: 0, fontSize: '0.9rem' }}>{opponentTeam?.abbreviation} Assets</h3>
                         {opponentTeam && (
                             <div style={{ textAlign: 'right' }}>
                                 <div style={{ fontSize: '0.7rem', color: '#666', textTransform: 'uppercase' }}>Strategy</div>
@@ -473,43 +473,43 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
                                 <div key={p.id}
                                     onClick={() => toggleAiPlayer(p.id)}
                                     style={{
-                                        padding: '8px',
-                                        borderBottom: '1px solid #f0f0f0',
-                                        background: aiSelected.includes(p.id) ? '#eee' : 'transparent',
+                                        padding: '6px 8px',
+                                        borderBottom: '1px solid var(--border-color)',
+                                        background: aiSelected.includes(p.id) ? 'rgba(var(--primary-rgb), 0.1)' : 'transparent',
                                         cursor: 'pointer',
                                         display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                                     }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         <div
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 onSelectPlayer(p.id);
                                             }}
                                             style={{
-                                                padding: '4px',
+                                                padding: '2px',
                                                 borderRadius: '50%',
                                                 cursor: 'pointer',
-                                                color: '#666',
+                                                color: 'var(--text-muted)',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 zIndex: 5
                                             }}
                                         >
-                                            <Info size={16} />
+                                            <Info size={14} />
                                         </div>
                                         <div>
-                                            <div style={{ fontWeight: 'bold' }}>{p.firstName} {p.lastName}</div>
-                                            <div style={{ fontSize: '0.8rem', color: '#666', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                {p.position} • {p.age}yo • <StarRating stars={calculateStars(calculateOverall(p), opponentTeamBaseline)} size={12} />
+                                            <div style={{ fontWeight: '800', fontSize: '0.8rem', color: 'var(--text-main)' }}>{p.firstName[0]}. {p.lastName}</div>
+                                            <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                {p.position} • {p.age}yo • <StarRating stars={calculateStars(calculateOverall(p), opponentTeamBaseline)} size={10} />
                                             </div>
                                             {contract && (
-                                                <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '2px' }}>
+                                                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '1px', fontWeight: 600 }}>
                                                     {formatMoney(contract.amount)} / {contract.yearsLeft}y
                                                 </div>
                                             )}
                                         </div>
                                     </div>
-                                    <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(getPlayerTradeValue(p, opponentTeam, contracts, aiRoster))}</div>
+                                    <div style={{ fontWeight: '900', color: 'var(--team-primary)', fontSize: '0.85rem' }}>{Math.round(getPlayerTradeValue(p, opponentTeam, contracts, aiRoster))}</div>
                                 </div>
                             );
                         })}
