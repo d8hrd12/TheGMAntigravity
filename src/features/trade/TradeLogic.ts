@@ -316,7 +316,34 @@ export function evaluateTrade(
         }
     }
 
-    if (ratio >= requiredRatio) return { accepted: true, message: "Deal. Pleasure doing business." };
+    if (ratio >= requiredRatio) {
+        // --- O3 & O6: OWNER VETO LOGIC ---
+        const totalGames = (aiTeam.wins || 0) + (aiTeam.losses || 0);
+        const winPct = totalGames > 0 ? (aiTeam.wins || 0) / totalGames : 0.5;
+
+        // O3: Owner rejects a winning team (48+ win pace) blowing it up
+        if (winPct >= 0.58 && aiAssets.players.length > 0) {
+            const bestTradedOut = aiAssets.players.sort((a, b) => (b.overall || 0) - (a.overall || 0))[0];
+            const stars = calculateStars(bestTradedOut.overall || 75, 75);
+            if (stars >= 4.5) {
+                const gettingYoungStar = userAssets.players.some(p => p.age <= 23 && (p.potential || 0) >= 88);
+                const gettingPicks = userAssets.picks.length > 0;
+                if (!gettingYoungStar || !gettingPicks) {
+                    return { accepted: false, message: "OWNER VETO: I will not allow us to trade our star while we are winning unless we get a young cornerstone AND draft capital in return." };
+                }
+            }
+        }
+
+        // O6: Owner blocks trading fan-favorite veteran
+        if (aiDirection !== 'Rebuilding') {
+            const tradingFanFavorite = aiAssets.players.some(p => p.age >= 30 && calculateStars(p.overall || 75, 75) >= 4.0);
+            if (tradingFanFavorite) {
+                return { accepted: false, message: "OWNER VETO: That player is a fan favorite. I won't allow this trade unless we are committing to a full rebuild." };
+            }
+        }
+
+        return { accepted: true, message: "Deal. Pleasure doing business." };
+    }
     return { accepted: false, message: ratio > 0.9 ? "Very close... can you add a sweetener?" : "This doesn't make sense for our team." };
 }
 

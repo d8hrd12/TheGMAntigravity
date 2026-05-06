@@ -57,10 +57,24 @@ export const simulateFreeAgencyDay = (
         const needs = analyzeRosterEcosystem(roster);
         const capOutlook = getCapOutlook(team, roster, nextState.contracts, nextState.salaryCap, nextState.date.getFullYear());
 
-        // 2. Budget Logic
+        // 2. Budget Logic & GM3/GM4 Setup
         // Real GMs save money for next year's big class if they are not contending
-        // Simplified: If projected space is tight and we are Rebuilding, be conservative
         let effectiveBudget = team.salaryCapSpace;
+
+        // GM3: Playoff Team adapting based on Core Age
+        let playOffStrategy: 'Save' | 'Push' | 'Depth' = 'Depth';
+        if (direction === 'PlayoffTeam') {
+            const top3 = roster.sort((a, b) => calculateOverall(b) - calculateOverall(a)).slice(0, 3);
+            const avgCoreAge = top3.reduce((sum, p) => sum + p.age, 0) / 3;
+            if (avgCoreAge < 25) {
+                playOffStrategy = 'Save';
+                if (capOutlook.projectedSpaceNextYear < 20000000) effectiveBudget *= 0.3; // Save money for young core
+            } else if (avgCoreAge > 29) {
+                playOffStrategy = 'Push'; // Willing to overpay for a star
+            } else if (roster.length < 10) {
+                playOffStrategy = 'Depth'; // Sign multiple role players
+            }
+        }
 
         if (direction === 'Rebuilding' && capOutlook.projectedSpaceNextYear < 20000000) {
             effectiveBudget *= 0.5; // Save space
@@ -71,11 +85,22 @@ export const simulateFreeAgencyDay = (
         const eligibleTargets = freeAgents
             .filter(p => {
                 const isOwnPlayer = p.teamId === team.id || p.acquisition?.previousTeamId === team.id;
-                // Heuristic to save performace: 
-                // Skip if no budget AND not own player
                 if (effectiveBudget < 1000000 && !isOwnPlayer) return false;
-                // If Contender, ignore players < 70 OVR unless desperate
-                if (direction === 'Contender' && calculateOverall(p) < 70) return false;
+                
+                const ovr = calculateOverall(p);
+
+                // GM1: Rebuilders restrict signing older stars. Only sign young players or cheap depth
+                if (direction === 'Rebuilding' && !isOwnPlayer) {
+                    if (ovr > 78 && p.age > 24) return false; // Ignore older good players, save cap/assets
+                }
+
+                if (direction === 'Contender' && ovr < 70) return false;
+
+                // GM3: Playoff Team logic
+                if (direction === 'PlayoffTeam') {
+                    if (playOffStrategy === 'Depth' && ovr > 78 && effectiveBudget < 25000000) return false; // Don't blow all money on 1 guy
+                }
+
                 return true;
             })
             .sort((a, b) => calculateOverall(b) - calculateOverall(a))
@@ -139,6 +164,19 @@ export const simulateFreeAgencyDay = (
                 offerAmount = Math.max(VET_MINIMUM, effectiveBudget);
             }
 
+            // GM4: Financial GM Logic
+            // Financial GMs avoid giving long-term deals to older players unless they are elite stars
+            let offerYears = contractReq.years;
+            const gm = nextState.aiGms?.find(g => g.teamId === team.id);
+            if (gm?.philosophy === 'Financial' && player.age > 28 && calculateOverall(player) < 88) {
+                offerYears = Math.min(offerYears, 2); // Max 2 years for older non-stars
+            }
+
+            // GM3: Playoff Team Overpay Logic
+            if (direction === 'PlayoffTeam' && playOffStrategy === 'Push' && calculateOverall(player) >= 83) {
+                offerAmount = Math.floor(offerAmount * 1.15); // Overpay to win now
+            }
+
                 // Sanity check: Don't offer $500k to a Max guy (unless it's the only option due to debt/cap)
                 // If in debt, we allow the min offer even if it's way below market, because that's their only tool.
                 if (team.cash >= 0 && offerAmount < contractReq.amount * 0.6) continue;
@@ -152,7 +190,7 @@ export const simulateFreeAgencyDay = (
                     playerId: player.id,
                     teamId: team.id,
                     amount: offerAmount,
-                    years: contractReq.years,
+                    years: offerYears,
                     dayOffered: day,
                     isUserOffer: false,
                     status: 'pending'
@@ -202,18 +240,59 @@ export const simulateFreeAgencyDay = (
             let chosenOffer: FreeAgencyOffer | null = null;
             // Calculate Asking Price / Market Value
             const marketValue = calculateContractAmount(player, nextState.salaryCap).amount;
+            const ovr = calculateOverall(player);
+            const isOriginalTeam = (teamId: string) => player.acquisition?.previousTeamId === teamId;
 
             for (const offer of playerOffers) {
                 const team = nextState.teams.find(t => t.id === offer.teamId);
-                const strat = team ? getTeamDirection(team, []) : 'Rebuilding'; // approx
+                if (!team) continue;
+                
+                const roster = nextState.players.filter(p => p.teamId === team.id);
+                const strat = getTeamDirection(team, roster);
+                
+                // Base: Money
+                let offerScore = offer.amount; 
 
-                // Score Offer
-                let offerScore = offer.amount; // Base: Money
+                // --- P1: Prime Superstars (OVR 90+) ---
+                if (ovr >= 90) {
+                    if (isOriginalTeam(offer.teamId)) offerScore *= 1.3; // Loyalty
+                    if (strat === 'Contender') offerScore *= 1.2; // Immediate Contender
+                }
 
-                // Adjustment: Contender Bonus
-                if (strat === 'Contender') {
-                    // If player is old/wants ring -> value money less, winning more
-                    if (player.age > 29) offerScore *= 1.2;
+                // --- P2: Aging Veterans (Age 35+ OR Age 33+ with OVR < 80) ---
+                // Ring Chasing: Take vet minimum to join Contender
+                if (player.age >= 35 || (player.age >= 33 && ovr < 80)) {
+                    if (strat === 'Contender') {
+                        offerScore = offer.amount * 5.0; // Overwhelming preference for contenders
+                    } else {
+                        offerScore *= 0.5; // Massive penalty for bad teams
+                    }
+                }
+
+                // --- P3: Young Prospects (Age <= 24, POT >= 85) ---
+                if (player.age <= 24 && player.potential >= 85) {
+                    if (strat === 'Rebuilding') {
+                        // Assume Rebuilders can guarantee minutes
+                        offerScore *= 1.25; 
+                    } else if (offer.years === 1) {
+                        // "Prove It" 1-year deal on a good team
+                        offerScore *= 1.2;
+                    }
+                }
+
+                // --- P4: Injury/Rebound Players (OVR dropped, or prove_it type) ---
+                // We'll approximate "down year" by checking if market value is lower than expected for their POT/former OVR
+                // Or simply checking age and contract years offered
+                if (player.contractType === 'prove_it' || offer.amount < marketValue * 0.8) {
+                    if (player.age < 30) {
+                        // Wants a 1-year deal on a Contender
+                        if (offer.years === 1 && strat === 'Contender') offerScore *= 1.5;
+                        else if (offer.years > 1) offerScore *= 0.7; // Hates multi-year cheap deals
+                    } else {
+                        // Older: values security over everything
+                        if (offer.years >= 3) offerScore *= 1.5;
+                        if (strat === 'Rebuilding' && offer.years >= 3) offerScore *= 1.3;
+                    }
                 }
 
                 if (offerScore > bestScore) {
@@ -224,8 +303,8 @@ export const simulateFreeAgencyDay = (
 
             // LOGIC FIX: Prevent "Cheap Signings"
             // If the best offer is significantly below market value, REJECT IT (unless it's the deadline)
-            if (chosenOffer && bestScore < (marketValue * 0.8) && day < 7) {
-                // Player decides to wait for a better offer
+            if (chosenOffer && bestScore < (marketValue * 0.8) && day < 7 && ovr < 90 && player.age < 33) {
+                // Players will wait for better offers unless they are ring chasing veterans
                 chosenOffer = null;
             }
 

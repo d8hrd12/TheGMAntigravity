@@ -120,6 +120,30 @@ export function updatePlayerMorale(
     let yearsUnhappy = player.yearsUnhappy || 0;
     let tradeRequested = player.tradeRequested || false;
 
+    // --- P4: Benched Veteran Logic ---
+    const wins = team?.wins || 0;
+    const losses = team?.losses || 0;
+    const winPct = (wins + losses) > 0 ? wins / (wins + losses) : 0.5;
+
+    if (player.age >= 30 && player.overall >= 78 && minutesPlayedLastGame < 15) {
+        if (winPct < 0.45) {
+            // Team sucks, veteran wants out to a contender
+            change -= 4;
+            if (Math.random() < 0.1) demandTrade = true;
+        } else {
+            // Contending team, veteran understands his role
+            change += 0.5;
+        }
+    }
+
+    // --- P2: Denied Trade Reactions (Soft Tanking) ---
+    // If a player demanded a trade, hasn't been traded, AND their role isn't restored, morale tanks further
+    if (demandTrade && minutesPlayedLastGame < target * 0.8) {
+        change -= 5; // Major morale drop
+        // Player "soft tanks" by reducing attributes temporarily via extreme fatigue/morale penalty
+        // (Handled by keeping morale at 0 and applying toxic penalty in applyTeamDynamics)
+    }
+
     let newMorale = Math.max(0, Math.min(100, currentMorale + change));
     if (isNaN(newMorale)) newMorale = 50;
 
@@ -137,7 +161,7 @@ export function updatePlayerMorale(
     };
 }
 
-export function applyTeamDynamics(roster: Player[]): Player[] {
+export function applyTeamDynamics(roster: Player[], team?: Team): Player[] {
     const toxicPlayers = roster.filter(p => (p.morale || 50) < 20);
     const leaders = roster.filter(p =>
         (p.personality === 'Silent Leader' || p.personality === 'Loyalist') &&
@@ -145,16 +169,39 @@ export function applyTeamDynamics(roster: Player[]): Player[] {
     );
 
     const hasLeader = leaders.length > 0;
-    if (toxicPlayers.length === 0) return roster;
+    
+    // O1: Feuding Stars
+    // If multiple stars (OVR >= 85) exist and one is a Diva, and the team isn't dominating, they feud.
+    const stars = roster.filter(p => p.overall >= 85);
+    const hasDivaStar = stars.some(p => p.personality === 'Diva');
+    const winPct = team && ((team.wins || 0) + (team.losses || 0)) > 0 ? (team.wins || 0) / ((team.wins || 0) + (team.losses || 0)) : 0.5;
+    const isFeuding = stars.length >= 2 && hasDivaStar && winPct < 0.60;
 
     let penalty = toxicPlayers.length * 0.5;
+    if (isFeuding) penalty += 2; // Extra toxicity from the feud
     if (hasLeader) penalty = penalty * 0.5;
 
     return roster.map(p => {
-        if ((p.morale || 50) < 20) return p;
-        if (p.personality === 'Mercenary') return p;
-        const newMorale = Math.max(0, (p.morale || 50) - penalty);
-        return { ...p, morale: newMorale };
+        let newMorale = p.morale || 50;
+        let newStamina = p.stamina || 100;
+
+        // Apply general chemistry penalty
+        if (newMorale >= 20 && p.personality !== 'Mercenary') {
+            newMorale = Math.max(0, newMorale - penalty);
+        }
+
+        // Apply direct feud penalty to the stars involved
+        if (isFeuding && p.overall >= 85) {
+            newMorale = Math.max(0, newMorale - 5);
+        }
+
+        // P2: Soft Tanking
+        // If trade is demanded but ignored, player soft tanks
+        if (p.demandTrade && newMorale <= 10) {
+            newStamina = Math.min(newStamina, 50); // Crushed stamina means they play terribly in MatchEngineV3
+        }
+
+        return { ...p, morale: newMorale, stamina: newStamina };
     });
 }
 

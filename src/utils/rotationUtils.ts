@@ -15,11 +15,12 @@ import { findValidStartingLineup } from './rotationSolver';
  * Optimizes the rotation for a given list of players based on strict tiers.
  * Rules:
  * - Star Players (89+ OVR, or best player if none): 42 minutes.
+ * - Generational Rookies (Age <= 21, POT >= 90): Treated as stars, 35+ mins for development.
  * - Good Players (Starters): ~35 minutes.
  * - Medium Players (Rotation): 20-25 minutes.
  * - Bench/Bad (<70): 0-10 minutes.
  */
-export type RotationStrategy = 'Standard' | 'Heavy Starters' | 'Deep Bench' | 'Custom' | number;
+export type RotationStrategy = 'Standard' | 'Heavy Starters' | 'Deep Bench' | 'Playoffs' | 'Custom' | number;
 
 /**
  * Helper to interpolate between two values based on a factor (0-1)
@@ -46,8 +47,11 @@ export const optimizeRotation = (roster: Player[], strategy: RotationStrategy = 
         calculatedOvr: calculateOverall(p)
     })).sort((a, b) => b.calculatedOvr - a.calculatedOvr);
 
-    // Identify Stars (90+)
-    let stars = playersWithOvr.filter(p => p.calculatedOvr >= 90);
+    // Identify Stars (90+ OVR) OR Generational Rookies
+    let stars = playersWithOvr.filter(p => 
+        p.calculatedOvr >= 90 || 
+        (p.age <= 21 && (p.potential || 0) >= 90) // Generational Rookie Logic
+    );
     if (stars.length === 0 && playersWithOvr.length > 0) {
         stars = [playersWithOvr[0]];
     }
@@ -63,7 +67,7 @@ export const optimizeRotation = (roster: Player[], strategy: RotationStrategy = 
     let sliderValue = 50; // Default Standard
     if (typeof strategy === 'number') {
         sliderValue = Math.max(0, Math.min(100, strategy));
-    } else if (strategy === 'Heavy Starters') {
+    } else if (strategy === 'Heavy Starters' || strategy === 'Playoffs') {
         sliderValue = 100;
     } else if (strategy === 'Deep Bench') {
         sliderValue = 0;
@@ -79,7 +83,12 @@ export const optimizeRotation = (roster: Player[], strategy: RotationStrategy = 
 
     // Bench Curves (Scaling the rest)
     const benchDeep = [20, 18, 14, 10, 8];
-    const benchHeavy = [10, 6, 4, 2, 0];
+    let benchHeavy = [10, 6, 4, 2, 0];
+    
+    // Playoff Tightening (7-8 players total: 5 starters + 2-3 bench)
+    if (strategy === 'Playoffs') {
+        benchHeavy = [20, 12, 8, 0, 0]; // Shorter bench, more concentrated
+    }
 
     const benchCurve = benchDeep.map((val, i) => Math.round(lerp(val, benchHeavy[i], factor)));
 

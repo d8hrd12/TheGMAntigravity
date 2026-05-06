@@ -61,8 +61,19 @@ export const evaluateFreeAgent = (
         fitScore -= 5;
     }
 
-    // Scheme Fit (Placeholder for now, assuming standard)
-    if (ovr > 80) fitScore += 10; // Talent fits everywhere
+    // GM2: Contenders strictly prioritize need, UNLESS an elite veteran is available for cheap
+    if (teamDirection === 'Contender') {
+        const isCheapVetStar = ovr >= 80 && projectedContract.amount <= 6000000;
+        
+        if (isCheapVetStar) {
+            fitScore += 25; // Ignore fit, just get the talent
+        } else if (!needs.positionalGaps.includes(player.position) && !needs.primaryNeed.includes(player.position)) {
+            fitScore -= 15; // Penalize players that don't fill a need for a contender
+        }
+    } else {
+        // Scheme Fit (Placeholder for now, assuming standard)
+        if (ovr > 80) fitScore += 10; // Talent fits everywhere for non-contenders
+    }
 
     // Clamp
     fitScore = Math.max(0, Math.min(40, fitScore));

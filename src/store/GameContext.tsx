@@ -1429,8 +1429,28 @@ export function GameProvider({ children }: { children: ReactNode }) {
             const westSeries = createSeries(1, 'West');
             const eastSeries = createSeries(1, 'East');
 
+            const playoffTeamIds = [...westSeries, ...eastSeries].flatMap(s => [s.homeTeamId, s.awayTeamId]);
+
+            // Update Rotations for Playoff Teams (Tighten rotation to 7-8 players)
+            const updatedPlayers = [...prev.players];
+            const updatedTeams = prev.teams.map(t => {
+                if (playoffTeamIds.includes(t.id) && t.id !== prev.userTeamId) {
+                    const teamRoster = updatedPlayers.filter(p => p.teamId === t.id);
+                    if (teamRoster.length > 0) {
+                        const optimized = optimizeRotation(teamRoster, 'Playoffs');
+                        optimized.forEach(op => {
+                            const idx = updatedPlayers.findIndex(p => p.id === op.id);
+                            if (idx !== -1) updatedPlayers[idx] = op;
+                        });
+                    }
+                }
+                return t;
+            });
+
             return {
                 ...prev,
+                players: updatedPlayers,
+                teams: updatedTeams,
                 seasonPhase: 'playoffs_r1',
                 playoffs: [...westSeries, ...eastSeries],
                 date: new Date(prev.date.getTime() + 86400000),
@@ -2181,7 +2201,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const processAiGMFiring = () => {
         setGameState(prev => {
-            const { updatedGms, newsItems } = processGMDismissals(prev.teams, prev.aiGms, prev.userTeamId);
+            const { updatedGms, newsItems } = processGMDismissals(prev.teams, prev.aiGms, prev.userTeamId, prev.players);
             
             // Sync teams with new GMs
             const updatedTeams = prev.teams.map(team => {
@@ -2299,7 +2319,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             }
 
 
-            const { updatedGms, newsItems } = processGMDismissals(updatedTeams, prev.aiGms, prev.userTeamId);
+            const { updatedGms, newsItems } = processGMDismissals(updatedTeams, prev.aiGms, prev.userTeamId, prev.players);
             
             // Sync teams with new GMs
             const finalTeams = updatedTeams.map(team => {
@@ -2997,7 +3017,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
         mapTeamsForSimulation(prev.teams).forEach(t => {
             const teamRoster = toxicUpdatedPlayers.filter(p => p.teamId === t.id);
-            const updatedTeamRoster = applyTeamDynamics(teamRoster);
+            const updatedTeamRoster = applyTeamDynamics(teamRoster, t);
 
             // Update the main array
             updatedTeamRoster.forEach(ur => {
@@ -3238,6 +3258,34 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         priority: 3
                     });
                 }
+            }
+
+            // O4: Mid-Season GM Firing (Check exactly at 40 games played)
+            if (prev.seasonGamesPlayed === 40) {
+                const { updatedGms, newsItems } = processGMDismissals(currentTeams, prev.aiGms, prev.userTeamId, currentPlayers, true);
+                // Update teams with new GMs if fired
+                currentTeams = currentTeams.map(team => {
+                    const gm = updatedGms.find(g => g.teamId === team.id);
+                    if (gm && gm.id !== team.gmId) {
+                        return { ...team, gmId: gm.id };
+                    }
+                    return team;
+                });
+                
+                newsItems.forEach(n => {
+                    currentNews.push({
+                        id: generateUUID(),
+                        date: nextDate,
+                        headline: "GM Fired Mid-Season!",
+                        content: n,
+                        type: 'GENERAL',
+                        priority: 5
+                    });
+                });
+                
+                // We must update the global aiGms array, but we are inside simulateDay which returns GameState.
+                // We will assign this back to the returned state.
+                prev.aiGms = updatedGms; 
             }
 
             // --- AI IN-SEASON ROSTER MANAGEMENT ---

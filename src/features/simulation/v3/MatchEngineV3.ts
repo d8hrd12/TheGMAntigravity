@@ -56,9 +56,19 @@ function pickByUsage(lineup: Player[], weights: Map<string, number>): Player {
 }
 
 /** Build lineup for a given quarter based on OVR ranking */
-function buildLineup(roster: Player[], quarter: number): Player[] {
+function buildLineup(roster: Player[], quarter: number, isBlowout: boolean = false): Player[] {
   const active = roster.filter(p => !p.isRetired);
   const sorted = [...active].sort((a, b) => calculateOverall(b) - calculateOverall(a));
+
+  // If blowout in regular season, play the deep bench (garbage time)
+  if (isBlowout) {
+      const deepBench = sorted.slice(5, 10);
+      // Pad if roster is short
+      while (deepBench.length < 5 && sorted.length > 0) {
+          deepBench.push(sorted[Math.floor(Math.random() * sorted.length)]);
+      }
+      return deepBench.slice(0, 5);
+  }
 
   // Starters (top 5) for Q1/Q3, rotate bench in Q2/Q4 at half
   // Simple model: top 5 are starters, 6-9 are rotation
@@ -141,8 +151,9 @@ export function simulateMatchV3(input: MatchInput): MatchResult {
     homeFouls = 0;
     awayFouls = 0;
 
-    const homeLineup = buildLineup(homeRoster, quarter);
-    const awayLineup = buildLineup(awayRoster, quarter);
+    const isBlowout = quarter === 4 && Math.abs(homeScore - awayScore) >= 25 && !input.isPlayoffs;
+    const homeLineup = buildLineup(homeRoster, quarter, isBlowout);
+    const awayLineup = buildLineup(awayRoster, quarter, isBlowout);
 
     onCourt.home = homeLineup.map(p => p.id);
     onCourt.away = awayLineup.map(p => p.id);

@@ -43,7 +43,9 @@ export const calculateGMPerformance = (team: Team, gm: AI_GM): number => {
 export const processGMDismissals = (
     teams: Team[],
     gms: AI_GM[],
-    userTeamId: string
+    userTeamId: string,
+    players: Player[] = [],
+    isMidSeason: boolean = false
 ): { updatedGms: AI_GM[], newsItems: string[] } => {
     const newsItems: string[] = [];
     const updatedGms = [...gms];
@@ -68,16 +70,40 @@ export const processGMDismissals = (
         else if (performance > 75) securityChange = 10 * repFactor;
         else if (performance > 65) securityChange = 5 * repFactor;
 
+        // O5: Young GM Patience
+        const tenureYears = gm.history.filter(h => h.teamId === team.id).length;
+        const draftedWell = players.some(p => p.teamId === team.id && p.age <= 22 && p.potential >= 88);
+
+        if (tenureYears === 0 && performance > 20) {
+            // First year pass (unless complete 0-82 disaster)
+            securityChange = Math.max(0, securityChange); 
+        } else if (tenureYears === 1 && draftedWell && performance < 45) {
+            // Second year, but drafted a potential star - extend leash
+            securityChange = -5 / repFactor; // Reduced penalty
+        }
+
         const newSecurity = Math.max(0, Math.min(100, gm.jobSecurity + securityChange));
         updatedGms[gmIndex] = { ...gm, jobSecurity: newSecurity };
 
-        // FIRE LOGIC: 
-        // 1. Security reaches 0.
-        // 2. Random chance if security is low (< 30)
-        const fired = newSecurity === 0 || (newSecurity < 30 && Math.random() < 0.3);
+        // FIRE LOGIC
+        let fired = newSecurity === 0 || (newSecurity < 30 && Math.random() < 0.3 && !isMidSeason);
+
+        // O4: Mid-Season Firing (Contenders panicking)
+        if (isMidSeason) {
+            const winPct = (team.wins || 0) / Math.max(1, (team.wins || 0) + (team.losses || 0));
+            const totalGames = (team.wins || 0) + (team.losses || 0);
+            if (totalGames >= 35 && team.strategy?.direction === 'Contender' && winPct < 0.45) {
+                // Panic fire mid-season
+                fired = Math.random() < 0.5; // 50% chance to fire mid-season if massively underperforming
+            }
+        }
 
         if (fired) {
-            newsItems.push(`The ${team.city} ${team.name} have fired GM ${gm.name} following poor organizational results.`);
+            if (isMidSeason) {
+                newsItems.push(`SHOCKER: The ${team.city} ${team.name} have fired GM ${gm.name} mid-season after a disastrous ${team.wins}-${team.losses} start.`);
+            } else {
+                newsItems.push(`The ${team.city} ${team.name} have fired GM ${gm.name} following poor organizational results.`);
+            }
             
             // Move to Free Agents
             updatedGms[gmIndex] = { ...updatedGms[gmIndex], teamId: undefined, jobSecurity: 50 };

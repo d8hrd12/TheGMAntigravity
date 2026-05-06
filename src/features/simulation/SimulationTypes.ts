@@ -229,6 +229,7 @@ export interface MatchInput {
     date: Date;
     userTeamId?: string; // To enforce strict rotation
     isInteractive?: boolean;
+    isPlayoffs?: boolean;
 }
 
 export interface MerchCampaign {
