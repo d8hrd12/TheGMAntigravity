@@ -69,12 +69,19 @@ export function getTradingBlock(team: Team, roster: Player[], direction: TeamDir
 
         // GM PHILOSOPHY INFLUENCE
         let youthThreshold = 4.2;
-        if (gm?.philosophy === 'Youth') youthThreshold = 3.8; // More protective of youth
-        if (gm?.philosophy === 'Win Now') youthThreshold = 4.5; // Less protective of youth
+        if (gm?.philosophy === 'Youth') youthThreshold = 3.8;
+        if (gm?.philosophy === 'Win Now') youthThreshold = 4.5;
 
-        const isCornerstone = (stars >= 4.7) || (stars >= youthThreshold && p.age < 25) || (stars >= 3.8 && p.age < 22);
+        // ABSOLUTE UNTOUCHABLE: Young (≤23), good OVR (≥80), elite potential (≥88)
+        // This is "our future" — never trade regardless of offer
+        const isAbsoluteUntouchable = p.age <= 23 && (p.overall || calculateOverall(p)) >= 80 && (p.potential || 0) >= 88;
 
-        if (isCornerstone && rank < 2) {
+        const isCornerstone = isAbsoluteUntouchable ||
+            (stars >= 4.7) ||
+            (stars >= youthThreshold && p.age < 25) ||
+            (stars >= 3.8 && p.age < 22);
+
+        if (isCornerstone && (rank < 2 || isAbsoluteUntouchable)) {
             untouchables.push(p);
         } else if (isCornerstone && rank >= 2) {
             assets.push(p);
@@ -170,28 +177,58 @@ export function getPlayerTradeValue(
 }
 
 export function getDraftPickValue(pick: DraftPick, currentYear: number, receivingTeam: Team, gm?: AI_GM, allTeams: Team[] = []): number {
-    const yearDiff = pick.year - currentYear;
+    const yearDiff = Math.max(0, pick.year - currentYear);
+    const origTeam = allTeams.find(t => t.id === pick.originalTeamId);
+
+    // Determine original team quality
+    const origWins = origTeam?.wins || 0;
+    const origLosses = origTeam?.losses || 0;
+    const origTotal = origWins + origLosses;
+    const origWinPct = origTotal > 0 ? origWins / origTotal : 0.5;
+    const origTeamIsGood = origWinPct > 0.55;  // Contender
+    const origTeamIsBad = origWinPct < 0.35;   // Lottery team
+
     let baseValue = pick.round === 1 ? 60 : 15;
 
+    // Current-year picks: value based on where the team is right now
     if (yearDiff === 0 && pick.round === 1) {
-        const origTeam = allTeams.find(t => t.id === pick.originalTeamId);
-        if (origTeam) {
-            const wins = origTeam.wins || 0;
-            const losses = origTeam.losses || 0;
-            const total = wins + losses;
-            const winPct = total > 0 ? wins / total : 0.5;
-            if (winPct < 0.35) baseValue = 100;
-            else if (winPct < 0.45) baseValue = 85;
-            else if (winPct > 0.60) baseValue = 40;
-        }
+        if (origTeamIsBad) baseValue = 105;
+        else if (origWinPct < 0.45) baseValue = 85;
+        else if (origTeamIsGood) baseValue = 38;
+        else baseValue = 60;
     }
 
-    let value = baseValue / (1 + yearDiff * 0.2);
+    // FUTURE PICK TIME MULTIPLIER
+    // Key principle: near-future picks from GOOD teams = low value (will be #22-30)
+    // Picks 3+ years out have uncertainty premium (team may decline)
+    let timeMultiplier: number;
+    if (yearDiff === 0) {
+        timeMultiplier = 1.0;
+    } else if (yearDiff === 1) {
+        // 1 year out: big discount if from a contender
+        timeMultiplier = origTeamIsGood ? 0.45 : origTeamIsBad ? 0.88 : 0.65;
+    } else if (yearDiff === 2) {
+        timeMultiplier = origTeamIsGood ? 0.60 : origTeamIsBad ? 0.92 : 0.78;
+    } else if (yearDiff === 3) {
+        // 3 years: good value regardless — team may decline by then
+        timeMultiplier = origTeamIsGood ? 0.80 : 0.90;
+    } else {
+        // 4+ years: uncertainty premium (nobody knows what any team will be)
+        timeMultiplier = 0.90 + (yearDiff - 4) * 0.015;
+    }
 
-    if (gm?.philosophy === 'Youth') value *= 1.2;
-    if (gm?.philosophy === 'Win Now') value *= 0.8;
+    let value = baseValue * timeMultiplier;
 
-    return value;
+    // Philosophy modifiers
+    if (gm?.philosophy === 'Youth') value *= 1.30;      // Rebuilders LOVE future picks
+    if (gm?.philosophy === 'Win Now') value *= 0.60;    // Win Now GMs hate giving up future
+    if (gm?.philosophy === 'Financial') value *= 0.85;
+    if (gm?.philosophy === 'Balanced') value *= 1.05;
+
+    // Second round picks are always less valuable
+    if (pick.round === 2) value = Math.min(value, 20);
+
+    return Math.max(0, value);
 }
 
 export interface TradeAssetBundle {

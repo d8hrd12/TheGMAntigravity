@@ -35,22 +35,23 @@ export const simulateDailyTrades = (
     if (daysPassed < 15 || daysPassed > 120) return null;
 
     const isDeadlineWeek = daysPassed > 110 && daysPassed <= 120;
-    const baseChance = isDeadlineWeek ? 0.35 : 0.05;
+    const baseChance = isDeadlineWeek ? 0.45 : 0.09; // Increased from 0.35/0.05
 
     if (Math.random() > baseChance) return null;
 
     // Attempt Loop
-    const ATTEMPTS = 10;
+    const ATTEMPTS = 15;
     for (let i = 0; i < ATTEMPTS; i++) {
-        const proposer = teams.filter(t => t.id !== userTeamId)[Math.floor(Math.random() * (teams.length - 1))];
+        const eligibleTeams = teams.filter(t => t.id !== userTeamId);
+        const proposer = eligibleTeams[Math.floor(Math.random() * eligibleTeams.length)];
         if (!proposer) continue;
 
-        const targetTeam = teams.filter(t => t.id !== proposer.id && t.id !== userTeamId)[Math.floor(Math.random() * (teams.length - 2))];
+        const targetTeam = eligibleTeams.filter(t => t.id !== proposer.id)[Math.floor(Math.random() * (eligibleTeams.length - 1))];
         if (!targetTeam) continue;
 
         const proposerRoster = players.filter(p => p.teamId === proposer.id);
         const targetRoster = players.filter(p => p.teamId === targetTeam.id);
-        
+
         const proposerGm = aiGms?.find(g => g.id === proposer.gmId);
         const targetGm = aiGms?.find(g => g.id === targetTeam.gmId);
 
@@ -62,14 +63,68 @@ export const simulateDailyTrades = (
 
         if (propBlock.assets.length === 0 || targetBlock.assets.length === 0) continue;
 
-        const assetToGive = propBlock.assets[0];
-        const assetToGet = targetBlock.assets[0];
+        // DIRECTION-AWARE TARGETING
+        // Contenders want veterans; Rebuilders want picks + youth
+        let targetAssetPlayer: Player | undefined;
+        if (propDirection === 'Contender' || propDirection === 'PlayoffTeam') {
+            // Target the best player on the other team that fits their need
+            targetAssetPlayer = targetBlock.assets.sort((a, b) =>
+                (b.overall || 0) - (a.overall || 0)
+            )[0];
+        } else {
+            // Rebuilder: target young + high potential from other team
+            const youngAssets = targetBlock.assets.filter(p => p.age <= 25);
+            targetAssetPlayer = youngAssets.length > 0
+                ? youngAssets.sort((a, b) => (b.potential || 0) - (a.potential || 0))[0]
+                : targetBlock.assets[0];
+        }
+        if (!targetAssetPlayer) continue;
+
+        // BUILD MULTI-ASSET PACKAGE TO MATCH VALUE
+        const targetPlayerValue = getPlayerTradeValue(targetAssetPlayer, proposer, contracts, proposerRoster, proposerGm);
+        const requiredValue = targetPlayerValue * 1.05;
+
+        // Assemble proposer's package: players + picks
+        const packagePlayers: Player[] = [];
+        const packagePicks: DraftPick[] = [];
+        let packageValue = 0;
+
+        // Candidate assets from proposer (filtered by trading block)
+        const candidatePlayers = propBlock.assets
+            .map(p => ({ player: p, value: getPlayerTradeValue(p, targetTeam, contracts, targetRoster, targetGm) }))
+            .sort((a, b) => b.value - a.value);
+
+        const candidatePicks = propBlock.willingToTradePicks
+            ? (proposer.draftPicks || [])
+                .map(pk => ({ pick: pk, value: getDraftPickValue(pk, currentYear, targetTeam, targetGm, teams) }))
+                .sort((a, b) => b.value - a.value)
+            : [];
+
+        // Add players first (up to 2)
+        for (const { player, value } of candidatePlayers) {
+            if (packagePlayers.length >= 2) break;
+            packagePlayers.push(player);
+            packageValue += value;
+            if (packageValue >= requiredValue) break;
+        }
+
+        // Add picks to make up value difference (up to 3)
+        if (packageValue < requiredValue) {
+            for (const { pick, value } of candidatePicks) {
+                if (packagePicks.length >= 3) break;
+                packagePicks.push(pick);
+                packageValue += value;
+                if (packageValue >= requiredValue) break;
+            }
+        }
+
+        if (packagePlayers.length === 0 && packagePicks.length === 0) continue;
 
         const proposal = {
             proposerId: proposer.id,
             targetTeamId: targetTeam.id,
-            proposerAssets: { players: [assetToGive], picks: [] },
-            targetAssets: { players: [assetToGet], picks: [] }
+            proposerAssets: { players: packagePlayers, picks: packagePicks },
+            targetAssets: { players: [targetAssetPlayer], picks: [] }
         };
 
         const result = evaluateTrade(

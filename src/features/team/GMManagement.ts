@@ -1,7 +1,10 @@
 import type { GameState } from '../../store/GameContext';
 import type { AI_GM } from '../../models/AI_GM';
 import type { Team } from '../../models/Team';
+import type { Player } from '../../models/Player';
 import { generateGM } from './gmGenerator';
+import { getTeamDirection } from '../trade/TradeLogic';
+import { calculateOverall } from '../../utils/playerUtils';
 
 /**
  * Calculates a score (0-100) for a GM's performance based on team results and strategy.
@@ -102,4 +105,81 @@ export const processGMDismissals = (
     });
 
     return { updatedGms, newsItems };
+};
+
+/**
+ * Re-evaluates a team's strategic direction each offseason.
+ * Rules (from real basketball logic):
+ * - Young core (avg age < 27) that hasn't developed -> keep building, don't panic
+ * - Young core (avg age 27+) that still failed -> blow it up, tank for picks
+ * - Team with a superstar + winning record -> Contender
+ * - Team aging with no future -> Retool or Rebuild
+ */
+export const updateTeamStrategy = (
+    team: Team,
+    roster: Player[],
+    year: number
+): Team => {
+    if (roster.length === 0) return team;
+
+    const direction = getTeamDirection(team, roster);
+
+    // Analyze roster quality
+    const topPlayers = [...roster].sort((a, b) => (b.overall || 0) - (a.overall || 0)).slice(0, 5);
+    const hasElite = topPlayers.some(p => calculateOverall(p) >= 87);
+    const hasYoungStar = roster.some(p => p.age <= 26 && calculateOverall(p) >= 83);
+    const avgTopAge = topPlayers.reduce((s, p) => s + p.age, 0) / topPlayers.length;
+
+    // Failed rebuild detection: core aged out (27+) without developing
+    const agedFailedCore = avgTopAge >= 27 && !hasElite && !hasYoungStar;
+
+    // Determine new strategic direction
+    let newDirection: 'Contender' | 'PlayoffTeam' | 'Young_Developing' | 'Rebuilding';
+    let newFocus: 'Balanced' | 'Win Now' | 'Future' | 'Financial';
+
+    if (direction === 'Contender' || (hasElite && team.wins > team.losses)) {
+        newDirection = 'Contender';
+        newFocus = 'Win Now';
+    } else if (direction === 'PlayoffTeam' && hasYoungStar) {
+        newDirection = 'PlayoffTeam';
+        newFocus = 'Balanced';
+    } else if (direction === 'Young_Developing' || (hasYoungStar && !agedFailedCore)) {
+        newDirection = 'Young_Developing';
+        newFocus = 'Future';
+    } else if (agedFailedCore) {
+        // Core aged out without developing — full rebuild
+        newDirection = 'Rebuilding';
+        newFocus = 'Future';
+    } else {
+        newDirection = 'Rebuilding';
+        newFocus = 'Future';
+    }
+
+    // Only update if direction actually changes (avoid thrashing)
+    const currentDirection = team.strategy?.direction;
+    const lastChangeYear = team.strategy?.lastDirectionChangeYear || 0;
+    const yearsSinceChange = year - lastChangeYear;
+
+    // Don't flip direction more than once every 2 years (stability)
+    if (currentDirection === newDirection || yearsSinceChange < 2) {
+        return {
+            ...team,
+            strategy: {
+                ...team.strategy!,
+                focus: newFocus,
+                aggressiveness: newDirection === 'Contender' ? 85 : newDirection === 'Rebuilding' ? 30 : 60,
+                lastDirectionChangeYear: team.strategy?.lastDirectionChangeYear || year
+            }
+        };
+    }
+
+    return {
+        ...team,
+        strategy: {
+            direction: newDirection,
+            focus: newFocus,
+            aggressiveness: newDirection === 'Contender' ? 85 : newDirection === 'Rebuilding' ? 30 : 60,
+            lastDirectionChangeYear: year
+        }
+    };
 };

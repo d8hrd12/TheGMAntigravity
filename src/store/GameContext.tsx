@@ -12,7 +12,7 @@ import { generatePlayer } from '../features/player/playerGenerator';
 import { generateCoach, getTacticsForStyle } from '../features/team/coachGenerator';
 import { shouldFireCoach, fireCoach, hireCoach } from '../features/team/CoachLogic';
 import { seedRealRosters } from '../features/player/rosterSeeder';
-import { processGMDismissals } from '../features/team/GMManagement';
+import { processGMDismissals, updateTeamStrategy } from '../features/team/GMManagement';
 import { initializeLeagueGMs } from '../features/team/gmGenerator';
 import type { SocialMediaPost } from '../models/SocialMediaPost';
 
@@ -26,6 +26,7 @@ import type { TeamStrategy } from '../features/simulation/TacticsTypes';
 import { generateUUID } from '../utils/uuid';
 import { generateContract, calculateContractAmount, calculateTeamCapSpace, calculateAdjustedDemand } from '../utils/contractUtils';
 import { simulateDailyTrades, generateAiTradeProposalForUser, type TradeProposal } from '../features/trade/TradeSimulation';
+import { getTeamDirection } from '../features/trade/TradeLogic';
 import { updatePlayerMorale, applyTeamDynamics, checkTradeRequests, checkProveItDemands } from '../features/simulation/MoraleSystem';
 // TradeProposalModal import removed (unused and caused potential cycle)
 import { optimizeRotation } from '../utils/rotationUtils';
@@ -1999,22 +2000,49 @@ export function GameProvider({ children }: { children: ReactNode }) {
         if (specificPlayerId) {
             player = prevState.draftClass.find(p => p.id === specificPlayerId);
         } else {
-            // AI Logic: Best Value Available (Based on Scouting)
+            // AI Logic: Philosophy-Driven + Position-Need-Aware Draft
+            const teamRoster = prevState.players.filter(p => p.teamId === currentPickTeamId);
+            const gm = prevState.aiGms.find(g => g.id === team.gmId);
             const teamPoints = prevState.scoutingReports[currentPickTeamId] || {};
+
+            // Calculate positional depth (how many players at each position)
+            const posDepth: Record<string, number> = { PG: 0, SG: 0, SF: 0, PF: 0, C: 0 };
+            teamRoster.forEach(p => { if (posDepth[p.position] !== undefined) posDepth[p.position]++; });
 
             const getAiPerceivedValue = (p: Player) => {
                 const report = teamPoints[p.id];
                 const isRevealed = report?.isPotentialRevealed;
-
-                // If revealed, AI knows true potential.
-                // If not, AI sees a "fuzzy" potential (True potential +/- noise).
-                // Use a deterministic noise based on player ID so it's consistent for this draft class but "wrong" for everyone who doesn't scout.
                 const noise = isRevealed ? 0 : ((p.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 31) - 15);
-
-                const perceivedPotential = Math.max(0, Math.min(99, p.potential + noise));
+                const perceivedPotential = Math.max(0, Math.min(99, (p.potential || 70) + noise));
+                const currentOvr = calculateOverall(p);
                 const ageFactor = Math.max(0, 30 - p.age) * 2;
 
-                return calculateOverall(p) * 0.4 + perceivedPotential * 0.4 + ageFactor;
+                // Positional need bonus/penalty
+                const posCount = posDepth[p.position] || 0;
+                const posBonus = posCount === 0 ? 18 : posCount === 1 ? 6 : posCount >= 3 ? -12 : 0;
+
+                let value: number;
+
+                if (gm?.philosophy === 'Win Now') {
+                    // Weight current OVR heavily; slight penalty for very young/raw
+                    value = currentOvr * 0.70 + perceivedPotential * 0.20 + ageFactor * 0.10;
+                    if (p.age > 27) value *= 0.65; // Heavy penalty for old players in draft
+                    if (p.age <= 19) value *= 0.80; // Slight penalty for very raw prospects
+                } else if (gm?.philosophy === 'Youth') {
+                    // Bet on potential; love young players
+                    value = currentOvr * 0.20 + perceivedPotential * 0.65 + ageFactor * 0.15;
+                    if (p.age <= 19) value *= 1.35; // Big bonus for the youngest prospects
+                    if (p.age >= 24) value *= 0.75; // Penalty for older draft picks
+                } else if (gm?.philosophy === 'Financial') {
+                    // Find cheap future stars: high OVR relative to youth = great value contract
+                    const valueRatio = currentOvr / Math.max(1, p.age - 17);
+                    value = valueRatio * 6 + perceivedPotential * 0.30 + ageFactor * 0.10;
+                } else {
+                    // Balanced: current formula
+                    value = currentOvr * 0.4 + perceivedPotential * 0.4 + ageFactor;
+                }
+
+                return value + posBonus;
             };
 
             const sortedDraftClass = [...prevState.draftClass].sort((a, b) => getAiPerceivedValue(b) - getAiPerceivedValue(a));
@@ -2201,10 +2229,48 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     return;
                 }
 
-                // Sort free agents by combined rating (offense + defense)
-                freeAgentCoaches.sort((a, b) =>
-                    (b.rating.offense + b.rating.defense) - (a.rating.offense + a.rating.defense)
-                );
+                // Style-matched coach hiring based on GM philosophy + team roster
+                const teamGm = prev.aiGms.find(g => g.id === team.gmId);
+                const teamRosterForCoach = prev.players.filter(p => p.teamId === team.id);
+
+                // Determine if the team skews offensive or defensive
+                const avgOvr = teamRosterForCoach.length > 0
+                    ? teamRosterForCoach.reduce((s, p) => s + calculateOverall(p), 0) / teamRosterForCoach.length
+                    : 70;
+
+                // Sort free agents: philosophy drives which style to prefer
+                freeAgentCoaches.sort((a, b) => {
+                    let aScore = a.rating.offense + a.rating.defense;
+                    let bScore = b.rating.offense + b.rating.defense;
+
+                    if (teamGm?.philosophy === 'Win Now') {
+                        // Win Now: prefer the coach whose specialty matches roster
+                        // If roster is offensively strong, prefer offensive coach; else defensive
+                        const offensiveRoster = avgOvr >= 78; // Rough heuristic
+                        if (offensiveRoster) {
+                            aScore = a.rating.offense * 1.5 + a.rating.defense;
+                            bScore = b.rating.offense * 1.5 + b.rating.defense;
+                        } else {
+                            aScore = a.rating.offense + a.rating.defense * 1.5;
+                            bScore = b.rating.offense + b.rating.defense * 1.5;
+                        }
+                    } else if (teamGm?.philosophy === 'Youth') {
+                        // Youth GMs prefer development-friendly coaches (balanced, not too demanding)
+                        aScore = (a.rating.offense + a.rating.defense) * 0.9; // No overweighting
+                        bScore = (b.rating.offense + b.rating.defense) * 0.9;
+                    } else if (teamGm?.philosophy === 'Financial') {
+                        // Financial GMs pick cheapest coach with acceptable rating (≥55 combined)
+                        const aTotal = a.rating.offense + a.rating.defense;
+                        const bTotal = b.rating.offense + b.rating.defense;
+                        if (aTotal >= 110 && bTotal >= 110) {
+                            // Both acceptable — pick cheaper
+                            aScore = -a.contract.salary;
+                            bScore = -b.contract.salary;
+                        }
+                    }
+                    // Balanced: keep combined rating sort (default)
+                    return bScore - aScore;
+                });
 
                 // Pick the best available coach with some randomness
                 const pickIndex = Math.floor(Math.random() * Math.min(3, freeAgentCoaches.length));
@@ -2446,14 +2512,27 @@ export function GameProvider({ children }: { children: ReactNode }) {
             const capSpace = calculateTeamCapSpace(team, updatedContracts, currentState.salaryCap);
             if (capSpace <= 0 && !forceFill) return; // No money, unless forced (min contracts)
 
-            // 3. Find Target
-            // Filter available FAs
-            const availableFAs = updatedPlayers.filter(p => !p.teamId).sort((a, b) => calculateOverall(b) - calculateOverall(a));
+            // 3. Calculate positional needs
+            const posDepth: Record<string, number> = { PG: 0, SG: 0, SF: 0, PF: 0, C: 0 };
+            team.rosterIds.forEach(rid => {
+                const rp = updatedPlayers.find(p => p.id === rid);
+                if (rp && posDepth[rp.position] !== undefined) posDepth[rp.position]++;
+            });
+            const neededPositions = Object.entries(posDepth)
+                .filter(([, count]) => count < 2)
+                .map(([pos]) => pos);
+            const overstackedPositions = Object.entries(posDepth)
+                .filter(([, count]) => count >= 3)
+                .map(([pos]) => pos);
 
+            const gm = updatedTeams.find(t => t.id === team.id) ?
+                currentState.aiGms.find(g => g.id === team.gmId) : undefined;
+            const teamRoster = updatedPlayers.filter(p => p.teamId === team.id);
+            const direction = getTeamDirection(team, teamRoster);
+
+            // 4. Filter and sort available FAs by direction + needs
+            const availableFAs = updatedPlayers.filter(p => !p.teamId);
             if (availableFAs.length === 0) return;
-
-            // Simple Logic: Take Best Available that fits budget
-            // If forceFill, take Best Available regardless (Vet Min exception)
 
             let targetPlayer: Player | null = null;
             let offerAmount = 0;
@@ -2461,24 +2540,60 @@ export function GameProvider({ children }: { children: ReactNode }) {
             let targetRole: 'Starter' | 'Rotation' | 'Bench' = 'Bench';
 
             if (forceFill) {
-                targetPlayer = availableFAs[0];
-                offerAmount = 1000000; // Vet Min logic
+                // Minimum contract fill — prefer needed positions
+                const sorted = [...availableFAs].sort((a, b) => {
+                    const aNeed = neededPositions.includes(a.position) ? 1 : 0;
+                    const bNeed = neededPositions.includes(b.position) ? 1 : 0;
+                    return bNeed - aNeed || calculateOverall(b) - calculateOverall(a);
+                });
+                targetPlayer = sorted[0];
+                offerAmount = 1000000;
             } else {
-                // Try to sign a good player if we have space
-                for (const player of availableFAs) {
+                // Direction-based candidate filtering
+                let candidates = [...availableFAs];
+
+                if (direction === 'Rebuilding' || direction === 'Young_Developing') {
+                    // NEVER sign 30+ aging stars — they block the rebuild
+                    // Prioritize: youth (age ≤ 26) + high potential
+                    candidates = candidates.filter(p => p.age <= 27 || (p.potential || 0) >= 87);
+                    candidates.sort((a, b) => {
+                        // Score = potential + youth bonus + position need
+                        const aScore = (a.potential || 0) + Math.max(0, 25 - a.age) * 1.5 +
+                            (neededPositions.includes(a.position) ? 20 : 0) -
+                            (overstackedPositions.includes(a.position) ? 15 : 0);
+                        const bScore = (b.potential || 0) + Math.max(0, 25 - b.age) * 1.5 +
+                            (neededPositions.includes(b.position) ? 20 : 0) -
+                            (overstackedPositions.includes(b.position) ? 15 : 0);
+                        return bScore - aScore;
+                    });
+                } else {
+                    // Contender / Playoff: target proven OVR at needed positions
+                    candidates.sort((a, b) => {
+                        const aOvr = calculateOverall(a);
+                        const bOvr = calculateOverall(b);
+                        const aScore = aOvr +
+                            (neededPositions.includes(a.position) ? 25 : 0) -
+                            (overstackedPositions.includes(a.position) ? 20 : 0);
+                        const bScore = bOvr +
+                            (neededPositions.includes(b.position) ? 25 : 0) -
+                            (overstackedPositions.includes(b.position) ? 20 : 0);
+                        return bScore - aScore;
+                    });
+                }
+
+                // Find best candidate that fits budget
+                for (const player of candidates) {
                     const { amount: ask, years } = calculateContractAmount(player, currentState.salaryCap);
-                    const role = 'Rotation'; // Default role for AI signing
-                    // AI GM Negotiation Skill: Can convince player to take slightly less
-                    const gm = currentState.aiGms.find(g => g.id === team.gmId);
                     const negotiationSkill = gm?.skills.negotiation || 50;
-                    const discountFactor = 1.05 - (negotiationSkill / 500); // 1.05 (25 skill) to 0.85 (100 skill)
+                    const discountFactor = 1.05 - (negotiationSkill / 500);
                     const adjustedOffer = Math.floor(ask * discountFactor);
 
                     if (capSpace >= adjustedOffer) {
                         targetPlayer = player;
                         offerAmount = adjustedOffer;
                         targetYears = years;
-                        targetRole = (role as any) || 'Rotation';
+                        targetRole = calculateOverall(player) >= 80 ? 'Starter' :
+                                    calculateOverall(player) >= 73 ? 'Rotation' : 'Bench';
                         break;
                     }
                 }
@@ -3972,6 +4087,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
                                 }
                             }
                         }
+                    });
+
+                    // UPDATE AI TEAM STRATEGIES — Re-evaluate each team's direction based on season results
+                    const currentSeasonYear = prev.date.getFullYear();
+                    teamsWithDraftOrder.forEach((team, idx) => {
+                        if (team.id === prev.userTeamId) return; // Don't auto-update user's team
+                        const teamRoster = playersWithNewAge.filter(p => p.teamId === team.id);
+                        teamsWithDraftOrder[idx] = updateTeamStrategy(team, teamRoster, currentSeasonYear) as typeof teamsWithDraftOrder[0];
                     });
 
                     // Coach Contract Decrement
