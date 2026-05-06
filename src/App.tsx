@@ -636,11 +636,11 @@ function AppContent() {
         {isInitialized && !liveGameData && (
           <header className="app-header" style={{ 
             display: 'grid', 
-            gridTemplateColumns: '1fr auto 1fr', 
+            gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', 
             alignItems: 'center', 
             padding: 'env(safe-area-inset-top, 10px) 20px 10px 20px', 
             minHeight: '70px', 
-            gap: '20px',
+            gap: '10px',
             background: 'linear-gradient(to bottom, rgba(var(--bg-body-rgb), 0.9), transparent)',
             borderBottom: '1px solid var(--border-color)',
             backdropFilter: 'blur(10px)',
@@ -649,7 +649,7 @@ function AppContent() {
             top: 0
           }}>
             {/* Left: Menu & Session Context */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
               {!isNavLocked && (
                 <button className="menu-trigger" 
                   onClick={() => { setIsSidebarOpen(true); setExpandedCategory(null); }}
@@ -671,7 +671,6 @@ function AppContent() {
                   <Menu size={20} color="var(--text-main)" />
                 </button>
               )}
-              <div style={{ display: 'none' /* Could add XP or level here later */ }}></div>
             </div>
 
             {/* Center: Team Branding */}
@@ -766,7 +765,7 @@ function AppContent() {
             </div>
 
             {/* Right: Record & Global Stats */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '15px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '15px', minWidth: 0 }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.2 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <div style={{ 
