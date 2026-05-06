@@ -634,83 +634,150 @@ function AppContent() {
       {/* MAIN CONTAINER */}
       <div className="main-wrapper" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {isInitialized && !liveGameData && (
-          <header className="app-header" style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', padding: 'env(safe-area-inset-top, 10px) 20px 0 20px', minHeight: '60px', gap: '15px' }}>
-            {/* Left: Menu */}
-            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+          <header className="app-header" style={{ 
+            display: 'grid', 
+            gridTemplateColumns: '1fr auto 1fr', 
+            alignItems: 'center', 
+            padding: 'env(safe-area-inset-top, 10px) 20px 10px 20px', 
+            minHeight: '70px', 
+            gap: '20px',
+            background: 'linear-gradient(to bottom, rgba(var(--bg-body-rgb), 0.9), transparent)',
+            borderBottom: '1px solid var(--border-color)',
+            backdropFilter: 'blur(10px)',
+            zIndex: 1000,
+            position: 'sticky',
+            top: 0
+          }}>
+            {/* Left: Menu & Session Context */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               {!isNavLocked && (
-                <button className="menu-trigger" onClick={() => {
-                  setIsSidebarOpen(true);
-                  setExpandedCategory(null);
-                }}>
-                  <Menu size={24} />
+                <button className="menu-trigger" 
+                  onClick={() => { setIsSidebarOpen(true); setExpandedCategory(null); }}
+                  style={{ 
+                    background: 'var(--bg-card)', 
+                    border: '1px solid var(--border-color)', 
+                    borderRadius: '8px', 
+                    padding: '8px', 
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s ease',
+                    boxShadow: 'var(--shadow-sm)'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-card)'}
+                >
+                  <Menu size={20} color="var(--text-main)" />
                 </button>
               )}
+              <div style={{ display: 'none' /* Could add XP or level here later */ }}></div>
             </div>
 
-            {/* Center: Team Info */}
-            <div style={{ display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
+            {/* Center: Team Branding */}
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
               {userTeam && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', maxWidth: '100%' }}>
-                  <img src={userTeam.logo} alt="" style={{ width: '28px', height: '28px', objectFit: 'contain', flexShrink: 0 }} />
-                  <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '16px', 
+                  padding: '6px 20px', 
+                  background: 'var(--bg-card)', 
+                  borderRadius: '30px', 
+                  border: '1px solid var(--border-color)',
+                  boxShadow: 'var(--shadow-sm)',
+                  transition: 'transform 0.2s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  <div style={{ 
+                    width: '36px', 
+                    height: '36px', 
+                    background: 'var(--bg-body)', 
+                    borderRadius: '50%', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    padding: '4px',
+                    border: '1px solid var(--border-color)'
+                  }}>
+                    <img src={userTeam.logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  </div>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ 
-                        fontWeight: '950', 
-                        fontSize: '0.85rem', 
+                        fontWeight: '900', 
+                        fontSize: '1rem', 
                         color: 'var(--text-main)', 
-                        whiteSpace: 'nowrap',
-                        letterSpacing: '-0.5px'
+                        letterSpacing: '-0.02em',
+                        textTransform: 'uppercase'
                       }}>
-                        {userTeam.name.toUpperCase()}
+                        {userTeam.name}
                       </span>
+                      <div style={{ 
+                        height: '14px', 
+                        width: '1px', 
+                        background: 'var(--border-color)' 
+                      }}></div>
                       <span style={{
-                        fontSize: '0.7rem',
-                        fontWeight: 700,
-                        color: 'var(--team-primary)',
-                        background: 'rgba(var(--team-primary-rgb), 0.1)',
-                        padding: '1px 4px',
-                        borderRadius: '4px',
-                        marginLeft: '2px'
+                        fontSize: '0.8rem',
+                        fontWeight: 800,
+                        color: 'var(--team-primary)'
                       }}>
                         {date.getFullYear()}
                       </span>
                     </div>
                   </div>
+
                   {awardsHistory.some(h => h.champion?.teamId === userTeam.id) && (
-                        <div style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            gap: '2px',
-                            background: 'linear-gradient(135deg, #FFD700, #DAA520)',
-                            padding: '2px 6px',
-                            borderRadius: '12px',
-                            boxShadow: '0 2px 4px rgba(218, 165, 32, 0.3)',
-                            marginLeft: '4px',
-                            flexShrink: 0
-                        }}>
-                            <Star size={10} fill="white" color="white" />
-                            <span style={{ 
-                                fontSize: '0.7rem', 
-                                color: 'white', 
-                                fontWeight: 900,
-                                lineHeight: 1
-                            }}>
-                                {awardsHistory.filter(h => h.champion?.teamId === userTeam.id).length}
-                            </span>
-                        </div>
-                    )}
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '4px',
+                      background: 'linear-gradient(135deg, #FFD700, #DAA520)',
+                      padding: '3px 8px',
+                      borderRadius: '12px',
+                      boxShadow: '0 2px 4px rgba(218, 165, 32, 0.4)',
+                      marginLeft: '4px'
+                    }}>
+                      <Trophy size={10} color="white" fill="white" />
+                      <span style={{ fontSize: '0.75rem', color: 'white', fontWeight: 900 }}>
+                        {awardsHistory.filter(h => h.champion?.teamId === userTeam.id).length}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Right: Record & Global Stats */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '15px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.2 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ 
+                    padding: '2px 8px', 
+                    background: 'var(--team-primary)', 
+                    borderRadius: '6px',
+                    color: '#fff',
+                    fontSize: '0.9rem',
+                    fontWeight: 900,
+                    boxShadow: '0 2px 8px rgba(var(--team-primary-rgb), 0.3)'
+                  }}>
+                    {userTeam?.wins ?? 0}-{userTeam?.losses ?? 0}
                   </div>
-                )}
-              </div>
-
-            {/* Awards Popup */}
-            {showingAwards && <AwardsPopup awards={showingAwards} onClose={() => setShowingAwards(null)} />}
-
-            {/* Right: Date/Status */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <div style={{ textAlign: 'right' }}>
-                 <div style={{ fontSize: '0.8rem', fontWeight: '900', color: 'var(--team-primary)' }}>{userTeam?.wins ?? 0} - {userTeam?.losses ?? 0}</div>
-                 <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>{seasonPhase.replace('_', ' ')}</div>
+                </div>
+                <div style={{ 
+                  fontSize: '0.65rem', 
+                  color: 'var(--text-muted)', 
+                  textTransform: 'uppercase', 
+                  fontWeight: 800, 
+                  letterSpacing: '0.05em',
+                  marginTop: '4px'
+                }}>
+                  {seasonPhase.replace('_', ' ')}
+                </div>
               </div>
             </div>
           </header>
