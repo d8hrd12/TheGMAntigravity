@@ -51,26 +51,14 @@ export const SimControls: React.FC = () => {
 
     const isSeasonComplete = seasonPhase === 'regular_season' && seasonGamesPlayed >= 82;
 
-    if (seasonPhase === 'pre_season') {
-        return (
-            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-                <SimButton
-                    onClick={isTrainingCampComplete ? () => setShowPayrollModal(true) : () => setView('training')}
-                    icon={Play}
-                    label={isTrainingCampComplete ? "START SEASON" : "START TRAINING"}
-                    variant="primary"
-                />
-            </div>
-        );
-    }
 
-    if (seasonPhase === 'scouting' || seasonPhase === 'offseason') {
+    if (seasonPhase === 'scouting' || seasonPhase === 'offseason' || seasonPhase === 'pre_season' || seasonPhase === 'retirement_summary') {
         return (
             <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
                 <SimButton
-                    onClick={triggerDraft}
+                    onClick={() => setView('offseason_menu')}
                     icon={Calendar}
-                    label="DRAFT START"
+                    label="GO TO OFF SEASON"
                     variant="primary"
                 />
             </div>
@@ -116,18 +104,6 @@ export const SimControls: React.FC = () => {
         );
     }
 
-    if (seasonPhase === 'retirement_summary') {
-        return (
-            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-                <SimButton
-                    onClick={() => setView('retirement')}
-                    icon={Calendar}
-                    label="VIEW RETIREMENTS"
-                    variant="primary"
-                />
-            </div>
-        );
-    }
 
     if (isSeasonComplete) {
         return (
@@ -156,7 +132,7 @@ export const SimControls: React.FC = () => {
     }
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', marginTop: '15px' }}>
             <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
                 <SimButton
                     onClick={advanceDay}

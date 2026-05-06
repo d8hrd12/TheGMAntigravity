@@ -71,7 +71,7 @@ export const LeagueHistoryView: React.FC<{ onBack: () => void }> = ({ onBack }) 
                             </div>
                         ) : (
                             awardsHistory.slice().reverse().map(award => {
-                                const team = teams.find(t => t.id === award.championId);
+                                const team = teams.find(t => t.id === award.champion?.teamId);
                                 return (
                                     <div key={award.year} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: 'var(--bg-main)', borderRadius: '12px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -92,7 +92,7 @@ export const LeagueHistoryView: React.FC<{ onBack: () => void }> = ({ onBack }) 
                                         </div>
                                         <div style={{ textAlign: 'right' }}>
                                             <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)' }}>FINALS MVP</div>
-                                            <div style={{ fontWeight: 800 }}>{award.finalsMvp?.name || 'N/A'}</div>
+                                            <div style={{ fontWeight: 800 }}>{award.finalsMvp?.playerName || 'N/A'}</div>
                                         </div>
                                     </div>
                                 );

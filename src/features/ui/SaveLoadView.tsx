@@ -74,13 +74,13 @@ export function SaveLoadView({ mode, onClose }: SaveLoadViewProps) {
             backdropFilter: 'blur(5px)'
         }}>
             <div style={{
-                background: 'var(--surface)', padding: '30px', borderRadius: '16px',
+                background: '#ffffff', padding: '30px', borderRadius: '16px',
                 width: '90%', maxWidth: '450px',
-                border: '1px solid var(--border)',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-                color: 'var(--text)'
+                border: '1px solid var(--border-color)',
+                boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
+                color: 'var(--text-main)'
             }}>
-                <h2 style={{ marginTop: 0, color: 'var(--text)' }}>
+                <h2 style={{ marginTop: 0, color: 'var(--text-main)' }}>
                     {mode === 'save' ? 'Save Game' : 'Load Game'}
                     {isLoading && <span style={{ fontSize: '0.6em', marginLeft: '10px', opacity: 0.7 }}>(Processing...)</span>}
                 </h2>
@@ -90,11 +90,11 @@ export function SaveLoadView({ mode, onClose }: SaveLoadViewProps) {
                         <div key={id}
                             onClick={() => !isLoading && handleAction(id)}
                             style={{
-                                border: '1px solid var(--border)',
+                                border: '1px solid var(--border-color)',
                                 padding: '15px',
                                 borderRadius: '8px',
                                 cursor: isLoading ? 'wait' : 'pointer',
-                                background: slots[id] ? 'var(--surface-active)' : 'transparent',
+                                background: slots[id] ? 'var(--bg-card)' : 'transparent',
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 alignItems: 'center',
@@ -102,12 +102,12 @@ export function SaveLoadView({ mode, onClose }: SaveLoadViewProps) {
                                 opacity: isLoading ? 0.6 : 1
                             }}
                             onMouseEnter={e => !isLoading && (e.currentTarget.style.borderColor = 'var(--primary)')}
-                            onMouseLeave={e => !isLoading && (e.currentTarget.style.borderColor = 'var(--border)')}
+                            onMouseLeave={e => !isLoading && (e.currentTarget.style.borderColor = 'var(--border-color)')}
                         >
                             <div style={{ textAlign: 'left', display: 'flex', gap: '15px', alignItems: 'center' }}>
                                 <div style={{
                                     width: '30px', height: '30px', borderRadius: '50%',
-                                    background: slots[id] ? 'var(--primary)' : 'var(--border)',
+                                    background: slots[id] ? 'var(--primary)' : 'var(--border-color)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold',
                                     color: '#fff'
                                 }}>
@@ -116,13 +116,13 @@ export function SaveLoadView({ mode, onClose }: SaveLoadViewProps) {
                                 <div style={{ flex: 1 }}>
                                     {slots[id] ? (
                                         <>
-                                            <div style={{ fontWeight: 'bold', color: 'var(--text)' }}>{slots[id]?.teamName}</div>
-                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                            <div style={{ fontWeight: 'bold', color: 'var(--text-main)' }}>{slots[id]?.teamName}</div>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                                                 {slots[id]?.seasonPh} • {slots[id]?.date}
                                             </div>
                                         </>
                                     ) : (
-                                        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>Empty Slot</div>
+                                        <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Empty Slot</div>
                                     )}
                                 </div>
                             </div>
@@ -139,8 +139,8 @@ export function SaveLoadView({ mode, onClose }: SaveLoadViewProps) {
                 </div>
                 <button onClick={onClose} disabled={isLoading} style={{
                     marginTop: '25px', padding: '12px 24px',
-                    background: 'transparent', border: '1px solid var(--border)',
-                    color: 'var(--text-secondary)', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem',
+                    background: 'transparent', border: '1px solid var(--border-color)',
+                    color: 'var(--text-muted)', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem',
                     opacity: isLoading ? 0.5 : 1
                 }}>
                     Close

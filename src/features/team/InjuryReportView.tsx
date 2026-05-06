@@ -25,8 +25,8 @@ export const InjuryReportView: React.FC = () => {
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '20px', padding: '20px' }}>
             {/* Filter */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <div style={{ display: 'flex', background: 'var(--bg-card)', padding: '4px', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <div style={{ display: 'flex', background: 'var(--bg-card)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                     <button
                         onClick={() => setFilter('all')}
                         style={{
@@ -68,7 +68,7 @@ export const InjuryReportView: React.FC = () => {
                         <div>No active injuries reported.</div>
                     </div>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
                         {filteredPlayers.map(player => {
                             const team = teams.find(t => t.id === player.teamId);
                             const daysLeft = calculateDaysBetween(date, player.injury!.returnDate);
@@ -82,7 +82,9 @@ export const InjuryReportView: React.FC = () => {
                                     border: '1px solid var(--border-color)',
                                     display: 'flex',
                                     justifyContent: 'space-between',
-                                    alignItems: 'center'
+                                    alignItems: 'center',
+                                    width: '100%',
+                                    maxWidth: '600px'
                                 }}>
                                     <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
                                         {/* Severity Icon */}

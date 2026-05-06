@@ -17,7 +17,7 @@ export const TeamHistoryView: React.FC<TeamHistoryViewProps> = ({ team, onBack, 
     const history = [...(team.history || [])].sort((a, b) => b.year - a.year);
 
     // Count rings for this team
-    const rings = awardsHistory.filter(h => h.championId === team.id).length;
+    const rings = awardsHistory.filter(h => h.champion?.teamId === team.id).length;
 
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', color: 'var(--text-main)' }}>
@@ -65,7 +65,7 @@ export const TeamHistoryView: React.FC<TeamHistoryViewProps> = ({ team, onBack, 
                             history.map((h, index) => {
                                 const totalGames = h.wins + h.losses;
                                 const winPct = totalGames > 0 ? ((h.wins / totalGames) * 100).toFixed(1) : '0.0';
-                                const isChamp = awardsHistory.some(aw => aw.year === h.year && aw.championId === team.id);
+                                const isChamp = awardsHistory.some(aw => aw.year === h.year && aw.champion?.teamId === team.id);
                                 return (
                                     <tr key={h.year} style={{
                                         borderBottom: '1px solid var(--border-color)',

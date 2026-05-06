@@ -1,6 +1,7 @@
 import React from 'react';
-import { Trophy, ChevronLeft, Star, TrendingUp } from 'lucide-react';
+import { Star, TrendingUp } from 'lucide-react';
 import { useGame } from '../../store/GameContext';
+import { PageHeader } from '../ui/PageHeader';
 
 export const TeamRecordsView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const { teams, userTeamId, teamRecords } = useGame();
@@ -9,29 +10,24 @@ export const TeamRecordsView: React.FC<{ onBack: () => void }> = ({ onBack }) =>
     const records = teamRecords && userTeamId ? (teamRecords[userTeamId] || []) : [];
 
     return (
-        <div className="animate-fade" style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                <button onClick={onBack} className="btn-modern" style={{ padding: '8px' }}>
-                    <ChevronLeft size={20} />
-                </button>
-                <h1 style={{ fontSize: '1.5rem', margin: 0 }}>Team Legends & Records</h1>
-            </div>
+        <div className="animate-fade" style={{ padding: '20px', maxWidth: '500px', margin: '0 auto' }}>
+            <PageHeader title="Team Legends & Records" onBack={onBack} />
 
             <div className="modern-card" style={{ background: 'linear-gradient(135deg, var(--bg-card) 0%, #fff 100%)', marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '20px' }}>
-                    <div style={{ width: '80px', height: '80px', borderRadius: '20px', background: userTeam?.colors?.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '2rem', fontWeight: 800 }}>
+                    <div style={{ width: '60px', height: '60px', borderRadius: '16px', background: userTeam?.colors?.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.5rem', fontWeight: 800, flexShrink: 0 }}>
                         {userTeam?.name.charAt(0)}
                     </div>
                     <div>
-                        <h2 style={{ fontSize: '1.25rem', marginBottom: '4px' }}>{userTeam?.name} All-Time Records</h2>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>The greatest single-game performances in franchise history.</p>
+                        <h2 style={{ fontSize: '1rem', marginBottom: '4px' }}>{userTeam?.name} All-Time Records</h2>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>The greatest single-game performances in franchise history.</p>
                     </div>
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {records.length === 0 ? (
-                    <div className="col-10 modern-card" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                    <div className="modern-card" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                         <Star size={48} style={{ opacity: 0.1, marginBottom: '16px' }} />
                         <p style={{ fontSize: '0.85rem' }}>No franchise records set yet.</p>
                         <p style={{ fontSize: '0.7rem' }}>Statistical legends will appear here after standout games.</p>
@@ -39,10 +35,10 @@ export const TeamRecordsView: React.FC<{ onBack: () => void }> = ({ onBack }) =>
                 ) : (
                     records.map((rec, idx) => (
                         <div key={idx} className="modern-card" style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', transition: 'transform 0.2s' }}>
-                            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--primary-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--primary-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', flexShrink: 0 }}>
                                 <Star size={24} />
                             </div>
-                            <div style={{ flex: 1 }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                     <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{rec.category}</div>
                                     <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--primary)' }}>{rec.year}</div>

@@ -40,12 +40,12 @@ export const PlayerRadarChart: React.FC<PlayerRadarChartProps> = ({ player }) =>
     const iq = player.attributes.basketballIQ;
 
     const data = [
-        { subject: 'OFF', A: clamp(offense), fullMark: 100 },
-        { subject: 'DEF', A: clamp(defense), fullMark: 100 },
-        { subject: 'PLA', A: clamp(playmaking), fullMark: 100 },
-        { subject: 'REB', A: clamp(rebounding), fullMark: 100 },
-        { subject: 'ATH', A: clamp(athleticism), fullMark: 100 },
-        { subject: 'IQ', A: clamp(iq), fullMark: 100 },
+        { subject: 'OFF', A: clamp(offense), fullMark: 100, g20: 20, g40: 40, g60: 60, g80: 80, g100: 100 },
+        { subject: 'DEF', A: clamp(defense), fullMark: 100, g20: 20, g40: 40, g60: 60, g80: 80, g100: 100 },
+        { subject: 'PLA', A: clamp(playmaking), fullMark: 100, g20: 20, g40: 40, g60: 60, g80: 80, g100: 100 },
+        { subject: 'REB', A: clamp(rebounding), fullMark: 100, g20: 20, g40: 40, g60: 60, g80: 80, g100: 100 },
+        { subject: 'ATH', A: clamp(athleticism), fullMark: 100, g20: 20, g40: 40, g60: 60, g80: 80, g100: 100 },
+        { subject: 'IQ', A: clamp(iq), fullMark: 100, g20: 20, g40: 40, g60: 60, g80: 80, g100: 100 },
     ];
 
     return (
@@ -74,22 +74,15 @@ export const PlayerRadarChart: React.FC<PlayerRadarChartProps> = ({ player }) =>
                     <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                     
                     {/* Concentric Guide Hexagons (The Web) */}
-                    {[20, 40, 60, 80, 100].map((val) => (
-                        <Radar
-                            key={val}
-                            name={`Guide-${val}`}
-                            data={(data as any).map((d: any) => ({ ...d, A: val }))}
-                            stroke="rgba(255, 255, 255, 0.15)"
-                            strokeWidth={0.5}
-                            fill="none"
-                            isAnimationActive={false}
-                        />
-                    ))}
+                    <Radar dataKey="g20" stroke="rgba(255, 255, 255, 0.1)" fill="none" isAnimationActive={false} />
+                    <Radar dataKey="g40" stroke="rgba(255, 255, 255, 0.1)" fill="none" isAnimationActive={false} />
+                    <Radar dataKey="g60" stroke="rgba(255, 255, 255, 0.1)" fill="none" isAnimationActive={false} />
+                    <Radar dataKey="g80" stroke="rgba(255, 255, 255, 0.1)" fill="none" isAnimationActive={false} />
 
                     {/* FIFA style background "Full" hexagon */}
                     <Radar
                         name="Scale"
-                        data={(data as any).map((d: any) => ({ ...d, A: 100 }))}
+                        dataKey="g100"
                         stroke="rgba(255, 255, 255, 0.3)"
                         strokeWidth={1}
                         fill="rgba(200, 200, 200, 0.15)"

@@ -77,7 +77,7 @@ export interface Message {
     date: Date;
     title: string;
     text: string;
-    type: 'info' | 'success' | 'warning' | 'error';
+    type: 'info' | 'success' | 'warning' | 'error' | 'news';
     read: boolean;
 }
 
@@ -137,6 +137,7 @@ export interface GameState {
     draftOrder: string[];
     draftResults: DraftResult[]; // Results of current/recent draft
     draftHistory: Record<number, DraftResult[]>; // Historical results by year
+    playoffs: PlayoffSeries[];
     seasonPhase: 'regular_season' | 'playoffs_r1' | 'playoffs_r2' | 'playoffs_r3' | 'playoffs_finals' | 'offseason' | 'pre_season' | 'draft' | 'draft_summary' | 'resigning' | 'free_agency' | 'retirement_summary' | 'expansion_draft' | 'scouting' | 'coach_free_agency';
     expansionPool: Player[];
     salaryCap: number;
@@ -150,13 +151,18 @@ export interface GameState {
     offseasonTasks: {
         retirements: boolean;
         scouting: boolean;
+        coaching: boolean;
         draft: boolean;
         resigning: boolean;
         freeAgency: boolean;
         training: boolean;
         trainingResults: boolean;
+        paySalaries: boolean;
     };
-    scoutingPoints: Record<string, number>; 
+    showAwardsModal: 'regular' | 'finals' | null;
+    currentHallOfFame: Player[];
+    scoutingPoints: Record<string, number>;
+    scoutingReports: Record<string, Record<string, { points: number, isPotentialRevealed: boolean }>>;
     isPotentialRevealed: boolean;
     settings: {
         difficulty: 'Easy' | 'Medium' | 'Hard';
@@ -261,6 +267,7 @@ interface GameContextType extends GameState {
     simulateRound: () => void;
     saveGame: (slotId: number, silent?: boolean) => Promise<void>;
     loadGame: (slotId: number) => Promise<boolean>;
+    completeOffseasonTask: (taskName: keyof GameState['offseasonTasks']) => void;
 
     updateCoachSettings: (teamId: string, settings: TeamStrategy) => void;
     updateRotationSchedule: (teamId: string, schedule: RotationSegment[]) => void;
@@ -294,6 +301,8 @@ interface GameContextType extends GameState {
     setShowingAwards: (awards: SeasonAwards | null) => void;
     showSaveLoad: 'save' | 'load' | null;
     setShowSaveLoad: (mode: 'save' | 'load' | null) => void;
+    selectedTeamId: string | null;
+    setSelectedTeamId: (id: string | null) => void;
     showExitModal: boolean;
     setShowExitModal: (show: boolean) => void;
     showPayrollModal: boolean;
@@ -350,6 +359,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
         draftOrder: [],
         draftResults: [],
         draftHistory: {},
+        offseasonTasks: {
+            retirements: false,
+            scouting: false,
+            coaching: false,
+            draft: false,
+            resigning: false,
+            freeAgency: false,
+            training: false,
+            trainingResults: false,
+            paySalaries: false
+        },
+        showAwardsModal: null,
+        currentHallOfFame: [],
         seasonPhase: 'regular_season',
         playoffs: [],
         salaryCap: 140500000,
@@ -465,6 +487,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     // UI State for Deep Navigation & Modals
     const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+    const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
     const [selectedGame, setSelectedGame] = useState<MatchResult | null>(null);
     const [shopPlayerId, setShopPlayerId] = useState<string | null>(null);
     const [initialAiPlayerId, setInitialAiPlayerId] = useState<string | undefined>(undefined);
@@ -738,6 +761,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     draftPicks: [],
                     colors: { primary: expansionConfig.primaryColor || '#000000', secondary: '#FFFFFF' },
                     financials: { totalIncome: 0, totalExpenses: 0, dailyIncome: 0, dailyExpenses: 0, seasonHistory: [] },
+                    strategy: { direction: 'Rebuilding', aggressiveness: 50, focus: 'Balanced', lastDirectionChangeYear: 2025 },
                     rivalIds: []
                 };
 
@@ -969,6 +993,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 draftOrder: [], // Will be set on init
                 draftResults: [],
                 draftHistory: {},
+                offseasonTasks: {
+                    retirements: false,
+                    scouting: false,
+                    coaching: false,
+                    draft: false,
+                    resigning: false,
+                    freeAgency: false,
+                    training: false,
+                    trainingResults: false,
+                    paySalaries: false
+                },
                 seasonPhase: currentSeasonPhase,
                 playoffs: [],
                 transactions: [],
@@ -1002,6 +1037,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 teamRecords: {},
                 leagueAllTimeLeaders: {},
                 teamAllTimeLeaders: {},
+                showAwardsModal: null,
+                currentHallOfFame: [],
                 view: "dashboard"
             });
 
@@ -1074,6 +1111,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 draftOrder: [],
                 draftResults: [],
                 draftHistory: {},
+                offseasonTasks: {
+                    retirements: false,
+                    scouting: false,
+                    coaching: false,
+                    draft: false,
+                    resigning: false,
+                    freeAgency: false,
+                    training: false,
+                    trainingResults: false,
+                    paySalaries: false
+                },
                 seasonPhase: currentSeasonPhase,
                 playoffs: [],
                 transactions: [],
@@ -1103,6 +1151,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 activeOffers: [],
                 activeCoachOffers: [],
                 freeAgencyDay: 1,
+                leagueRecords: [],
+                teamRecords: {},
+                leagueAllTimeLeaders: {},
+                teamAllTimeLeaders: {},
+                showAwardsModal: null,
+                currentHallOfFame: [],
                 view: "dashboard"
             });
 
@@ -1161,7 +1215,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 ...prev,
                 teams: updatedTeams,
                 transactions: [newTransaction, ...prev.transactions],
-                isFirstSeasonPaid: true // Mark as paid so we don't ask again
+                isFirstSeasonPaid: true, // Mark as paid so we don't ask again
+                offseasonTasks: {
+                    ...prev.offseasonTasks,
+                    paySalaries: true
+                }
             };
         });
 
@@ -1376,6 +1434,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 playoffs: [...westSeries, ...eastSeries],
                 date: new Date(prev.date.getTime() + 86400000),
                 awardsHistory: [...prev.awardsHistory, awards],
+                showAwardsModal: 'regular',
                 dailyMatchups: [],
                 pendingUserResult: null,
                 view: 'playoffs'
@@ -1397,7 +1456,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         const isRegularSeasonBeforeDeadline = (seasonPhase === 'regular_season' && seasonGamesPlayed <= 40);
 
         if (!isOffseason && !isRegularSeasonBeforeDeadline) {
-            alert(`Trade Deadline Passed. Trades are closed until the Draft.`);
+            // Already handled by UI now, but keeping for safety
             return false;
         }
 
@@ -1835,10 +1894,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
             // COY (Coach of the Year) - Simple logic: Best record coach
             const sortedTeamsList = [...teams].sort((a, b) => b.wins - a.wins);
             const bestTeam = sortedTeamsList[0];
-            const bestCoach = (prev as any).coaches?.find((c: any) => c.teamId === bestTeam.id) || (prev as any).coaches?.[0];
+            const bestCoach = gameState.coaches?.find((c: any) => c.teamId === bestTeam.id) || gameState.coaches?.[0];
             const coy: AwardWinner = {
                 playerId: bestCoach?.id || 'err',
-                playerName: bestCoach?.name || 'Unknown',
+                playerName: bestCoach ? `${bestCoach.firstName} ${bestCoach.lastName}` : 'Unknown',
                 teamId: bestTeam.id,
                 teamName: bestTeam.name,
                 statsSummary: `${bestTeam.wins}-${bestTeam.losses} Record`,
@@ -2060,8 +2119,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     ...prev.offseasonTasks,
                     draft: true
                 },
-                seasonPhase: 'offseason',
-                view: 'offseason_menu'
+                seasonPhase: 'draft_summary' as const,
+                view: 'draft_summary' as const
             };
             return updatedState;
         });
@@ -2070,7 +2129,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const startRetirementPhase = () => {
         setGameState(prev => ({
             ...prev,
-            seasonPhase: 'retirement_summary'
+            seasonPhase: 'retirement_summary' as const
         }));
     };
 
@@ -2173,13 +2232,38 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 updatedCoaches.push(generateCoach(null));
             }
 
-            completeOffseasonTask('coaching');
-            processAiGMFiring();
+
+            const { updatedGms, newsItems } = processGMDismissals(updatedTeams, prev.aiGms, prev.userTeamId);
+            
+            // Sync teams with new GMs
+            const finalTeams = updatedTeams.map(team => {
+                const gm = updatedGms.find(g => g.teamId === team.id);
+                if (gm && gm.id !== team.gmId) {
+                    return { ...team, gmId: gm.id };
+                }
+                return team;
+            });
+
+            // Create News Entries
+            const newMessages = newsItems.map(text => ({
+                id: generateUUID(),
+                date: prev.date,
+                title: 'Front Office Shakeup',
+                text,
+                type: 'news' as const,
+                read: false
+            }));
 
             return {
                 ...prev,
                 coaches: updatedCoaches,
-                teams: updatedTeams,
+                teams: finalTeams,
+                aiGms: updatedGms,
+                messages: [...prev.messages, ...newMessages],
+                offseasonTasks: {
+                    ...prev.offseasonTasks,
+                    coaching: true
+                },
                 seasonPhase: 'resigning' as const,
                 view: 'resigning'
             };
@@ -2316,7 +2400,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 players: nextState.players,
                 offseasonTasks: {
                     ...prev.offseasonTasks,
-                    freeAgency: true
+                    freeAgency: true,
+                    training: false,
+                    trainingResults: false,
+                    paySalaries: false
                 },
                 view: 'offseason_menu',
                 seasonPhase: 'offseason',
@@ -2379,8 +2466,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
             } else {
                 // Try to sign a good player if we have space
                 for (const player of availableFAs) {
-                    const { amount: ask, years, role } = calculateContractAmount(player, currentState.salaryCap);
-                    
+                    const { amount: ask, years } = calculateContractAmount(player, currentState.salaryCap);
+                    const role = 'Rotation'; // Default role for AI signing
                     // AI GM Negotiation Skill: Can convince player to take slightly less
                     const gm = currentState.aiGms.find(g => g.id === team.gmId);
                     const negotiationSkill = gm?.skills.negotiation || 50;
@@ -3326,6 +3413,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 ];
 
                 allStats.forEach(stat => {
+                    if (stat.minutes === 0) return;
                     const pIdx = currentPlayers.findIndex(p => p.id === stat.playerId);
                     if (pIdx !== -1) {
                         const p = currentPlayers[pIdx];
@@ -3967,14 +4055,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         playoffs: updatedPlayoffs,
                         seasonPhase: 'offseason',
                         view: 'offseason_menu',
+                        showAwardsModal: 'finals',
                         offseasonTasks: {
                             retirements: false,
                             scouting: false,
+                            coaching: false,
                             draft: false,
                             resigning: false,
                             freeAgency: false,
                             training: false,
-                            trainingResults: false
+                            trainingResults: false,
+                            paySalaries: false
                         },
                         salaryCap: finalSalaryCap,
                         teams: finalTeams,
@@ -4403,6 +4494,137 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         homeWins: 0, awayWins: 0
                     });
                 } else if (roundToSim === 4) {
+                    // --- REPLICATED END OF FINALS LOGIC FOR SYNC SIM ---
+                    const finishedSeasonYear = date.getFullYear();
+                    const finalsSeries = currentPlayoffs.find(s => s.round === 4 && s.winnerId);
+                    
+                    if (finalsSeries && finalsSeries.winnerId) {
+                        const championId = finalsSeries.winnerId;
+                        const championTeam = stateTeams.find(t => t.id === championId)!;
+                        const finalsMvp = calculateFinalsMvp(statePlayers, stateGames, championId, currentPlayoffs);
+
+                        const updatedAwardsHistory = [...prev.awardsHistory];
+                        const historyIndex = updatedAwardsHistory.findIndex(h => h.year === finishedSeasonYear);
+                        const championInfo = { teamId: championTeam.id, teamName: championTeam.name };
+
+                        if (historyIndex !== -1) {
+                            updatedAwardsHistory[historyIndex] = { ...updatedAwardsHistory[historyIndex], champion: championInfo, finalsMvp };
+                        } else {
+                            const regularSeasonAwards = calculateRegularSeasonAwards(statePlayers, stateTeams, finishedSeasonYear);
+                            updatedAwardsHistory.push({ ...regularSeasonAwards, champion: championInfo, finalsMvp });
+                        }
+
+                        // Aging & Contracts
+                        let archivedPlayers: Player[] = statePlayers.map(p => {
+                            const newCareerStat = { ...p.seasonStats, season: finishedSeasonYear, teamId: p.teamId || 'FA', overall: p.overall };
+                            const newCareerStats = [...(p.careerStats || []), newCareerStat];
+                            if (p.playoffStats && p.playoffStats.gamesPlayed > 0) {
+                                newCareerStats.push({ ...p.playoffStats, season: finishedSeasonYear, teamId: p.teamId || 'FA', overall: p.overall, isPlayoffs: true });
+                            }
+                            return checkTradeRequests({
+                                ...p,
+                                careerStats: newCareerStats,
+                                seasonStats: {
+                                    gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0,
+                                    turnovers: 0, offensiveRebounds: 0, defensiveRebounds: 0, fouls: 0,
+                                    fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0, ftMade: 0, ftAttempted: 0, plusMinus: 0,
+                                    rimMade: 0, rimAttempted: 0, rimAssisted: 0,
+                                    midRangeMade: 0, midRangeAttempted: 0, midRangeAssisted: 0,
+                                    threePointAssisted: 0
+                                },
+                                playoffStats: undefined,
+                                injury: undefined
+                            });
+                        });
+
+                        // Financials
+                        const aiUpdatedContracts = [...prev.contracts];
+                        const teamReportsMap: Record<string, any> = {};
+                        stateTeams.forEach(t => {
+                            const teamContracts = aiUpdatedContracts.filter(c => c.teamId === t.id);
+                            teamReportsMap[t.id] = calculateAnnualFinancials(t, teamContracts, prev.salaryCap, LUXURY_TAX_THRESHOLD, t.consecutiveTaxYears || 0);
+                        });
+
+                        const leagueFinancials = calculateLeagueFinancials(stateTeams, prev.salaryCap, teamReportsMap);
+                        const finalSalaryCap = leagueFinancials.newSalaryCap;
+                        const distributionPerTeam = leagueFinancials.payoutPerTeam;
+
+                        const updatedTeams = stateTeams.map(t => {
+                            const report = teamReportsMap[t.id];
+                            let result: SeasonResult = 'MISSED_PLAYOFFS';
+                            const teamInPlayoffs = currentPlayoffs.some(s => s.homeTeamId === t.id || s.awayTeamId === t.id);
+                            if (!teamInPlayoffs) {
+                                const sortedTeams = [...stateTeams].sort((a, b) => a.wins - b.wins);
+                                if (sortedTeams.findIndex(st => st.id === t.id) < 5) result = 'BOTTOM_5';
+                            } else {
+                                if (finalsSeries.winnerId === t.id) result = 'CHAMPION';
+                                else if (finalsSeries.homeTeamId === t.id || finalsSeries.awayTeamId === t.id) result = 'FINALS_LOSS';
+                                else result = 'PLAYOFFS_EARLY_EXIT';
+                            }
+
+                            const roster = archivedPlayers.filter(p => p.teamId === t.id);
+                            const teamContracts = aiUpdatedContracts.filter(c => c.teamId === t.id);
+                            const expectation = calculateExpectation(t, roster, stateTeams, teamContracts);
+                            const performanceUpdate = evaluateSeasonPerformance(t, result, expectation, teamContracts, report.totalRevenue);
+
+                            let cashChange = report.totalRevenue;
+                            if (report.isTaxPayer) cashChange -= report.luxuryTaxPaid;
+                            else if (report.payroll <= prev.salaryCap) cashChange += distributionPerTeam;
+
+                            const newCash = t.cash + cashChange;
+                            return {
+                                ...t,
+                                consecutiveTaxYears: report.isTaxPayer ? (t.consecutiveTaxYears || 0) + 1 : 0,
+                                cash: newCash,
+                                fanInterest: performanceUpdate.newFanInterest,
+                                ownerPatience: performanceUpdate.newOwnerPatience,
+                                debt: newCash < 0 ? Math.abs(newCash) : 0,
+                                salaryCapSpace: calculateTeamCapSpace(t, aiUpdatedContracts, finalSalaryCap),
+                                financials: {
+                                    totalIncome: 0, totalExpenses: 0, dailyIncome: 0, dailyExpenses: 0,
+                                    seasonHistory: [...(t.financials?.seasonHistory || []), { year: finishedSeasonYear, profit: cashChange, revenue: report.totalRevenue, payroll: report.payroll, luxuryTax: report.luxuryTaxPaid }]
+                                }
+                            };
+                        });
+
+                        // Retirement & Draft Class
+                        const retiredPlayers: RetiredPlayer[] = [];
+                        const retiredIds: string[] = [];
+                        const playersAfterRetirement = archivedPlayers.filter(p => {
+                            const newAgeP = { ...p, age: p.age + 1 };
+                            let shouldRetire = newAgeP.age >= 40 || (newAgeP.age >= 33 && Math.random() < (newAgeP.age - 32) * 0.1);
+                            if (shouldRetire) {
+                                retiredIds.push(p.id);
+                                retiredPlayers.push({ ...newAgeP, ageAtRetirement: newAgeP.age, exitYear: finishedSeasonYear, isHallOfFame: checkHallOfFameEligibility(newAgeP, updatedAwardsHistory) });
+                                return false;
+                            }
+                            return true;
+                        }).map(p => ({ ...p, age: p.age + 1 }));
+
+                        const draftClass: Player[] = [];
+                        while (draftClass.length < 80) draftClass.push(generatePlayer(undefined, Math.random() > 0.8 ? 'star' : 'prospect'));
+
+                        const finalTeams = updatedTeams.map(t => ({ ...t, rosterIds: t.rosterIds.filter(id => !retiredIds.includes(id)) }));
+
+                        return {
+                            ...prev,
+                            players: playersAfterRetirement,
+                            contracts: prev.contracts.filter(c => !retiredIds.includes(c.playerId)),
+                            teams: finalTeams,
+                            games: stateGames,
+                            playoffs: currentPlayoffs,
+                            seasonPhase: 'offseason',
+                            view: 'offseason_menu',
+                            showAwardsModal: 'finals',
+                            awardsHistory: updatedAwardsHistory,
+                            retiredPlayersHistory: [...(prev.retiredPlayersHistory || []), { year: finishedSeasonYear, players: retiredPlayers }],
+                            draftClass,
+                            draftOrder: [...finalTeams].sort((a, b) => a.wins - b.wins).map(t => t.id).concat([...finalTeams].sort((a, b) => a.wins - b.wins).map(t => t.id)),
+                            offseasonTasks: { retirements: false, scouting: false, coaching: false, draft: false, resigning: false, freeAgency: false, training: false, trainingResults: false, paySalaries: false },
+                            date: date,
+                            isProcessing: false
+                        };
+                    }
                     nextPhase = 'offseason';
                 }
 
@@ -5226,6 +5448,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
             // UI
             selectedPlayerId,
             setSelectedPlayerId,
+            selectedTeamId,
+            setSelectedTeamId,
             selectedGame,
             setSelectedGame,
             shopPlayerId,
@@ -5246,9 +5470,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
             modalMessage,
             setModalMessage,
             currentNegotiation,
-            setShowPayrollModal,
-            startRegularSeason,
-            startPlayoffs,
             year: gameState.date.getFullYear()
         }}>
             {children}

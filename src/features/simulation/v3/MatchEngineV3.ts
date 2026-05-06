@@ -76,9 +76,18 @@ function buildLineup(roster: Player[], quarter: number): Player[] {
   return starters;
 }
 
-/** Assign minutes based on role rank */
+/** Assign minutes based on role rank — only for players without pre-set minutes */
 function assignMinutes(roster: Player[]): void {
   const active = roster.filter(p => !p.isRetired);
+  
+  // Check if this roster already has valid minutes assigned (user customization)
+  const totalMinutes = active.reduce((sum, p) => sum + (p.minutes || 0), 0);
+  if (totalMinutes >= 200 && totalMinutes <= 260) {
+    // Minutes are already set (user rotation), respect them
+    return;
+  }
+  
+  // Only assign defaults if no valid rotation exists
   const sorted = [...active].sort((a, b) => calculateOverall(b) - calculateOverall(a));
   sorted.forEach((p, i) => {
     p.minutes = MINUTES_BY_RANK[i] ?? 0;
@@ -92,7 +101,7 @@ function assignMinutes(roster: Player[]): void {
 export function simulateMatchV3(input: MatchInput): MatchResult {
   const { homeTeam, awayTeam, homeRoster, awayRoster, date } = input;
 
-  // Assign minutes for AI teams
+  // Assign minutes only for rosters without pre-set minutes
   assignMinutes(homeRoster);
   assignMinutes(awayRoster);
 

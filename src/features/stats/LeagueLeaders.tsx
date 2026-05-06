@@ -128,8 +128,8 @@ export const LeagueLeaders: React.FC<LeagueLeadersProps> = ({ players, teams, on
                                                     onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'}
                                                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                                                 >
-                                                    <td style={{ width: '20px', color: 'var(--text-muted)', padding: '4px' }}>{i + 1}.</td>
-                                                    <td style={{ padding: '4px' }}>
+                                                    <td style={{ width: '20px', color: 'var(--text-muted)', padding: '4px', textAlign: 'center' }}>{i + 1}.</td>
+                                                    <td style={{ padding: '4px', textAlign: 'center' }}>
                                                         <div 
                                                             onClick={() => onSelectPlayer(p.id)}
                                                             style={{ fontWeight: 'bold', color: 'var(--text-main)' }}
@@ -148,7 +148,7 @@ export const LeagueLeaders: React.FC<LeagueLeadersProps> = ({ players, teams, on
                                                             {team?.abbreviation}
                                                         </div>
                                                     </td>
-                                                    <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--team-primary)', padding: '4px' }}>{cat.format(displayVal)}</td>
+                                                    <td style={{ textAlign: 'center', fontWeight: 'bold', color: 'var(--team-primary)', padding: '4px' }}>{cat.format(displayVal)}</td>
                                                 </tr>
                                             );
                                         })}

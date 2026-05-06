@@ -12,9 +12,9 @@ export const calculateGMPerformance = (team: Team, gm: AI_GM): number => {
     let winScore = winPct * 100;
     
     // Adjust based on direction (Rebuilders aren't expected to win)
-    if (team.strategy.direction === 'Rebuilding') {
+    if (team.strategy?.direction === 'Rebuilding') {
         winScore = Math.min(100, winScore * 1.5 + 40); // 30% win pct is "good" for rebuilder
-    } else if (team.strategy.direction === 'Contender') {
+    } else if (team.strategy?.direction === 'Contender') {
         winScore = winPct < 0.5 ? winScore * 0.5 : winScore; // 50% is "bad" for contender
     }
 
@@ -74,10 +74,10 @@ export const processGMDismissals = (
         const fired = newSecurity === 0 || (newSecurity < 30 && Math.random() < 0.3);
 
         if (fired) {
-            newsItems.push(`The ${team.city} ${team.name} have fired GM ${gm.firstName} ${gm.lastName} following poor organizational results.`);
+            newsItems.push(`The ${team.city} ${team.name} have fired GM ${gm.name} following poor organizational results.`);
             
             // Move to Free Agents
-            updatedGms[gmIndex] = { ...updatedGms[gmIndex], teamId: null, jobSecurity: 50 };
+            updatedGms[gmIndex] = { ...updatedGms[gmIndex], teamId: undefined, jobSecurity: 50 };
 
             // Hire NEW GM
             // 1. Try to pick from Free Agents (GMs with teamId = null)
@@ -90,11 +90,11 @@ export const processGMDismissals = (
                 updatedGms[newGmIndex] = { ...newGm, teamId: team.id, jobSecurity: 80 };
             } else {
                 // Generate fresh talent
-                newGm = generateGM(team.id);
+                newGm = generateGM({ teamId: team.id });
                 updatedGms.push(newGm);
             }
 
-            newsItems.push(`The ${team.city} ${team.name} have hired ${newGm.firstName} ${newGm.lastName} as their new General Manager.`);
+            newsItems.push(`The ${team.city} ${team.name} have hired ${newGm.name} as their new General Manager.`);
             
             // Update team link (This normally happens in state update but we return gms)
             // The caller must update team.gmId

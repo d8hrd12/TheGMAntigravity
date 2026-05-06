@@ -97,7 +97,7 @@ export const LeagueTeamStats: React.FC<LeagueTeamStatsProps> = ({ teams, players
         setSortConfig({ key, direction });
     };
 
-    const HeaderCell = ({ label, sortKey, align = 'right' }: { label: string, sortKey: keyof TeamStatRow, align?: 'left' | 'right' | 'center' }) => (
+    const HeaderCell = ({ label, sortKey, align = 'center' }: { label: string, sortKey: keyof TeamStatRow, align?: 'left' | 'right' | 'center' }) => (
         <th
             style={{ padding: '12px 10px', cursor: 'pointer', userSelect: 'none', textAlign: align, whiteSpace: 'nowrap', color: '#aaa', fontSize: '0.9rem' }}
             onClick={() => requestSort(sortKey)}
@@ -109,10 +109,10 @@ export const LeagueTeamStats: React.FC<LeagueTeamStatsProps> = ({ teams, players
     return (
         <div style={{ paddingBottom: '40px' }}>
             <div className="modern-card" style={{ padding: '0', overflowX: 'auto' }}>
-                <table style={{ width: '100%', minWidth: '900px', borderCollapse: 'collapse', textAlign: 'right', fontSize: '0.85rem' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', fontSize: '0.85rem' }}>
                     <thead>
                         <tr style={{ borderBottom: '1px solid var(--border-color)', background: 'var(--bg-card)' }}>
-                            <HeaderCell label="Team" sortKey="city" align="left" />
+                            <HeaderCell label="Team" sortKey="city" align="center" />
                             <HeaderCell label="GP" sortKey="gp" align="center" />
                             <HeaderCell label="PPG" sortKey="ppg" />
                             <HeaderCell label="RPG" sortKey="rpg" />
@@ -141,8 +141,8 @@ export const LeagueTeamStats: React.FC<LeagueTeamStatsProps> = ({ teams, players
                                     onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'}
                                     onMouseLeave={(e) => e.currentTarget.style.background = index % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.01)'}
                                 >
-                                    <td style={{ padding: '12px 10px', textAlign: 'left', fontWeight: 'bold' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <td style={{ padding: '12px 10px', textAlign: 'center', fontWeight: 'bold' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                                             {team?.logo ? (
                                                 <img src={team.logo} alt="" style={{ width: '24px', height: '24px', objectFit: 'contain' }} />
                                             ) : (

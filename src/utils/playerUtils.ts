@@ -334,3 +334,22 @@ export const calculateEWA = (player: Player): number => {
     // 3500 Value -> 17.5 Wins
     return Number((totalValue / 200).toFixed(1));
 };
+
+/**
+ * Standardized "Full Stat Line" formatter for player lists.
+ */
+export const formatFullStatLine = (player: Player): string => {
+    const s = player.seasonStats.gamesPlayed > 0 ? player.seasonStats : (player.careerStats.length > 0 ? player.careerStats[player.careerStats.length - 1] : null);
+    if (!s || s.gamesPlayed === 0) return 'N/A';
+    
+    const gp = s.gamesPlayed;
+    const ppg = (s.points / gp).toFixed(1);
+    const rpg = (s.rebounds / gp).toFixed(1);
+    const apg = (s.assists / gp).toFixed(1);
+    const spg = (s.steals / gp).toFixed(1);
+    const bpg = (s.blocks / gp).toFixed(1);
+    const fgp = s.fgAttempted > 0 ? ((s.fgMade / s.fgAttempted) * 100).toFixed(1) : '0.0';
+    const tpp = s.threeAttempted > 0 ? ((s.threeMade / s.threeAttempted) * 100).toFixed(1) : '0.0';
+
+    return `${ppg} PTS • ${rpg} REB • ${apg} AST • ${spg} STL • ${bpg} BLK • ${fgp}% FG • ${tpp}% 3P`;
+};

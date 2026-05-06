@@ -147,21 +147,22 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
 
 
             {/* Save Button */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '15px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
                 <button
                     onClick={handleSave}
                     style={{
                         background: '#2ecc71',
-                        color: 'var(--text-main)',
+                        color: '#fff',
                         border: 'none',
-                        borderRadius: '8px',
-                        padding: '8px 16px',
+                        borderRadius: '20px',
+                        padding: '10px 32px',
                         fontWeight: 'bold',
                         cursor: 'pointer',
-                        fontSize: '0.9rem'
+                        fontSize: '0.9rem',
+                        boxShadow: '0 4px 12px rgba(46, 204, 113, 0.2)'
                     }}
                 >
-                    Save
+                    SAVE ROTATION
                 </button>
             </div>
 
@@ -216,7 +217,7 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                     <thead style={{ background: 'rgba(255,255,255,0.05)', borderBottom: '2px solid rgba(0,0,0,0.05)' }}>
                         <tr>
                             <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-muted)', width: '30px' }}>#</th>
-                            <th style={{ padding: '8px', textAlign: 'left', color: 'var(--text-muted)' }}>Player</th>
+                            <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-muted)' }}>Player</th>
                             <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-muted)' }}>Pos</th>
                             <th style={{ padding: '8px', textAlign: 'center', color: '#888' }}>Stars</th>
                             <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-muted)' }}>Min</th>
@@ -288,8 +289,8 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                                         <td style={{ padding: '8px', textAlign: 'center', color: '#888', fontWeight: 'bold' }}>
                                             {index + 1}
                                         </td>
-                                        <td style={{ padding: '8px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <td style={{ padding: '8px', textAlign: 'center' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
                                                 <div
                                                     onClick={(e) => { e.stopPropagation(); onSelectPlayer(player.id); }}
                                                     style={{ fontWeight: 'bold', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}

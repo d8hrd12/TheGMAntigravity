@@ -9,32 +9,43 @@ interface PageHeaderProps {
 
 export const PageHeader: React.FC<PageHeaderProps> = ({ title, onBack, children }) => {
     return (
-        <div style={{ marginBottom: '30px' }}>
+        <div style={{ marginBottom: '20px' }}>
             <div style={{
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: '16px',
+                position: 'relative',
+                minHeight: '40px'
             }}>
                 <button
                     onClick={onBack}
-                    className="btn-pixel"
                     style={{
-                        padding: '8px',
-                        width: '40px',
-                        height: '40px',
+                        padding: '0',
+                        width: '36px',
+                        height: '36px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        boxShadow: '0 4px 0px #00a8b3'
+                        borderRadius: '50%',
+                        border: '1px solid var(--border-color)',
+                        background: 'var(--bg-card)',
+                        color: 'var(--text-main)',
+                        cursor: 'pointer',
+                        position: 'absolute',
+                        left: 0,
+                        boxShadow: 'var(--shadow-sm)',
+                        transition: 'all 0.2s'
                     }}
                 >
-                    <ArrowLeft size={20} />
+                    <ArrowLeft size={18} />
                 </button>
                 <h2 style={{
                     margin: 0,
-                    color: 'var(--primary)',
-                    fontSize: '1.2rem',
-                    textShadow: 'var(--neon-glow)'
+                    color: 'var(--text-main)',
+                    fontSize: '1.1rem',
+                    fontWeight: 800,
+                    textAlign: 'center'
                 }}>
                     {title}
                 </h2>

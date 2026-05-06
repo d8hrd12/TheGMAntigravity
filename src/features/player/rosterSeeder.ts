@@ -250,6 +250,7 @@ export function seedRealRosters(teams: Team[]): { players: Player[], contracts: 
                     fatigue: 0,
                     stamina: 100,
                     teamId: team.id,
+                    yearsOfService: Math.max(0, def.age - 19),
                     isStarter: true, // Assume top 5 are starters
                     minutes: 30,
                     seasonStats: {

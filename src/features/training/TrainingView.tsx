@@ -133,7 +133,7 @@ export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: 
             </p>
 
             {/* Run Camp Button - Only visible in Pre-Season */}
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
                 <button
                     onClick={() => setShowConfirmation(true)}
                     disabled={isTrainingCampComplete}
@@ -154,7 +154,7 @@ export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: 
                     {isTrainingCampComplete ? 'Training Complete' : `Run Training Camp (${selectedCount}/5)`}
                 </button>
                 {isTrainingCampComplete && (
-                    <div style={{ display: 'inline-flex', gap: '10px', marginLeft: '10px' }}>
+                    <div style={{ display: 'inline-flex', gap: '10px', marginLeft: '10px', justifyContent: 'center', width: '100%' }}>
                         <button
                             onClick={() => setShowResults(true)}
                             style={{
@@ -291,11 +291,11 @@ export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: 
                         padding: '20px'
                     }}>
                         <div className="glass-panel" style={{ background: '#222', maxWidth: '400px', width: '100%', padding: '24px' }}>
-                            <h3 style={{ margin: '0 0 16px', fontSize: '1.2rem', color: '#fff' }}>Run Training Camp?</h3>
-                            <p style={{ margin: '0 0 24px', color: '#bbb', lineHeight: '1.5' }}>
+                            <h3 style={{ margin: '0 0 16px', fontSize: '1.2rem', color: '#fff', textAlign: 'center' }}>Run Training Camp?</h3>
+                            <p style={{ margin: '0 0 24px', color: '#bbb', lineHeight: '1.5', textAlign: 'center' }}>
                                 This will simulate player progression based on assigned focus. This happens once per season.
                             </p>
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                                 <button
                                     onClick={() => setShowConfirmation(false)}
                                     style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #444', background: 'transparent', color: '#fff', cursor: 'pointer' }}

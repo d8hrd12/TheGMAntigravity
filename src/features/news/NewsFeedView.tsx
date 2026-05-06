@@ -40,7 +40,7 @@ export const NewsFeedView: React.FC<NewsFeedViewProps> = ({ news, teams, onClose
         }}>
             {/* Header */}
             <div style={{
-                padding: '20px',
+                padding: 'calc(env(safe-area-inset-top, 20px) + 10px) 20px 20px 20px',
                 borderBottom: '1px solid var(--border-color)',
                 display: 'flex',
                 alignItems: 'center',

@@ -46,7 +46,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         return starters.map(p => {
             const stats = p.seasonStats;
             const gp = stats?.gamesPlayed || 1;
-            const fgp = stats?.fgAttempted ? (stats.fgMade / stats.fgAttempted * 100).toFixed(1) : '0.0';
             const ovr = calculateOverall(p);
             return {
                 ...p,
@@ -54,7 +53,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 ppg: ((stats?.points || 0) / gp).toFixed(1),
                 rpg: ((stats?.rebounds || 0) / gp).toFixed(1),
                 apg: ((stats?.assists || 0) / gp).toFixed(1),
-                fgp
+                spg: ((stats?.steals || 0) / gp).toFixed(1),
+                bpg: ((stats?.blocks || 0) / gp).toFixed(1),
+                fgp: stats?.fgAttempted ? (stats.fgMade / stats.fgAttempted * 100).toFixed(0) : '0',
+                tpp: stats?.threeAttempted ? (stats.threeMade / stats.threeAttempted * 100).toFixed(0) : '0'
             };
         });
     }, [players, userTeamId, teamBaseline]);
@@ -179,18 +181,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
                                     cursor: 'pointer'
                                 }}
                             >
-                                <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'var(--team-primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.7rem' }}>
+                                <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'var(--team-primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.7rem', flexShrink: 0 }}>
                                     {player.position}
                                 </div>
                                 <div style={{ flex: 1 }}>
                                     <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-main)' }}>{player.firstName[0]}. {player.lastName.toUpperCase()}</div>
                                     <StarRating stars={player.stars} size={12} />
                                 </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 40px)', gap: '4px', textAlign: 'center' }}>
-                                    <div><div style={{ fontSize: '0.55rem', color: 'var(--text-muted)' }}>PTS</div><div style={{ fontSize: '0.75rem', fontWeight: 800 }}>{player.ppg}</div></div>
-                                    <div><div style={{ fontSize: '0.55rem', color: 'var(--text-muted)' }}>REB</div><div style={{ fontSize: '0.75rem', fontWeight: 800 }}>{player.rpg}</div></div>
-                                    <div><div style={{ fontSize: '0.55rem', color: 'var(--text-muted)' }}>AST</div><div style={{ fontSize: '0.75rem', fontWeight: 800 }}>{player.apg}</div></div>
-                                    <div><div style={{ fontSize: '0.55rem', color: 'var(--text-muted)' }}>FG%</div><div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--team-primary)' }}>{player.fgp}%</div></div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center', minWidth: '220px' }}>
+                                    <div><div style={{ fontSize: '0.5rem', color: 'var(--text-muted)' }}>PTS</div><div style={{ fontSize: '0.7rem', fontWeight: 800 }}>{player.ppg}</div></div>
+                                    <div><div style={{ fontSize: '0.5rem', color: 'var(--text-muted)' }}>REB</div><div style={{ fontSize: '0.7rem', fontWeight: 800 }}>{player.rpg}</div></div>
+                                    <div><div style={{ fontSize: '0.5rem', color: 'var(--text-muted)' }}>AST</div><div style={{ fontSize: '0.7rem', fontWeight: 800 }}>{player.apg}</div></div>
+                                    <div><div style={{ fontSize: '0.5rem', color: 'var(--text-muted)' }}>STL</div><div style={{ fontSize: '0.7rem', fontWeight: 800 }}>{player.spg}</div></div>
+                                    <div><div style={{ fontSize: '0.5rem', color: 'var(--text-muted)' }}>BLK</div><div style={{ fontSize: '0.7rem', fontWeight: 800 }}>{player.bpg}</div></div>
+                                    <div><div style={{ fontSize: '0.5rem', color: 'var(--text-muted)' }}>FG%</div><div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--team-primary)' }}>{player.fgp}%</div></div>
+                                    <div><div style={{ fontSize: '0.5rem', color: 'var(--text-muted)' }}>3P%</div><div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--team-primary)' }}>{player.tpp}%</div></div>
                                 </div>
                             </div>
                         ))}

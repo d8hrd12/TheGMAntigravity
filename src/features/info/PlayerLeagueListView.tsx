@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Search, ChevronLeft, ArrowUpDown, Star, Users, BarChart3, History, Trophy } from 'lucide-react';
+import { Search, ArrowUpDown, Star } from 'lucide-react';
 import { useGame } from '../../store/GameContext';
 import { calculateOverall } from '../../utils/playerUtils';
 import { calculateStars, getStarString } from '../../utils/starUtils';
+import { PageHeader } from '../ui/PageHeader';
 
 type ViewMode = 'list' | 'stats' | 'history';
 
@@ -11,6 +12,7 @@ export const PlayerLeagueListView: React.FC<{ onBack: () => void, onSelectPlayer
     const [search, setSearch] = useState('');
     const [sortKey, setSortKey] = useState<string>(initialMode === 'stats' ? 'stats.points' : 'ovr');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+    const [highlightedRow, setHighlightedRow] = useState<string | null>(null);
 
     const filteredPlayers = useMemo(() => {
         const searchLower = search.toLowerCase();
@@ -37,6 +39,12 @@ export const PlayerLeagueListView: React.FC<{ onBack: () => void, onSelectPlayer
                 if (key === 'stats.points') return stats.points / gp;
                 if (key === 'stats.rebounds') return stats.rebounds / gp;
                 if (key === 'stats.assists') return stats.assists / gp;
+                if (key === 'stats.fgPct') return stats.fgAttempted > 0 ? stats.fgMade / stats.fgAttempted : 0;
+                if (key === 'stats.threePct') return stats.threeAttempted > 0 ? stats.threeMade / stats.threeAttempted : 0;
+                if (key === 'stats.ftPct') return stats.ftAttempted > 0 ? stats.ftMade / stats.ftAttempted : 0;
+                if (key === 'stats.steals') return (stats.steals || 0) / gp;
+                if (key === 'stats.blocks') return (stats.blocks || 0) / gp;
+                if (key === 'stats.turnovers') return (stats.turnovers || 0) / gp;
                 return 0;
             };
 
@@ -68,14 +76,14 @@ export const PlayerLeagueListView: React.FC<{ onBack: () => void, onSelectPlayer
     ];
 
     const renderHistory = () => (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {categories.map(cat => {
                 const record = leagueRecords?.find(r => r.category === cat.key);
                 return (
                     <div key={cat.key} className="modern-card">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
                             {cat.icon}
-                            <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800 }}>{cat.label.toUpperCase()}</h3>
+                            <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, textAlign: 'center', width: '100%' }}>{cat.label.toUpperCase()}</h3>
                         </div>
                         {record ? (
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -102,18 +110,25 @@ export const PlayerLeagueListView: React.FC<{ onBack: () => void, onSelectPlayer
         </div>
     );
 
+    const SortHeader = ({ label, sortKey: sk, style }: { label: string, sortKey: string, style?: React.CSSProperties }) => (
+        <th
+            onClick={() => handleSort(sk)}
+            style={{ padding: '10px 6px', textAlign: 'center', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', ...style }}
+        >
+            {label} {sortKey === sk ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+        </th>
+    );
+
     return (
-        <div className="animate-fade" style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                <button onClick={onBack} className="btn-modern" style={{ padding: '8px' }}>
-                    <ChevronLeft size={20} />
-                </button>
-                <h1 style={{ fontSize: '1.5rem', margin: 0 }}>
-                    {initialMode === 'list' && 'League Player Database'}
-                    {initialMode === 'stats' && 'League Statistics Leaders'}
-                    {initialMode === 'history' && 'League Players Records'}
-                </h1>
-            </div>
+        <div className="animate-fade" style={{ width: '100%' }}>
+            <PageHeader
+                title={
+                    initialMode === 'list' ? 'League Player Database' :
+                    initialMode === 'stats' ? 'League Statistics Leaders' :
+                    'League Players Records'
+                }
+                onBack={onBack}
+            />
 
             {initialMode !== 'history' && (
                 <div style={{ position: 'relative', marginBottom: '20px' }}>
@@ -125,72 +140,126 @@ export const PlayerLeagueListView: React.FC<{ onBack: () => void, onSelectPlayer
                         onChange={(e) => setSearch(e.target.value)}
                         style={{
                             width: '100%',
-                            padding: '12px 12px 12px 40px',
+                            padding: '10px 10px 10px 36px',
                             borderRadius: '12px',
                             border: '1px solid var(--border-color)',
                             background: 'var(--bg-card)',
-                            fontSize: '0.9rem'
+                            fontSize: '0.85rem',
+                            boxSizing: 'border-box'
                         }}
                     />
                 </div>
             )}
 
             {initialMode === 'history' ? renderHistory() : (
-                <div className="modern-card" style={{ overflow: 'hidden', padding: 0 }}>
-                    <div style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
-                            <thead style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border-color)' }}>
-                                <tr>
-                                    <th onClick={() => handleSort('name')} style={{ padding: '12px', textAlign: 'left', cursor: 'pointer' }}>Player <ArrowUpDown size={12} /></th>
-                                    <th onClick={() => handleSort('team')} style={{ padding: '12px', textAlign: 'left', cursor: 'pointer' }}>Team <ArrowUpDown size={12} /></th>
-                                    {initialMode === 'list' ? (
-                                        <>
-                                            <th onClick={() => handleSort('ovr')} style={{ padding: '12px', textAlign: 'center', cursor: 'pointer' }}>OVR <ArrowUpDown size={12} /></th>
-                                            <th onClick={() => handleSort('pos')} style={{ padding: '12px', textAlign: 'center', cursor: 'pointer' }}>POS <ArrowUpDown size={12} /></th>
-                                            <th onClick={() => handleSort('age')} style={{ padding: '12px', textAlign: 'center', cursor: 'pointer' }}>AGE <ArrowUpDown size={12} /></th>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <th onClick={() => handleSort('stats.points')} style={{ padding: '12px', textAlign: 'center', cursor: 'pointer' }}>PPG <ArrowUpDown size={12} /></th>
-                                            <th onClick={() => handleSort('stats.rebounds')} style={{ padding: '12px', textAlign: 'center', cursor: 'pointer' }}>RPG <ArrowUpDown size={12} /></th>
-                                            <th onClick={() => handleSort('stats.assists')} style={{ padding: '12px', textAlign: 'center', cursor: 'pointer' }}>APG <ArrowUpDown size={12} /></th>
-                                        </>
-                                    )}
-                                </tr>
-                            </thead>
+                <div className="premium-table-wrapper">
+                    <table className="premium-table">
+                        <thead>
+                            <tr>
+                                <SortHeader label="Player" sortKey="name" style={{ position: 'sticky', left: 0, background: 'var(--bg-card)', zIndex: 12 }} />
+                                <SortHeader label="Team" sortKey="team" />
+                                {initialMode === 'list' ? (
+                                    <>
+                                        <SortHeader label="OVR" sortKey="ovr" />
+                                        <SortHeader label="POS" sortKey="pos" />
+                                        <SortHeader label="AGE" sortKey="age" />
+                                        <SortHeader label="FIN" sortKey="finishing" />
+                                        <SortHeader label="MID" sortKey="midRange" />
+                                        <SortHeader label="3PT" sortKey="threePointShot" />
+                                        <SortHeader label="FT" sortKey="freeThrow" />
+                                        <SortHeader label="PLY" sortKey="playmaking" />
+                                        <SortHeader label="BH" sortKey="ballHandling" />
+                                        <SortHeader label="ORB" sortKey="offensiveRebound" />
+                                        <SortHeader label="DRB" sortKey="defensiveRebound" />
+                                        <SortHeader label="INT" sortKey="interiorDefense" />
+                                        <SortHeader label="PER" sortKey="perimeterDefense" />
+                                        <SortHeader label="IQ" sortKey="basketballIQ" />
+                                        <SortHeader label="ATH" sortKey="athleticism" />
+                                    </>
+                                ) : (
+                                    <>
+                                        <SortHeader label="PPG" sortKey="stats.points" />
+                                        <SortHeader label="RPG" sortKey="stats.rebounds" />
+                                        <SortHeader label="APG" sortKey="stats.assists" />
+                                        <SortHeader label="FG%" sortKey="stats.fgPct" />
+                                        <SortHeader label="3P%" sortKey="stats.threePct" />
+                                        <SortHeader label="FT%" sortKey="stats.ftPct" />
+                                        <SortHeader label="SPG" sortKey="stats.steals" />
+                                        <SortHeader label="BPG" sortKey="stats.blocks" />
+                                        <SortHeader label="TOV" sortKey="stats.turnovers" />
+                                    </>
+                                )}
+                            </tr>
+                        </thead>
                             <tbody>
-                                {filteredPlayers.map(player => (
-                                    <tr 
-                                        key={player.id} 
-                                        onClick={() => onSelectPlayer(player.id)}
-                                        style={{ borderBottom: '1px solid var(--border-color)', cursor: 'pointer' }}
-                                        className="list-row-hover"
-                                    >
-                                        <td style={{ padding: '12px', fontWeight: 600 }}>{player.firstName} {player.lastName}</td>
-                                        <td style={{ padding: '12px' }}>{teams.find(t => t.id === player.teamId)?.name || 'Free Agent'}</td>
-                                        {initialMode === 'list' ? (
-                                            <>
-                                                <td style={{ padding: '12px', textAlign: 'center' }}>
-                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary)' }}>{getStarString(calculateStars(player.ovr, 80))}</span>
-                                                        <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{player.ovr}</span>
-                                                    </div>
-                                                </td>
-                                                <td style={{ padding: '12px', textAlign: 'center' }}>{player.position}</td>
-                                                <td style={{ padding: '12px', textAlign: 'center' }}>{player.age}</td>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <td style={{ padding: '12px', textAlign: 'center', fontWeight: 700 }}>{((player.seasonStats?.points || 0) / (player.seasonStats?.gamesPlayed || 1)).toFixed(1)}</td>
-                                                <td style={{ padding: '12px', textAlign: 'center' }}>{((player.seasonStats?.rebounds || 0) / (player.seasonStats?.gamesPlayed || 1)).toFixed(1)}</td>
-                                                <td style={{ padding: '12px', textAlign: 'center' }}>{((player.seasonStats?.assists || 0) / (player.seasonStats?.gamesPlayed || 1)).toFixed(1)}</td>
-                                            </>
-                                        )}
-                                    </tr>
-                                ))}
+                                {filteredPlayers.map(player => {
+                                    const gp = player.seasonStats?.gamesPlayed || 1;
+                                    const isHighlighted = highlightedRow === player.id;
+                                    return (
+                                        <tr 
+                                            key={player.id} 
+                                            onClick={() => {
+                                                setHighlightedRow(isHighlighted ? null : player.id);
+                                                onSelectPlayer(player.id);
+                                            }}
+                                            style={{ 
+                                                borderBottom: '1px solid var(--border-color)', 
+                                                cursor: 'pointer',
+                                                background: isHighlighted ? 'rgba(52, 152, 219, 0.1)' : 'transparent',
+                                                transition: 'background 0.15s'
+                                            }}
+                                            className="list-row-hover"
+                                        >
+                                            <td className="sticky-col" style={{ 
+                                                padding: '10px 8px', fontWeight: 600, textAlign: 'center', whiteSpace: 'nowrap',
+                                                left: 0, background: isHighlighted ? 'rgba(52, 152, 219, 0.1)' : 'var(--bg-card)', zIndex: 10
+                                            }}>
+                                                {player.firstName.charAt(0)}. {player.lastName}
+                                            </td>
+                                            <td style={{ padding: '10px 8px', textAlign: 'center', whiteSpace: 'nowrap', fontSize: '0.7rem' }}>
+                                                {teams.find(t => t.id === player.teamId)?.abbreviation || 'FA'}
+                                            </td>
+                                            {initialMode === 'list' ? (
+                                                <>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center' }}>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                                            <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--primary)' }}>{getStarString(calculateStars(player.ovr, 80))}</span>
+                                                            <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{player.ovr}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center' }}>{player.position}</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center' }}>{player.age}</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center', color: '#2ecc71', fontWeight: 600 }}>{player.attributes.finishing}</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center', color: '#3498db', fontWeight: 600 }}>{player.attributes.midRange}</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center', color: '#f1c40f', fontWeight: 600 }}>{player.attributes.threePointShot}</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center', color: '#f39c12', fontWeight: 600 }}>{player.attributes.freeThrow}</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center', color: '#2ecc71', fontWeight: 600 }}>{player.attributes.playmaking}</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center', color: '#16a085', fontWeight: 600 }}>{player.attributes.ballHandling}</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center', color: '#e67e22', fontWeight: 600 }}>{player.attributes.offensiveRebound}</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center', color: '#d35400', fontWeight: 600 }}>{player.attributes.defensiveRebound}</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center', color: '#e74c3c', fontWeight: 600 }}>{player.attributes.interiorDefense}</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center', color: '#c0392b', fontWeight: 600 }}>{player.attributes.perimeterDefense}</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center', color: '#9b59b6', fontWeight: 600 }}>{player.attributes.basketballIQ}</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center', color: '#3498db', fontWeight: 600 }}>{player.attributes.athleticism}</td>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 700 }}>{((player.seasonStats?.points || 0) / gp).toFixed(1)}</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center' }}>{((player.seasonStats?.rebounds || 0) / gp).toFixed(1)}</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center' }}>{((player.seasonStats?.assists || 0) / gp).toFixed(1)}</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '0.65rem' }}>{player.seasonStats?.fgAttempted ? ((player.seasonStats.fgMade / player.seasonStats.fgAttempted) * 100).toFixed(0) : 0}%</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '0.65rem' }}>{player.seasonStats?.threeAttempted ? ((player.seasonStats.threeMade / player.seasonStats.threeAttempted) * 100).toFixed(0) : 0}%</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '0.65rem' }}>{player.seasonStats?.ftAttempted ? ((player.seasonStats.ftMade / player.seasonStats.ftAttempted) * 100).toFixed(0) : 0}%</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center' }}>{((player.seasonStats?.steals || 0) / gp).toFixed(1)}</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center' }}>{((player.seasonStats?.blocks || 0) / gp).toFixed(1)}</td>
+                                                    <td style={{ padding: '10px 8px', textAlign: 'center', color: 'var(--text-muted)' }}>{((player.seasonStats?.turnovers || 0) / gp).toFixed(1)}</td>
+                                                </>
+                                            )}
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
-                    </div>
                 </div>
             )}
         </div>

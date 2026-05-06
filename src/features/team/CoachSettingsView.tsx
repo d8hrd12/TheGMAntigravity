@@ -76,7 +76,7 @@ export const CoachSettingsView: React.FC<CoachSettingsViewProps> = ({ team, onBa
 
 
                 {/* Save Changes Button */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px', gap: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px', gap: '12px' }}>
                     {onFire && (
                         <button
                             onClick={onFire}
@@ -98,7 +98,7 @@ export const CoachSettingsView: React.FC<CoachSettingsViewProps> = ({ team, onBa
                     <button
                         onClick={handleSave}
                         className="btn-primary"
-                        style={{ padding: '10px 24px', borderRadius: '12px' }}
+                        style={{ padding: '10px 32px', borderRadius: '12px', fontWeight: 800 }}
                     >
                         Save Changes
                     </button>

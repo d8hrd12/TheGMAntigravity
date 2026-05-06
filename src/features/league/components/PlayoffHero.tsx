@@ -113,9 +113,9 @@ export const PlayoffHero: React.FC<PlayoffHeroProps> = ({ series, onSimGame, onP
 
                 </div>
 
-                {/* Primary Action: PLAY GAME */}
+                {/* Primary Action: SIM GAME */}
                 <button
-                    onClick={onPlayGame}
+                    onClick={onSimGame}
                     className="btn-primary"
                     style={{
                         width: '100%',
@@ -129,19 +129,19 @@ export const PlayoffHero: React.FC<PlayoffHeroProps> = ({ series, onSimGame, onP
                         gap: '8px',
                         marginBottom: '12px',
                         boxShadow: '0 4px 12px rgba(var(--primary-rgb), 0.4)',
-                        background: 'var(--success, #10B981)', // Green for Play
+                        background: 'var(--primary)',
                         border: 'none',
                         color: 'white'
                     }}
                 >
-                    <Play size={20} fill="currentColor" />
-                    PLAY GAME {gameNumber}
+                    <Activity size={20} />
+                    SIM GAME {gameNumber}
                 </button>
 
                 {/* Secondary Actions Grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     <button
-                        onClick={onSimGame}
+                        onClick={onPlayGame}
                         style={{
                             background: 'rgba(255, 255, 255, 0.05)',
                             border: '1px solid var(--border)',
@@ -155,8 +155,8 @@ export const PlayoffHero: React.FC<PlayoffHeroProps> = ({ series, onSimGame, onP
                             gap: '6px'
                         }}
                     >
-                        <Activity size={16} />
-                        Sim Day
+                        <Play size={16} fill="currentColor" />
+                        Live Play
                     </button>
 
                     <button

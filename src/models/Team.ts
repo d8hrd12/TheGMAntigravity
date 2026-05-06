@@ -67,7 +67,7 @@ export interface Team {
     // Strategy
     coachId?: string;
     gmId?: string; // Link to AI_GM
-    strategy: {
+    strategy?: {
         direction: 'Contender' | 'PlayoffTeam' | 'Young_Developing' | 'Rebuilding';
         aggressiveness: number; // 0-100
         focus: 'Balanced' | 'Win Now' | 'Future' | 'Financial';

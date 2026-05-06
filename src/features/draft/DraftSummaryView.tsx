@@ -11,10 +11,11 @@ import { StarRating } from '../../components/StarRating';
 interface DraftSummaryViewProps {
     onSelectPlayer: (playerId: string) => void;
     onSelectTeam: (teamId: string) => void;
+    onContinue: () => void;
 }
 
-export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlayer, onSelectTeam }) => {
-    const { draftOrder, draftClass, teams, userTeamId, startRetirementPhase, draftResults, players } = useGame();
+export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlayer, onSelectTeam, onContinue }) => {
+    const { draftOrder, draftClass, teams, userTeamId, draftResults, players } = useGame();
 
     return (
         <div style={{
@@ -40,7 +41,7 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
                         color: '#ffffff',
                         letterSpacing: '-0.5px'
                     }}>
-                        Draft Class 2025
+                        Draft Class {new Date().getFullYear()}
                     </h1>
                     <p style={{ margin: '5px 0 0 0', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
                         Draft Summary & Results
@@ -48,7 +49,7 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
                 </div>
 
                 <button
-                    onClick={startRetirementPhase}
+                    onClick={onContinue}
                     className="btn-primary"
                     style={{
                         padding: '10px 20px',
@@ -62,10 +63,11 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
                         transition: 'transform 0.2s',
                         background: 'var(--primary)',
                         border: 'none',
-                        color: '#fff'
+                        color: '#fff',
+                        cursor: 'pointer'
                     }}
                 >
-                    Offseason <ArrowRight size={16} />
+                    Offseason Menu <ArrowRight size={16} />
                 </button>
             </div>
 

@@ -76,29 +76,29 @@ export const TradeFinderView: React.FC<TradeFinderViewProps> = ({ shopPlayerId, 
     return (
         <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'rgba(0,0,0,0.85)', zIndex: 3000,
+            background: 'rgba(255,255,255,0.85)', zIndex: 3000,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             padding: '20px'
         }}>
             <div style={{
-                background: '#0a0a0c',
+                background: 'var(--bg-main)',
                 width: '100%', maxWidth: '650px',
                 height: '85%', maxHeight: '800px',
                 borderRadius: '24px',
                 display: 'flex', flexDirection: 'column',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
-                border: '1px solid rgba(255,255,255,0.1)',
+                boxShadow: 'var(--shadow-lg)',
+                border: '1px solid var(--border-color)',
                 overflow: 'hidden'
             }}>
                 {/* Header */}
-                <div style={{ padding: '20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)' }}>
+                <div style={{ padding: '20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-card)' }}>
                     <div>
                         <h2 style={{ margin: 0, fontSize: '1.4rem' }}>Trade Finder</h2>
-                        <p style={{ margin: '5px 0 0', color: 'var(--text-secondary)' }}>
+                        <p style={{ margin: '5px 0 0', color: 'var(--text-muted)' }}>
                             Shopping <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{shopPlayer.firstName} {shopPlayer.lastName}</span>
                         </p>
                     </div>
-                    <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text)', cursor: 'pointer' }}>
+                    <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', cursor: 'pointer' }}>
                         <X size={24} />
                     </button>
                 </div>
@@ -106,12 +106,12 @@ export const TradeFinderView: React.FC<TradeFinderViewProps> = ({ shopPlayerId, 
                 {/* Content */}
                 <div style={{ flex: 1, overflowY: 'auto', padding: '15px' }}>
                     {loading ? (
-                        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
+                        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
                             <RefreshCw className="spin" size={32} style={{ marginBottom: '15px' }} />
                             <p>Querying League GMs...</p>
                         </div>
                     ) : offers.length === 0 ? (
-                        <div style={{ textAlign: 'center', marginTop: '50px', color: 'var(--text-secondary)' }}>
+                        <div style={{ textAlign: 'center', marginTop: '50px', color: 'var(--text-muted)' }}>
                             <p>No teams made an offer for {shopPlayer.lastName}.</p>
                             <p style={{ fontSize: '0.9rem', marginTop: '10px' }}>Try waiting closer to the deadline or lowering your expectations.</p>
                         </div>
@@ -126,26 +126,26 @@ export const TradeFinderView: React.FC<TradeFinderViewProps> = ({ shopPlayerId, 
 
                                 return (
                                     <div key={idx} style={{
-                                        background: 'var(--surface-active)',
+                                        background: 'var(--bg-card-hover)',
                                         borderRadius: '12px',
                                         padding: '15px',
-                                        border: '1px solid var(--border)'
+                                        border: '1px solid var(--border-color)'
                                     }}>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                                 <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>
                                                     {aiTeam?.city} {aiTeam?.name}
                                                 </div>
-                                                <span style={{ fontSize: '0.8rem', padding: '2px 8px', borderRadius: '4px', background: 'rgba(255,255,255,0.1)' }}>
-                                                    Valid Offer
-                                                </span>
+                                                 <span style={{ fontSize: '0.8rem', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-card)', color: 'var(--text-main)', border: '1px solid var(--border-color)' }}>
+                                                     Valid Offer
+                                                 </span>
                                             </div>
                                         </div>
 
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
                                             {/* Incoming Assets */}
                                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>THEY OFFER</div>
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '5px' }}>THEY OFFER</div>
                                                 {offer.aiPlayerIds.map(pid => {
                                                     const p = players.find(x => x.id === pid);
                                                     if (!p) return null;
@@ -174,9 +174,9 @@ export const TradeFinderView: React.FC<TradeFinderViewProps> = ({ shopPlayerId, 
                                                     if (!pick) return <div key={pid} style={{ fontSize: '0.8rem', color: '#666' }}>Draft Pick (Unknown)</div>;
 
                                                     return (
-                                                        <div key={pid} style={{ fontSize: '0.85rem', color: 'var(--text)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        <div key={pid} style={{ fontSize: '0.85rem', color: 'var(--text-main)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                             <span>{pick.year} Rd {pick.round}</span>
-                                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                                                                 (via {pick.originalTeamName || 'UNK'})
                                                             </span>
                                                         </div>
@@ -184,18 +184,18 @@ export const TradeFinderView: React.FC<TradeFinderViewProps> = ({ shopPlayerId, 
                                                 })}
                                             </div>
 
-                                            <div style={{ color: 'var(--text-secondary)' }}>
+                                            <div style={{ color: 'var(--text-muted)' }}>
                                                 <ChevronRight />
                                             </div>
 
                                             {/* Outgoing (Just Shop Player for now) */}
                                             <div style={{ flex: 1, textAlign: 'right' }}>
-                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>YOU SEND</div>
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '5px' }}>YOU SEND</div>
                                                 <div style={{ fontWeight: 'bold' }}>{shopPlayer.firstName} {shopPlayer.lastName}</div>
                                             </div>
                                         </div>
 
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '10px' }}>
                                             <div style={{ fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
                                                 <DollarSign size={14} />
                                                 Incoming Salary: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(salaryIn)}

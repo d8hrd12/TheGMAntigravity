@@ -69,11 +69,9 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
     return (
         <div style={{
             minHeight: '100%',
-            padding: '20px',
             paddingBottom: '140px',
             color: 'var(--text-main)',
-            maxWidth: '600px',
-            margin: '0 auto',
+            width: '100%',
             display: 'flex',
             flexDirection: 'column',
             gap: '16px',
@@ -241,29 +239,27 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                     {/* Cash Balance Card */}
                     <div style={{
                         background: 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)',
-                        padding: '24px',
-                        borderRadius: '24px',
-                        color: 'var(--text-main)',
-                        boxShadow: '0 8px 32px rgba(46, 204, 113, 0.3)',
+                        padding: '16px',
+                        borderRadius: '20px',
+                        color: '#fff',
+                        boxShadow: '0 10px 30px rgba(46, 204, 113, 0.2)',
+                        marginBottom: '16px',
                         position: 'relative'
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', opacity: 0.9 }}>
-                                    <Wallet size={18} />
-                                    <span style={{ fontSize: '0.9rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Cash Balance</span>
-                                </div>
+                                <div style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.9 }}>Cash Balance</div>
                                 <div style={{
-                                    fontSize: '2.8rem',
+                                    fontSize: '2rem',
                                     fontWeight: 800,
                                     letterSpacing: '-1px',
-                                    color: 'var(--text-main)',
-                                    lineHeight: '1.2'
+                                    color: '#fff',
+                                    lineHeight: '1.1'
                                 }}>
                                     {formatMoney(Number(team.cash) || 0)}
                                 </div>
-                                <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '5px' }}>
-                                    Start: $350M • {isPreSeason ? 'Salaries Due Soon' : 'Salaries Paid Upfront'}
+                                <div style={{ fontSize: '0.7rem', opacity: 0.8, marginTop: '4px' }}>
+                                    Start: $350M • {isPreSeason ? 'Due Soon' : 'Paid Upfront'}
                                 </div>
                             </div>
 
@@ -297,19 +293,19 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                         {/* Owner Patience */}
                         <div style={{
                             background: 'var(--surface-glass)',
-                            padding: '16px',
+                            padding: '12px',
                             borderRadius: '20px',
                             border: '1px solid var(--border-color)'
                         }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-dim)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', color: 'var(--text-dim)' }}>
                                 <Briefcase size={16} />
-                                <span style={{ fontSize: '0.85rem' }}>Owner Patience</span>
+                                <span style={{ fontSize: '0.75rem' }}>Owner Patience</span>
                             </div>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px', color: getPatienceColor(team.ownerPatience || 0) }}>
+                            <div style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '6px', color: getPatienceColor(team.ownerPatience || 0) }}>
                                 {Math.round(team.ownerPatience || 0)}%
                             </div>
                             {/* Progress Bar */}
-                            <div style={{ height: '6px', background: 'rgba(0,0,0,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+                            <div style={{ height: '4px', background: 'rgba(0,0,0,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
                                 <div style={{
                                     height: '100%',
                                     width: `${team.ownerPatience || 0}%`,
@@ -322,19 +318,19 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                         {/* Fan Interest */}
                         <div style={{
                             background: 'var(--surface-glass)',
-                            padding: '16px',
+                            padding: '12px',
                             borderRadius: '20px',
                             border: '1px solid var(--border-color)'
                         }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-dim)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', color: 'var(--text-dim)' }}>
                                 <Users size={16} />
-                                <span style={{ fontSize: '0.85rem' }}>Fan Interest</span>
+                                <span style={{ fontSize: '0.75rem' }}>Fan Interest</span>
                             </div>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>
+                            <div style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '6px' }}>
                                 {(team.fanInterest || 1.0).toFixed(2)}x
                             </div>
-                            <div style={{ fontSize: '0.75rem', color: (team.fanInterest || 1.0) < 0.8 ? '#f1c40f' : 'var(--text-dim)' }}>
-                                {(team.fanInterest || 1.0) <= 0.75 ? 'Floor Applied (Debt)' : 'Revenue Multiplier'}
+                            <div style={{ fontSize: '0.7rem', color: (team.fanInterest || 1.0) < 0.8 ? '#f1c40f' : 'var(--text-dim)' }}>
+                                {(team.fanInterest || 1.0) <= 0.75 ? 'Floor Applied' : 'Multiplier'}
                             </div>
                         </div>
                     </div>

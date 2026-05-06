@@ -5,9 +5,10 @@ import { useGame } from '../../store/GameContext';
 import { calculateOverall } from '../../utils/playerUtils';
 import { StarRating } from '../../components/StarRating';
 import { BackButton } from '../ui/BackButton';
+import { PageHeader } from '../ui/PageHeader';
 import { Briefcase, TrendingUp, DollarSign, Users, Award, ArrowLeftRight } from 'lucide-react';
 
-export const GMListView: React.FC = () => {
+export const GMListView: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     const { aiGms, teams, players } = useGame();
 
     if (!aiGms || aiGms.length === 0) {
@@ -39,17 +40,19 @@ export const GMListView: React.FC = () => {
     };
 
     return (
-        <div style={{ padding: '24px', background: 'var(--bg-main)', minHeight: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '32px' }}>
-                <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 900, color: 'var(--text-main)' }}>LEAGUE EXECUTIVES</h1>
-                <div style={{ height: '24px', width: '2px', background: 'var(--border-color)' }} />
-                <div style={{ color: 'var(--text-dim)', fontSize: '0.9rem', fontWeight: 600 }}>{aiGms.length} ACTIVE GMS</div>
-            </div>
+        <div style={{ padding: '20px', background: 'var(--bg-main)', minHeight: '100%', maxWidth: '500px', margin: '0 auto' }}>
+            {onBack && <PageHeader title="League Executives" onBack={onBack} />}
+            {!onBack && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '24px', textAlign: 'center' }}>
+                    <h1 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 900, color: 'var(--text-main)' }}>LEAGUE EXECUTIVES</h1>
+                    <div style={{ color: 'var(--text-dim)', fontSize: '0.8rem', fontWeight: 600 }}>{aiGms.length} GMs</div>
+                </div>
+            )}
 
             <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', 
-                gap: '20px' 
+                display: 'flex', 
+                flexDirection: 'column',
+                gap: '16px'
             }}>
                 {aiGms.map(gm => {
                     const team = getTeamForGM(gm);
@@ -112,7 +115,7 @@ export const GMListView: React.FC = () => {
                                 display: 'grid', 
                                 gridTemplateColumns: 'repeat(3, 1fr)', 
                                 gap: '12px',
-                                background: 'rgba(0,0,0,0.2)',
+                                background: 'var(--bg-card-hover, rgba(0,0,0,0.04))',
                                 padding: '12px',
                                 borderRadius: '12px'
                             }}>

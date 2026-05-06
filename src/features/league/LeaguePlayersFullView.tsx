@@ -138,8 +138,8 @@ export const LeaguePlayersFullView: React.FC<LeaguePlayersFullViewProps> = ({ pl
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                     <thead style={{ background: 'var(--bg-card)', borderBottom: '2px solid var(--border-color)' }}>
                         <tr>
-                            <SortableHeader label="Player" sortKey="name" align="left" />
-                            <SortableHeader label="Team" sortKey="team" align="left" />
+                            <SortableHeader label="Player" sortKey="name" align="center" />
+                            <SortableHeader label="Team" sortKey="team" align="center" />
                             <SortableHeader label="Pos" sortKey="pos" />
                             <SortableHeader label="Age" sortKey="age" />
                             <SortableHeader label="Stars" sortKey="ovr" title="Rating" />
@@ -179,7 +179,7 @@ export const LeaguePlayersFullView: React.FC<LeaguePlayersFullViewProps> = ({ pl
                                 >
                                     <td 
                                         onClick={() => onSelectPlayer(player.id)}
-                                        style={{ padding: '12px 10px', fontWeight: 'bold', color: 'var(--text-main)', whiteSpace: 'nowrap' }}
+                                        style={{ padding: '12px 10px', fontWeight: 'bold', color: 'var(--text-main)', whiteSpace: 'nowrap', textAlign: 'center' }}
                                     >
                                         {player.firstName} {player.lastName}
                                     </td>
@@ -188,7 +188,7 @@ export const LeaguePlayersFullView: React.FC<LeaguePlayersFullViewProps> = ({ pl
                                             e.stopPropagation();
                                             if (player.teamId) onSelectTeam(player.teamId);
                                         }}
-                                        style={{ padding: '12px 10px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}
+                                        style={{ padding: '12px 10px', color: 'var(--text-muted)', whiteSpace: 'nowrap', textAlign: 'center' }}
                                     >
                                         {getTeamName(player.teamId)}
                                     </td>

@@ -75,15 +75,25 @@ export const DraftView: React.FC<DraftViewProps> = ({ draftClass, draftOrder, te
         )
     }
 
+    const getOrdinal = (n: number) => {
+        const s = ["th", "st", "nd", "rd"],
+            v = n % 100;
+        return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    };
+
     return (
         <div style={{ 
-            background: '#050505', 
-            padding: '20px', 
+            background: '#0a1628', 
+            padding: '80px 20px 20px 20px', 
             display: 'flex', 
             flexDirection: 'column',
             minHeight: '100vh',
             color: '#fff',
-            fontFamily: "'Inter', sans-serif"
+            fontFamily: "'Inter', sans-serif",
+            position: 'fixed',
+            inset: 0,
+            overflowY: 'auto',
+            zIndex: 100
         }}>
             {/* Ambient Background Glows */}
             <div style={{ position: 'fixed', top: '10%', right: '5%', width: '400px', height: '400px', background: 'rgba(255, 95, 31, 0.05)', filter: 'blur(100px)', borderRadius: '50%', pointerEvents: 'none' }} />
@@ -92,13 +102,15 @@ export const DraftView: React.FC<DraftViewProps> = ({ draftClass, draftOrder, te
             {/* Header Area */}
             <div style={{ 
                 display: 'flex', 
-                justifyContent: 'space-between', 
+                flexDirection: 'column',
                 alignItems: 'center', 
+                justifyContent: 'center', 
                 marginBottom: '40px',
                 padding: '20px 0',
-                borderBottom: '1px solid rgba(255,255,255,0.05)'
+                borderBottom: '1px solid rgba(255,255,255,0.05)',
+                textAlign: 'center'
             }}>
-                <div>
+                <div style={{ marginBottom: '20px' }}>
                     <h1 style={{ 
                         fontSize: '3.5rem', 
                         fontWeight: 950, 
@@ -108,7 +120,8 @@ export const DraftView: React.FC<DraftViewProps> = ({ draftClass, draftOrder, te
                         textTransform: 'uppercase',
                         background: 'linear-gradient(to bottom, #fff 50%, #888 100%)',
                         WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent'
+                        WebkitTextFillColor: 'transparent',
+                        textAlign: 'center'
                     }}>
                         {currentYear} <span style={{ WebkitTextFillColor: 'initial', color: '#FF5F1F' }}>DRAFT</span>
                     </h1>
@@ -118,7 +131,7 @@ export const DraftView: React.FC<DraftViewProps> = ({ draftClass, draftOrder, te
                 </div>
                 
                 {!isUserTurn && (
-                    <div style={{ display: 'flex', gap: '12px' }}>
+                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                         <button
                             onClick={onSimulateNext}
                             style={{ 
@@ -156,25 +169,28 @@ export const DraftView: React.FC<DraftViewProps> = ({ draftClass, draftOrder, te
                 border: isUserTurn ? '1px solid var(--team-primary)' : '1px solid rgba(255,255,255,0.1)',
                 marginBottom: '25px',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                boxShadow: isUserTurn ? '0 0 40px rgba(var(--team-primary-rgb), 0.2)' : 'none'
+                justifyContent: 'center',
+                boxShadow: isUserTurn ? '0 0 40px rgba(var(--team-primary-rgb), 0.2)' : 'none',
+                textAlign: 'center',
+                gap: '15px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                     <div style={{ 
-                        fontSize: '2.5rem', 
+                        fontSize: '1.8rem', 
                         fontWeight: 900, 
                         color: isUserTurn ? '#fff' : 'var(--text-dim)',
                         opacity: 0.5
                     }}>
-                        #{draftOrder.indexOf(currentTeamId) + 1}
+                        {getOrdinal(draftOrder.indexOf(currentTeamId) + 1)}
                     </div>
                     <div>
-                        <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', color: isUserTurn ? 'rgba(255,255,255,0.7)' : 'var(--text-dim)' }}>
-                            Now On The Clock
+                        <div style={{ fontSize: '0.9rem', color: isUserTurn ? 'rgba(255,255,255,0.9)' : 'var(--text-dim)', fontWeight: 600 }}>
+                            With the {getOrdinal(60 - draftOrder.length + 1)} pick of the {getOrdinal(Math.ceil((60 - draftOrder.length + 1) / 30))} round,
                         </div>
-                        <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>
-                            {currentTeam?.city} {currentTeam?.name}
+                        <div style={{ fontSize: '2rem', fontWeight: 950, letterSpacing: '-1px' }}>
+                            the {currentTeam?.city} {currentTeam?.name} select:
                         </div>
                     </div>
                 </div>
@@ -195,7 +211,7 @@ export const DraftView: React.FC<DraftViewProps> = ({ draftClass, draftOrder, te
 
             {/* Filters Row */}
             <div style={{ display: 'flex', gap: '15px', marginBottom: '25px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.05)', margin: '0 auto' }}>
                     {['All', 'PG', 'SG', 'SF', 'PF', 'C'].map(pos => (
                         <button
                             key={pos}
@@ -234,12 +250,15 @@ export const DraftView: React.FC<DraftViewProps> = ({ draftClass, draftOrder, te
                 </button>
             </div>
 
-            {/* Prospects Grid */}
+            {/* Prospects List */}
             <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', 
-                gap: '20px',
-                paddingBottom: '40px'
+                display: 'flex', 
+                flexDirection: 'column',
+                gap: '16px',
+                paddingBottom: '40px',
+                maxWidth: '500px',
+                margin: '0 auto',
+                width: '100%'
             }}>
                 {rankedProspects.map((p, idx) => {
                     const ovr = calculateOverall(p);
@@ -285,7 +304,7 @@ export const DraftView: React.FC<DraftViewProps> = ({ draftClass, draftOrder, te
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
                                     <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '1px' }}>Projected</div>
-                                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#fff' }}>#{idx + 1}</div>
+                                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#fff' }}>{getOrdinal(idx + 1)}</div>
                                 </div>
                             </div>
 
@@ -311,27 +330,45 @@ export const DraftView: React.FC<DraftViewProps> = ({ draftClass, draftOrder, te
                                 </div>
                             </div>
 
-                            {isUserTurn && (
+                            {/* Action Buttons */}
+                            <div style={{ display: 'flex', gap: '10px', zIndex: 1, marginTop: 'auto' }}>
                                 <button
-                                    onClick={() => onPick(p.id)}
-                                    className="btn-primary"
+                                    onClick={(e) => { e.stopPropagation(); onSelectPlayer(p.id); }}
                                     style={{
-                                        width: '100%',
-                                        padding: '16px',
-                                        borderRadius: '16px',
-                                        fontWeight: 900,
-                                        fontSize: '1rem',
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '2px',
-                                        boxShadow: '0 10px 25px rgba(var(--team-primary-rgb), 0.3)',
-                                        border: 'none',
-                                        cursor: 'pointer',
-                                        zIndex: 1,
-                                        marginTop: 'auto'
-                                    }}>
-                                    Draft This Player
+                                        flex: 1,
+                                        padding: '12px',
+                                        borderRadius: '12px',
+                                        fontWeight: 700,
+                                        fontSize: '0.85rem',
+                                        background: 'rgba(255,255,255,0.08)',
+                                        border: '1px solid rgba(255,255,255,0.15)',
+                                        color: '#fff',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    View Profile
                                 </button>
-                            )}
+                                {isUserTurn && (
+                                    <button
+                                        onClick={() => onPick(p.id)}
+                                        className="btn-primary"
+                                        style={{
+                                            flex: 2,
+                                            padding: '12px',
+                                            borderRadius: '12px',
+                                            fontWeight: 900,
+                                            fontSize: '0.85rem',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '1px',
+                                            boxShadow: '0 10px 25px rgba(var(--team-primary-rgb), 0.3)',
+                                            border: 'none',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Draft Player
+                                    </button>
+                                )}
+                            </div>
 
                             <style>{`
                                 .draft-card:hover {

@@ -36,11 +36,11 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                 animation: 'fadeIn 0.2s ease-out'
             }} onClick={e => e.stopPropagation()}>
 
-                <h3 style={{ marginTop: 0, marginBottom: '15px', fontSize: '1.4rem' }}>
+                <h3 style={{ marginTop: 0, marginBottom: '15px', fontSize: '1.4rem', color: '#fff' }}>
                     {title}
                 </h3>
 
-                <p style={{ color: 'var(--text-secondary)', marginBottom: '30px', lineHeight: '1.5' }}>
+                <p style={{ color: '#ccc', marginBottom: '30px', lineHeight: '1.5' }}>
                     {message}
                 </p>
 

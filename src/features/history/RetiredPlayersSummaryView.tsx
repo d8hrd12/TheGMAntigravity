@@ -18,7 +18,7 @@ export const RetiredPlayersSummaryView: React.FC<RetiredPlayersSummaryViewProps>
     return (
         <div style={{ 
             padding: '40px 20px', 
-            maxWidth: '900px', 
+            maxWidth: '500px', 
             margin: '0 auto', 
             color: 'var(--text-main)',
             minHeight: '100vh',
@@ -42,9 +42,9 @@ export const RetiredPlayersSummaryView: React.FC<RetiredPlayersSummaryViewProps>
             </div>
 
             <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
-                gap: '20px' 
+                display: 'flex', 
+                flexDirection: 'column',
+                gap: '16px' 
             }}>
                 {retiredList.length === 0 ? (
                     <div style={{ 

@@ -31,6 +31,7 @@ interface TradeCenterViewProps {
     gmProfile?: any;
     draftOrder?: string[];
     seasonPhase?: string;
+    seasonGamesPlayed?: number;
 }
 
 export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
@@ -51,7 +52,8 @@ export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
     onSignFreeAgent,
     gmProfile,
     draftOrder,
-    seasonPhase
+    seasonPhase,
+    seasonGamesPlayed
 }) => {
     const [activeTab, setActiveTab] = useState<'new' | 'block' | 'log' | 'freeAgents' | 'injuries'>(initialTab);
     const [showTradeDropdown, setShowTradeDropdown] = useState(false);
@@ -95,9 +97,10 @@ export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
                     position: 'relative',
                     border: '1px solid var(--border-color)',
                     gap: '4px',
-                    width: 'fit-content',
+                    flexWrap: 'wrap',
                     margin: '16px auto',
-                    boxShadow: 'var(--shadow-sm)'
+                    boxShadow: 'var(--shadow-sm)',
+                    justifyContent: 'center'
                 }}>
                     {/* Trade Dropdown Group */}
                     <div style={{ position: 'relative' }} ref={dropdownRef}>
@@ -223,6 +226,7 @@ export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
                         gmProfile={gmProfile}
                         draftOrder={draftOrder}
                         seasonPhase={seasonPhase}
+                        seasonGamesPlayed={seasonGamesPlayed}
                     />
                 )}
                 {activeTab === 'block' && (

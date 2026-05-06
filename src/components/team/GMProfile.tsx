@@ -34,10 +34,10 @@ export const GMProfile: React.FC<GMProfileProps> = ({ gm, onClose }) => {
             <div className="gm-profile-card">
                 <div className="gm-header">
                     <div className="gm-avatar-placeholder">
-                        {gm.firstName[0]}{gm.lastName[0]}
+                        {gm.name.charAt(0)}
                     </div>
                     <div className="gm-basic-info">
-                        <h2>{gm.firstName} {gm.lastName}</h2>
+                        <h2>{gm.name}</h2>
                         <div 
                             className="gm-philosophy-badge"
                             style={{ borderColor: getPhilosophyColor(gm.philosophy), color: getPhilosophyColor(gm.philosophy) }}
@@ -52,7 +52,7 @@ export const GMProfile: React.FC<GMProfileProps> = ({ gm, onClose }) => {
 
                 <div className="gm-experience">
                     <span>Exp: {gm.experience} Years</span>
-                    <span>Reputation: {gm.reputation}/100</span>
+                    <span>Reputation: {gm.skills.reputation}/100</span>
                 </div>
 
                 <div className="gm-skills-section">
@@ -74,7 +74,7 @@ export const GMProfile: React.FC<GMProfileProps> = ({ gm, onClose }) => {
                         </div>
                         <div className="gm-stat-item">
                             <span className="label">Performance</span>
-                            <span className="value">{(gm.reputation / 10).toFixed(1)} / 10</span>
+                            <span className="value">{(gm.skills.reputation / 10).toFixed(1)} / 10</span>
                         </div>
                     </div>
                 </div>

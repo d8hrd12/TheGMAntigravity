@@ -18,6 +18,7 @@ import { LeagueLeaders } from './features/stats/LeagueLeaders';
 import { NewsTicker } from './features/ui/NewsTicker';
 import { GameResultsView } from './features/simulation/GameResultsView';
 import { BoxScoreView } from './features/simulation/BoxScoreView';
+import { LiveGameView } from './features/simulation/LiveGameView';
 import { simulateMatch } from './features/simulation/MatchEngine';
 import type { MatchResult } from './features/simulation/SimulationTypes';
 import type { TradeProposal } from './models/TradeProposal';
@@ -121,11 +122,76 @@ function AppContent() {
     continueFromRetirements,
     endCoachFreeAgency,
     endResigning,
-    endFreeAgency
+    endFreeAgency,
+    aiGms,
+    showAwardsModal
   } = gameData;
+
+  // Trigger awards popup when simulation sets showAwardsModal
+  useEffect(() => {
+    if (showAwardsModal && awardsHistory.length > 0) {
+      setShowingAwards(awardsHistory[awardsHistory.length - 1]);
+      // Clear the trigger immediately
+      gameData.setGameState(prev => ({ ...prev, showAwardsModal: null }));
+    }
+  }, [showAwardsModal, awardsHistory]);
   
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [selectedGmId, setSelectedGmId] = useState<string | null>(null);
+  
+  // Navigation History Stack
+  const [history, setHistory] = useState<any[]>([]);
+  const isNavigatingRef = useRef(false);
+
+  useEffect(() => {
+    if (isNavigatingRef.current) {
+        isNavigatingRef.current = false;
+        return;
+    }
+
+    const currentEntry = { 
+        view, 
+        selectedPlayerId, 
+        selectedTeamId, 
+        selectedGame, 
+        selectedGmId 
+    };
+
+    setHistory(prev => {
+        const lastEntry = prev[prev.length - 1];
+        if (lastEntry && 
+            lastEntry.view === currentEntry.view && 
+            lastEntry.selectedPlayerId === currentEntry.selectedPlayerId &&
+            lastEntry.selectedTeamId === currentEntry.selectedTeamId &&
+            lastEntry.selectedGame?.id === currentEntry.selectedGame?.id &&
+            lastEntry.selectedGmId === currentEntry.selectedGmId) {
+            return prev;
+        }
+        return [...prev, currentEntry];
+    });
+  }, [view, selectedPlayerId, selectedTeamId, selectedGame, selectedGmId]);
+
+  const handleBack = () => {
+    if (history.length <= 1) {
+        if (selectedPlayerId) setSelectedPlayerId(null);
+        else if (selectedTeamId) setSelectedTeamId(null);
+        else if (selectedGame) setSelectedGame(null);
+        else if (view !== 'dashboard') setView('dashboard');
+        return;
+    }
+
+    isNavigatingRef.current = true;
+    const newHistory = [...history];
+    newHistory.pop(); // Remove current
+    const prevEntry = newHistory[newHistory.length - 1];
+    
+    setHistory(newHistory);
+    setView(prevEntry.view);
+    setSelectedPlayerId(prevEntry.selectedPlayerId);
+    setSelectedTeamId(prevEntry.selectedTeamId);
+    setSelectedGame(prevEntry.selectedGame);
+    setSelectedGmId(prevEntry.selectedGmId);
+  };
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -137,6 +203,39 @@ function AppContent() {
       containerRef.current.scrollTop = scrollCache.current[stateKey] || 0;
     }
   }, [view, selectedPlayerId, selectedGame, currentNegotiation]);
+
+  // SWIPE GESTURE HANDLER
+  useEffect(() => {
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      const touchEndX = e.changedTouches[0].clientX;
+      const touchEndY = e.changedTouches[0].clientY;
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = Math.abs(touchEndY - touchStartY);
+
+      // Only trigger if:
+      // 1. Swipe is to the right (deltaX > 100)
+      // 2. Swipe is mostly horizontal (deltaY < 50)
+      // 3. Swipe starts from the left edge (touchStartX < 60) - avoids conflict with tables
+      if (deltaX > 100 && deltaY < 50 && touchStartX < 60) {
+        handleBack();
+      }
+    };
+
+    window.addEventListener('touchstart', handleTouchStart);
+    window.addEventListener('touchend', handleTouchEnd);
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [view, selectedPlayerId, selectedTeamId, selectedGame]);
 
   const userTeam = teams.find(t => t.id === userTeamId);
 
@@ -297,10 +396,6 @@ function AppContent() {
           onSelectGame={setSelectedGame} 
           onSelectPlayer={setSelectedPlayerId} 
           onSelectTeam={setSelectedTeamId}
-          onEnterPlayoffs={() => setView('playoffs')} 
-          onStartSeasonTrigger={() => setShowPayrollModal(true)} 
-          onStartTrainingTrigger={() => setView('training')} 
-          onShowMessage={(t, m, type) => setModalMessage({ title: t, msg: m, type })} 
         />;
       case 'standings': 
         return <LeagueView 
@@ -369,6 +464,7 @@ function AppContent() {
           gmProfile={gmProfile}
           draftOrder={draftOrder}
           seasonPhase={seasonPhase}
+          seasonGamesPlayed={seasonGamesPlayed}
         /> : null;
       case 'financials': 
         return <TeamFinancialsView 
@@ -384,13 +480,13 @@ function AppContent() {
             onSelectTeam={setSelectedTeamId} 
         />;
       case 'playoffs':
-        return <PlayoffView onBack={() => setView('dashboard')} />;
+        return <PlayoffView onBack={() => setView('dashboard')} onNavigate={(v: string) => setView(v)} />;
       case 'offseason_menu':
         return <OffseasonMenuView />;
       case 'retirement':
         return <RetiredPlayersSummaryView onSelectPlayer={setSelectedPlayerId} />;
       case 'scouting':
-        return <ScoutingView onBack={() => completeOffseasonTask('scouting')} />;
+        return <ScoutingView />;
       case 'draft':
         return <DraftView 
             draftClass={draftClass}
@@ -403,10 +499,23 @@ function AppContent() {
             onFinish={endDraft}
             onSelectPlayer={setSelectedPlayerId}
         />;
+      case 'draft_summary':
+        return <DraftSummaryView 
+            onSelectPlayer={setSelectedPlayerId} 
+            onSelectTeam={setSelectedTeamId} 
+            onContinue={() => completeOffseasonTask('draft')} 
+        />;
       case 'resigning':
-        return <ResigningView onComplete={() => completeOffseasonTask('resigning')} />;
+        return <ResigningView 
+          onSelectPlayer={setSelectedPlayerId}
+          onShowMessage={(title: string, msg: string, type: 'error' | 'info' | 'success') => setModalMessage({ title, msg, type })} 
+        />;
       case 'free_agency':
-        return <FreeAgencyView onBack={() => setView('offseason_menu')} onComplete={() => completeOffseasonTask('freeAgency')} />;
+        return <FreeAgencyView 
+          onBack={() => setView('offseason_menu')} 
+          onComplete={() => completeOffseasonTask('freeAgency')} 
+          onSelectPlayer={setSelectedPlayerId}
+        />;
       case 'training':
         return <TrainingView onBack={() => setView('offseason_menu')} onSelectPlayer={setSelectedPlayerId} />;
       case 'training_results':
@@ -416,15 +525,13 @@ function AppContent() {
           onSelectGame={setSelectedGame} 
           onSelectPlayer={setSelectedPlayerId} 
           onSelectTeam={setSelectedTeamId}
-          onEnterPlayoffs={() => setView('playoffs')} 
-          onStartSeasonTrigger={() => setShowPayrollModal(true)} 
-          onStartTrainingTrigger={() => setView('training')} 
-          onShowMessage={(t, m, type) => setModalMessage({ title: t, msg: m, type })} 
         />;
     }
   };
 
   if (!isInitialized) return <MainMenu />;
+
+  const isNavLocked = view === 'draft' || view === 'draft_summary';
 
   return (
     <div className="app-layout" style={{ '--team-primary': userTeam?.colors?.primary || 'var(--primary)' } as any}>
@@ -441,7 +548,7 @@ function AppContent() {
           </div>
         </div>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px', opacity: isNavLocked ? 0.5 : 1, pointerEvents: isNavLocked ? 'none' : 'auto' }}>
           <button 
             className={`nav-link ${view === 'dashboard' ? 'active' : ''}`}
             onClick={() => { setView('dashboard'); setIsSidebarOpen(false); }}
@@ -510,29 +617,83 @@ function AppContent() {
       {/* MAIN CONTAINER */}
       <div className="main-wrapper" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {isInitialized && !liveGameData && (
-          <header className="app-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <button className="menu-trigger" onClick={() => {
-                setIsSidebarOpen(true);
-                setExpandedCategory(null);
-              }}>
-                <Menu size={24} />
-              </button>
-              {userTeam && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <img src={userTeam.logo} alt="" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontWeight: '800', fontSize: '0.85rem', color: 'var(--text-main)' }}>{userTeam.city.toUpperCase()} {userTeam.name.toUpperCase()}</span>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800 }}>EST. {date.getFullYear()}</span>
-                  </div>
-                </div>
+          <header className="app-header" style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', padding: 'env(safe-area-inset-top, 10px) 20px 0 20px', minHeight: '60px', gap: '15px' }}>
+            {/* Left: Menu */}
+            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+              {!isNavLocked && (
+                <button className="menu-trigger" onClick={() => {
+                  setIsSidebarOpen(true);
+                  setExpandedCategory(null);
+                }}>
+                  <Menu size={24} />
+                </button>
               )}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            {/* Center: Team Info */}
+            <div style={{ display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
+              {userTeam && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', maxWidth: '100%' }}>
+                  <img src={userTeam.logo} alt="" style={{ width: '28px', height: '28px', objectFit: 'contain', flexShrink: 0 }} />
+                  <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ 
+                        fontWeight: '950', 
+                        fontSize: '0.85rem', 
+                        color: 'var(--text-main)', 
+                        whiteSpace: 'nowrap',
+                        letterSpacing: '-0.5px'
+                      }}>
+                        {userTeam.name.toUpperCase()}
+                      </span>
+                      <span style={{
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        color: 'var(--team-primary)',
+                        background: 'rgba(var(--team-primary-rgb), 0.1)',
+                        padding: '1px 4px',
+                        borderRadius: '4px',
+                        marginLeft: '2px'
+                      }}>
+                        {date.getFullYear()}
+                      </span>
+                    </div>
+                  </div>
+                  {awardsHistory.some(h => h.champion?.teamId === userTeam.id) && (
+                        <div style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '2px',
+                            background: 'linear-gradient(135deg, #FFD700, #DAA520)',
+                            padding: '2px 6px',
+                            borderRadius: '12px',
+                            boxShadow: '0 2px 4px rgba(218, 165, 32, 0.3)',
+                            marginLeft: '4px',
+                            flexShrink: 0
+                        }}>
+                            <Star size={10} fill="white" color="white" />
+                            <span style={{ 
+                                fontSize: '0.7rem', 
+                                color: 'white', 
+                                fontWeight: 900,
+                                lineHeight: 1
+                            }}>
+                                {awardsHistory.filter(h => h.champion?.teamId === userTeam.id).length}
+                            </span>
+                        </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+            {/* Awards Popup */}
+            {showingAwards && <AwardsPopup awards={showingAwards} onClose={() => setShowingAwards(null)} />}
+
+            {/* Right: Date/Status */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <div style={{ textAlign: 'right' }}>
-                 <div style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--team-primary)' }}>YEAR {date.getFullYear()} | GAME {seasonGamesPlayed}/82</div>
-                 <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>{seasonPhase.replace('_', ' ')}</div>
+                 <div style={{ fontSize: '0.8rem', fontWeight: '900', color: 'var(--team-primary)' }}>{userTeam?.wins ?? 0} - {userTeam?.losses ?? 0}</div>
+                 <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>{seasonPhase.replace('_', ' ')}</div>
               </div>
             </div>
           </header>
@@ -541,9 +702,22 @@ function AppContent() {
         <main 
           className="main-content" 
           ref={containerRef}
-          style={{ flex: 1, overflowY: 'auto' }}
+          onScroll={(e) => {
+            const stateKey = `${view}-${selectedPlayerId || ''}-${selectedGame?.id || ''}-${currentNegotiation || ''}`;
+            scrollCache.current[stateKey] = e.currentTarget.scrollTop;
+          }}
+          style={{ 
+            flex: 1, 
+            overflowY: 'auto', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center',
+            padding: '0 10px'
+          }}
         >
-          {renderContent()}
+          <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }}>
+            {renderContent()}
+          </div>
         </main>
       </div>
 

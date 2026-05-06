@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Player } from '../../models/Player';
 import type { Team } from '../../models/Team';
-import { calculateOverall } from '../../utils/playerUtils';
+import { calculateOverall, formatFullStatLine } from '../../utils/playerUtils';
 import { calculateStars, calculateTeamBaseline } from '../../utils/starUtils';
 import { StarRating } from '../../components/StarRating';
 import { useGame } from '../../store/GameContext';
@@ -74,14 +74,7 @@ export const MidSeasonFreeAgents: React.FC<MidSeasonFreeAgentsProps> = ({ player
         return 'Balanced';
     };
 
-    const getLastSeasonStats = (p: Player) => {
-        const s = p.seasonStats.gamesPlayed > 0 ? p.seasonStats : (p.careerStats.length > 0 ? p.careerStats[p.careerStats.length - 1] : null);
-        if (!s || s.gamesPlayed === 0) return 'Rookie';
-        const ppg = (s.points / s.gamesPlayed).toFixed(1);
-        const rpg = (s.rebounds / s.gamesPlayed).toFixed(1);
-        const apg = (s.assists / s.gamesPlayed).toFixed(1);
-        return `${ppg} PPG • ${rpg} RPG • ${apg} APG`;
-    };
+    const getLastSeasonStats = (p: Player) => formatFullStatLine(p);
 
     // Players
     const freeAgents = players.filter(p => !p.teamId || p.teamId === '');
@@ -307,7 +300,7 @@ export const MidSeasonFreeAgents: React.FC<MidSeasonFreeAgentsProps> = ({ player
                                         <button onClick={() => handleSign(p)} disabled={!canAfford || !canSignGeneric} style={{
                                             width: '100%', padding: '10px',
                                             background: (canAfford && canSignGeneric) ? 'var(--success)' : '#444',
-                                            color: (canAfford && canSignGeneric) ? 'white' : 'var(--text-dim)',
+                                            color: (canAfford && canSignGeneric) ? '#111' : 'var(--text-dim)',
                                             border: 'none', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 'bold',
                                             cursor: (canAfford && canSignGeneric) ? 'pointer' : 'not-allowed',
                                             opacity: (canAfford && canSignGeneric) ? 1 : 0.6

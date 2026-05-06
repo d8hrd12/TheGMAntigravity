@@ -221,16 +221,7 @@ export const importNbaPlayers = async (teams: Team[], existingPlayers: Player[])
                     midRangeMade: 0, midRangeAttempted: 0, midRangeAssisted: 0,
                     threePointAssisted: 0
                 },
-                careerStats: (parseInt(row.years_in_the_nba) || 0) > 0 ? [{
-                    season: 2023,
-                    teamId: teamId || 'nba',
-                    gamesPlayed: 82, minutes: 0, points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0,
-                    turnovers: 0, fouls: 0, offensiveRebounds: 0, defensiveRebounds: 0,
-                    fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0,
-                    ftMade: 0, ftAttempted: 0, rimMade: 0, rimAttempted: 0,
-                    midRangeMade: 0, midRangeAttempted: 0, plusMinus: 0,
-                    rimAssisted: 0, midRangeAssisted: 0, threePointAssisted: 0
-                }] : [],
+                careerStats: [],
                 tendencies: { // Defaults
                     shooting: 50, passing: 50, inside: 40, outside: 30,
                     defensiveAggression: 50, foulTendency: 50

@@ -44,6 +44,7 @@ const STYLE_ICONS: Record<string, string> = {
 interface FreeAgencyViewProps {
     onBack: () => void;
     onComplete: () => void;
+    onSelectPlayer?: (id: string | null) => void;
 }
 
 export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComplete }) => {
@@ -148,13 +149,19 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                 border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
-                    <div>
-                        <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: 0, color: 'white', letterSpacing: '-1px' }}>Free Agency</h1>
-                        <p style={{ fontSize: '1rem', color: '#888', margin: '5px 0 0 0' }}>Fill your roster.</p>
+                    <div style={{ textAlign: 'center', width: '100%', marginBottom: '15px' }}>
+                        <h1 style={{ fontSize: '2.2rem', fontWeight: 800, margin: 0, color: 'white', letterSpacing: '-1px', textAlign: 'center' }}>Free Agency</h1>
+                        <p style={{ fontSize: '1rem', color: '#888', margin: '5px 0 0 0', textAlign: 'center' }}>Fill your roster.</p>
                     </div>
-                    <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                        <div style={{ fontSize: '0.9rem', color: '#2ecc71', fontWeight: 700 }}>Cap Space: {formatMoney(team.salaryCapSpace)}</div>
-                        <div style={{ fontSize: '0.9rem', color: '#f39c12', fontWeight: 700 }}>Cash: {formatMoney(team.cash)}</div>
+                    <div style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '30px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '15px' }}>
+                        <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: '0.7rem', color: '#888', fontWeight: 600, textTransform: 'uppercase' }}>Cap Space</div>
+                            <div style={{ fontSize: '1.1rem', color: '#2ecc71', fontWeight: 800 }}>{formatMoney(team.salaryCapSpace)}</div>
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: '0.7rem', color: '#888', fontWeight: 600, textTransform: 'uppercase' }}>Cash</div>
+                            <div style={{ fontSize: '1.1rem', color: '#f39c12', fontWeight: 800 }}>{formatMoney(team.cash)}</div>
+                        </div>
                     </div>
                 </div>
 
@@ -200,7 +207,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
             </div>
 
             {/* See Offers */}
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
                 <button
                     onClick={() => {
                         const offers = activeOffers?.filter(o => o.teamId === userTeamId && o.status === 'pending') || [];
@@ -209,42 +216,44 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                             if (p) setSelectedPlayerForBids(p);
                         }
                     }}
-                    style={{ padding: '10px 20px', background: '#333', color: 'white', border: 'none', borderRadius: '20px', fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem' }}
+                    style={{ padding: '10px 24px', background: '#333', color: 'white', borderRadius: '20px', fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem', border: '1px solid #444' }}
                 >
                     See Active Offers ({activeOffersCount})
                 </button>
             </div>
 
             {/* ── PLAYERS / COACHES TOGGLE ── */}
-            <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', background: '#1c1c1e', borderRadius: '14px', padding: '4px', width: 'fit-content' }}>
-                <button
-                    onClick={() => setActiveTab('players')}
-                    style={{
-                        padding: '10px 28px', borderRadius: '10px', border: 'none', fontWeight: 700, fontSize: '0.95rem',
-                        background: activeTab === 'players' ? '#0ea5e9' : 'transparent',
-                        color: activeTab === 'players' ? 'white' : '#888',
-                        cursor: 'pointer', transition: 'all 0.2s'
-                    }}
-                >
-                    🏀 Players
-                </button>
-                <button
-                    onClick={() => setActiveTab('coaches')}
-                    style={{
-                        padding: '10px 28px', borderRadius: '10px', border: 'none', fontWeight: 700, fontSize: '0.95rem',
-                        background: activeTab === 'coaches' ? '#8b5cf6' : 'transparent',
-                        color: activeTab === 'coaches' ? 'white' : '#888',
-                        cursor: 'pointer', transition: 'all 0.2s',
-                        display: 'flex', alignItems: 'center', gap: '6px'
-                    }}
-                >
-                    🎽 Coaches
-                    <span style={{
-                        background: activeTab === 'coaches' ? 'rgba(255,255,255,0.25)' : '#333',
-                        color: activeTab === 'coaches' ? 'white' : '#aaa',
-                        fontSize: '0.75rem', fontWeight: 700, padding: '1px 7px', borderRadius: '20px'
-                    }}>{freeAgentCoaches.length}</span>
-                </button>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', gap: '4px', background: '#1c1c1e', borderRadius: '14px', padding: '4px', width: 'fit-content', border: '1px solid #333' }}>
+                    <button
+                        onClick={() => setActiveTab('players')}
+                        style={{
+                            padding: '10px 28px', borderRadius: '10px', border: 'none', fontWeight: 700, fontSize: '0.95rem',
+                            background: activeTab === 'players' ? '#0ea5e9' : 'transparent',
+                            color: activeTab === 'players' ? 'white' : '#888',
+                            cursor: 'pointer', transition: 'all 0.2s'
+                        }}
+                    >
+                        🏀 Players
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('coaches')}
+                        style={{
+                            padding: '10px 28px', borderRadius: '10px', border: 'none', fontWeight: 700, fontSize: '0.95rem',
+                            background: activeTab === 'coaches' ? '#8b5cf6' : 'transparent',
+                            color: activeTab === 'coaches' ? 'white' : '#888',
+                            cursor: 'pointer', transition: 'all 0.2s',
+                            display: 'flex', alignItems: 'center', gap: '6px'
+                        }}
+                    >
+                        🎽 Coaches
+                        <span style={{
+                            background: activeTab === 'coaches' ? 'rgba(255,255,255,0.25)' : '#333',
+                            color: activeTab === 'coaches' ? 'white' : '#aaa',
+                            fontSize: '0.75rem', fontWeight: 700, padding: '1px 7px', borderRadius: '20px'
+                        }}>{freeAgentCoaches.length}</span>
+                    </button>
+                </div>
             </div>
 
             {/* ── PLAYERS TAB ── */}

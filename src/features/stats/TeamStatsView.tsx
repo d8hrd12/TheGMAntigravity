@@ -7,6 +7,7 @@ import { StarRating } from '../../components/StarRating';
 import { BackButton } from '../ui/BackButton';
 import { TeamSelect } from '../ui/TeamSelect';
 import { PageHeader } from '../ui/PageHeader';
+import { useGame } from '../../store/GameContext';
 
 interface TeamStatsViewProps {
     players: Player[];
@@ -25,6 +26,9 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
     const { aiGms } = useGame();
     const [selectedTeamId, setSelectedTeamId] = React.useState(initialTeamId || userTeamId);
     const [sortConfig, setSortConfig] = React.useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'ovr', direction: 'desc' });
+    const [highlightedRow, setHighlightedRow] = React.useState<string | null>(null);
+    const [visibleStat, setVisibleStat] = React.useState<'all' | 'points' | 'assists' | 'rebounds' | 'steals' | 'blocks' | 'turnovers' | 'ewa'>('all');
+    const [activeTab, setActiveTab] = React.useState<'roster' | 'league'>('roster');
 
     const handleTeamChange = (id: string) => {
         setSelectedTeamId(id);
@@ -79,7 +83,7 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
         setSortConfig({ key, direction });
     };
 
-    const [visibleStat, setVisibleStat] = React.useState<'all' | 'points' | 'rebounds' | 'assists' | 'steals' | 'blocks' | 'turnovers' | 'ewa'>('all');
+
 
     const STAT_OPTIONS = [
         { key: 'points', label: 'PTS', color: '#e74c3c' },
@@ -92,7 +96,7 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
         { key: 'all', label: 'ALL', color: 'var(--text-muted)' },
     ];
 
-    const HeaderCell = ({ label, sortKey, align = 'left', visible = true }: { label: string, sortKey: string, align?: 'left' | 'right' | 'center', visible?: boolean }) => {
+    const HeaderCell = ({ label, sortKey, align = 'center', visible = true }: { label: string, sortKey: string, align?: 'left' | 'right' | 'center', visible?: boolean }) => {
         if (!visible) return null;
         return (
             <th
@@ -105,11 +109,32 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
     };
 
     return (
-        <div style={{ padding: '20px', minHeight: '100vh', paddingBottom: '80px', background: 'var(--bg-main)' }}>
+        <div style={{ minHeight: '100vh', paddingBottom: '80px', background: 'var(--bg-main)', width: '100%' }}>
             <PageHeader
-                title="Team Roster & Stats"
+                title={activeTab === 'roster' ? "Team Roster & Stats" : "League Team Rankings"}
                 onBack={onBack!}
             />
+
+            {/* Tab Switcher */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '15px' }}>
+                <button 
+                    onClick={() => setActiveTab('roster')}
+                    className="btn-modern"
+                    style={{ flex: 1, background: activeTab === 'roster' ? 'var(--primary)' : 'var(--bg-card)', color: activeTab === 'roster' ? '#fff' : 'var(--text-main)' }}
+                >
+                    Team Roster
+                </button>
+                <button 
+                    onClick={() => setActiveTab('league')}
+                    className="btn-modern"
+                    style={{ flex: 1, background: activeTab === 'league' ? 'var(--primary)' : 'var(--bg-card)', color: activeTab === 'league' ? '#fff' : 'var(--text-main)' }}
+                >
+                    League Stats
+                </button>
+            </div>
+
+            {activeTab === 'roster' ? (
+                <>
 
             {/* Team Selector and History Buttons */}
             <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', overflowX: 'auto', scrollbarWidth: 'none' }}>
@@ -151,13 +176,13 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                         <span style={{ 
                             fontSize: '0.9rem', 
                             fontWeight: 'bold',
-                            color: teams.find(t => t.id === selectedTeamId)?.strategy.direction === 'Contender' ? '#f44336' : '#4caf50'
+                            color: teams.find(t => t.id === selectedTeamId)?.strategy?.direction === 'Contender' ? '#f44336' : '#4caf50'
                         }}>
-                            {teams.find(t => t.id === selectedTeamId)?.strategy.direction || 'Balanced'}
+                            {teams.find(t => t.id === selectedTeamId)?.strategy?.direction || 'Balanced'}
                         </span>
                         <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>•</span>
                         <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)' }}>
-                            {teams.find(t => t.id === selectedTeamId)?.strategy.focus} Focused
+                            {teams.find(t => t.id === selectedTeamId)?.strategy?.focus || 'Balanced'} Focused
                         </span>
                     </div>
                 </div>
@@ -204,13 +229,13 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                             key={opt.key}
                             onClick={() => setVisibleStat(opt.key as any)}
                             style={{
-                                padding: '8px 16px',
+                                padding: '6px 12px',
                                 background: isActive ? (opt.key === 'all' ? 'var(--primary)' : opt.color) : 'transparent',
                                 color: isActive ? '#fff' : 'var(--text-muted)',
                                 border: 'none',
                                 borderRadius: '8px',
                                 cursor: 'pointer',
-                                fontSize: '0.85rem',
+                                fontSize: '0.75rem',
                                 fontWeight: isActive ? 700 : 500,
                                 whiteSpace: 'nowrap',
                                 transition: 'all 0.2s',
@@ -223,23 +248,17 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                 })}
             </div>
 
-            <div className="modern-card" style={{ padding: '0', overflowX: 'auto', borderRadius: '14px', border: '1px solid var(--border-color)' }}>
-                <table style={{ width: '100%', minWidth: visibleStat === 'all' ? '800px' : 'auto', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+            <div className="premium-table-wrapper" style={{ border: 'none', background: 'transparent' }}>
+                <table className="premium-table">
                     <thead>
-                        <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)', background: 'var(--bg-card)' }}>
-                            <th
+                        <tr>
+                            <th className="sticky-col"
                                 style={{
-                                    padding: '12px 10px',
-                                    cursor: 'pointer',
-                                    userSelect: 'none',
-                                    textAlign: 'left',
+                                    textAlign: 'center',
                                     whiteSpace: 'nowrap',
-                                    position: 'sticky',
                                     left: 0,
                                     zIndex: 10,
-                                    background: '#f8fafc', 
-                                    borderBottom: '1px solid var(--border-color)',
-                                    boxShadow: '2px 0 5px rgba(0,0,0,0.05)'
+                                    background: 'var(--bg-card)', 
                                 }}
                                 onClick={() => requestSort('name')}
                             >
@@ -248,18 +267,18 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                             <HeaderCell label="Pos" sortKey="pos" />
                             <HeaderCell label="Age" sortKey="age" />
                             <HeaderCell label="Stars" sortKey="ovr" />
-                            <HeaderCell label="GP" sortKey="gp" align="center" />
-                            <HeaderCell label="MIN" sortKey="mpg" align="center" />
-                            <HeaderCell label="PTS" sortKey="points" align="right" visible={visibleStat === 'all' || visibleStat === 'points'} />
-                            <HeaderCell label="AST" sortKey="assists" align="right" visible={visibleStat === 'all' || visibleStat === 'assists'} />
-                            <HeaderCell label="REB" sortKey="rebounds" align="right" visible={visibleStat === 'all' || visibleStat === 'rebounds'} />
-                            <HeaderCell label="STL" sortKey="steals" align="right" visible={visibleStat === 'all' || visibleStat === 'steals'} />
-                            <HeaderCell label="BLK" sortKey="blocks" align="right" visible={visibleStat === 'all' || visibleStat === 'blocks'} />
-                            <HeaderCell label="TOV" sortKey="turnovers" align="right" visible={visibleStat === 'all' || visibleStat === 'turnovers'} />
-                            <HeaderCell label="FG%" sortKey="fgPct" align="right" visible={visibleStat === 'all'} />
-                            <HeaderCell label="3P%" sortKey="threePct" align="right" visible={visibleStat === 'all'} />
-                            <HeaderCell label="FT%" sortKey="ftPct" align="right" visible={visibleStat === 'all'} />
-                            <HeaderCell label="EWA" sortKey="ewa" align="center" visible={visibleStat === 'all' || visibleStat === 'ewa'} />
+                            <HeaderCell label="GP" sortKey="gp" />
+                            <HeaderCell label="MIN" sortKey="mpg" />
+                            <HeaderCell label="PTS" sortKey="points" visible={visibleStat === 'all' || visibleStat === 'points'} />
+                            <HeaderCell label="AST" sortKey="assists" visible={visibleStat === 'all' || visibleStat === 'assists'} />
+                            <HeaderCell label="REB" sortKey="rebounds" visible={visibleStat === 'all' || visibleStat === 'rebounds'} />
+                            <HeaderCell label="STL" sortKey="steals" visible={visibleStat === 'all' || visibleStat === 'steals'} />
+                            <HeaderCell label="BLK" sortKey="blocks" visible={visibleStat === 'all' || visibleStat === 'blocks'} />
+                            <HeaderCell label="TOV" sortKey="turnovers" visible={visibleStat === 'all' || visibleStat === 'turnovers'} />
+                            <HeaderCell label="FG%" sortKey="fgPct" visible={visibleStat === 'all'} />
+                            <HeaderCell label="3P%" sortKey="threePct" visible={visibleStat === 'all'} />
+                            <HeaderCell label="FT%" sortKey="ftPct" visible={visibleStat === 'all'} />
+                            <HeaderCell label="EWA" sortKey="ewa" visible={visibleStat === 'all' || visibleStat === 'ewa'} />
                         </tr>
                     </thead>
                     <tbody>
@@ -271,26 +290,35 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                             const fgPct = stats.fgAttempted > 0 ? ((stats.fgMade / stats.fgAttempted) * 100).toFixed(1) : '0.0';
                             const threePct = stats.threeAttempted > 0 ? ((stats.threeMade / stats.threeAttempted) * 100).toFixed(1) : '0.0';
                             const ftPct = stats.ftAttempted > 0 ? ((stats.ftMade / stats.ftAttempted) * 100).toFixed(1) : '0.0';
+                            const isHighlighted = highlightedRow === p.id;
 
                             return (
                                 <tr
                                     key={p.id}
-                                    style={{ borderBottom: '1px solid var(--border-color)', cursor: 'pointer', background: index % 2 === 0 ? '#fff' : '#fafafa' }}
-                                    onClick={() => onSelectPlayer(p.id)}
+                                    style={{ 
+                                        borderBottom: '1px solid var(--border-color)', 
+                                        cursor: 'pointer', 
+                                        background: isHighlighted ? 'rgba(52, 152, 219, 0.1)' : 'transparent',
+                                        transition: 'background 0.15s'
+                                    }}
+                                    className="list-row-hover"
+                                    onClick={() => {
+                                        setHighlightedRow(isHighlighted ? null : p.id);
+                                        onSelectPlayer(p.id);
+                                    }}
                                 >
-                                    <td style={{
-                                        padding: '12px 10px',
+                                    <td className="sticky-col" style={{
                                         fontWeight: 'bold',
                                         color: 'var(--text-main)',
-                                        position: 'sticky',
                                         left: 0,
                                         zIndex: 10,
-                                        background: index % 2 === 0 ? '#fff' : '#fafafa',
-                                        boxShadow: '2px 0 5px rgba(0,0,0,0.05)'
+                                        background: isHighlighted ? 'rgba(52, 152, 219, 0.1)' : 'var(--bg-card)',
+                                        textAlign: 'center',
+                                        transition: 'background 0.15s'
                                     }}>
                                         {p.firstName} {p.lastName}
                                     </td>
-                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{p.position}</td>
+                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)', textAlign: 'center' }}>{p.position}</td>
                                     <td style={{ padding: '10px', textAlign: 'center', color: 'var(--text-muted)' }}>{p.age}</td>
                                     <td style={{ padding: '10px', textAlign: 'center' }}>
                                         <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -299,15 +327,15 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                                     </td>
                                     <td style={{ padding: '12px 10px', color: 'var(--text-muted)', textAlign: 'center' }}>{stats.gamesPlayed}</td>
                                     <td style={{ padding: '12px 10px', color: 'var(--text-muted)', textAlign: 'center' }}>{((stats.minutes || 0) / gp).toFixed(1)}</td>
-                                    {isVisible('points') && <td style={{ padding: '12px 10px', color: 'var(--text-main)', textAlign: 'right', fontWeight: 'bold' }}>{(stats.points / gp).toFixed(1)}</td>}
-                                    {isVisible('assists') && <td style={{ padding: '12px 10px', textAlign: 'right', color: 'var(--text-main)' }}>{(stats.assists / gp).toFixed(1)}</td>}
-                                    {isVisible('rebounds') && <td style={{ padding: '12px 10px', textAlign: 'right', color: 'var(--text-main)' }}>{(stats.rebounds / gp).toFixed(1)}</td>}
-                                    {isVisible('steals') && <td style={{ padding: '12px 10px', textAlign: 'right', color: 'var(--text-main)' }}>{(stats.steals / gp).toFixed(1)}</td>}
-                                    {isVisible('blocks') && <td style={{ padding: '12px 10px', textAlign: 'right', color: 'var(--text-main)' }}>{(stats.blocks / gp).toFixed(1)}</td>}
-                                    {isVisible('turnovers') && <td style={{ padding: '12px 10px', textAlign: 'right', color: 'var(--text-main)' }}>{((stats.turnovers || 0) / gp).toFixed(1)}</td>}
-                                    {visibleStat === 'all' && <td style={{ padding: '12px 10px', textAlign: 'right', color: 'var(--text-muted)' }}>{fgPct}%</td>}
-                                    {visibleStat === 'all' && <td style={{ padding: '12px 10px', textAlign: 'right', color: 'var(--text-muted)' }}>{threePct}%</td>}
-                                    {visibleStat === 'all' && <td style={{ padding: '12px 10px', textAlign: 'right', color: 'var(--text-muted)' }}>{ftPct}%</td>}
+                                    {isVisible('points') && <td style={{ padding: '12px 10px', color: 'var(--text-main)', textAlign: 'center', fontWeight: 'bold' }}>{(stats.points / gp).toFixed(1)}</td>}
+                                    {isVisible('assists') && <td style={{ padding: '12px 10px', textAlign: 'center', color: 'var(--text-main)' }}>{(stats.assists / gp).toFixed(1)}</td>}
+                                    {isVisible('rebounds') && <td style={{ padding: '12px 10px', textAlign: 'center', color: 'var(--text-main)' }}>{(stats.rebounds / gp).toFixed(1)}</td>}
+                                    {isVisible('steals') && <td style={{ padding: '12px 10px', textAlign: 'center', color: 'var(--text-main)' }}>{(stats.steals / gp).toFixed(1)}</td>}
+                                    {isVisible('blocks') && <td style={{ padding: '12px 10px', textAlign: 'center', color: 'var(--text-main)' }}>{(stats.blocks / gp).toFixed(1)}</td>}
+                                    {isVisible('turnovers') && <td style={{ padding: '12px 10px', textAlign: 'center', color: 'var(--text-main)' }}>{((stats.turnovers || 0) / gp).toFixed(1)}</td>}
+                                    {visibleStat === 'all' && <td style={{ padding: '12px 10px', textAlign: 'center', color: 'var(--text-muted)' }}>{fgPct}%</td>}
+                                    {visibleStat === 'all' && <td style={{ padding: '12px 10px', textAlign: 'center', color: 'var(--text-muted)' }}>{threePct}%</td>}
+                                    {visibleStat === 'all' && <td style={{ padding: '12px 10px', textAlign: 'center', color: 'var(--text-muted)' }}>{ftPct}%</td>}
                                     {(visibleStat === 'all' || visibleStat === 'ewa') && <td style={{ padding: '12px 10px', color: 'var(--primary)', textAlign: 'center', fontWeight: 'bold' }}>{calculateEWA(p)}</td>}
                                 </tr>
                             );
@@ -315,6 +343,58 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                     </tbody>
                 </table>
             </div>
+                </>
+            ) : (
+                <div className="premium-table-wrapper" style={{ border: 'none', background: 'transparent' }}>
+                    <table className="premium-table">
+                        <thead>
+                            <tr>
+                                <th className="sticky-col">Team</th>
+                                <th>Record</th>
+                                <th>PPG</th>
+                                <th>OPP PPG</th>
+                                <th>REB</th>
+                                <th>AST</th>
+                                <th>FG%</th>
+                                <th>3P%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {[...teams].sort((a,b) => b.wins - a.wins).map(t => {
+                                const tPlayers = players.filter(p => p.teamId === t.id);
+                                const gp = (t.wins + t.losses) || 1;
+                                
+                                const ppg = tPlayers.reduce((s, p) => s + (p.seasonStats?.points || 0), 0) / gp;
+                                const rpg = tPlayers.reduce((s, p) => s + (p.seasonStats?.rebounds || 0), 0) / gp;
+                                const apg = tPlayers.reduce((s, p) => s + (p.seasonStats?.assists || 0), 0) / gp;
+                                
+                                const fgm = tPlayers.reduce((s, p) => s + (p.seasonStats?.fgMade || 0), 0);
+                                const fga = tPlayers.reduce((s, p) => s + (p.seasonStats?.fgAttempted || 0), 0) || 1;
+                                const fgPct = (fgm / fga * 100).toFixed(1);
+
+                                const t3m = tPlayers.reduce((s, p) => s + (p.seasonStats?.threeMade || 0), 0);
+                                const t3a = tPlayers.reduce((s, p) => s + (p.seasonStats?.threeAttempted || 0), 0) || 1;
+                                const t3Pct = (t3m / t3a * 100).toFixed(1);
+
+                                return (
+                                    <tr key={t.id} onClick={() => handleTeamChange(t.id)} style={{ cursor: 'pointer' }}>
+                                        <td className="sticky-col" style={{ fontWeight: 800, background: 'var(--bg-card)' }}>
+                                            {t.abbreviation} {t.name}
+                                        </td>
+                                        <td style={{ fontWeight: 700 }}>{t.wins}-{t.losses}</td>
+                                        <td style={{ fontWeight: 700, color: 'var(--primary)' }}>{ppg.toFixed(1)}</td>
+                                        <td>-</td> {/* We'd need game results to calculate OPP PPG properly, showing dash for now */}
+                                        <td>{rpg.toFixed(1)}</td>
+                                        <td>{apg.toFixed(1)}</td>
+                                        <td>{fgPct}%</td>
+                                        <td>{t3Pct}%</td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            )}
         </div>
     );
 };

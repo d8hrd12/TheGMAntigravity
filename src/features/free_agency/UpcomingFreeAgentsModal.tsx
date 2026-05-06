@@ -118,6 +118,8 @@ export const UpcomingFreeAgentsModal: React.FC<UpcomingFreeAgentsModalProps> = (
                                 const ppg = lastS ? (lastS.points / gp).toFixed(1) : '–';
                                 const rpg = lastS ? (lastS.rebounds / gp).toFixed(1) : '–';
                                 const apg = lastS ? (lastS.assists / gp).toFixed(1) : '–';
+                                const spg = lastS ? (lastS.steals / gp).toFixed(1) : '–';
+                                const bpg = lastS ? (lastS.blocks / gp).toFixed(1) : '–';
                                 const fgp = lastS && lastS.fgAttempted ? ((lastS.fgMade / lastS.fgAttempted) * 100).toFixed(0) : '-';
                                 const tp = lastS && lastS.threeAttempted ? ((lastS.threeMade / lastS.threeAttempted) * 100).toFixed(0) : '-';
 
@@ -140,12 +142,14 @@ export const UpcomingFreeAgentsModal: React.FC<UpcomingFreeAgentsModalProps> = (
                                             </div>
 
                                             {/* Stats Grid */}
-                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '15px', textAlign: 'center' }}>
-                                                <div><div style={{ fontSize: '0.7rem', color: '#666', fontWeight: 600 }}>PTS</div><div style={{ color: 'white', fontWeight: 700 }}>{ppg}</div></div>
-                                                <div><div style={{ fontSize: '0.7rem', color: '#666', fontWeight: 600 }}>REB</div><div style={{ color: 'white', fontWeight: 700 }}>{rpg}</div></div>
-                                                <div><div style={{ fontSize: '0.7rem', color: '#666', fontWeight: 600 }}>AST</div><div style={{ color: 'white', fontWeight: 700 }}>{apg}</div></div>
-                                                <div style={{ borderLeft: '1px solid #444', paddingLeft: '15px' }}><div style={{ fontSize: '0.7rem', color: '#666', fontWeight: 600 }}>FG%</div><div style={{ color: 'white', fontWeight: 700 }}>{fgp}%</div></div>
-                                                <div><div style={{ fontSize: '0.7rem', color: '#666', fontWeight: 600 }}>3P%</div><div style={{ color: 'white', fontWeight: 700 }}>{tp}%</div></div>
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '10px', textAlign: 'center', flex: 1 }}>
+                                                <div><div style={{ fontSize: '0.65rem', color: '#666', fontWeight: 600 }}>PTS</div><div style={{ color: 'white', fontWeight: 700, fontSize: '0.9rem' }}>{ppg}</div></div>
+                                                <div><div style={{ fontSize: '0.65rem', color: '#666', fontWeight: 600 }}>REB</div><div style={{ color: 'white', fontWeight: 700, fontSize: '0.9rem' }}>{rpg}</div></div>
+                                                <div><div style={{ fontSize: '0.65rem', color: '#666', fontWeight: 600 }}>AST</div><div style={{ color: 'white', fontWeight: 700, fontSize: '0.9rem' }}>{apg}</div></div>
+                                                <div><div style={{ fontSize: '0.65rem', color: '#666', fontWeight: 600 }}>STL</div><div style={{ color: 'white', fontWeight: 700, fontSize: '0.9rem' }}>{spg}</div></div>
+                                                <div><div style={{ fontSize: '0.65rem', color: '#666', fontWeight: 600 }}>BLK</div><div style={{ color: 'white', fontWeight: 700, fontSize: '0.9rem' }}>{bpg}</div></div>
+                                                <div style={{ borderLeft: '1px solid #444', paddingLeft: '10px' }}><div style={{ fontSize: '0.65rem', color: '#666', fontWeight: 600 }}>FG%</div><div style={{ color: 'white', fontWeight: 700, fontSize: '0.9rem' }}>{fgp}%</div></div>
+                                                <div><div style={{ fontSize: '0.65rem', color: '#666', fontWeight: 600 }}>3P%</div><div style={{ color: 'white', fontWeight: 700, fontSize: '0.9rem' }}>{tp}%</div></div>
                                             </div>
                                         </div>
 

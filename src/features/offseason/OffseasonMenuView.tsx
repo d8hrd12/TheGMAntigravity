@@ -3,6 +3,7 @@ import React from 'react';
 import { useGame } from '../../store/GameContext';
 import { CheckCircle, Circle, Trophy, Search, Users, FileText, BarChart2, Calendar, DollarSign, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { SalaryPaymentModal } from '../ui/SalaryPaymentModal';
 
 export const OffseasonMenuView: React.FC = () => {
     const { 
@@ -16,11 +17,18 @@ export const OffseasonMenuView: React.FC = () => {
         paySalaries,
         startRegularSeason,
         endCoachFreeAgency,
-        setModalMessage
+        setModalMessage,
+        contracts
     } = useGame();
+
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = React.useState(false);
 
     const userTeam = teams.find(t => t.id === userTeamId);
     const currentYear = date.getFullYear();
+
+    const payrollAmount = contracts
+        .filter(c => c.teamId === userTeamId && c.yearsLeft > 0)
+        .reduce((sum, c) => sum + c.amount, 0);
 
     const tasks = [
         { 
@@ -81,6 +89,14 @@ export const OffseasonMenuView: React.FC = () => {
             phase: 'training'
         },
         { 
+            id: 'paySalaries', 
+            label: 'Pay Team Salaries', 
+            description: 'Disburse the payroll for the upcoming season.',
+            icon: <DollarSign size={24} />,
+            view: 'offseason_menu',
+            phase: 'offseason'
+        },
+        { 
             id: 'startSeason', 
             label: 'Begin Next Season', 
             description: 'Finalize your roster and start the new year.',
@@ -93,24 +109,45 @@ export const OffseasonMenuView: React.FC = () => {
     const isTaskCompleted = (id: string) => offseasonTasks?.[id as keyof typeof offseasonTasks];
 
     const isTaskLocked = (index: number) => {
+        const task = tasks[index];
+        
+        // Cannot go back to earlier tasks once progressed
+        const anyLaterTaskDone = tasks.slice(index + 1).some(t => isTaskCompleted(t.id));
+        if (anyLaterTaskDone) return true;
+
         if (index === 0) return false;
         const prevTask = tasks[index - 1];
-        // Special case: scouting is skippable
-        if (prevTask.id === 'scouting' && index > 1) {
-            // If scouting is skipped, we still need the task before scouting (retirements) to be done
-            return !isTaskCompleted('retirements');
+        
+        // Scouting is skippable
+        if (prevTask.id === 'scouting') {
+            const beforeScouting = tasks[index - 2];
+            return !isTaskCompleted(beforeScouting.id);
         }
+
+        // Training Results is skippable if Training is done
+        if (prevTask.id === 'trainingResults') {
+            return !isTaskCompleted('training');
+        }
+
         return !isTaskCompleted(prevTask.id);
     };
 
     const handleTaskClick = (task: any, index: number) => {
         if (isTaskLocked(index)) return;
 
+        if (task.id === 'paySalaries') {
+            if (isTaskCompleted('paySalaries')) return;
+            setIsPaymentModalOpen(true);
+            return;
+        }
+
         if (task.id === 'startSeason') {
-            // Handle season start logic
-            const paid = paySalaries();
-            if (!paid) {
-                setModalMessage("INSUFFICIENT FUNDS: Your franchise does not have enough cash to cover this year's player salaries. Try releasing expensive players or trading for cheaper assets.");
+            if (!isTaskCompleted('paySalaries')) {
+                setModalMessage({
+                    title: "PAYROLL PENDING",
+                    msg: "You must pay your player salaries before starting the next season.",
+                    type: "info"
+                });
                 return;
             }
             startRegularSeason();
@@ -119,7 +156,7 @@ export const OffseasonMenuView: React.FC = () => {
 
         if (task.id === 'resigning') {
             endCoachFreeAgency();
-            return;
+            // fall through to setGameState
         }
 
         setGameState(prev => ({
@@ -238,6 +275,26 @@ export const OffseasonMenuView: React.FC = () => {
                     );
                 })}
             </div>
+
+            <SalaryPaymentModal 
+                isOpen={isPaymentModalOpen}
+                onClose={() => setIsPaymentModalOpen(false)}
+                onPay={() => {
+                    const success = paySalaries();
+                    if (success) {
+                        setIsPaymentModalOpen(false);
+                    } else {
+                        // Usually handled by modal button being disabled, but for safety
+                        setModalMessage({
+                            title: "INSUFFICIENT FUNDS",
+                            msg: "Your franchise does not have enough cash to cover this year's player salaries.",
+                            type: "error"
+                        });
+                    }
+                }}
+                payrollAmount={payrollAmount}
+                currentCash={userTeam?.cash || 0}
+            />
         </div>
     );
 };

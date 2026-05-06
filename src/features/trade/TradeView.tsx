@@ -70,9 +70,10 @@ interface TradeViewProps {
     gmProfile?: any;
     draftOrder?: string[];
     seasonPhase?: string;
+    seasonGamesPlayed?: number;
 }
 
-export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, contracts, currentYear, salaryCap, initialAiPlayerId, initialProposal, onExecuteTrade, onBack, onSelectPlayer, gmProfile, draftOrder, seasonPhase }) => {
+export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, contracts, currentYear, salaryCap, initialAiPlayerId, initialProposal, onExecuteTrade, onBack, onSelectPlayer, gmProfile, draftOrder, seasonPhase, seasonGamesPlayed }) => {
 
     // Helper to find initial team based on player
     const getInitialTeamId = () => {
@@ -109,7 +110,30 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
     const [aiPickSelected, setAiPickSelected] = useState<string[]>(
         initialProposal ? ('proposerAssets' in initialProposal ? initialProposal.proposerAssets.picks.map(p => p.id) : initialProposal.aiPickIds) : []
     );
+    const isOffseason = ['scouting', 'draft', 'resigning', 'free_agency', 'retirement_summary', 'expansion_draft'].includes(seasonPhase || '');
+    const isRegularSeasonBeforeDeadline = (seasonPhase === 'regular_season' && (seasonGamesPlayed || 0) <= 40);
+    const canTrade = isOffseason || isRegularSeasonBeforeDeadline;
     const [feedback, setFeedback] = useState<string | null>(null);
+    const [tradeMessage, setTradeMessage] = useState<{ text: string, type: 'error' | 'info' | 'success' } | null>(null);
+
+    if (!canTrade) {
+        return (
+            <div style={{ padding: '40px 20px', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px solid var(--border-color)', margin: '20px' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '20px' }}>⏳</div>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '10px' }}>TRADE DEADLINE PASSED</h2>
+                <p style={{ color: 'var(--text-dim)', lineHeight: 1.6, maxWidth: '400px', margin: '0 auto 30px auto' }}>
+                    The mid-season trade deadline has passed. Roster moves are restricted until the next off-season begins at the Draft.
+                </p>
+                <button 
+                    onClick={onBack}
+                    className="btn-secondary"
+                    style={{ padding: '12px 30px', borderRadius: '12px', fontWeight: 700 }}
+                >
+                    RETURN TO DASHBOARD
+                </button>
+            </div>
+        );
+    }
 
     // Validate on load
     React.useEffect(() => {
@@ -421,7 +445,7 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
                                                 {p.year} | Round {p.round} | {userTeam.name} | {(p.originalTeamName || 'Unknown')}®
                                             </div>
                                         </div>
-                                        <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(getDraftPickValue(p, currentYear, opponentTeam || null, exactPick || undefined))}</div>
+                                        <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(opponentTeam ? getDraftPickValue(p, currentYear, opponentTeam, undefined, teams) : 0)}</div>
                                     </div>
                                 );
                             })}
@@ -434,8 +458,8 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
                         {opponentTeam && (
                             <div style={{ textAlign: 'right' }}>
                                 <div style={{ fontSize: '0.7rem', color: '#666', textTransform: 'uppercase' }}>Strategy</div>
-                                <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: opponentTeam.strategy.direction === 'Contender' ? '#f44336' : '#4caf50' }}>
-                                    {opponentTeam.strategy.direction}
+                                <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: opponentTeam.strategy?.direction === 'Contender' ? '#f44336' : '#4caf50' }}>
+                                    {opponentTeam.strategy?.direction}
                                 </div>
                             </div>
                         )}
@@ -516,7 +540,7 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
                                                 {p.year} | Round {p.round} | {opponentTeam?.name} | {(p.originalTeamName || 'Unknown')}®
                                             </div>
                                         </div>
-                                        <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(getDraftPickValue(p, currentYear, opponentTeam || null, exactPick || undefined))}</div>
+                                        <div style={{ fontWeight: 'bold', color: '#4caf50' }}>{Math.round(opponentTeam ? getDraftPickValue(p, currentYear, opponentTeam, undefined, teams) : 0)}</div>
                                     </div>
                                 );
                             })}
