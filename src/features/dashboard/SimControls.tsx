@@ -52,52 +52,25 @@ export const SimControls: React.FC = () => {
     const isSeasonComplete = seasonPhase === 'regular_season' && seasonGamesPlayed >= 82;
 
 
-    if (seasonPhase === 'scouting' || seasonPhase === 'offseason' || seasonPhase === 'pre_season' || seasonPhase === 'retirement_summary') {
+    if (
+        seasonPhase === 'scouting' || 
+        seasonPhase === 'offseason' || 
+        seasonPhase === 'pre_season' || 
+        seasonPhase === 'retirement_summary' ||
+        seasonPhase === 'training' ||
+        seasonPhase === 'draft' ||
+        seasonPhase === 'draft_summary' ||
+        seasonPhase === 'expansion_draft' ||
+        seasonPhase === 'coach_free_agency' ||
+        seasonPhase === 'resigning' ||
+        seasonPhase === 'free_agency'
+    ) {
         return (
             <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
                 <SimButton
                     onClick={() => setView('offseason_menu')}
                     icon={Calendar}
-                    label="GO TO OFF SEASON"
-                    variant="primary"
-                />
-            </div>
-        );
-    }
-
-    if (seasonPhase === 'coach_free_agency') {
-        return (
-            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-                <SimButton
-                    onClick={endCoachFreeAgency}
-                    icon={ArrowRightLeft}
-                    label="START RESIGNING"
-                    variant="primary"
-                />
-            </div>
-        );
-    }
-
-    if (seasonPhase === 'resigning') {
-        return (
-            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-                <SimButton
-                    onClick={() => setView('resigning')}
-                    icon={ArrowRightLeft}
-                    label="GO TO RESIGNING"
-                    variant="primary"
-                />
-            </div>
-        );
-    }
-
-    if (seasonPhase === 'free_agency') {
-        return (
-            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-                <SimButton
-                    onClick={() => setView('free_agency')}
-                    icon={Calendar}
-                    label="GO TO FREE AGENCY"
+                    label="GO TO PRESEASON MENU"
                     variant="primary"
                 />
             </div>

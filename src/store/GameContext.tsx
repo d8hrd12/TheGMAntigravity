@@ -139,7 +139,7 @@ export interface GameState {
     draftResults: DraftResult[]; // Results of current/recent draft
     draftHistory: Record<number, DraftResult[]>; // Historical results by year
     playoffs: PlayoffSeries[];
-    seasonPhase: 'regular_season' | 'playoffs_r1' | 'playoffs_r2' | 'playoffs_r3' | 'playoffs_finals' | 'offseason' | 'pre_season' | 'draft' | 'draft_summary' | 'resigning' | 'free_agency' | 'retirement_summary' | 'expansion_draft' | 'scouting' | 'coach_free_agency';
+    seasonPhase: 'regular_season' | 'playoffs_r1' | 'playoffs_r2' | 'playoffs_r3' | 'playoffs_finals' | 'offseason' | 'pre_season' | 'draft' | 'draft_summary' | 'resigning' | 'free_agency' | 'retirement_summary' | 'expansion_draft' | 'scouting' | 'coach_free_agency' | 'training';
     expansionPool: Player[];
     salaryCap: number;
     transactions: { date: Date; type: string; description: string }[];
