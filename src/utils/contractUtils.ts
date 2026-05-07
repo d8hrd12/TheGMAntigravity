@@ -34,12 +34,13 @@ export const calculateContractAmount = (player: Player, salaryCap: number = 1400
     const minSalary = salaryCap * 0.008;
 
     const getBaseValue = (ovr: number) => {
-        if (ovr >= 93) return maxSalary;
-        if (ovr >= 88) return maxSalary * 0.85;
-        if (ovr >= 84) return maxSalary * 0.65;
-        if (ovr >= 80) return salaryCap * 0.15;
-        if (ovr >= 76) return salaryCap * 0.08;
-        if (ovr >= 72) return salaryCap * 0.04;
+        if (ovr >= 95) return maxSalary;
+        if (ovr >= 90) return maxSalary * 0.90;
+        if (ovr >= 86) return maxSalary * 0.75;
+        if (ovr >= 82) return salaryCap * 0.20; // ~28M
+        if (ovr >= 78) return salaryCap * 0.12; // ~16.8M
+        if (ovr >= 74) return salaryCap * 0.06; // ~8.4M
+        if (ovr >= 70) return salaryCap * 0.025; // ~3.5M
         return minSalary;
     };
 

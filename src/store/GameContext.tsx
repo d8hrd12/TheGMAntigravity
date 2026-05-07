@@ -2433,7 +2433,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         // AI GM Negotiation Skill: High skill = better home discount
                         const gm = prev.aiGms.find(g => g.id === team.gmId);
                         const negotiationSkill = gm?.skills.negotiation || 50;
-                        const discountFactor = 0.95 - (negotiationSkill / 1000); // 0.95 (50 skill) to 0.85 (100 skill)
+                        const discountFactor = 1.0 - (negotiationSkill / 1000); // 0.90 (100 skill) to 1.0 (0 skill) range
                         
                         contractNeeds.amount = Math.floor(contractNeeds.amount * discountFactor);
 

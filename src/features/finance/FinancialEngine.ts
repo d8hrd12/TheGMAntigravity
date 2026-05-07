@@ -308,39 +308,25 @@ export const calculateAnnualFinancials = (
     luxuryTaxThreshold: number,
     consecutiveTaxYears: number = 0
 ): AnnualFinancialReport => {
-    // 1. Guaranteed Income (85% of Salary Cap)
-    const guaranteedIncome = salaryCap * 0.85;
+    // 1. Guaranteed Income (70% of Salary Cap)
+    const guaranteedIncome = salaryCap * 0.70;
 
     // 2. Variable Income (Tickets, Merch, Ads)
-    // Base variable income is roughly 40% of cap to allow profit if good,
-    // but we want: Guaranteed (85%) + Variable (~30-50%) > Cap (100%)
-    // If they spend to Cap (100%), they need 15% more to break even.
-    // So Variable needs to be at least 15% of Cap for a mediocre team.
-
-    // Fan Interest drives this. 1.0 is average.
-    // Let's say Base Variable is 30% of Cap. 
-    // Variable = (Cap * 0.30) * FanInterest
-    // Example: Cap 140M. Guaranteed 119M. 
-    // Avg Team (1.0 Interest): Variable 42M. Total Rev = 161M.
-    // Payroll 140M. Profit +21M.
-    // Bad Team (0.6 Interest): Variable 25M. Total Rev = 144M. Profit +4M.
-    // Great Team (1.5 Interest): Variable 63M. Total Rev = 182M. Profit +42M.
-    // This allows saving up for Luxury Tax runs.
-
-    const baseVariable = salaryCap * 0.35; // Slightly generous to assist with "3 seasons runway"
+    // Adjusted variable income based on market size and fan interest
+    const marketMod = team.marketSize === 'Large' ? 1.2 : team.marketSize === 'Medium' ? 1.0 : 0.8;
+    const baseVariable = salaryCap * 0.35 * marketMod; 
     const variableIncome = baseVariable * (team.fanInterest || 1.0);
 
     const totalRevenue = guaranteedIncome + variableIncome;
 
-    // 3. Expenses (Payroll + Tax)
+    // 3. Expenses (Payroll + Tax + Operations)
     const payroll = contracts.reduce((sum, c) => sum + c.amount, 0);
+
+    // League Operations (Travel, Staff, Arena) - Roughly 5% of Revenue + 5M flat
+    const operationsCost = (totalRevenue * 0.05) + 5000000;
 
     let luxuryTaxPaid = 0;
     if (payroll > luxuryTaxThreshold) {
-        // Repeater Tax Rates:
-        // Year 1 (0 consecutive prev years): 1.50
-        // Year 2 (1 consecutive prev year): 2.75
-        // Year 3+ (2+ consecutive prev years): 4.50
         let taxRate = 1.5;
         if (consecutiveTaxYears >= 2) taxRate = 4.5;
         else if (consecutiveTaxYears === 1) taxRate = 2.75;
@@ -348,7 +334,7 @@ export const calculateAnnualFinancials = (
         luxuryTaxPaid = (payroll - luxuryTaxThreshold) * taxRate;
     }
 
-    const totalExpenses = payroll + luxuryTaxPaid;
+    const totalExpenses = payroll + luxuryTaxPaid + operationsCost;
     const netIncome = totalRevenue - totalExpenses;
 
     return {

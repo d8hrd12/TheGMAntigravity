@@ -148,10 +148,10 @@ export const simulateFreeAgencyDay = (
 
                 const gm = nextState.aiGms?.find(g => g.teamId === team.id);
                 // GM Negotiation skill effect
-                // negotiation 100 -> 0.85x base salary (good deal)
-                // negotiation 0 -> 1.15x base salary (overpay)
+                // negotiation 100 -> 0.90x base salary (good deal)
+                // negotiation 0 -> 1.0x base salary (no discount)
                 const negSkill = gm?.skills.negotiation ?? 50;
-                const negFactor = 1.15 - (negSkill / 100 * 0.30);
+                const negFactor = 1.05 - (negSkill / 100 * 0.15); // 0.90 to 1.05 range
 
                 let offerAmount = Math.floor(contractReq.amount * offerFactor * negFactor);
 
@@ -308,9 +308,12 @@ export const simulateFreeAgencyDay = (
             }
 
             // LOGIC FIX: Prevent "Cheap Signings"
-            // If the best offer is significantly below market value, REJECT IT (unless it's the deadline)
-            if (chosenOffer && bestScore < (marketValue * 0.8) && day < 7 && ovr < 90 && player.age < 33) {
-                // Players will wait for better offers unless they are ring chasing veterans
+            // If the best offer is significantly below market value, REJECT IT (unless it's the deadline or ring chasing)
+            const isRingChaser = player.age >= 35 || (player.age >= 33 && ovr < 80);
+            const rejectionThreshold = day < 4 ? 0.90 : (day < 7 ? 0.85 : 0.80);
+
+            if (chosenOffer && bestScore < (marketValue * rejectionThreshold) && !isRingChaser) {
+                // Players will wait for better offers unless they are desperate or ring chasing
                 chosenOffer = null;
             }
 
