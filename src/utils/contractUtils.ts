@@ -15,7 +15,7 @@ export const calculatePlayerValuation = (player: Player): number => {
     return Math.max(40, Math.min(99, perfOvr));
 };
 
-export const calculateContractAmount = (player: Player, salaryCap: number = 140000000): { amount: number; years: number; type?: 'standard' | 'prove_it' | 'breakout'; explanation: string } => {
+export const calculateContractAmount = (player: Player, salaryCap: number = 155000000): { amount: number; years: number; type?: 'standard' | 'prove_it' | 'breakout'; explanation: string } => {
     const overall = calculateOverall(player);
     const performanceVal = calculatePlayerValuation(player);
 
@@ -79,7 +79,7 @@ export const calculateContractAmount = (player: Player, salaryCap: number = 1400
     return { amount: Math.floor(amount), years, type, explanation };
 };
 
-export const generateContract = (player: Player, startYear: number, salaryCap: number = 140000000): Contract => {
+export const generateContract = (player: Player, startYear: number, salaryCap: number = 155000000): Contract => {
     const { amount, years } = calculateContractAmount(player, salaryCap);
     return {
         id: generateUUID(),

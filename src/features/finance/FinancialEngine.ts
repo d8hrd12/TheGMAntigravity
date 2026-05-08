@@ -21,8 +21,8 @@ interface FinancialUpdate {
 
 
 // --- Constants ---
-const SALARY_CAP = 140000000;
-const LUXURY_TAX_THRESHOLD = 170000000;
+const SALARY_CAP = 155000000;
+const LUXURY_TAX_THRESHOLD = 188000000;
 
 // --- Core Functions ---
 

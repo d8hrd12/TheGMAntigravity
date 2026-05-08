@@ -274,20 +274,23 @@ export function seedRealRosters(teams: Team[]): { players: Player[], contracts: 
                     }
                 };
                 // Generate Real Contract
-                const fairSalary = calculateFairSalary(player.overall);
-                let years = Math.floor(Math.random() * 4) + 1; // 1-4 years
+                let contractAmount = calculateFairSalary(player.overall);
+                let yearsLeft = Math.floor(Math.random() * 4) + 1; // 1-4 years
 
-                // CORNERSTONE PROTECTION: High-rated players get 3-5 year deals
-                if (player.overall >= 85) {
-                    years = Math.floor(Math.random() * 3) + 3; // 3-5 years
+                if (def.contract) {
+                    contractAmount = def.contract.amount;
+                    yearsLeft = def.contract.years;
+                } else if (player.overall >= 85) {
+                    // CORNERSTONE PROTECTION fallback
+                    yearsLeft = Math.floor(Math.random() * 3) + 3; // 3-5 years
                 }
 
                 allContracts.push({
                     id: generateUUID(),
                     playerId: player.id,
                     teamId: team.id,
-                    amount: fairSalary,
-                    yearsLeft: years,
+                    amount: contractAmount,
+                    yearsLeft: yearsLeft,
                     startYear: 2024,
                     role: 'Starter'
                 });

@@ -243,21 +243,27 @@ export const importNbaPlayers = async (teams: Team[], existingPlayers: Player[])
             teamRosterCounts[teamId]++;
 
             // Generate Contract for imported player
-            const fairOvr = player.overall;
-            const fairSalary = calculateFairSalary(fairOvr);
+            let contractAmount = calculateFairSalary(player.overall);
+            let yearsLeft = Math.floor(Math.random() * 4) + 1;
 
-            // Randomize years (1-4), but stars get 3-5
-            let years = Math.floor(Math.random() * 4) + 1;
-            if (fairOvr >= 89) {
-                years = Math.floor(Math.random() * 3) + 3; // 3 to 5
+            // OVERRIDE WITH REAL CONTRACT DATA IF AVAILABLE
+            if (team && REAL_ROSTERS[team.abbreviation]) {
+                const realPlayer = REAL_ROSTERS[team.abbreviation].find(p => p.firstName === firstName && p.lastName === lastName);
+                if (realPlayer && realPlayer.contract) {
+                    contractAmount = realPlayer.contract.amount;
+                    yearsLeft = realPlayer.contract.years;
+                }
+            } else if (player.overall >= 89) {
+                // Fallback cornerstone protection
+                yearsLeft = Math.floor(Math.random() * 3) + 3; // 3 to 5
             }
 
             newContracts.push({
                 id: `cont_${player.id}`,
                 playerId: player.id,
                 teamId: teamId,
-                amount: fairSalary,
-                yearsLeft: years,
+                amount: contractAmount,
+                yearsLeft: yearsLeft,
                 startYear: 2024, // Assuming current season
                 role: player.overall > 80 ? 'Starter' : 'Rotation'
             });

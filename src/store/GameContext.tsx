@@ -378,7 +378,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         currentHallOfFame: [],
         seasonPhase: 'regular_season',
         playoffs: [],
-        salaryCap: 140500000,
+        salaryCap: 155000000,
         transactions: [],
         messages: [],
         awardsHistory: [],
@@ -424,8 +424,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }, [gameState]);
 
     // Constants
-    const SALARY_CAP = 140000000;
-    const LUXURY_TAX_THRESHOLD = 170000000;
+    const SALARY_CAP = 155000000;
+    const LUXURY_TAX_THRESHOLD = 188000000;
     const MIN_ROSTER_SIZE = 8;
     const MAX_ROSTER_SIZE = 15;
     const [simTarget, setSimTarget] = useState<'none' | 'deadline' | 'playoffs' | 'playoffs_end' | 'round'>('none');
@@ -872,7 +872,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 console.log(`GameContext: Expansion Pool initialized with ${currentExpansionPool.length} players.`);
             }
 
-            const INITIAL_SALARY_CAP = 140000000;
+            const INITIAL_SALARY_CAP = 155000000;
 
             // 4. Initialize AI GMs
             const allTeamIds = teams.map(t => t.id);
@@ -893,7 +893,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 t.salaryCapSpace = INITIAL_SALARY_CAP - totalSalary;
                 
                 // Ensure healthy starting cash (Standard NBA Reserve)
-                t.cash = 350000000;
+                t.cash = 100000000;
 
                 if (t.id === userTeamId) {
                     if (difficulty === 'Easy') t.cash += 50000000;

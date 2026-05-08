@@ -67,8 +67,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 17000000,
-        "years": 2
+        "amount": 22841455,
+        "years": 4
       }
     },
     {
@@ -116,8 +116,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 11000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -165,7 +165,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 18000000,
+        "amount": 21057065,
         "years": 2
       }
     },
@@ -220,8 +220,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 4921797,
+        "years": 6
       }
     },
     {
@@ -262,8 +262,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 6000000,
-        "years": 2
+        "amount": 3218760,
+        "years": 3
       }
     },
     {
@@ -304,8 +304,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 5000000,
-        "years": 2
+        "amount": 2221677,
+        "years": 1
       }
     },
     {
@@ -346,7 +346,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 7000000,
+        "amount": 2221677,
         "years": 2
       }
     },
@@ -407,8 +407,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 21000000,
-        "years": 2
+        "amount": 46394100,
+        "years": 4
       }
     },
     {
@@ -502,7 +502,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 11000000,
+        "amount": 2674200,
         "years": 2
       }
     },
@@ -615,8 +615,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 33000000,
-        "years": 2
+        "amount": 55224526,
+        "years": 3
       }
     },
     {
@@ -663,8 +663,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 4356476,
+        "years": 1
       }
     },
     {
@@ -747,8 +747,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 2000000,
-        "years": 2
+        "amount": 623967,
+        "years": 1
       }
     },
     {
@@ -796,8 +796,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 15000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -842,8 +842,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 8177778,
+        "years": 3
       }
     }
   ],
@@ -889,8 +889,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "bail_out": "bronze"
       },
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -945,8 +945,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "bronze"
       },
       "contract": {
-        "amount": 22000000,
-        "years": 2
+        "amount": 33944954,
+        "years": 5
       }
     },
     {
@@ -985,7 +985,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 22000000,
+        "amount": 9690600,
         "years": 2
       }
     },
@@ -1040,8 +1040,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 15000000,
-        "years": 2
+        "amount": 6700000,
+        "years": 3
       }
     },
     {
@@ -1089,8 +1089,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 11000000,
-        "years": 2
+        "amount": 12700000,
+        "years": 4
       }
     },
     {
@@ -1142,7 +1142,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pick_dodger": "bronze"
       },
       "contract": {
-        "amount": 15000000,
+        "amount": 25000000,
         "years": 2
       }
     },
@@ -1239,8 +1239,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 12350392,
+        "years": 6
       }
     },
     {
@@ -1329,8 +1329,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 4000000,
-        "years": 2
+        "amount": 2270735,
+        "years": 1
       }
     },
     {
@@ -1379,8 +1379,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 9000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -1426,8 +1426,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -1488,8 +1488,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 28000000,
-        "years": 2
+        "amount": 54708609,
+        "years": 3
       }
     },
     {
@@ -1552,8 +1552,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "mini_marksman": "bronze"
       },
       "contract": {
-        "amount": 7000000,
-        "years": 2
+        "amount": 10603560,
+        "years": 3
       }
     },
     {
@@ -1604,8 +1604,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "gold"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 14130434,
+        "years": 3
       }
     },
     {
@@ -1664,8 +1664,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 5675766,
+        "years": 1
       }
     }
   ],
@@ -1716,8 +1716,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 11000000,
+        "years": 4
       }
     },
     {
@@ -1773,8 +1773,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pick_dodger": "silver"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 18102000,
+        "years": 3
       }
     },
     {
@@ -1818,7 +1818,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "interceptor": "bronze"
       },
       "contract": {
-        "amount": 9000000,
+        "amount": 2790720,
         "years": 2
       }
     },
@@ -1869,8 +1869,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "bronze"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 9187573,
+        "years": 1
       }
     },
     {
@@ -1918,8 +1918,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 11000000,
-        "years": 2
+        "amount": 7600000,
+        "years": 3
       }
     },
     {
@@ -1967,8 +1967,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 1131970,
+        "years": 1
       }
     },
     {
@@ -2016,7 +2016,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 11000000,
+        "amount": 6665520,
         "years": 2
       }
     },
@@ -2060,8 +2060,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "set_shot_specialist": "bronze"
       },
       "contract": {
-        "amount": 11000000,
-        "years": 2
+        "amount": 2349578,
+        "years": 3
       }
     },
     {
@@ -2102,8 +2102,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 5000000,
-        "years": 2
+        "amount": 1955377,
+        "years": 3
       }
     },
     {
@@ -2158,8 +2158,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 14000000,
+        "years": 3
       }
     },
     {
@@ -2222,8 +2222,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 24000000,
-        "years": 2
+        "amount": 45550512,
+        "years": 3
       }
     },
     {
@@ -2315,8 +2315,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "silver"
       },
       "contract": {
-        "amount": 11000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -2367,8 +2367,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 15000000,
-        "years": 2
+        "amount": 10200000,
+        "years": 4
       }
     },
     {
@@ -2417,8 +2417,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 7000000,
-        "years": 2
+        "amount": 3204816,
+        "years": 1
       }
     },
     {
@@ -2475,8 +2475,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "gold"
       },
       "contract": {
-        "amount": 28000000,
-        "years": 2
+        "amount": 45550512,
+        "years": 4
       }
     }
   ],
@@ -2525,8 +2525,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "gold"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 10102803,
+        "years": 4
       }
     },
     {
@@ -2573,8 +2573,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "unpluckable": "bronze"
       },
       "contract": {
-        "amount": 11000000,
-        "years": 2
+        "amount": 3000000,
+        "years": 3
       }
     },
     {
@@ -2627,8 +2627,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 15000000,
-        "years": 2
+        "amount": 18102000,
+        "years": 4
       }
     },
     {
@@ -2716,7 +2716,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pick_dodger": "silver"
       },
       "contract": {
-        "amount": 14000000,
+        "amount": 5820240,
         "years": 2
       }
     },
@@ -2777,8 +2777,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 23000000,
-        "years": 2
+        "amount": 13731368,
+        "years": 6
       }
     },
     {
@@ -2831,7 +2831,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 17000000,
+        "amount": 28500000,
         "years": 2
       }
     },
@@ -2880,8 +2880,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "float_game": "silver"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 12362338,
+        "years": 3
       }
     },
     {
@@ -2939,8 +2939,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 25000000,
-        "years": 2
+        "amount": 6580997,
+        "years": 6
       }
     },
     {
@@ -2991,8 +2991,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 8450704,
+        "years": 3
       }
     },
     {
@@ -3036,7 +3036,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "physical_finisher": "bronze"
       },
       "contract": {
-        "amount": 13000000,
+        "amount": 7163000,
         "years": 2
       }
     },
@@ -3090,7 +3090,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 16000000,
+        "amount": 18222222,
         "years": 2
       }
     },
@@ -3132,8 +3132,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 7000000,
-        "years": 2
+        "amount": 5182920,
+        "years": 3
       }
     },
     {
@@ -3174,8 +3174,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 9000000,
-        "years": 2
+        "amount": 6670882,
+        "years": 1
       }
     },
     {
@@ -3242,8 +3242,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 33000000,
-        "years": 2
+        "amount": 38333050,
+        "years": 6
       }
     }
   ],
@@ -3264,8 +3264,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 9069840,
+        "years": 4
       }
     },
     {
@@ -3312,7 +3312,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "physical_finisher": "bronze"
       },
       "contract": {
-        "amount": 12000000,
+        "amount": 2693760,
         "years": 2
       }
     },
@@ -3354,8 +3354,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 7000000,
-        "years": 2
+        "amount": 5742480,
+        "years": 3
       }
     },
     {
@@ -3443,8 +3443,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "bronze"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 8200000,
+        "years": 1
       }
     },
     {
@@ -3494,8 +3494,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "silver"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 2638200,
+        "years": 3
       }
     },
     {
@@ -3546,8 +3546,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "silver"
       },
       "contract": {
-        "amount": 13000000,
-        "years": 2
+        "amount": 19375000,
+        "years": 1
       }
     },
     {
@@ -3644,8 +3644,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "bronze"
       },
       "contract": {
-        "amount": 11000000,
-        "years": 2
+        "amount": 4150000,
+        "years": 1
       }
     },
     {
@@ -3676,7 +3676,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "gold"
       },
       "contract": {
-        "amount": 16000000,
+        "amount": 4278960,
         "years": 2
       }
     },
@@ -3732,8 +3732,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 9219512,
+        "years": 1
       }
     },
     {
@@ -3778,8 +3778,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "post_up_poet": "bronze"
       },
       "contract": {
-        "amount": 15000000,
-        "years": 2
+        "amount": 3000000,
+        "years": 3
       }
     },
     {
@@ -3836,8 +3836,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 19000000,
-        "years": 2
+        "amount": 46394100,
+        "years": 4
       }
     },
     {
@@ -3920,8 +3920,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 7000000,
-        "years": 2
+        "amount": 3675000,
+        "years": 3
       }
     },
     {
@@ -3964,7 +3964,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "set_shot_specialist": "bronze"
       },
       "contract": {
-        "amount": 11000000,
+        "amount": 6127080,
         "years": 2
       }
     },
@@ -4016,8 +4016,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "rebound_chaser": "bronze"
       },
       "contract": {
-        "amount": 17000000,
-        "years": 2
+        "amount": 4878938,
+        "years": 1
       }
     }
   ],
@@ -4065,8 +4065,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 1955377,
+        "years": 3
       }
     },
     {
@@ -4118,8 +4118,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 13000000,
-        "years": 2
+        "amount": 5000000,
+        "years": 1
       }
     },
     {
@@ -4160,7 +4160,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 8000000,
+        "amount": 3415000,
         "years": 2
       }
     },
@@ -4208,8 +4208,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -4255,7 +4255,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 11000000,
+        "amount": 724598,
         "years": 2
       }
     },
@@ -4308,8 +4308,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "bronze"
       },
       "contract": {
-        "amount": 15000000,
-        "years": 2
+        "amount": 4221360,
+        "years": 3
       }
     },
     {
@@ -4353,8 +4353,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 27000000,
-        "years": 2
+        "amount": 55224526,
+        "years": 4
       }
     },
     {
@@ -4399,8 +4399,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 2048494,
+        "years": 3
       }
     },
     {
@@ -4455,8 +4455,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 15000000,
-        "years": 2
+        "amount": 8382150,
+        "years": 1
       }
     },
     {
@@ -4484,8 +4484,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -4549,8 +4549,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 51666090,
+        "years": 3
       }
     },
     {
@@ -4603,8 +4603,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 8741209,
+        "years": 1
       }
     },
     {
@@ -4651,7 +4651,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "silver"
       },
       "contract": {
-        "amount": 11000000,
+        "amount": 2461463,
         "years": 2
       }
     },
@@ -4688,8 +4688,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 21000000,
-        "years": 2
+        "amount": 37958760,
+        "years": 4
       }
     },
     {
@@ -4708,8 +4708,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 11000000,
-        "years": 2
+        "amount": 11108880,
+        "years": 4
       }
     }
   ],
@@ -4757,8 +4757,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "gold"
       },
       "contract": {
-        "amount": 11000000,
-        "years": 2
+        "amount": 2301587,
+        "years": 5
       }
     },
     {
@@ -4806,7 +4806,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "on_ball_menace": "silver"
       },
       "contract": {
-        "amount": 9000000,
+        "amount": 2221677,
         "years": 2
       }
     },
@@ -4859,8 +4859,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "silver"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 13445754,
+        "years": 3
       }
     },
     {
@@ -4901,8 +4901,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 4000000,
-        "years": 2
+        "amount": 0,
+        "years": 0
       }
     },
     {
@@ -4957,8 +4957,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "unpluckable": "silver"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 5996274,
+        "years": 3
       }
     },
     {
@@ -5004,7 +5004,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "bronze"
       },
       "contract": {
-        "amount": 7000000,
+        "amount": 3634153,
         "years": 2
       }
     },
@@ -5055,7 +5055,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 14000000,
+        "amount": 3697105,
         "years": 2
       }
     },
@@ -5129,8 +5129,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 32000000,
-        "years": 2
+        "amount": 54126450,
+        "years": 3
       }
     },
     {
@@ -5221,7 +5221,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 7000000,
+        "amount": 2461463,
         "years": 2
       }
     },
@@ -5269,7 +5269,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "bronze"
       },
       "contract": {
-        "amount": 14000000,
+        "amount": 5134000,
         "years": 2
       }
     },
@@ -5326,7 +5326,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 15000000,
+        "amount": 22410605,
         "years": 2
       }
     },
@@ -5385,8 +5385,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 18000000,
-        "years": 2
+        "amount": 25318251,
+        "years": 4
       }
     },
     {
@@ -5469,8 +5469,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 4000000,
+        "years": 3
       }
     },
     {
@@ -5514,7 +5514,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 11000000,
+        "amount": 3303774,
         "years": 2
       }
     },
@@ -5556,8 +5556,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 4000000,
-        "years": 2
+        "amount": 1955377,
+        "years": 1
       }
     }
   ],
@@ -5607,8 +5607,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 3090480,
+        "years": 3
       }
     },
     {
@@ -5711,7 +5711,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 15000000,
+        "amount": 7275600,
         "years": 2
       }
     },
@@ -5764,8 +5764,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "silver"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 4677600,
+        "years": 3
       }
     },
     {
@@ -5815,7 +5815,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "post_lockdown": "silver"
       },
       "contract": {
-        "amount": 13000000,
+        "amount": 3539760,
         "years": 2
       }
     },
@@ -5874,7 +5874,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "hof"
       },
       "contract": {
-        "amount": 25000000,
+        "amount": 46394100,
         "years": 2
       }
     },
@@ -5916,8 +5916,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 4000000,
-        "years": 2
+        "amount": 2753280,
+        "years": 1
       }
     },
     {
@@ -5965,8 +5965,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 13000000,
-        "years": 2
+        "amount": 2349578,
+        "years": 3
       }
     },
     {
@@ -6018,8 +6018,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "gold"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 33296296,
+        "years": 1
       }
     },
     {
@@ -6067,8 +6067,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "off_ball_pest": "gold"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 2966760,
+        "years": 3
       }
     },
     {
@@ -6114,8 +6114,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "float_game": "bronze"
       },
       "contract": {
-        "amount": 9000000,
-        "years": 2
+        "amount": 4962033,
+        "years": 1
       }
     },
     {
@@ -6162,8 +6162,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "bronze"
       },
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -6204,8 +6204,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 8237640,
+        "years": 4
       }
     },
     {
@@ -6356,8 +6356,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 19000000,
-        "years": 2
+        "amount": 38095238,
+        "years": 3
       }
     },
     {
@@ -6398,8 +6398,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 7000000,
-        "years": 2
+        "amount": 6332520,
+        "years": 4
       }
     },
     {
@@ -6440,8 +6440,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 5000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -6491,7 +6491,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 14000000,
+        "amount": 4990560,
         "years": 2
       }
     },
@@ -6545,8 +6545,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "bronze"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 32500000,
+        "years": 4
       }
     },
     {
@@ -6599,8 +6599,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 19500000,
+        "years": 5
       }
     },
     {
@@ -6693,7 +6693,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "bronze"
       },
       "contract": {
-        "amount": 11000000,
+        "amount": 1955377,
         "years": 2
       }
     },
@@ -6735,7 +6735,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 9000000,
+        "amount": 1955377,
         "years": 2
       }
     },
@@ -6781,7 +6781,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 11000000,
+        "amount": 1955377,
         "years": 2
       }
     },
@@ -6825,8 +6825,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "set_shot_specialist": "silver"
       },
       "contract": {
-        "amount": 11000000,
-        "years": 2
+        "amount": 6383525,
+        "years": 1
       }
     },
     {
@@ -6879,7 +6879,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 17000000,
+        "amount": 27705357,
         "years": 2
       }
     },
@@ -6931,7 +6931,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "silver"
       },
       "contract": {
-        "amount": 13000000,
+        "amount": 2461463,
         "years": 2
       }
     },
@@ -6990,8 +6990,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 20000000,
-        "years": 2
+        "amount": 38661750,
+        "years": 5
       }
     },
     {
@@ -7090,7 +7090,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 16000000,
+        "amount": 28223215,
         "years": 2
       }
     },
@@ -7157,8 +7157,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 23000000,
-        "years": 2
+        "amount": 37096620,
+        "years": 4
       }
     },
     {
@@ -7209,7 +7209,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 13000000,
+        "amount": 11600000,
         "years": 2
       }
     },
@@ -7253,8 +7253,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "bronze"
       },
       "contract": {
-        "amount": 8000000,
-        "years": 2
+        "amount": 2378870,
+        "years": 3
       }
     },
     {
@@ -7303,7 +7303,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 11000000,
+        "amount": 3861600,
         "years": 2
       }
     },
@@ -7395,8 +7395,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 4000000,
-        "years": 2
+        "amount": 1955377,
+        "years": 1
       }
     },
     {
@@ -7441,8 +7441,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 4445417,
+        "years": 5
       }
     },
     {
@@ -7494,8 +7494,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 19000000,
-        "years": 2
+        "amount": 20482758,
+        "years": 1
       }
     },
     {
@@ -7540,7 +7540,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "interceptor": "bronze"
       },
       "contract": {
-        "amount": 10000000,
+        "amount": 1955377,
         "years": 2
       }
     },
@@ -7585,8 +7585,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "bronze"
       },
       "contract": {
-        "amount": 9000000,
-        "years": 2
+        "amount": 8307692,
+        "years": 1
       }
     },
     {
@@ -7637,8 +7637,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "bronze"
       },
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 26643031,
+        "years": 1
       }
     },
     {
@@ -7694,7 +7694,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "gold"
       },
       "contract": {
-        "amount": 21000000,
+        "amount": 31000000,
         "years": 2
       }
     }
@@ -7751,8 +7751,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 27678571,
+        "years": 1
       }
     },
     {
@@ -7793,8 +7793,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 6000000,
-        "years": 2
+        "amount": 2619000,
+        "years": 3
       }
     },
     {
@@ -7842,8 +7842,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -7902,8 +7902,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 22000000,
-        "years": 2
+        "amount": 28100000,
+        "years": 4
       }
     },
     {
@@ -7966,8 +7966,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 25000000,
-        "years": 2
+        "amount": 53142264,
+        "years": 4
       }
     },
     {
@@ -8037,8 +8037,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 29000000,
-        "years": 2
+        "amount": 54126450,
+        "years": 5
       }
     },
     {
@@ -8079,7 +8079,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 5000000,
+        "amount": 2221677,
         "years": 2
       }
     },
@@ -8121,7 +8121,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 7000000,
+        "amount": 2378870,
         "years": 2
       }
     },
@@ -8167,7 +8167,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "rebound_chaser": "bronze"
       },
       "contract": {
-        "amount": 7000000,
+        "amount": 2461463,
         "years": 2
       }
     },
@@ -8213,7 +8213,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 11000000,
+        "amount": 2349578,
         "years": 2
       }
     },
@@ -8266,8 +8266,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "silver"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 7232143,
+        "years": 3
       }
     },
     {
@@ -8313,8 +8313,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 13000000,
-        "years": 2
+        "amount": 10044644,
+        "years": 4
       }
     },
     {
@@ -8358,8 +8358,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 5000000,
-        "years": 2
+        "amount": 2546675,
+        "years": 1
       }
     }
   ],
@@ -8410,7 +8410,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "on_ball_menace": "bronze"
       },
       "contract": {
-        "amount": 15000000,
+        "amount": 7970280,
         "years": 2
       }
     },
@@ -8462,8 +8462,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "gold"
       },
       "contract": {
-        "amount": 18000000,
-        "years": 2
+        "amount": 36725670,
+        "years": 4
       }
     },
     {
@@ -8520,8 +8520,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 21000000,
-        "years": 2
+        "amount": 38661750,
+        "years": 5
       }
     },
     {
@@ -8573,7 +8573,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "gold"
       },
       "contract": {
-        "amount": 14000000,
+        "amount": 8333333,
         "years": 2
       }
     },
@@ -8632,8 +8632,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 17000000,
-        "years": 2
+        "amount": 35000000,
+        "years": 5
       }
     },
     {
@@ -8718,7 +8718,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "set_shot_specialist": "bronze"
       },
       "contract": {
-        "amount": 8000000,
+        "amount": 5529720,
         "years": 2
       }
     },
@@ -8772,8 +8772,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 11000000,
-        "years": 2
+        "amount": 15000000,
+        "years": 4
       }
     },
     {
@@ -8822,8 +8822,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "silver"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 5000000,
+        "years": 1
       }
     },
     {
@@ -8933,8 +8933,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 24000000,
-        "years": 2
+        "amount": 15334769,
+        "years": 6
       }
     },
     {
@@ -8975,8 +8975,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 3809520,
+        "years": 3
       }
     },
     {
@@ -9026,8 +9026,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "silver"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 7000000,
+        "years": 1
       }
     },
     {
@@ -9080,8 +9080,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "silver"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 10850000,
+        "years": 4
       }
     }
   ],
@@ -9147,8 +9147,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 28000000,
-        "years": 2
+        "amount": 54126450,
+        "years": 3
       }
     },
     {
@@ -9194,8 +9194,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "layup_mixmaster": "bronze"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 2270735,
+        "years": 1
       }
     },
     {
@@ -9241,8 +9241,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 9594044,
+        "years": 3
       }
     },
     {
@@ -9261,8 +9261,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 17000000,
-        "years": 2
+        "amount": 13825920,
+        "years": 4
       }
     },
     {
@@ -9371,8 +9371,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 14386320,
+        "years": 4
       }
     },
     {
@@ -9424,8 +9424,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "off_ball_pest": "bronze"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -9479,7 +9479,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 16000000,
+        "amount": 5253360,
         "years": 2
       }
     },
@@ -9527,8 +9527,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "silver"
       },
       "contract": {
-        "amount": 7000000,
-        "years": 2
+        "amount": 4000000,
+        "years": 1
       }
     },
     {
@@ -9575,8 +9575,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "layup_mixmaster": "bronze"
       },
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 6000000,
+        "years": 3
       }
     },
     {
@@ -9628,7 +9628,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "gold"
       },
       "contract": {
-        "amount": 15000000,
+        "amount": 16666667,
         "years": 2
       }
     },
@@ -9689,8 +9689,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "bronze"
       },
       "contract": {
-        "amount": 25000000,
-        "years": 2
+        "amount": 36566002,
+        "years": 3
       }
     },
     {
@@ -9740,8 +9740,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pick_dodger": "bronze"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 7714286,
+        "years": 3
       }
     },
     {
@@ -9788,7 +9788,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "high_flying_denier": "bronze"
       },
       "contract": {
-        "amount": 16000000,
+        "amount": 9000000,
         "years": 2
       }
     },
@@ -9830,8 +9830,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 9000000,
-        "years": 2
+        "amount": 1002360,
+        "years": 3
       }
     },
     {
@@ -9881,8 +9881,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 14152174,
+        "years": 5
       }
     }
   ],
@@ -9951,8 +9951,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 30000000,
-        "years": 2
+        "amount": 45550512,
+        "years": 4
       }
     },
     {
@@ -10007,7 +10007,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "bronze"
       },
       "contract": {
-        "amount": 14000000,
+        "amount": 11990000,
         "years": 2
       }
     },
@@ -10107,8 +10107,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 17000000,
-        "years": 2
+        "amount": 24393104,
+        "years": 4
       }
     },
     {
@@ -10154,8 +10154,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pick_dodger": "bronze"
       },
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 2191897,
+        "years": 1
       }
     },
     {
@@ -10204,8 +10204,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 8000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -10263,8 +10263,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "bronze"
       },
       "contract": {
-        "amount": 21000000,
-        "years": 2
+        "amount": 30864198,
+        "years": 3
       }
     },
     {
@@ -10305,7 +10305,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 5000000,
+        "amount": 2221677,
         "years": 2
       }
     },
@@ -10337,8 +10337,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pick_dodger": "bronze"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 11499872,
+        "years": 1
       }
     },
     {
@@ -10398,8 +10398,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 17000000,
-        "years": 2
+        "amount": 21551724,
+        "years": 5
       }
     },
     {
@@ -10444,8 +10444,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "lightning_launch": "bronze"
       },
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 6576120,
+        "years": 3
       }
     },
     {
@@ -10541,8 +10541,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 19000000,
-        "years": 2
+        "amount": 35000000,
+        "years": 3
       }
     },
     {
@@ -10583,8 +10583,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 2674080,
+        "years": 3
       }
     },
     {
@@ -10726,7 +10726,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 17000000,
+        "amount": 11968800,
         "years": 2
       }
     },
@@ -10782,8 +10782,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 18975000,
+        "years": 1
       }
     },
     {
@@ -10915,7 +10915,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 11000000,
+        "amount": 13645500,
         "years": 2
       }
     },
@@ -10962,7 +10962,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "bronze"
       },
       "contract": {
-        "amount": 10000000,
+        "amount": 13666667,
         "years": 2
       }
     },
@@ -11051,8 +11051,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 10015680,
+        "years": 4
       }
     },
     {
@@ -11109,8 +11109,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "gold"
       },
       "contract": {
-        "amount": 22000000,
-        "years": 2
+        "amount": 37958760,
+        "years": 4
       }
     },
     {
@@ -11158,8 +11158,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 11000000,
-        "years": 2
+        "amount": 3022108,
+        "years": 1
       }
     },
     {
@@ -11211,7 +11211,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 16000000,
+        "amount": 25000000,
         "years": 2
       }
     },
@@ -11259,7 +11259,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 11000000,
+        "amount": 2270735,
         "years": 2
       }
     },
@@ -11305,8 +11305,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "layup_mixmaster": "silver"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 2710680,
+        "years": 1
       }
     },
     {
@@ -11351,7 +11351,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 9000000,
+        "amount": 10739683,
         "years": 2
       }
     },
@@ -11443,8 +11443,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 8000000,
-        "years": 2
+        "amount": 7863240,
+        "years": 3
       }
     },
     {
@@ -11491,8 +11491,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "float_game": "bronze"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 8000000,
+        "years": 3
       }
     }
   ],
@@ -11538,8 +11538,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "rebound_chaser": "silver"
       },
       "contract": {
-        "amount": 5000000,
-        "years": 2
+        "amount": 1955377,
+        "years": 1
       }
     },
     {
@@ -11590,8 +11590,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 5500000,
+        "years": 1
       }
     },
     {
@@ -11652,8 +11652,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "bronze"
       },
       "contract": {
-        "amount": 28000000,
-        "years": 2
+        "amount": 34944001,
+        "years": 4
       }
     },
     {
@@ -11704,8 +11704,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "lightning_launch": "bronze"
       },
       "contract": {
-        "amount": 15000000,
-        "years": 2
+        "amount": 12947835,
+        "years": 1
       }
     },
     {
@@ -11768,8 +11768,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 19472240,
+        "years": 3
       }
     },
     {
@@ -11829,8 +11829,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 27000000,
-        "years": 2
+        "amount": 53142264,
+        "years": 3
       }
     },
     {
@@ -11929,8 +11929,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 19000000,
-        "years": 2
+        "amount": 24900000,
+        "years": 5
       }
     },
     {
@@ -11980,7 +11980,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 13000000,
+        "amount": 4333333,
         "years": 2
       }
     },
@@ -12031,8 +12031,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 15000000,
-        "years": 2
+        "amount": 12954546,
+        "years": 1
       }
     },
     {
@@ -12089,8 +12089,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 20000000,
-        "years": 2
+        "amount": 39568966,
+        "years": 4
       }
     },
     {
@@ -12131,8 +12131,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 4000000,
-        "years": 2
+        "amount": 2847600,
+        "years": 3
       }
     },
     {
@@ -12178,8 +12178,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "bronze"
       },
       "contract": {
-        "amount": 9000000,
-        "years": 2
+        "amount": 2191897,
+        "years": 3
       }
     }
   ],
@@ -12235,7 +12235,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 16000000,
+        "amount": 8775000,
         "years": 2
       }
     },
@@ -12277,8 +12277,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 4000000,
-        "years": 2
+        "amount": 1955377,
+        "years": 1
       }
     },
     {
@@ -12338,8 +12338,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 27000000,
-        "years": 2
+        "amount": 46394100,
+        "years": 5
       }
     },
     {
@@ -12389,7 +12389,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "strong_handle": "silver"
       },
       "contract": {
-        "amount": 15000000,
+        "amount": 14104000,
         "years": 2
       }
     },
@@ -12473,7 +12473,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 2000000,
+        "amount": 3809524,
         "years": 2
       }
     },
@@ -12521,8 +12521,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "gold"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 16834692,
+        "years": 3
       }
     },
     {
@@ -12571,8 +12571,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 15000000,
+        "years": 3
       }
     },
     {
@@ -12623,8 +12623,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "silver"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 10107163,
+        "years": 1
       }
     },
     {
@@ -12655,8 +12655,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 17000000,
-        "years": 2
+        "amount": 6483144,
+        "years": 1
       }
     },
     {
@@ -12699,8 +12699,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "aerial_wizard": "bronze"
       },
       "contract": {
-        "amount": 9000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -12749,7 +12749,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "bronze"
       },
       "contract": {
-        "amount": 11000000,
+        "amount": 2886720,
         "years": 2
       }
     },
@@ -12803,7 +12803,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 9000000,
+        "amount": 5335894,
         "years": 2
       }
     },
@@ -12896,8 +12896,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 26634146,
+        "years": 1
       }
     },
     {
@@ -12995,7 +12995,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 20000000,
+        "amount": 13937574,
         "years": 2
       }
     },
@@ -13037,8 +13037,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 3000000,
-        "years": 2
+        "amount": 1955377,
+        "years": 3
       }
     },
     {
@@ -13079,8 +13079,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 7000000,
-        "years": 2
+        "amount": 263940,
+        "years": 1
       }
     },
     {
@@ -13128,8 +13128,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "gold"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 4010160,
+        "years": 3
       }
     },
     {
@@ -13183,7 +13183,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 16000000,
+        "amount": 33654814,
         "years": 2
       }
     },
@@ -13234,8 +13234,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "silver"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 11500000,
+        "years": 1
       }
     },
     {
@@ -13276,7 +13276,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 11000000,
+        "amount": 6000000,
         "years": 2
       }
     },
@@ -13332,8 +13332,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 11571429,
+        "years": 3
       }
     },
     {
@@ -13382,8 +13382,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 13000000,
-        "years": 2
+        "amount": 3449323,
+        "years": 1
       }
     },
     {
@@ -13451,8 +13451,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 29000000,
-        "years": 2
+        "amount": 52627153,
+        "years": 1
       }
     },
     {
@@ -13496,8 +13496,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "gold"
       },
       "contract": {
-        "amount": 30000000,
-        "years": 2
+        "amount": 45999660,
+        "years": 4
       }
     },
     {
@@ -13550,7 +13550,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "hof"
       },
       "contract": {
-        "amount": 14000000,
+        "amount": 19920855,
         "years": 2
       }
     },
@@ -13599,8 +13599,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 7000000,
-        "years": 2
+        "amount": 11000000,
+        "years": 1
       }
     },
     {
@@ -13653,8 +13653,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 18259259,
+        "years": 1
       }
     }
   ],
@@ -13703,8 +13703,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "strong_handle": "silver"
       },
       "contract": {
-        "amount": 13000000,
-        "years": 2
+        "amount": 7518518,
+        "years": 1
       }
     },
     {
@@ -13761,8 +13761,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 18000000,
-        "years": 2
+        "amount": 12888889,
+        "years": 1
       }
     },
     {
@@ -13803,8 +13803,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 9000000,
-        "years": 2
+        "amount": 5399118,
+        "years": 1
       }
     },
     {
@@ -13893,7 +13893,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 12000000,
+        "amount": 11000000,
         "years": 2
       }
     },
@@ -13943,7 +13943,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 13000000,
+        "amount": 9000000,
         "years": 2
       }
     },
@@ -13988,8 +13988,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pick_dodger": "bronze"
       },
       "contract": {
-        "amount": 9000000,
-        "years": 2
+        "amount": 7680524,
+        "years": 1
       }
     },
     {
@@ -14044,8 +14044,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "rebound_chaser": "gold"
       },
       "contract": {
-        "amount": 17000000,
-        "years": 2
+        "amount": 25000000,
+        "years": 4
       }
     },
     {
@@ -14086,7 +14086,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 8000000,
+        "amount": 2221677,
         "years": 2
       }
     },
@@ -14136,8 +14136,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 17991071,
+        "years": 1
       }
     },
     {
@@ -14184,8 +14184,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 5455560,
+        "years": 3
       }
     },
     {
@@ -14216,8 +14216,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "silver"
       },
       "contract": {
-        "amount": 17000000,
-        "years": 2
+        "amount": 21481481,
+        "years": 1
       }
     },
     {
@@ -14263,8 +14263,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "bronze"
       },
       "contract": {
-        "amount": 11000000,
-        "years": 2
+        "amount": 18000000,
+        "years": 4
       }
     },
     {
@@ -14312,8 +14312,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "gold"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 8000000,
+        "years": 3
       }
     },
     {
@@ -14403,8 +14403,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "bronze"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 18080496,
+        "years": 1
       }
     }
   ],
@@ -14447,8 +14447,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 7000000,
-        "years": 2
+        "amount": 5643732,
+        "years": 1
       }
     },
     {
@@ -14508,8 +14508,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "gold"
       },
       "contract": {
-        "amount": 23000000,
-        "years": 2
+        "amount": 36620603,
+        "years": 5
       }
     },
     {
@@ -14545,8 +14545,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 17000000,
-        "years": 2
+        "amount": 14375000,
+        "years": 3
       }
     },
     {
@@ -14594,8 +14594,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "bronze"
       },
       "contract": {
-        "amount": 15000000,
-        "years": 2
+        "amount": 7178400,
+        "years": 3
       }
     },
     {
@@ -14639,8 +14639,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 2221677,
+        "years": 1
       }
     },
     {
@@ -14691,8 +14691,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 32000001,
+        "years": 3
       }
     },
     {
@@ -14751,8 +14751,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 32400000,
+        "years": 3
       }
     },
     {
@@ -14793,7 +14793,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 8000000,
+        "amount": 3132000,
         "years": 2
       }
     },
@@ -14846,8 +14846,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 11550000,
+        "years": 1
       }
     },
     {
@@ -14888,8 +14888,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 7000000,
-        "years": 2
+        "amount": 2353647,
+        "years": 1
       }
     },
     {
@@ -14941,8 +14941,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 13285713,
+        "years": 1
       }
     },
     {
@@ -14996,7 +14996,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 15000000,
+        "amount": 10748040,
         "years": 2
       }
     },
@@ -15049,8 +15049,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 8399983,
+        "years": 5
       }
     },
     {
@@ -15091,7 +15091,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 5000000,
+        "amount": 686243,
         "years": 2
       }
     },
@@ -15145,8 +15145,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 17000000,
-        "years": 2
+        "amount": 2221677,
+        "years": 5
       }
     },
     {
@@ -15187,8 +15187,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 5000000,
-        "years": 2
+        "amount": 4422360,
+        "years": 4
       }
     }
   ],
@@ -15241,7 +15241,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "gold"
       },
       "contract": {
-        "amount": 15000000,
+        "amount": 16020000,
         "years": 2
       }
     },
@@ -15298,8 +15298,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "gold"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 24737010,
+        "years": 5
       }
     },
     {
@@ -15329,7 +15329,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 16000000,
+        "amount": 8750000,
         "years": 2
       }
     },
@@ -15371,8 +15371,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 3000000,
-        "years": 2
+        "amount": 1955377,
+        "years": 3
       }
     },
     {
@@ -15402,8 +15402,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pick_dodger": "bronze"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -15454,7 +15454,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 14000000,
+        "amount": 10000000,
         "years": 2
       }
     },
@@ -15510,8 +15510,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 22000000,
-        "years": 2
+        "amount": 18893980,
+        "years": 3
       }
     },
     {
@@ -15569,7 +15569,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "gold"
       },
       "contract": {
-        "amount": 24000000,
+        "amount": 39182693,
         "years": 2
       }
     },
@@ -15622,8 +15622,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 17000000,
-        "years": 2
+        "amount": 26580000,
+        "years": 1
       }
     },
     {
@@ -15664,7 +15664,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 8000000,
+        "amount": 712637,
         "years": 2
       }
     },
@@ -15728,7 +15728,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 27000000,
+        "amount": 50000000,
         "years": 2
       }
     },
@@ -15770,7 +15770,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 6000000,
+        "amount": 2654880,
         "years": 2
       }
     },
@@ -15822,7 +15822,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pick_dodger": "silver"
       },
       "contract": {
-        "amount": 13000000,
+        "amount": 5426400,
         "years": 2
       }
     },
@@ -15872,7 +15872,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "bronze"
       },
       "contract": {
-        "amount": 9000000,
+        "amount": 5601600,
         "years": 2
       }
     },
@@ -16011,7 +16011,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pick_dodger": "bronze"
       },
       "contract": {
-        "amount": 16000000,
+        "amount": 3687960,
         "years": 2
       }
     },
@@ -16065,8 +16065,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "gold"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 9219512,
+        "years": 3
       }
     },
     {
@@ -16126,7 +16126,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 16000000,
+        "amount": 25892857,
         "years": 2
       }
     },
@@ -16168,8 +16168,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 2221677,
+        "years": 1
       }
     },
     {
@@ -16278,7 +16278,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 22000000,
+        "amount": 54126450,
         "years": 2
       }
     },
@@ -16327,7 +16327,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 16000000,
+        "amount": 23799569,
         "years": 2
       }
     },
@@ -16373,8 +16373,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "bronze"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 11574075,
+        "years": 3
       }
     },
     {
@@ -16425,8 +16425,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "silver"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 1955377,
+        "years": 1
       }
     },
     {
@@ -16489,7 +16489,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "gold"
       },
       "contract": {
-        "amount": 29000000,
+        "amount": 59606817,
         "years": 2
       }
     },
@@ -16579,7 +16579,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 11000000,
+        "amount": 2221677,
         "years": 2
       }
     }
@@ -16630,7 +16630,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 15000000,
+        "amount": 12500000,
         "years": 2
       }
     },
@@ -16672,8 +16672,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 3000000,
-        "years": 2
+        "amount": 2537989,
+        "years": 4
       }
     },
     {
@@ -16723,7 +16723,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 11000000,
+        "amount": 2221677,
         "years": 2
       }
     },
@@ -16785,8 +16785,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 26000000,
-        "years": 2
+        "amount": 39446090,
+        "years": 3
       }
     },
     {
@@ -16887,8 +16887,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 24000000,
-        "years": 2
+        "amount": 35000000,
+        "years": 5
       }
     },
     {
@@ -16974,8 +16974,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "gold"
       },
       "contract": {
-        "amount": 13000000,
-        "years": 2
+        "amount": 1955377,
+        "years": 3
       }
     },
     {
@@ -17023,8 +17023,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "silver"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -17069,7 +17069,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "bronze"
       },
       "contract": {
-        "amount": 8000000,
+        "amount": 6165000,
         "years": 2
       }
     },
@@ -17121,7 +17121,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 11000000,
+        "amount": 21621500,
         "years": 2
       }
     },
@@ -17210,8 +17210,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "bronze"
       },
       "contract": {
-        "amount": 15000000,
-        "years": 2
+        "amount": 18485916,
+        "years": 3
       }
     },
     {
@@ -17260,8 +17260,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pick_dodger": "bronze"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 2270735,
+        "years": 3
       }
     },
     {
@@ -17312,8 +17312,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "bronze"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 8781000,
+        "years": 3
       }
     },
     {
@@ -17361,8 +17361,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 2301587,
+        "years": 1
       }
     },
     {
@@ -17412,8 +17412,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "gold"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 6045000,
+        "years": 3
       }
     }
   ],
@@ -17456,8 +17456,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 6000000,
-        "years": 2
+        "amount": 724598,
+        "years": 3
       }
     },
     {
@@ -17513,8 +17513,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 30801103,
+        "years": 3
       }
     },
     {
@@ -17570,8 +17570,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 13937574,
+        "years": 5
       }
     },
     {
@@ -17654,8 +17654,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 8000000,
-        "years": 2
+        "amount": 7520040,
+        "years": 4
       }
     },
     {
@@ -17700,7 +17700,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "set_shot_specialist": "gold"
       },
       "contract": {
-        "amount": 10000000,
+        "amount": 4741320,
         "years": 2
       }
     },
@@ -17756,7 +17756,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 16000000,
+        "amount": 31848215,
         "years": 2
       }
     },
@@ -17807,7 +17807,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 13000000,
+        "amount": 4500000,
         "years": 2
       }
     },
@@ -17859,7 +17859,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "bronze"
       },
       "contract": {
-        "amount": 13000000,
+        "amount": 1955377,
         "years": 2
       }
     },
@@ -17910,7 +17910,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 12000000,
+        "amount": 8000000,
         "years": 2
       }
     },
@@ -17959,7 +17959,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 12000000,
+        "amount": 6118644,
         "years": 2
       }
     },
@@ -18056,8 +18056,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 17000000,
-        "years": 2
+        "amount": 25000000,
+        "years": 4
       }
     },
     {
@@ -18105,8 +18105,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 15000000,
-        "years": 2
+        "amount": 3353040,
+        "years": 3
       }
     },
     {
@@ -18166,8 +18166,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 22000000,
-        "years": 2
+        "amount": 39446090,
+        "years": 3
       }
     }
   ],
@@ -18214,8 +18214,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pick_dodger": "bronze"
       },
       "contract": {
-        "amount": 9000000,
-        "years": 2
+        "amount": 699440,
+        "years": 1
       }
     },
     {
@@ -18271,8 +18271,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 18000000,
-        "years": 2
+        "amount": 7707709,
+        "years": 5
       }
     },
     {
@@ -18370,8 +18370,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 30000000,
+        "years": 5
       }
     },
     {
@@ -18412,8 +18412,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 7000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -18454,8 +18454,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 8000000,
-        "years": 2
+        "amount": 5480297,
+        "years": 1
       }
     },
     {
@@ -18512,8 +18512,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "silver"
       },
       "contract": {
-        "amount": 20000000,
-        "years": 2
+        "amount": 30731707,
+        "years": 1
       }
     },
     {
@@ -18560,8 +18560,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "gold"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 11000000,
+        "years": 1
       }
     },
     {
@@ -18607,7 +18607,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 9000000,
+        "amount": 2221677,
         "years": 2
       }
     },
@@ -18701,8 +18701,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pick_dodger": "gold"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 15161800,
+        "years": 4
       }
     },
     {
@@ -18755,8 +18755,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 15000000,
+        "years": 3
       }
     },
     {
@@ -18812,8 +18812,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "gold"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 30666666,
+        "years": 1
       }
     },
     {
@@ -18860,8 +18860,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 13975000,
+        "years": 4
       }
     },
     {
@@ -18905,8 +18905,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "break_starter": "bronze"
       },
       "contract": {
-        "amount": 11000000,
-        "years": 2
+        "amount": 2349578,
+        "years": 3
       }
     },
     {
@@ -18956,8 +18956,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "bronze"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 13197720,
+        "years": 3
       }
     }
   ],
@@ -19012,8 +19012,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 6837779,
+        "years": 1
       }
     },
     {
@@ -19054,8 +19054,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 7000000,
-        "years": 2
+        "amount": 3262560,
+        "years": 1
       }
     },
     {
@@ -19146,8 +19146,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 6000000,
-        "years": 2
+        "amount": 1955377,
+        "years": 1
       }
     },
     {
@@ -19237,7 +19237,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 10000000,
+        "amount": 6443984,
         "years": 2
       }
     },
@@ -19281,8 +19281,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "physical_finisher": "silver"
       },
       "contract": {
-        "amount": 11000000,
-        "years": 2
+        "amount": 2221677,
+        "years": 1
       }
     },
     {
@@ -19330,8 +19330,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 2349578,
+        "years": 1
       }
     },
     {
@@ -19384,7 +19384,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 17000000,
+        "amount": 38333050,
         "years": 2
       }
     },
@@ -19437,8 +19437,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 25352272,
+        "years": 3
       }
     },
     {
@@ -19484,7 +19484,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 9000000,
+        "amount": 3398640,
         "years": 2
       }
     },
@@ -19530,8 +19530,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 15500000,
+        "years": 3
       }
     },
     {
@@ -19619,8 +19619,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 11000000,
-        "years": 2
+        "amount": 2191897,
+        "years": 1
       }
     },
     {
@@ -19706,7 +19706,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 12000000,
+        "amount": 6250000,
         "years": 2
       }
     }
@@ -19756,8 +19756,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "bronze"
       },
       "contract": {
-        "amount": 9000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -19819,8 +19819,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "gold"
       },
       "contract": {
-        "amount": 26000000,
-        "years": 2
+        "amount": 53142264,
+        "years": 5
       }
     },
     {
@@ -19871,7 +19871,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 16000000,
+        "amount": 21124110,
         "years": 2
       }
     },
@@ -19919,8 +19919,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "gold"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 16875000,
+        "years": 3
       }
     },
     {
@@ -20019,8 +20019,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 18000000,
-        "years": 2
+        "amount": 33584499,
+        "years": 3
       }
     },
     {
@@ -20103,8 +20103,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 11000000,
-        "years": 2
+        "amount": 2349578,
+        "years": 1
       }
     },
     {
@@ -20145,8 +20145,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 9000000,
-        "years": 2
+        "amount": 6016080,
+        "years": 4
       }
     },
     {
@@ -20200,8 +20200,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "gold"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 6276531,
+        "years": 1
       }
     },
     {
@@ -20251,8 +20251,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 13000000,
-        "years": 2
+        "amount": 5000000,
+        "years": 1
       }
     },
     {
@@ -20297,8 +20297,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 9000000,
-        "years": 2
+        "amount": 1955377,
+        "years": 3
       }
     },
     {
@@ -20392,8 +20392,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "post_lockdown": "bronze"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 2657760,
+        "years": 3
       }
     }
   ],
@@ -20436,7 +20436,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 9000000,
+        "amount": 2221677,
         "years": 2
       }
     },
@@ -20494,8 +20494,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "gold"
       },
       "contract": {
-        "amount": 22000000,
-        "years": 2
+        "amount": 39446090,
+        "years": 3
       }
     },
     {
@@ -20540,8 +20540,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "bronze"
       },
       "contract": {
-        "amount": 9000000,
-        "years": 2
+        "amount": 6623456,
+        "years": 1
       }
     },
     {
@@ -20654,8 +20654,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 28000000,
-        "years": 2
+        "amount": 46394100,
+        "years": 3
       }
     },
     {
@@ -20718,8 +20718,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 24000000,
-        "years": 2
+        "amount": 46394100,
+        "years": 5
       }
     },
     {
@@ -20774,8 +20774,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 19000000,
-        "years": 2
+        "amount": 20000000,
+        "years": 4
       }
     },
     {
@@ -20819,8 +20819,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 9000000,
-        "years": 2
+        "amount": 3492480,
+        "years": 3
       }
     },
     {
@@ -20866,8 +20866,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -20921,8 +20921,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pick_dodger": "bronze"
       },
       "contract": {
-        "amount": 13000000,
-        "years": 2
+        "amount": 10000000,
+        "years": 1
       }
     },
     {
@@ -21011,7 +21011,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 14000000,
+        "amount": 15936452,
         "years": 2
       }
     },
@@ -21100,8 +21100,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "set_shot_specialist": "silver"
       },
       "contract": {
-        "amount": 10000000,
-        "years": 2
+        "amount": 8482144,
+        "years": 4
       }
     }
   ],
@@ -21190,8 +21190,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "post_up_poet": "bronze"
       },
       "contract": {
-        "amount": 9000000,
-        "years": 2
+        "amount": 5426400,
+        "years": 1
       }
     },
     {
@@ -21251,7 +21251,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "versatile_visionary": "bronze"
       },
       "contract": {
-        "amount": 20000000,
+        "amount": 24570000,
         "years": 2
       }
     },
@@ -21304,8 +21304,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 13000000,
-        "years": 2
+        "amount": 14104000,
+        "years": 3
       }
     },
     {
@@ -21348,8 +21348,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "posterizer": "bronze"
       },
       "contract": {
-        "amount": 9000000,
-        "years": 2
+        "amount": 4923720,
+        "years": 3
       }
     },
     {
@@ -21407,8 +21407,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "silver"
       },
       "contract": {
-        "amount": 22000000,
-        "years": 2
+        "amount": 42336000,
+        "years": 3
       }
     },
     {
@@ -21452,8 +21452,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "set_shot_specialist": "bronze"
       },
       "contract": {
-        "amount": 6000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -21499,8 +21499,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 12000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -21541,8 +21541,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 9000000,
-        "years": 2
+        "amount": 1955377,
+        "years": 1
       }
     },
     {
@@ -21638,8 +21638,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "gold"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 11144093,
+        "years": 6
       }
     },
     {
@@ -21688,8 +21688,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pick_dodger": "silver"
       },
       "contract": {
-        "amount": 13000000,
-        "years": 2
+        "amount": 2301587,
+        "years": 1
       }
     },
     {
@@ -21743,8 +21743,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 18797619,
+        "years": 3
       }
     },
     {
@@ -21842,7 +21842,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 20000000,
+        "amount": 47499660,
         "years": 2
       }
     }
@@ -21936,8 +21936,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 16000000,
-        "years": 2
+        "amount": 27000000,
+        "years": 4
       }
     },
     {
@@ -21956,8 +21956,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       },
       "badges": {},
       "contract": {
-        "amount": 13000000,
-        "years": 2
+        "amount": 12370320,
+        "years": 4
       }
     },
     {
@@ -22008,8 +22008,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 19000000,
+        "years": 1
       }
     },
     {
@@ -22101,8 +22101,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 7874853,
+        "years": 1
       }
     },
     {
@@ -22147,7 +22147,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "bronze"
       },
       "contract": {
-        "amount": 10000000,
+        "amount": 3000000,
         "years": 2
       }
     },
@@ -22198,7 +22198,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "gold"
       },
       "contract": {
-        "amount": 15000000,
+        "amount": 17500000,
         "years": 2
       }
     },
@@ -22248,8 +22248,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "brick_wall": "bronze"
       },
       "contract": {
-        "amount": 14000000,
-        "years": 2
+        "amount": 13445122,
+        "years": 1
       }
     },
     {
@@ -22293,8 +22293,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "slippery_off_ball": "silver"
       },
       "contract": {
-        "amount": 9000000,
-        "years": 2
+        "amount": 2296274,
+        "years": 1
       }
     },
     {
@@ -22347,8 +22347,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "bronze"
       },
       "contract": {
-        "amount": 13000000,
-        "years": 2
+        "amount": 11000000,
+        "years": 4
       }
     },
     {
@@ -22445,8 +22445,8 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pick_dodger": "silver"
       },
       "contract": {
-        "amount": 17000000,
-        "years": 2
+        "amount": 9560520,
+        "years": 3
       }
     },
     {
@@ -22488,7 +22488,7 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
         "pogo_stick": "silver"
       },
       "contract": {
-        "amount": 29000000,
+        "amount": 13376880,
         "years": 2
       }
     }

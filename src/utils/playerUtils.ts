@@ -137,7 +137,7 @@ export const getPotentialGrade = (potential: number): string => {
  * Formula: Min Salary + (Normalized OVR ^ 2.5) * (Max - Min)
  */
 export const calculateFairSalary = (ovr: number): number => {
-    const SALARY_CAP = 140000000;
+    const SALARY_CAP = 155000000;
     const MIN_SALARY = SALARY_CAP * 0.008; // Approx 1.1M
     
     let salary = MIN_SALARY;

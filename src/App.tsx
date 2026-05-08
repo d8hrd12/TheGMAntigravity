@@ -132,6 +132,42 @@ function AppContent() {
     showMidSeasonProgressionModal
   } = gameData;
 
+  // HANDLE BACK BUTTON (ANDROID)
+  useEffect(() => {
+    const handleBackButton = async () => {
+      // If in a sub-view, go back to dashboard
+      if (liveGameData) return; // Don't allow back during live game
+
+      if (selectedPlayerId) {
+        setSelectedPlayerId(null);
+        return;
+      }
+
+      if (selectedGame) {
+        setSelectedGame(null);
+        return;
+      }
+
+      if (view !== 'dashboard') {
+        setView('dashboard');
+        return;
+      }
+
+      // If already on dashboard, we can minimize the app or show exit prompt
+      if (view === 'dashboard') {
+        setShowExitModal(true);
+      }
+    };
+
+    const listener = CapApp.addListener('backButton', () => {
+      handleBackButton();
+    });
+
+    return () => {
+      listener.then(l => l.remove());
+    };
+  }, [view, selectedPlayerId, selectedGame, liveGameData]);
+
   // Trigger awards popup when simulation sets showAwardsModal
   useEffect(() => {
     if (showAwardsModal && awardsHistory.length > 0) {
