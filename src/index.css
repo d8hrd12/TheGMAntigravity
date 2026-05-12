@@ -47,6 +47,25 @@
   --bezel-width: 12px;
 }
 
+.euro-theme {
+  --font-main: 'Outfit', sans-serif;
+  --font-title: 'Outfit', sans-serif;
+  --primary: #EAB308;
+}
+
+.euro-theme h1, 
+.euro-theme h2, 
+.euro-theme h3, 
+.euro-theme h4 {
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.euro-theme body {
+  letter-spacing: -0.01em;
+}
+
 table {
   width: 100% !important;
   margin: 0 auto;

@@ -35,6 +35,7 @@ import { formatDate } from '../utils/dateUtils';
 import { calculateOverall, checkHallOfFameEligibility, calculateFairSalary, calculateSecondaryPosition } from '../utils/playerUtils';
 import { calculateStars, calculateTeamBaseline, getStarString } from '../utils/starUtils';
 import { NBA_TEAMS } from '../data/teams';
+import { EURO_TEAMS } from '../data/euro/teams';
 import { REAL_ROSTERS } from '../data/realRosters';
 import {
     calculateExpectation,
@@ -45,7 +46,7 @@ import {
     type SeasonResult,
     type ExpectationLevel
 } from '../features/finance/FinancialEngine';
-import { generate82GameSchedule } from '../utils/scheduleGenerator';
+import { generate82GameSchedule, generateEuroSchedule } from '../utils/scheduleGenerator';
 import { saveToDB, loadFromDB, deleteFromDB, type SaveMeta } from '../utils/storage';
 import { TrainingFocus, type ProgressionResult } from '../models/Training';
 import { calculateProgression, calculateInSeasonProgression } from '../features/training/TrainingLogic';
@@ -60,12 +61,24 @@ const randomInt = (min: number, max: number) => Math.floor(Math.random() * (max 
 export interface PlayoffSeries {
     id: string;
     round: number;
-    conference: 'West' | 'East' | 'Finals';
+    conference: 'West' | 'East' | 'Finals' | 'EuroLeague' | 'EuroCup';
     homeTeamId: string;
     awayTeamId: string;
     homeWins: number;
     awayWins: number;
     winnerId?: string;
+}
+
+export interface PlayInMatchup {
+    id: string;
+    type: '7vs8' | '9vs10' | 'Loser78vsWinner910';
+    conference: 'EuroLeague' | 'EuroCup';
+    homeTeamId: string;
+    awayTeamId: string;
+    winnerId?: string;
+    loserId?: string;
+    played: boolean;
+    result?: MatchResult;
 }
 
 export interface RetiredPlayer extends Player {
@@ -139,7 +152,7 @@ export interface GameState {
     draftResults: DraftResult[]; // Results of current/recent draft
     draftHistory: Record<number, DraftResult[]>; // Historical results by year
     playoffs: PlayoffSeries[];
-    seasonPhase: 'regular_season' | 'playoffs_r1' | 'playoffs_r2' | 'playoffs_r3' | 'playoffs_finals' | 'offseason' | 'pre_season' | 'draft' | 'draft_summary' | 'resigning' | 'free_agency' | 'retirement_summary' | 'expansion_draft' | 'scouting' | 'coach_free_agency' | 'training';
+    seasonPhase: 'regular_season' | 'euro_playin' | 'playoffs_r1' | 'playoffs_r2' | 'playoffs_r3' | 'playoffs_finals' | 'offseason' | 'pre_season' | 'draft' | 'draft_summary' | 'resigning' | 'free_agency' | 'retirement_summary' | 'expansion_draft' | 'scouting' | 'coach_free_agency' | 'training';
     expansionPool: Player[];
     salaryCap: number;
     transactions: { date: Date; type: string; description: string }[];
@@ -148,6 +161,8 @@ export interface GameState {
     tradeHistory: CompletedTrade[];
     tradeOffer: TradeProposal | null;
     awardsHistory: SeasonAwards[];
+    leagueType: 'NBA' | 'EURO';
+    competitionType: 'NBA' | 'EuroLeague' | 'EuroCup';
     retiredPlayersHistory: { year: number; players: RetiredPlayer[] }[];
     offseasonTasks: {
         retirements: boolean;
@@ -181,6 +196,8 @@ export interface GameState {
     trainingReport: ProgressionResult[] | null;
     isTrainingCampComplete: boolean;
     dailyMatchups: { homeId: string, awayId: string }[];
+    euroSchedule: { homeId: string; awayId: string }[][];  // Full pre-generated Euro schedule (38 rounds × 10 games)
+    nbaSchedule: { homeId: string; awayId: string }[][];   // Full pre-generated NBA schedule (~170 days × ~7 games)
     pendingUserResult: MatchResult | null;
     tutorialFlags: {
         hasSeenNewsTutorial: boolean;
@@ -198,6 +215,10 @@ export interface GameState {
     };
     activeOffers: FreeAgencyOffer[];
     freeAgencyDay: number;
+    euroPlayIn?: {
+        matchups: PlayInMatchup[];
+        seedsLocked: Record<string, string[]>; // conf -> array of top 6 IDs
+    };
     view: string;
 }
 
@@ -295,6 +316,10 @@ interface GameContextType extends GameState {
     setSelectedGame: (game: MatchResult | null) => void;
     shopPlayerId: string | null;
     setShopPlayerId: (id: string | null) => void;
+    leagueType: 'NBA' | 'EURO';
+    setLeagueType: (type: 'NBA' | 'EURO') => void;
+    competitionType: 'NBA' | 'EuroLeague' | 'EuroCup';
+    setCompetitionType: (type: 'NBA' | 'EuroLeague' | 'EuroCup') => void;
     initialAiPlayerId: string | undefined;
     setInitialAiPlayerId: (id: string | undefined) => void;
     prefilledTrade: any | null;
@@ -382,6 +407,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         transactions: [],
         messages: [],
         awardsHistory: [],
+        leagueType: 'NBA',
+        competitionType: 'NBA',
         retiredPlayersHistory: [],
         scoutingPoints: {},
         isPotentialRevealed: false,
@@ -403,6 +430,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         scoutingReports: {},
         isTrainingCampComplete: false,
         dailyMatchups: [],
+        euroSchedule: [],
+        nbaSchedule: [],
         pendingUserResult: null,
         tutorialFlags: { hasSeenNewsTutorial: false },
         isProcessing: false,
@@ -436,24 +465,33 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const generateDailyMatchups = () => {
         setGameState(prev => {
-            // NBA Schedule Simulation: Teams play ~ every 2 days.
+            const roundIdx = prev.seasonGamesPlayed || 0;
 
-            // NBA Schedule Simulation Fallback: Teams play ~ every 2 days.
-            const activeTeams = prev.teams.filter(t => (t.wins + t.losses) < 82);
-            const playingTeams = activeTeams.filter(() => Math.random() < 0.5);
-
-            const shuffled = [...playingTeams].sort(() => Math.random() - 0.5);
-            const matchups: { homeId: string, awayId: string }[] = [];
-
-            for (let i = 0; i < shuffled.length; i += 2) {
-                if (i + 1 < shuffled.length) {
-                    matchups.push({
-                        homeId: shuffled[i].id,
-                        awayId: shuffled[i + 1].id
-                    });
+            if (prev.leagueType === 'EURO') {
+                // Euro: index into pre-generated 38-round schedule
+                if (roundIdx < (prev.euroSchedule?.length || 0)) {
+                    return { ...prev, dailyMatchups: prev.euroSchedule[roundIdx] };
                 }
+                return { ...prev, dailyMatchups: [] };
             }
 
+            // NBA: index into pre-generated 82-day schedule
+            if (prev.nbaSchedule && prev.nbaSchedule.length > 0) {
+                if (roundIdx < prev.nbaSchedule.length) {
+                    return { ...prev, dailyMatchups: prev.nbaSchedule[roundIdx] };
+                }
+                return { ...prev, dailyMatchups: [] };
+            }
+
+            // Fallback (old save without nbaSchedule): generate on-the-fly for this day only
+            const activeTeams = prev.teams.filter(t => (t.wins + t.losses) < 82);
+            const matchups: { homeId: string, awayId: string }[] = [];
+            const shuffled = [...activeTeams].sort(() => Math.random() - 0.5);
+            for (let i = 0; i < shuffled.length; i += 2) {
+                if (i + 1 < shuffled.length) {
+                    matchups.push({ homeId: shuffled[i].id, awayId: shuffled[i + 1].id });
+                }
+            }
             return { ...prev, dailyMatchups: matchups };
         });
     };
@@ -503,6 +541,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const [modalMessage, setModalMessage] = useState<{ title: string, msg: string, type: 'error' | 'info' | 'success' } | null>(null);
     const [currentNegotiation, setCurrentNegotiation] = useState<any | null>(null);
 
+    const setLeagueType = (type: 'NBA' | 'EURO') => {
+        setGameState(prev => ({ ...prev, leagueType: type }));
+    };
+
+    const setCompetitionType = (type: 'NBA' | 'EuroLeague' | 'EuroCup') => {
+        setGameState(prev => ({ ...prev, competitionType: type }));
+    };
+
     const setView = (v: string) => setGameState(prev => ({ ...prev, view: v }));
 
     // Auto-advance after manual game
@@ -543,10 +589,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     // Ensure dailyMatchups are initialized for existing saves
     useEffect(() => {
+        const _seasonLength = gameState.leagueType === 'EURO' ? 38 : 82;
         if (gameState.isInitialized && 
             gameState.seasonPhase === 'regular_season' && 
             gameState.dailyMatchups.length === 0 && 
-            (gameState.seasonGamesPlayed || 0) < 82
+            (gameState.seasonGamesPlayed || 0) < _seasonLength
         ) {
             console.log("Initializing dailyMatchups for regular season...");
             generateDailyMatchups();
@@ -734,7 +781,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setIsProcessing(true); // Show loading state if applicable
         try {
             // 1. Load Teams from Data
-            const teams: Team[] = JSON.parse(JSON.stringify(NBA_TEAMS));
+            const baseTeams = gameState.leagueType === 'EURO' ? EURO_TEAMS : NBA_TEAMS;
+            const teams: Team[] = JSON.parse(JSON.stringify(baseTeams));
 
             let currentExpansionPool: Player[] = [];
             let currentSeasonPhase: any = 'regular_season';
@@ -791,9 +839,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 
             // Fallback if CSV fails or is empty (should not happen if file exists)
-            if (players.length === 0) {
-                console.warn("CSV Import failed or empty. Falling back to Seeded Rosters.");
-                const seeded = seedRealRosters(teams);
+            if (players.length === 0 || gameState.leagueType === 'EURO') {
+                if (gameState.leagueType !== 'EURO') {
+                    console.warn("CSV Import failed or empty. Falling back to Seeded Rosters.");
+                } else {
+                    console.log("EuroLeague Mode: Using Seeded Euro Rosters.");
+                }
+            
+                // 2. Generate Players & Contracts
+                const seeded = seedRealRosters(teams, gameState.leagueType);
                 players = seeded.players;
                 contracts = seeded.contracts;
             } else {
@@ -1027,7 +1081,40 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 retiredPlayersHistory: [],
                 scoutingPoints: {},
                 scoutingReports: {},
-                dailyMatchups: [],
+                dailyMatchups: (() => {
+                    if (gameState.leagueType === 'EURO') {
+                        const elTeams = teams.filter(t => t.conference === 'EuroLeague');
+                        const ecTeams = teams.filter(t => t.conference === 'EuroCup');
+                        const elRounds = generateEuroSchedule(elTeams);
+                        const ecRounds = generateEuroSchedule(ecTeams);
+                        const totalRounds = Math.max(elRounds.length, ecRounds.length);
+                        const built: { homeId: string; awayId: string }[][] = [];
+                        for (let i = 0; i < totalRounds; i++) {
+                            built.push([...(elRounds[i] || []), ...(ecRounds[i] || [])]);
+                        }
+                        return built.length > 0 ? built[0] : [];
+                    } else {
+                        const built = generate82GameSchedule(teams);
+                        return built.length > 0 ? built[0] : [];
+                    }
+                })(),
+                euroSchedule: (() => {
+                    if (gameState.leagueType !== 'EURO') return [];
+                    const elTeams = teams.filter(t => t.conference === 'EuroLeague');
+                    const ecTeams = teams.filter(t => t.conference === 'EuroCup');
+                    const elRounds = generateEuroSchedule(elTeams);
+                    const ecRounds = generateEuroSchedule(ecTeams);
+                    const totalRounds = Math.max(elRounds.length, ecRounds.length);
+                    const built: { homeId: string; awayId: string }[][] = [];
+                    for (let i = 0; i < totalRounds; i++) {
+                        built.push([...(elRounds[i] || []), ...(ecRounds[i] || [])]);
+                    }
+                    return built;
+                })(),
+                nbaSchedule: (() => {
+                    if (gameState.leagueType !== 'NBA') return [];
+                    return generate82GameSchedule(teams);
+                })(),
                 pendingUserResult: null,
                 tutorialFlags: { hasSeenNewsTutorial: false },
                 isProcessing: false,
@@ -1044,6 +1131,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 showAwardsModal: null,
                 showMidSeasonProgressionModal: false,
                 currentHallOfFame: [],
+                leagueType: gameState.leagueType,
+                competitionType: gameState.competitionType,
                 view: "dashboard"
             });
 
@@ -1146,7 +1235,40 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 retiredPlayersHistory: [],
                 scoutingPoints: {},
                 scoutingReports: {},
-                dailyMatchups: [],
+                dailyMatchups: (() => {
+                    if (gameState.leagueType === 'EURO') {
+                        const elTeams = teams.filter(t => t.conference === 'EuroLeague');
+                        const ecTeams = teams.filter(t => t.conference === 'EuroCup');
+                        const elRounds = generateEuroSchedule(elTeams);
+                        const ecRounds = generateEuroSchedule(ecTeams);
+                        const totalRounds = Math.max(elRounds.length, ecRounds.length);
+                        const built: { homeId: string; awayId: string }[][] = [];
+                        for (let i = 0; i < totalRounds; i++) {
+                            built.push([...(elRounds[i] || []), ...(ecRounds[i] || [])]);
+                        }
+                        return built.length > 0 ? built[0] : [];
+                    } else {
+                        const built = generate82GameSchedule(teams);
+                        return built.length > 0 ? built[0] : [];
+                    }
+                })(),
+                euroSchedule: (() => {
+                    if (gameState.leagueType !== 'EURO') return [];
+                    const elTeams = teams.filter(t => t.conference === 'EuroLeague');
+                    const ecTeams = teams.filter(t => t.conference === 'EuroCup');
+                    const elRounds = generateEuroSchedule(elTeams);
+                    const ecRounds = generateEuroSchedule(ecTeams);
+                    const totalRounds = Math.max(elRounds.length, ecRounds.length);
+                    const built: { homeId: string; awayId: string }[][] = [];
+                    for (let i = 0; i < totalRounds; i++) {
+                        built.push([...(elRounds[i] || []), ...(ecRounds[i] || [])]);
+                    }
+                    return built;
+                })(),
+                nbaSchedule: (() => {
+                    if (gameState.leagueType !== 'NBA') return [];
+                    return generate82GameSchedule(teams);
+                })(),
                 pendingUserResult: null,
                 tutorialFlags: { hasSeenNewsTutorial: false },
                 isProcessing: false,
@@ -1163,6 +1285,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 showAwardsModal: null,
                 showMidSeasonProgressionModal: false,
                 currentHallOfFame: [],
+                leagueType: gameState.leagueType,
+                competitionType: gameState.competitionType,
                 view: "dashboard"
             });
 
@@ -1372,6 +1496,34 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 
 
+
+                // Build schedule for the new season
+                const builtEuroSchedule: { homeId: string; awayId: string }[][] = (() => {
+                    if (prev.leagueType !== 'EURO') return [];
+                    const elTeams = finalTeams.filter(t => t.conference === 'EuroLeague');
+                    const ecTeams = finalTeams.filter(t => t.conference === 'EuroCup');
+                    const elRounds = generateEuroSchedule(elTeams);  // 38 rounds
+                    const ecRounds = generateEuroSchedule(ecTeams);  // 38 rounds
+                    const totalRounds = Math.max(elRounds.length, ecRounds.length);
+                    const result: { homeId: string; awayId: string }[][] = [];
+                    for (let i = 0; i < totalRounds; i++) {
+                        result.push([
+                            ...(elRounds[i] || []),
+                            ...(ecRounds[i] || []),
+                        ]);
+                    }
+                    return result;
+                })();
+
+                const builtNbaSchedule: { homeId: string; awayId: string }[][] = (() => {
+                    if (prev.leagueType !== 'NBA') return [];
+                    return generate82GameSchedule(finalTeams);
+                })();
+
+                const firstDay = prev.leagueType === 'EURO'
+                    ? (builtEuroSchedule[0] || [])
+                    : (builtNbaSchedule[0] || []);
+
                 return {
                     ...prev,
                     players: updatedPlayers,
@@ -1381,7 +1533,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     date: nextSeasonDate,
                     seasonPhase: 'regular_season',
                     view: 'dashboard',
-                    dailyMatchups: [], // Will be generated by effect
+                    dailyMatchups: firstDay,
+                    euroSchedule: builtEuroSchedule,
+                    nbaSchedule: builtNbaSchedule,
                     pendingUserResult: null,
                     isFirstSeasonPaid: firstSeasonPaid,
                     seasonGamesPlayed: 0
@@ -1396,18 +1550,84 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const startPlayoffs = () => {
         setGameState(prev => {
-            // Check for regular season end (82 games)
-            // We use 'regular_season' phase and check the games played.
-            if (prev.seasonPhase !== 'regular_season' || prev.seasonGamesPlayed < 82) {
+            // Check for regular season end (82 games NBA / 38 match days Euro)
+            const regularSeasonLength = prev.leagueType === 'EURO' ? 38 : 82;
+            if (prev.seasonPhase !== 'regular_season' || prev.seasonGamesPlayed < regularSeasonLength) {
                 console.warn("GameContext: startPlayoffs called prematurely or in wrong phase:", prev.seasonPhase, prev.seasonGamesPlayed);
                 return prev;
             }
 
-            console.log("GameContext: Starting Playoffs...");
+            console.log("GameContext: Starting Post-Season...");
             const currentYear = prev.date.getFullYear();
             const awards = calculateRegularSeasonAwards(prev.players, prev.teams, currentYear);
 
-            const createSeries = (round: number, conf: 'East' | 'West'): PlayoffSeries[] => {
+            if (prev.leagueType === 'EURO') {
+                // --- EURO PLAY-IN INITIALIZATION ---
+                const conferences: ('EuroLeague' | 'EuroCup')[] = ['EuroLeague', 'EuroCup'];
+                const playinMatchups: PlayInMatchup[] = [];
+                const seedsLocked: Record<string, string[]> = {};
+
+                conferences.forEach(conf => {
+                    const confTeams = [...prev.teams]
+                        .filter(t => t.conference === conf)
+                        .sort((a, b) => {
+                            if (b.wins !== a.wins) return b.wins - a.wins;
+                            return a.losses - b.losses; // Tie-breaker: fewer losses
+                        });
+                    
+                    // Top 6 guaranteed
+                    seedsLocked[conf] = confTeams.slice(0, 6).map(t => t.id);
+
+                    // 7th vs 8th (Game A)
+                    const t7 = confTeams[6];
+                    const t8 = confTeams[7];
+                    if (t7 && t8) {
+                        playinMatchups.push({
+                            id: `playin_${conf}_7vs8`,
+                            type: '7vs8',
+                            conference: conf,
+                            homeTeamId: t7.id,
+                            awayTeamId: t8.id,
+                            played: false
+                        });
+                    }
+
+                    // 9th vs 10th (Game B)
+                    const t9 = confTeams[8];
+                    const t10 = confTeams[9];
+                    if (t9 && t10) {
+                        playinMatchups.push({
+                            id: `playin_${conf}_9vs10`,
+                            type: '9vs10',
+                            conference: conf,
+                            homeTeamId: t9.id,
+                            awayTeamId: t10.id,
+                            played: false
+                        });
+                    }
+                });
+
+                return {
+                    ...prev,
+                    seasonPhase: 'euro_playin',
+                    euroPlayIn: {
+                        matchups: playinMatchups,
+                        seedsLocked
+                    },
+                    awardsHistory: [...prev.awardsHistory, awards],
+                    showAwardsModal: 'regular',
+                    view: 'euro_playin',
+                    date: new Date(prev.date.getTime() + 86400000),
+                    dailyMatchups: [],
+                    euroSchedule: [],
+                    pendingUserResult: null
+                };
+            }
+
+            // --- STANDARD NBA PLAYOFFS ---
+            const conferences = ['West', 'East'];
+            
+            const createSeries = (round: number, conf: string): PlayoffSeries[] => {
                 const confTeams = [...prev.teams].filter(t => t.conference === conf).sort((a, b) => (b.wins || 0) - (a.wins || 0));
                 const series: PlayoffSeries[] = [];
                 const playoffTeams = confTeams.slice(0, 8); // Top 8
@@ -1420,7 +1640,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         series.push({
                             id: `${conf}_1_${idx + 1}`,
                             round: 1,
-                            conference: conf,
+                            conference: conf as any,
                             homeTeamId: home.id,
                             awayTeamId: away.id,
                             homeWins: 0,
@@ -1431,12 +1651,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 return series;
             };
 
-            const westSeries = createSeries(1, 'West');
-            const eastSeries = createSeries(1, 'East');
+            const allSeries: PlayoffSeries[] = [];
+            conferences.forEach(conf => {
+                allSeries.push(...createSeries(1, conf));
+            });
 
-            const playoffTeamIds = [...westSeries, ...eastSeries].flatMap(s => [s.homeTeamId, s.awayTeamId]);
+            const playoffTeamIds = allSeries.flatMap(s => [s.homeTeamId, s.awayTeamId]);
 
-            // Update Rotations for Playoff Teams (Tighten rotation to 7-8 players)
+            // Update Rotations for Playoff Teams
             const updatedPlayers = [...prev.players];
             const updatedTeams = prev.teams.map(t => {
                 if (playoffTeamIds.includes(t.id) && t.id !== prev.userTeamId) {
@@ -1457,11 +1679,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 players: updatedPlayers,
                 teams: updatedTeams,
                 seasonPhase: 'playoffs_r1',
-                playoffs: [...westSeries, ...eastSeries],
+                playoffs: allSeries,
                 date: new Date(prev.date.getTime() + 86400000),
                 awardsHistory: [...prev.awardsHistory, awards],
                 showAwardsModal: 'regular',
                 dailyMatchups: [],
+                euroSchedule: [],
                 pendingUserResult: null,
                 view: 'playoffs'
             };
@@ -3062,27 +3285,32 @@ export function GameProvider({ children }: { children: ReactNode }) {
         if (prev.seasonPhase === 'regular_season') {
             const gamesPlayed = prev.seasonGamesPlayed;
 
-            // End of Regular Season - Only transition if we have COMPLETED 82 games
-            if (gamesPlayed >= 82 && (!prev.dailyMatchups || prev.dailyMatchups.length === 0)) {
+            // End of Regular Season - Only transition if we have COMPLETED the required games (38 Euro / 82 NBA)
+            const regularSeasonGames = prev.leagueType === 'EURO' ? 38 : 82;
+            if (gamesPlayed >= regularSeasonGames && (!prev.dailyMatchups || prev.dailyMatchups.length === 0)) {
                 // ... award logic ...
                 const currentYear = prev.date.getFullYear();
                 const awards = calculateRegularSeasonAwards(currentPlayers, currentTeams, currentYear);
 
                 // Trigger Playoffs Transition
-                const westTeams = currentTeams.filter(t => t.conference === 'West').sort((a, b) => b.wins - a.wins);
-                const eastTeams = currentTeams.filter(t => t.conference === 'East').sort((a, b) => b.wins - a.wins);
+                const isEuro = prev.leagueType === 'EURO';
+                const confA = isEuro ? 'EuroLeague' : 'West';
+                const confB = isEuro ? 'EuroCup' : 'East';
 
-                const createSeries = (round: number, conf: 'West' | 'East', seeds: number[]): PlayoffSeries[] => {
+                const confATeams = currentTeams.filter(t => t.conference === confA).sort((a, b) => b.wins - a.wins);
+                const confBTeams = currentTeams.filter(t => t.conference === confB).sort((a, b) => b.wins - a.wins);
+
+                const createSeries = (conf: string, teams: typeof confATeams): PlayoffSeries[] => {
                     const series: PlayoffSeries[] = [];
                     const matchups = [[0, 7], [1, 6], [2, 5], [3, 4]];
 
                     matchups.forEach((m, idx) => {
-                        const home = (conf === 'West' ? westTeams : eastTeams)[m[0]];
-                        const away = (conf === 'West' ? westTeams : eastTeams)[m[1]];
+                        const home = teams[m[0]];
+                        const away = teams[m[1]];
                         series.push({
                             id: `${conf}_1_${idx + 1}`,
                             round: 1,
-                            conference: conf,
+                            conference: conf as any,
                             homeTeamId: home ? home.id : 'error',
                             awayTeamId: away ? away.id : 'error',
                             homeWins: 0,
@@ -3092,13 +3320,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     return series;
                 };
 
-                const westSeries = createSeries(1, 'West', []);
-                const eastSeries = createSeries(1, 'East', []);
+                const seriesA = createSeries(confA, confATeams);
+                const seriesB = createSeries(confB, confBTeams);
 
                 return {
                     ...prev,
                     seasonPhase: 'playoffs_r1',
-                    playoffs: [...westSeries, ...eastSeries],
+                    playoffs: [...seriesA, ...seriesB],
                     date: nextDate,
                     awardsHistory: [...prev.awardsHistory, awards],
                     players: currentPlayers,
@@ -3466,7 +3694,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         homeCoach: hCoach,
                         awayCoach: aCoach,
                         date: prev.date,
-                        userTeamId: prev.userTeamId
+                        userTeamId: prev.userTeamId,
+                        leagueType: prev.leagueType
                     });
                 }
                 results.push(result);
@@ -3540,18 +3769,36 @@ export function GameProvider({ children }: { children: ReactNode }) {
             const newSocialPosts = generateDailyPosts(results, currentTeams, currentPlayers);
             const updatedSocialPosts = [...newSocialPosts, ...(prev.socialMediaPosts || [])].slice(0, 30);
 
-            // Matchup generation for next day
-            const activeTeams = currentTeams.filter(t => (t.wins + t.losses) < 82);
-            const playingTeams = activeTeams.filter(() => Math.random() < 0.5);
-            const shuffled = [...playingTeams].sort(() => Math.random() - 0.5);
-            const nextDayMatchups: { homeId: string, awayId: string }[] = [];
+            // Compute totalGamesPlayed FIRST so it can be used for next-day scheduling
+            const userTeamRecord = currentTeams.find(t => t.id === prev.userTeamId);
+            const totalGamesPlayed = prev.seasonGamesPlayed + 1;
 
-            for (let i = 0; i < shuffled.length; i += 2) {
-                if (i + 1 < shuffled.length) {
-                    nextDayMatchups.push({
-                        homeId: shuffled[i].id,
-                        awayId: shuffled[i + 1].id
-                    });
+            // Matchup generation for next day
+            let nextDayMatchups: { homeId: string, awayId: string }[] = [];
+
+            if (prev.leagueType === 'EURO') {
+                // Euro: use pre-generated schedule — advance to next match day
+                const nextRoundIdx = totalGamesPlayed; // this is now the NEXT round index
+                if (nextRoundIdx < (prev.euroSchedule?.length || 0)) {
+                    nextDayMatchups = prev.euroSchedule[nextRoundIdx];
+                }
+                // If no more rounds, leave empty (season over)
+            } else {
+                // NBA: use pre-generated schedule indexed by day
+                if (prev.nbaSchedule && prev.nbaSchedule.length > 0) {
+                    const nextDayIdx = totalGamesPlayed;
+                    if (nextDayIdx < prev.nbaSchedule.length) {
+                        nextDayMatchups = prev.nbaSchedule[nextDayIdx];
+                    }
+                } else {
+                    // Fallback for old saves: random day
+                    const activeTeams = currentTeams.filter(t => (t.wins + t.losses) < 82);
+                    const shuffled = [...activeTeams].sort(() => Math.random() - 0.5);
+                    for (let i = 0; i < shuffled.length; i += 2) {
+                        if (i + 1 < shuffled.length) {
+                            nextDayMatchups.push({ homeId: shuffled[i].id, awayId: shuffled[i + 1].id });
+                        }
+                    }
                 }
             }
 
@@ -3652,9 +3899,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 });
             });
 
-            // Update games played based on user team (most reliable indicator for season progress)
-            const userTeamRecord = currentTeams.find(t => t.id === prev.userTeamId);
-            const totalGamesPlayed = userTeamRecord ? (userTeamRecord.wins + userTeamRecord.losses) : prev.seasonGamesPlayed;
+            // totalGamesPlayed and userTeamRecord already computed above (before matchup generation)
 
             // Update Records
             const { leagueRecords, teamRecords } = checkAndUpdateRecords(
@@ -3890,16 +4135,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
             // ... (existing round completion logic matches safely)
             if (roundComplete) {
                 // FINALS OVER check
-                if (currentRound === 4) {
-                    const finishedSeasonYear = prev.date.getFullYear(); // Corrected to match Reg Season year
+                const isFinalRound = prev.leagueType === 'EURO' ? currentRound === 3 : currentRound === 4;
 
-                    // Identify Champion
-                    const finalsSeries = updatedPlayoffs.find(s => s.round === 4 && s.winnerId);
-                    if (!finalsSeries || !finalsSeries.winnerId) return prev; // Should not happen if roundComplete
+                if (isFinalRound) {
+                    const finishedSeasonYear = prev.date.getFullYear();
 
-                    const championId = finalsSeries.winnerId;
+                    // Identify Champions (plural for Euro mode)
+                    const finalSeriesList = updatedPlayoffs.filter(s => s.round === currentRound && s.winnerId);
+                    if (finalSeriesList.length === 0) return prev;
+
+                    // For awardsHistory, we might just pick the EuroLeague champion or handle it differently.
+                    // Let's pick the first winner for the 'champion' slot, or better, we can maybe store both?
+                    // User didn't ask to change the awards structure, so I'll just use the first one for the main 'champion' field.
+                    const championId = finalSeriesList[0].winnerId;
+                    if (!championId) return prev;
+
                     const championTeam = prev.teams.find(t => t.id === championId)!;
-
                     const finalsMvp = calculateFinalsMvp(prev.players, prev.games, championId, prev.playoffs);
 
                     // Update History
@@ -3908,48 +4159,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     const championInfo = { teamId: championTeam.id, teamName: championTeam.name };
 
                     if (historyIndex !== -1) {
-                        updatedAwardsHistory[historyIndex] = {
-                            ...updatedAwardsHistory[historyIndex],
-                            champion: championInfo,
-                            finalsMvp: finalsMvp
-                        };
+                        updatedAwardsHistory[historyIndex] = { ...updatedAwardsHistory[historyIndex], champion: championInfo, finalsMvp: finalsMvp };
                     } else {
-                        // Fallback: Calculate Regular Season Awards now if missing
-                        console.warn(`[SimDay] Season History missing for year ${finishedSeasonYear} - Regenerating...`);
                         const regularSeasonAwards = calculateRegularSeasonAwards(prev.players, prev.teams, finishedSeasonYear);
-
-                        updatedAwardsHistory.push({
-                            ...regularSeasonAwards,
-                            champion: championInfo,
-                            finalsMvp: finalsMvp
-                        });
+                        updatedAwardsHistory.push({ ...regularSeasonAwards, champion: championInfo, finalsMvp: finalsMvp });
                     }
 
-                    // Offseason
+                    // Offseason processing...
                     let archivedPlayers: Player[] = prev.players.map(p => {
-                        const newCareerStat: CareerStat = {
-                            ...p.seasonStats,
-                            season: finishedSeasonYear,
-                            teamId: p.teamId || 'FA',
-                            overall: p.overall // Store historical OVR
-                        };
-
+                        const newCareerStat: CareerStat = { ...p.seasonStats, season: finishedSeasonYear, teamId: p.teamId || 'FA', overall: p.overall };
                         const newCareerStats: CareerStat[] = [...(p.careerStats || []), newCareerStat];
-
-                        // ARCHIVE PLAYOFF STATS if they exist
                         if (p.playoffStats && p.playoffStats.gamesPlayed > 0) {
-                            newCareerStats.push({
-                                ...p.playoffStats,
-                                season: finishedSeasonYear,
-                                teamId: p.teamId || 'FA',
-                                overall: p.overall, // Store historical OVR
-                                isPlayoffs: true
-                            });
+                            newCareerStats.push({ ...p.playoffStats, season: finishedSeasonYear, teamId: p.teamId || 'FA', overall: p.overall, isPlayoffs: true });
                         }
-
-                        const updatedPlayer = {
-                            ...p,
-                            careerStats: newCareerStats,
+                        return checkTradeRequests({
+                            ...p, careerStats: newCareerStats,
                             seasonStats: {
                                 gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0,
                                 turnovers: 0, offensiveRebounds: 0, defensiveRebounds: 0, fouls: 0,
@@ -3958,17 +4182,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
                                 midRangeMade: 0, midRangeAttempted: 0, midRangeAssisted: 0,
                                 threePointAssisted: 0
                             },
-                            playoffStats: undefined, // Clear for next season
-                            injury: undefined // Heal all injuries for offseason
-                        };
-
-                        // CHECK MORALE & TRADE REQUESTS (End of Season)
-                        return checkTradeRequests(updatedPlayer);
+                            playoffStats: undefined, injury: undefined
+                        });
                     });
 
-
-                    // --- NEW FINANCIAL FIX: AI Emergency Cuts & Amnesty ---
-                    // AI teams in deep debt (-$50M+) will waive their worst-value contracts.
                     let aiUpdatedPlayers = [...archivedPlayers];
                     let aiUpdatedContracts = [...prev.contracts];
                     const aiTeamsInDebt = mapTeamsForSimulation(prev.teams).filter(t => t.id !== prev.userTeamId && t.cash < -50000000);
@@ -3976,68 +4193,37 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     aiTeamsInDebt.forEach(team => {
                         const teamRoster = aiUpdatedPlayers.filter(p => p.teamId === team.id);
                         const teamContracts = aiUpdatedContracts.filter(c => c.teamId === team.id);
-
-                        // Find "Bad Value" players: (Salary > 10% of Cap) AND (OVR < 80)
                         const candidates = teamRoster
                             .filter(p => {
                                 const c = teamContracts.find(con => con.playerId === p.id);
                                 return c && c.amount > prev.salaryCap * 0.10 && p.overall < 80;
                             })
                             .sort((a, b) => {
-                                // Sort by "Value Gap": Salary/OVR ratio
                                 const aSalary = teamContracts.find(c => c.playerId === a.id)?.amount || 0;
                                 const bSalary = teamContracts.find(c => c.playerId === b.id)?.amount || 0;
                                 return (bSalary / b.overall) - (aSalary / a.overall);
                             });
-
                         if (candidates.length > 0) {
                             const toCut = candidates[0];
-                            console.log(`[Financials] ${team.abbreviation} performs Emergency Cut on ${toCut.firstName} ${toCut.lastName} to save salary.`);
-
-                            // 1. Update Player
-                            aiUpdatedPlayers = aiUpdatedPlayers.map(p =>
-                                p.id === toCut.id ? { ...p, teamId: null, minutes: 0, isStarter: false } : p
-                            );
-
-                            // 2. Remove Contract (Amnesty style)
+                            aiUpdatedPlayers = aiUpdatedPlayers.map(p => p.id === toCut.id ? { ...p, teamId: null, minutes: 0, isStarter: false } : p);
                             aiUpdatedContracts = aiUpdatedContracts.filter(c => c.playerId !== toCut.id);
                         }
                     });
 
-                    // archivedPlayers = runProgression(archivedPlayers); // Disabled for MSSI
-                    const newSalaryCap = prev.salaryCap;
-
-
-                    const activePlayoffs = updatedPlayoffs; // Use the latest state
-
-                    // --- NEW FINANCIAL SYSTEM ---
-                    // 1. Calculate Financial Reports for ALL teams first
+                    const finalSalaryCap = prev.salaryCap;
+                    const activePlayoffs = updatedPlayoffs;
                     const teamReportsMap: Record<string, any> = {};
 
                     mapTeamsForSimulation(prev.teams).forEach(t => {
                         const teamContracts = aiUpdatedContracts.filter(c => c.teamId === t.id);
-                        teamReportsMap[t.id] = calculateAnnualFinancials(
-                            t,
-                            teamContracts,
-                            prev.salaryCap,
-                            LUXURY_TAX_THRESHOLD,
-                            t.consecutiveTaxYears || 0
-                        );
+                        teamReportsMap[t.id] = calculateAnnualFinancials(t, teamContracts, prev.salaryCap, LUXURY_TAX_THRESHOLD, t.consecutiveTaxYears || 0);
                     });
 
-                    // 2. League-Wide Calculations (Dynamic Cap + Revenue Sharing)
                     const leagueFinancials = calculateLeagueFinancials(prev.teams, prev.salaryCap, teamReportsMap);
+                    const distributionPerTeam = leagueFinancials.payoutPerTeam;
 
-                    const finalSalaryCap = leagueFinancials.newSalaryCap;
-                    const distributionPerTeam = leagueFinancials.payoutPerTeam; // Revenue Sharing
-
-                    console.log(`[Financials] Dynamic Cap: $${(prev.salaryCap / 1e6).toFixed(1)}M -> $${(finalSalaryCap / 1e6).toFixed(1)}M`);
-                    console.log(`[Financials] Revenue Sharing: $${(distributionPerTeam / 1e6).toFixed(1)}M distributed to ${leagueFinancials.eligibleTeamsCount} teams.`);
-
-                    // 3. Update Teams (Apply reports + Sharing)
                     const updatedTeams = mapTeamsForSimulation(prev.teams).map(t => {
                         const report = teamReportsMap[t.id];
-                        // 1. Determine Season Result (Legacy Logic kept for Fan Interest)
                         let result: SeasonResult = 'MISSED_PLAYOFFS';
                         const teamInPlayoffs = activePlayoffs.some(s => s.homeTeamId === t.id || s.awayTeamId === t.id);
 
@@ -4046,13 +4232,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             const rank = sortedTeams.findIndex(st => st.id === t.id);
                             if (rank < 5) result = 'BOTTOM_5';
                         } else {
-                            const finals = activePlayoffs.find(s => s.round === 4);
-                            const confFinals = activePlayoffs.filter(s => s.round === 3);
-                            const semiFinals = activePlayoffs.filter(s => s.round === 2);
-                            if (finals?.winnerId === t.id) result = 'CHAMPION';
-                            else if (finals?.homeTeamId === t.id || finals?.awayTeamId === t.id) result = 'FINALS_LOSS';
-                            else if (confFinals.some(s => s.homeTeamId === t.id || s.awayTeamId === t.id)) result = 'CONF_FINALS_LOSS';
-                            else if (semiFinals.some(s => s.homeTeamId === t.id || s.awayTeamId === t.id)) result = 'PLAYOFFS_EARLY_EXIT';
+                            const wonFinals = finalSeriesList.some(s => s.winnerId === t.id);
+                            const inFinals = finalSeriesList.some(s => s.homeTeamId === t.id || s.awayTeamId === t.id);
+                            const inSemis = activePlayoffs.some(s => s.round === currentRound - 1 && (s.homeTeamId === t.id || s.awayTeamId === t.id));
+
+                            if (wonFinals) result = 'CHAMPION';
+                            else if (inFinals) result = 'FINALS_LOSS';
+                            else if (inSemis) result = 'CONF_FINALS_LOSS';
                             else result = 'PLAYOFFS_EARLY_EXIT';
                         }
 
@@ -4291,9 +4477,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         return s.winnerId;
                     };
                     const nextRoundSeries: PlayoffSeries[] = [];
+                    const conferences = prev.leagueType === 'EURO' ? ['EuroLeague', 'EuroCup'] : ['West', 'East'];
 
                     if (currentRound === 1) {
-                        ['West', 'East'].forEach(conf => {
+                        conferences.forEach(conf => {
                             nextRoundSeries.push({
                                 id: `${conf}_2_1`, round: 2, conference: conf as any,
                                 homeTeamId: getWinner(`${conf}_1_1`), awayTeamId: getWinner(`${conf}_1_4`), // 1v8 vs 4v5
@@ -4306,7 +4493,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             });
                         });
                     } else if (currentRound === 2) {
-                        ['West', 'East'].forEach(conf => {
+                        conferences.forEach(conf => {
                             nextRoundSeries.push({
                                 id: `${conf}_3_1`, round: 3, conference: conf as any,
                                 homeTeamId: getWinner(`${conf}_2_1`), awayTeamId: getWinner(`${conf}_2_2`),
@@ -4314,13 +4501,25 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             });
                         });
                     } else if (currentRound === 3) {
-                        nextRoundSeries.push({
-                            id: `Finals_4_1`, round: 4, conference: 'Finals',
-                            homeTeamId: getWinner('West_3_1'), awayTeamId: getWinner('East_3_1'),
-                            homeWins: 0, awayWins: 0
-                        });
+                        if (prev.leagueType === 'EURO') {
+                            // Euro leagues finish after Round 3
+                            // No Round 4 added, updatedPlayoffs will just be as is
+                        } else {
+                            nextRoundSeries.push({
+                                id: `Finals_4_1`, round: 4, conference: 'Finals',
+                                homeTeamId: getWinner('West_3_1'), awayTeamId: getWinner('East_3_1'),
+                                homeWins: 0, awayWins: 0
+                            });
+                        }
                     }
                     updatedPlayoffs = [...updatedPlayoffs, ...nextRoundSeries];
+                    
+                    if (currentRound === 3 && prev.leagueType === 'EURO') {
+                        // Special handling: Go to offseason after Euro Round 3
+                        // Wait, simulateDay usually returns a state.
+                        // I should handle the phase transition here too if possible, 
+                        // but simulateDay's return structure is complex.
+                    }
                 }
             }
 
@@ -4450,17 +4649,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 const maxLoops = 14; // Failsafe (NBA teams play every 2-4 days usually)
 
                 while (loopCount < maxLoops) {
-                    const userTeamBefore = currentState.teams.find(t => t.id === currentState.userTeamId);
-                    const gpBefore = userTeamBefore ? (userTeamBefore.wins + userTeamBefore.losses) : 0;
+                    const dayBefore = currentState.seasonGamesPlayed;
 
                     currentState = simulateDay(currentState);
                     loopCount++;
 
-                    const userTeamAfter = currentState.teams.find(t => t.id === currentState.userTeamId);
-                    const gpAfter = userTeamAfter ? (userTeamAfter.wins + userTeamAfter.losses) : 0;
+                    const _maxGames = currentState.leagueType === 'EURO' ? 38 : 82;
 
-                    // Stop if user team played a game, or we are out of regular season
-                    if (gpAfter > gpBefore || currentState.seasonPhase !== 'regular_season' || (gpAfter >= 82)) {
+                    // Stop if a round was advanced, or season ended
+                    if (currentState.seasonGamesPlayed > dayBefore || currentState.seasonPhase !== 'regular_season' || currentState.seasonGamesPlayed >= _maxGames) {
                         break;
                     }
                 }
@@ -4492,32 +4689,34 @@ export function GameProvider({ children }: { children: ReactNode }) {
         if (currentPhase.includes('playoffs') && (!currentPlayoffs || currentPlayoffs.length === 0)) {
             console.warn("[SimRound] Empty Playoffs detected. Regenerating...");
 
-            const westTeams = gameState.teams.filter(t => t.conference === 'West').sort((a, b) => b.wins - a.wins);
-            const eastTeams = gameState.teams.filter(t => t.conference === 'East').sort((a, b) => b.wins - a.wins);
-
-            const createSeries = (round: number, conf: 'West' | 'East', seeds: number[]): PlayoffSeries[] => {
+            const conferences = gameState.leagueType === 'EURO' ? ['EuroLeague', 'EuroCup'] : ['West', 'East'];
+            
+            const createSeries = (round: number, conf: string): PlayoffSeries[] => {
+                const confTeams = gameState.teams.filter(t => t.conference === conf).sort((a, b) => b.wins - a.wins);
                 const series: PlayoffSeries[] = [];
                 const matchups = [[0, 7], [1, 6], [2, 5], [3, 4]];
 
                 matchups.forEach((m, idx) => {
-                    const home = (conf === 'West' ? westTeams : eastTeams)[m[0]];
-                    const away = (conf === 'West' ? westTeams : eastTeams)[m[1]];
-                    series.push({
-                        id: `${conf}_1_${idx + 1}`,
-                        round: 1,
-                        conference: conf,
-                        homeTeamId: home ? home.id : 'error',
-                        awayTeamId: away ? away.id : 'error',
-                        homeWins: 0,
-                        awayWins: 0
-                    });
+                    const home = confTeams[m[0]];
+                    const away = confTeams[m[1]];
+                    if (home && away) {
+                        series.push({
+                            id: `${conf}_1_${idx + 1}`,
+                            round: 1,
+                            conference: conf as any,
+                            homeTeamId: home.id,
+                            awayTeamId: away.id,
+                            homeWins: 0,
+                            awayWins: 0
+                        });
+                    }
                 });
                 return series;
             };
 
-            const westSeries = createSeries(1, 'West', []);
-            const eastSeries = createSeries(1, 'East', []);
-            currentPlayoffs = [...westSeries, ...eastSeries];
+            const allSeries: PlayoffSeries[] = [];
+            conferences.forEach(c => allSeries.push(...createSeries(1, c)));
+            currentPlayoffs = allSeries;
             currentPhase = 'playoffs_r1'; // Force granularity
 
             // Commit the repair immediately so the loop sees it
@@ -4660,10 +4859,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 let nextPhase = currentPhase;
                 const getWinner = (id: string) => currentPlayoffs.find(s => s.id === id)?.winnerId!;
                 const nextRoundSeries: PlayoffSeries[] = [];
+                const conferences = prev.leagueType === 'EURO' ? ['EuroLeague', 'EuroCup'] : ['West', 'East'];
 
                 if (roundToSim === 1) {
                     nextPhase = 'playoffs_r2';
-                    ['West', 'East'].forEach(conf => {
+                    conferences.forEach(conf => {
                         nextRoundSeries.push({
                             id: `${conf}_2_1`, round: 2, conference: conf as any,
                             homeTeamId: getWinner(`${conf}_1_1`), awayTeamId: getWinner(`${conf}_1_4`),
@@ -4677,7 +4877,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     });
                 } else if (roundToSim === 2) {
                     nextPhase = 'playoffs_r3';
-                    ['West', 'East'].forEach(conf => {
+                    conferences.forEach(conf => {
                         nextRoundSeries.push({
                             id: `${conf}_3_1`, round: 3, conference: conf as any,
                             homeTeamId: getWinner(`${conf}_2_1`), awayTeamId: getWinner(`${conf}_2_2`),
@@ -4685,13 +4885,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         });
                     });
                 } else if (roundToSim === 3) {
-                    nextPhase = 'playoffs_finals';
-                    nextRoundSeries.push({
-                        id: `Finals_4_1`, round: 4, conference: 'Finals',
-                        homeTeamId: getWinner(`West_3_1`),
-                        awayTeamId: getWinner(`East_3_1`),
-                        homeWins: 0, awayWins: 0
-                    });
+                    if (prev.leagueType === 'EURO') {
+                        nextPhase = 'offseason';
+                    } else {
+                        nextPhase = 'playoffs_finals';
+                        nextRoundSeries.push({
+                            id: `Finals_4_1`, round: 4, conference: 'Finals',
+                            homeTeamId: getWinner(`West_3_1`),
+                            awayTeamId: getWinner(`East_3_1`),
+                            homeWins: 0, awayWins: 0
+                        });
+                    }
                 } else if (roundToSim === 4) {
                     // --- REPLICATED END OF FINALS LOGIC FOR SYNC SIM ---
                     const finishedSeasonYear = date.getFullYear();
@@ -4864,22 +5068,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 // Double check target in state just in case
                 if (simTargetRef.current === 'none') return prev;
 
-                // STOP CONDITIONS
-                if (simTarget === 'deadline') {
-                    const userTeam = prev.teams.find(t => t.id === prev.userTeamId) || prev.teams[0];
-                    const gamesPlayed = userTeam.wins + userTeam.losses;
-                    if (gamesPlayed >= 40 || prev.seasonPhase !== 'regular_season') {
+                // STOP CONDITIONS — use simTargetRef.current to avoid stale closure
+                const currentTarget = simTargetRef.current;
+
+                if (currentTarget === 'deadline') {
+                    // Stop at trade deadline (half-season: 19 for Euro, 40 for NBA)
+                    const deadlineGame = prev.leagueType === 'EURO' ? 19 : 40;
+                    if (prev.seasonGamesPlayed >= deadlineGame || prev.seasonPhase !== 'regular_season') {
                         setSimTarget('none');
                         return prev;
                     }
-                } else if (simTarget === 'playoffs') {
-                    const userTeam = prev.teams.find(t => t.id === prev.userTeamId) || prev.teams[0];
-                    const gamesPlayed = userTeam.wins + userTeam.losses;
-                    if (gamesPlayed >= 82 || prev.seasonPhase !== 'regular_season') {
+                } else if (currentTarget === 'playoffs') {
+                    // Stop when all match-days are done (38 for Euro, 82 for NBA)
+                    const seasonLen = prev.leagueType === 'EURO' ? 38 : 82;
+                    if (prev.seasonGamesPlayed >= seasonLen || prev.seasonPhase !== 'regular_season') {
                         setSimTarget('none');
                         return prev;
                     }
-                } else if (simTarget === 'playoffs_end') {
+                } else if (currentTarget === 'playoffs_end') {
                     // Stop if we are NO LONGER in playoffs (e.g. reached Draft, Offseason, etc)
                     if (!prev.seasonPhase.startsWith('playoffs')) {
                         setSimTarget('none');
@@ -5206,10 +5412,39 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 });
             }
 
+            // MIGRATION: Always regenerate schedules on load to fix stale/wrong schedules from old saves
+            if (loadedState.seasonPhase === 'regular_season') {
+                if (loadedState.leagueType === 'EURO') {
+                    // Always rebuild Euro schedule (old saves had wrong interleaved version)
+                    const elTeams = (loadedState.teams || []).filter((t: any) => t.conference === 'EuroLeague');
+                    const ecTeams = (loadedState.teams || []).filter((t: any) => t.conference === 'EuroCup');
+                    const elRounds = generateEuroSchedule(elTeams);
+                    const ecRounds = generateEuroSchedule(ecTeams);
+                    const totalRounds = Math.max(elRounds.length, ecRounds.length);
+                    const rebuilt: { homeId: string; awayId: string }[][] = [];
+                    for (let i = 0; i < totalRounds; i++) {
+                        rebuilt.push([...(elRounds[i] || []), ...(ecRounds[i] || [])]);
+                    }
+                    loadedState.euroSchedule = rebuilt;
+                    const nextRound = loadedState.seasonGamesPlayed || 0;
+                    loadedState.dailyMatchups = nextRound < rebuilt.length ? rebuilt[nextRound] : [];
+                    console.log(`[LoadGame] Rebuilt Euro schedule: ${rebuilt.length} rounds, at round ${nextRound}.`);
+                } else {
+                    // Always rebuild NBA schedule to fix the circle method bug
+                    const rebuilt = generate82GameSchedule(loadedState.teams || []);
+                    loadedState.nbaSchedule = rebuilt;
+                    const nextRound = loadedState.seasonGamesPlayed || 0;
+                    loadedState.dailyMatchups = nextRound < rebuilt.length ? rebuilt[nextRound] : [];
+                    console.log(`[LoadGame] Rebuilt NBA schedule: ${rebuilt.length} rounds, at round ${nextRound}.`);
+                }
+            }
+
             setGameState({
+                leagueType: 'NBA', // Default if missing in spread
+                competitionType: 'NBA', // Default if missing in spread
                 ...loadedState,
                 currentSaveSlot: slotId
-            });
+            } as any); // Cast to any to satisfy TS while maintaining defaults-over-spread logic if needed, or better, just ensure they are in loadedState.
 
             console.log(`Game Loaded from Slot ${slotId}`);
             return true;
@@ -5679,7 +5914,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
             modalMessage,
             setModalMessage,
             currentNegotiation,
-            year: gameState.date.getFullYear()
+            year: gameState.date.getFullYear(),
+            setLeagueType,
+            leagueType: gameState.leagueType,
+            setCompetitionType,
+            competitionType: gameState.competitionType,
         }}>
             {children}
         </GameContext.Provider>

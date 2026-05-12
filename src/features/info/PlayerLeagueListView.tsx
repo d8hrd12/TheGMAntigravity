@@ -224,7 +224,6 @@ export const PlayerLeagueListView: React.FC<{ onBack: () => void, onSelectPlayer
                                                     <td style={{ padding: '10px 8px', textAlign: 'center' }}>
                                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                                             <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--primary)' }}>{getStarString(calculateStars(player.ovr, 80))}</span>
-                                                            <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{player.ovr}</span>
                                                         </div>
                                                     </td>
                                                     <td style={{ padding: '10px 8px', textAlign: 'center' }}>{player.position}</td>

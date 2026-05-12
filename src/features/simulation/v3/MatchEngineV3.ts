@@ -141,9 +141,33 @@ function assignMinutes(roster: Player[], isPlayoffs?: boolean): void {
 // ---------------------------------------------------------------------------
 // Main entry point
 // ---------------------------------------------------------------------------
-
 export function simulateMatchV3(input: MatchInput): MatchResult {
-  const { homeTeam, awayTeam, homeRoster, awayRoster, date } = input;
+  let { homeTeam, awayTeam, homeRoster, awayRoster, date } = input;
+
+  // --- HOME COURT ADVANTAGE (EURO ONLY) ---
+  // In Europe, home court is a massive factor. We apply a +5% boost to all attributes.
+  if (input.leagueType === 'EURO') {
+    homeRoster = homeRoster.map(p => ({
+      ...p,
+      attributes: {
+        ...p.attributes,
+        finishing: Math.min(99, p.attributes.finishing * 1.05),
+        midRange: Math.min(99, p.attributes.midRange * 1.05),
+        threePointShot: Math.min(99, p.attributes.threePointShot * 1.05),
+        freeThrow: Math.min(99, p.attributes.freeThrow * 1.05),
+        ballHandling: Math.min(99, p.attributes.ballHandling * 1.05),
+        playmaking: Math.min(99, p.attributes.playmaking * 1.05),
+        offensiveRebounding: Math.min(99, p.attributes.offensiveRebounding * 1.05),
+        defensiveRebounding: Math.min(99, p.attributes.defensiveRebounding * 1.05),
+        interiorDefense: Math.min(99, p.attributes.interiorDefense * 1.05),
+        perimeterDefense: Math.min(99, p.attributes.perimeterDefense * 1.05),
+        blocking: Math.min(99, p.attributes.blocking * 1.05),
+        stealing: Math.min(99, p.attributes.stealing * 1.05),
+        athleticism: Math.min(99, p.attributes.athleticism * 1.05),
+        basketballIQ: Math.min(99, p.attributes.basketballIQ * 1.05),
+      }
+    }));
+  }
 
   const homeTracker = new TeamRotationTracker(homeRoster, input.isPlayoffs);
   const awayTracker = new TeamRotationTracker(awayRoster, input.isPlayoffs);

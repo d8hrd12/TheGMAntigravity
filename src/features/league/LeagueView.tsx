@@ -36,7 +36,6 @@ export const LeagueView: React.FC<LeagueViewProps> = ({ teams, players, awardsHi
     );
 };
 
-// ... StandingsTableOnly code ...
 const StandingsTableOnly = ({ teams, onSelectTeam }: { teams: Team[], onSelectTeam: (id: string) => void }) => {
     const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'pct', direction: 'desc' });
 
@@ -70,9 +69,6 @@ const StandingsTableOnly = ({ teams, onSelectTeam }: { teams: Team[], onSelectTe
         setSortConfig({ key, direction });
     };
 
-    const westTeams = sortTeams(teams.filter(t => t.conference === 'West'));
-    const eastTeams = sortTeams(teams.filter(t => t.conference === 'East'));
-
     const HeaderCell = ({ label, sortKey, align = 'left' }: { label: string, sortKey: string, align?: 'left' | 'right' | 'center' }) => (
         <th
             style={{ padding: '10px 8px', cursor: 'pointer', userSelect: 'none', textAlign: align, whiteSpace: 'nowrap', color: '#aaa' }}
@@ -84,7 +80,7 @@ const StandingsTableOnly = ({ teams, onSelectTeam }: { teams: Team[], onSelectTe
 
     const StandingsTable = ({ title, teams }: { title: string, teams: Team[] }) => (
         <div style={{ marginBottom: '20px', background: 'var(--surface-glass)', borderRadius: '12px', padding: '10px', overflowX: 'auto' }}>
-            <h3 style={{ borderBottom: `2px solid ${title.includes('West') ? '#e74c3c' : '#3498db'}`, paddingBottom: '5px', display: 'inline-block', marginTop: 0, fontSize: '1.1rem' }}>
+            <h3 style={{ borderBottom: `2px solid ${title.includes('West') ? '#e74c3c' : title.includes('East') ? '#3498db' : '#f1c40f'}`, paddingBottom: '5px', display: 'inline-block', marginTop: 0, fontSize: '1.1rem' }}>
                 {title}
             </h3>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', marginTop: '10px', fontSize: '0.85rem' }}>
@@ -129,6 +125,22 @@ const StandingsTableOnly = ({ teams, onSelectTeam }: { teams: Team[], onSelectTe
             </table>
         </div>
     );
+
+    const euroLeagueTeams = sortTeams(teams.filter(t => t.conference === 'EuroLeague'));
+    const euroCupTeams = sortTeams(teams.filter(t => t.conference === 'EuroCup'));
+    const isEuro = euroLeagueTeams.length > 0 || euroCupTeams.length > 0;
+
+    if (isEuro) {
+        return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', paddingBottom: '40px' }}>
+                {euroLeagueTeams.length > 0 && <StandingsTable title="EuroLeague" teams={euroLeagueTeams} />}
+                {euroCupTeams.length > 0 && <StandingsTable title="EuroCup" teams={euroCupTeams} />}
+            </div>
+        );
+    }
+
+    const westTeams = sortTeams(teams.filter(t => t.conference === 'West'));
+    const eastTeams = sortTeams(teams.filter(t => t.conference === 'East'));
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', paddingBottom: '40px' }}>

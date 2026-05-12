@@ -4,12 +4,14 @@ import { TeamSelectionView } from '../ui/TeamSelectionView';
 import { NewGameSetupView } from '../ui/NewGameSetupView';
 import { CreateTeamView } from './CreateTeamView';
 import { SaveLoadView } from '../ui/SaveLoadView';
+import { LeagueSelectionView } from './LeagueSelectionView';
+import { CompetitionSelectionView } from './CompetitionSelectionView';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, FolderOpen, Settings, Trophy, Users } from 'lucide-react';
 
 export const MainMenu: React.FC = () => {
-    const { startNewGame, loadGame } = useGame();
-    const [view, setView] = useState<'main' | 'setup' | 'selection' | 'create_team'>('main');
+    const { startNewGame, loadGame, setLeagueType, leagueType, setCompetitionType, competitionType } = useGame();
+    const [view, setView] = useState<'main' | 'mode_selection' | 'competition_selection' | 'setup' | 'selection' | 'create_team'>('main');
     const [setupData, setSetupData] = useState<{ difficulty: 'Easy' | 'Medium' | 'Hard' } | null>(null);
     const [showLoadMenu, setShowLoadMenu] = useState(false);
 
@@ -17,6 +19,31 @@ export const MainMenu: React.FC = () => {
         setSetupData({ difficulty });
         setView('selection');
     };
+
+    if (view === 'mode_selection') {
+        return <LeagueSelectionView 
+            onSelect={(type) => {
+                setLeagueType(type);
+                if (type === 'NBA') {
+                    setCompetitionType('NBA');
+                    setView('setup');
+                } else {
+                    setView('competition_selection');
+                }
+            }} 
+            onBack={() => setView('main')} 
+        />;
+    }
+
+    if (view === 'competition_selection') {
+        return <CompetitionSelectionView 
+            onSelect={(comp) => {
+                setCompetitionType(comp);
+                setView('setup');
+            }}
+            onBack={() => setView('mode_selection')}
+        />;
+    }
 
     if (view === 'setup') {
         return <NewGameSetupView onNext={handleSetupComplete} onBack={() => setView('main')} />;
@@ -140,7 +167,7 @@ export const MainMenu: React.FC = () => {
                     <motion.button
                         whileHover={{ scale: 1.02, x: 5 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => setView('setup')}
+                        onClick={() => setView('mode_selection')}
                         style={{
                             padding: '24px 40px',
                             background: 'linear-gradient(135deg, #FF5F1F 0%, #E64A19 100%)',

@@ -16,9 +16,10 @@ interface LiveGameViewProps {
     onGameEnd: (result: any) => void;
     userTeamId: string;
     date: Date;
+    leagueType?: 'NBA' | 'EURO';
 }
 
-export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, homeRoster, awayRoster, homeCoach, awayCoach, onGameEnd, userTeamId, date }) => {
+export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, homeRoster, awayRoster, homeCoach, awayCoach, onGameEnd, userTeamId, date, leagueType }) => {
 
     // Engine Instance
     const engineRef = useRef<LiveGameEngine | null>(null);
@@ -102,7 +103,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
 
     // Initialize Engine
     useEffect(() => {
-        engineRef.current = new LiveGameEngine(homeTeam, awayTeam, homeRoster, awayRoster, date, homeCoach, awayCoach, userTeamId);
+        engineRef.current = new LiveGameEngine(homeTeam, awayTeam, homeRoster, awayRoster, date, homeCoach, awayCoach, userTeamId, undefined, leagueType);
         const unsubscribe = engineRef.current.subscribe(setGameState);
         return () => { unsubscribe(); };
     }, []);

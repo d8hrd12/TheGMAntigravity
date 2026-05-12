@@ -55,7 +55,7 @@ export interface Team {
     wins: number;
     losses: number;
 
-    conference: 'East' | 'West';
+    conference: 'East' | 'West' | 'EuroLeague' | 'EuroCup';
     colors?: {
         primary: string;
         secondary: string;

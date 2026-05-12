@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Roster Admin PRO</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #070b12; --s1: #0d1520; --s2: #111c2d; --s3: #172236;
+  --bdr: #1c2d42; --acc: #f0b429; --blue: #3b82f6; --purp: #8b5cf6;
+  --txt: #dde6f0; --mut: #4a6080; --red: #ef4444; --grn: #22c55e;
+}
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--txt); height: 100vh; display: flex; overflow: hidden; }
+
+/* SIDEBAR */
+aside { width: 255px; background: var(--s1); border-right: 1px solid var(--bdr); display: flex; flex-direction: column; flex-shrink: 0; }
+.sb-top { padding: 16px; border-bottom: 1px solid var(--bdr); background: linear-gradient(135deg, #162235, #0a1220); }
+.sb-top h1 { font-size: 14px; font-weight: 800; color: var(--acc); letter-spacing: 1.5px; }
+.sb-top p { font-size: 10px; color: var(--mut); margin-top: 2px; }
+.sb-list { flex: 1; overflow-y: auto; }
+.lbl { padding: 9px 13px 3px; font-size: 9px; font-weight: 700; color: var(--mut); letter-spacing: 2px; text-transform: uppercase; }
+.ti { display: flex; align-items: center; justify-content: space-between; padding: 8px 13px; cursor: pointer; border-left: 3px solid transparent; transition: all 0.1s; }
+.ti:hover { background: var(--s2); }
+.ti.on { background: var(--s2); border-left-color: var(--acc); }
+.ti span:first-child { font-size: 12px; font-weight: 500; }
+.badge { font-size: 10px; padding: 1px 6px; border-radius: 8px; background: var(--s3); color: var(--mut); }
+.badge.ok { background: rgba(240,180,41,.13); color: var(--acc); }
+
+/* MAIN */
+main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.mh { padding: 14px 20px; background: var(--s1); border-bottom: 1px solid var(--bdr); display: flex; align-items: center; gap: 10px; }
+.mh h2 { font-size: 16px; font-weight: 700; flex: 1; }
+.mh small { color: var(--mut); font-size: 11px; }
+.mb { flex: 1; overflow-y: auto; padding: 18px; display: grid; grid-template-columns: 480px 1fr; gap: 18px; align-items: start; }
+
+/* PANELS */
+.panel { background: var(--s1); border: 1px solid var(--bdr); border-radius: 11px; padding: 16px; }
+.ptitle { font-size: 10px; font-weight: 800; color: var(--acc); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 12px; padding-bottom: 9px; border-bottom: 1px solid var(--bdr); }
+.slbl { font-size: 9px; font-weight: 700; color: var(--mut); letter-spacing: 1.5px; text-transform: uppercase; margin: 12px 0 7px; display: flex; align-items: center; gap: 6px; }
+.slbl::after { content: ''; flex: 1; height: 1px; background: var(--bdr); }
+.slbl.blue { color: var(--blue); }
+.slbl.purp { color: var(--purp); }
+
+/* FORM */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 9px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px; margin-bottom: 9px; }
+.fld { display: flex; flex-direction: column; gap: 3px; }
+.fld label { font-size: 9px; color: var(--mut); font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+input, select { background: var(--s2); border: 1px solid var(--bdr); color: var(--txt); padding: 7px 9px; border-radius: 7px; font-size: 13px; width: 100%; transition: border 0.12s; font-family: inherit; }
+input:focus, select:focus { outline: none; border-color: var(--acc); }
+input[type=number] { text-align: center; -moz-appearance: textfield; }
+input[type=number]::-webkit-inner-spin-button { opacity: 0.4; }
+.ti-inp { border-color: rgba(59,130,246,.25) !important; }
+.ti-inp:focus { border-color: var(--blue) !important; }
+.pot-inp { border-color: rgba(139,92,246,.25) !important; }
+.pot-inp:focus { border-color: var(--purp) !important; }
+
+/* BUTTONS */
+.btn-sub { width: 100%; padding: 10px; border-radius: 8px; border: none; cursor: pointer; font-weight: 800; font-size: 13px; transition: all 0.15s; margin-top: 12px; }
+.btn-add-style { background: var(--acc); color: #000; }
+.btn-add-style:hover { background: #e0a820; transform: translateY(-1px); }
+.btn-upd-style { background: var(--blue); color: #fff; }
+.btn-upd-style:hover { background: #2563eb; transform: translateY(-1px); }
+.btn-cancel { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--bdr); background: transparent; color: var(--mut); cursor: pointer; font-size: 12px; margin-top: 6px; transition: all 0.12s; }
+.btn-cancel:hover { border-color: var(--txt); color: var(--txt); }
+
+/* PLAYER LIST */
+.plist { display: flex; flex-direction: column; gap: 7px; }
+.pcard { background: var(--s2); border: 1px solid var(--bdr); border-radius: 9px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; transition: border 0.12s; }
+.pcard.editing { border-color: var(--blue); }
+.pi h4 { font-size: 13px; font-weight: 700; }
+.pi p { font-size: 10px; color: var(--mut); margin-top: 1px; }
+.tags { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 5px; }
+.tag { font-size: 9px; padding: 2px 5px; border-radius: 3px; background: var(--s3); color: var(--mut); }
+.tag.g { background: rgba(240,180,41,.1); color: var(--acc); }
+.tag.b { background: rgba(59,130,246,.1); color: var(--blue); }
+.tag.p { background: rgba(139,92,246,.1); color: var(--purp); }
+.pctrls { display: flex; gap: 5px; flex-shrink: 0; }
+.btn-edit { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.3); color: var(--blue); padding: 5px 9px; border-radius: 5px; cursor: pointer; font-size: 10px; font-weight: 700; transition: all 0.12s; }
+.btn-edit:hover { background: rgba(59,130,246,.2); }
+.btn-rm { background: transparent; border: 1px solid var(--bdr); color: var(--red); padding: 5px 9px; border-radius: 5px; cursor: pointer; font-size: 10px; font-weight: 700; transition: all 0.12s; }
+.btn-rm:hover { background: rgba(239,68,68,.08); border-color: var(--red); }
+.empty { text-align: center; color: var(--mut); padding: 36px 16px; font-size: 12px; }
+.ph { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--mut); font-size: 13px; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 18px; right: 18px; padding: 9px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; z-index: 999; animation: tin 0.2s; }
+.tok { background: var(--grn); color: #000; }
+.terr { background: var(--red); color: #fff; }
+@keyframes tin { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="sb-top">
+    <h1>ROSTER ADMIN PRO</h1>
+    <p>EuroLeague &amp; EuroCup 2025-26</p>
+  </div>
+  <div class="sb-list" id="sb"></div>
+</aside>
+
+<main>
+  <div class="mh">
+    <h2 id="mh-title">Select a team</h2>
+    <small id="mh-sub"></small>
+  </div>
+  <div class="mb" id="mb">
+    <div class="ph">Pick a team from the sidebar</div>
+  </div>
+</main>
+
+<script>
+var EL = ['OLY','PAN','MAD','BAR','IST','ULK','MCO','RED','PAR','MUN','MIL','TEL','BAS','ASV','ZAL','VIR','DUB','HTA','PAM','PRS'];
+var ATT_OFF = ['finishing', 'midRange', 'threePointShot', 'freeThrow'];
+var ATT_OFF_L = {finishing:'Finishing', midRange:'Mid-Range', threePointShot:'3PT Shot', freeThrow:'Free Throw'};
+var ATT_PHY = ['playmaking', 'ballHandling', 'basketballIQ', 'athleticism'];
+var ATT_PHY_L = {playmaking:'Playmaking', ballHandling:'Ball Hand.', basketballIQ:'IQ', athleticism:'Athleticism'};
+var ATT_DEF = ['interiorDefense', 'perimeterDefense', 'stealing', 'blocking', 'offensiveRebound', 'defensiveRebound'];
+var ATT_DEF_L = {interiorDefense:'Int. Def', perimeterDefense:'Per. Def', stealing:'Stealing', blocking:'Blocking', offensiveRebound:'Off. Reb', defensiveRebound:'Def. Reb'};
+
+var TK = ['shooting','passing','inside','outside','defensiveAggression','foulTendency'];
+var TL = {shooting:'Shoot', passing:'Pass', inside:'Inside', outside:'Outside', defensiveAggression:'DefAgg', foulTendency:'Foul'};
+var POS = ['PG','SG','SF','PF','C'];
+var STARS = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
+
+var teams = [];
+var sel = null;
+var roster = [];
+var editIdx = -1;
+
+function apiGet(url, cb) {
+  fetch(url).then(function(r) { return r.json(); }).then(cb).catch(function(e) { toast(e.message, 'err'); });
+}
+function apiPost(url, data, method, cb) {
+  fetch(url, {
+    method: method || 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).then(function(r) { return r.json(); }).then(cb).catch(function(e) { toast(e.message, 'err'); });
+}
+function apiDel(url, cb) {
+  fetch(url, { method: 'DELETE' }).then(function(r) { return r.json(); }).then(cb).catch(function(e) { toast(e.message, 'err'); });
+}
+
+function init() {
+  apiGet('/api/teams', function(data) {
+    teams = data;
+    renderSB();
+  });
+}
+
+function renderSB() {
+  var sb = document.getElementById('sb');
+  var el = teams.filter(function(t) { return EL.indexOf(t.code) !== -1; });
+  var ec = teams.filter(function(t) { return EL.indexOf(t.code) === -1; });
+  var html = '<div class="lbl">EuroLeague</div>';
+  el.forEach(function(t) { html += tRow(t); });
+  html += '<div class="lbl" style="margin-top:8px">EuroCup</div>';
+  ec.forEach(function(t) { html += tRow(t); });
+  sb.innerHTML = html;
+}
+
+function tRow(t) {
+  return '<div class="ti ' + (sel === t.code ? 'on' : '') + '" onclick="pick(\'' + t.code + '\')">' +
+    '<span>' + t.name + '</span>' +
+    '<span class="badge ' + (t.count > 0 ? 'ok' : '') + '">' + t.count + '</span>' +
+    '</div>';
+}
+
+function pick(code) {
+  sel = code;
+  editIdx = -1;
+  apiGet('/api/roster/' + code, function(data) {
+    roster = data;
+    var t = null;
+    for (var i = 0; i < teams.length; i++) { if (teams[i].code === code) { t = teams[i]; break; } }
+    document.getElementById('mh-title').textContent = (t ? t.name : code) + ' (' + code + ')';
+    document.getElementById('mh-sub').textContent = roster.length + ' players';
+    renderMB();
+    renderSB();
+  });
+}
+
+function getVal(p, key, def) {
+  if (!p) return def;
+  return p[key] !== undefined ? p[key] : def;
+}
+
+function getAttr(p, key, def) {
+  if (!p || !p.attributes) return def;
+  return p.attributes[key] !== undefined ? p.attributes[key] : def;
+}
+
+function buildForm(p) {
+  var isEdit = editIdx >= 0;
+  var html = '<div class="ptitle">' + (isEdit ? 'Edit Player' : 'Add Player') + '</div>';
+
+  // Vitals
+  html += '<div class="slbl">Vitals</div>';
+  html += '<div class="g2">';
+  html += '<div class="fld"><label>First Name</label><input id="fn" value="' + getVal(p,'firstName','') + '"></div>';
+  html += '<div class="fld"><label>Last Name</label><input id="ln" value="' + getVal(p,'lastName','') + '"></div>';
+  html += '</div>';
+  html += '<div class="g3">';
+  html += '<div class="fld"><label>Position</label><select id="pos">';
+  POS.forEach(function(pos) { html += '<option' + (getVal(p,'position','SG') === pos ? ' selected' : '') + '>' + pos + '</option>'; });
+  html += '</select></div>';
+  html += '<div class="fld"><label>Age</label><input type="number" id="age" value="' + getVal(p,'age',25) + '"></div>';
+  html += '<div class="fld"><label>Stars</label><select id="stars">';
+  STARS.forEach(function(s) { html += '<option value="' + s + '"' + (Number(getVal(p,'stars',3)) === s ? ' selected' : '') + '>' + s + ' stars</option>'; });
+  html += '</select></div>';
+  html += '</div>';
+  html += '<div class="g3">';
+  html += '<div class="fld"><label>Height (cm)</label><input type="number" id="ht" value="' + getVal(p,'height',195) + '"></div>';
+  html += '<div class="fld"><label>Weight (kg)</label><input type="number" id="wt" value="' + getVal(p,'weight',95) + '"></div>';
+  html += '<div class="fld"><label>Potential (0-99)</label><input type="number" id="pot" value="' + getVal(p,'potential',80) + '" class="pot-inp"></div>';
+  html += '</div>';
+
+  // Offense
+  html += '<div class="slbl">Offense</div>';
+  html += '<div class="g2">';
+  ATT_OFF.forEach(function(a) { html += '<div class="fld"><label>' + ATT_OFF_L[a] + '</label><input type="number" id="a_' + a + '" value="' + getAttr(p,a,75) + '"></div>'; });
+  html += '</div>';
+
+  // Playmaking & Phys
+  html += '<div class="slbl">Playmaking &amp; Phys</div>';
+  html += '<div class="g2">';
+  ATT_PHY.forEach(function(a) { html += '<div class="fld"><label>' + ATT_PHY_L[a] + '</label><input type="number" id="a_' + a + '" value="' + getAttr(p,a,75) + '"></div>'; });
+  html += '</div>';
+
+  // Defense & Reb
+  html += '<div class="slbl">Defense &amp; Reb</div>';
+  html += '<div class="g2">';
+  ATT_DEF.forEach(function(a) { html += '<div class="fld"><label>' + ATT_DEF_L[a] + '</label><input type="number" id="a_' + a + '" value="' + getAttr(p,a,75) + '"></div>'; });
+  html += '</div>';
+
+  // Tendencies
+  html += '<div class="slbl blue">Tendencies (1-100)</div>';
+  html += '<div class="g3">';
+  var tend = p && p.tendencies ? p.tendencies : {};
+  TK.forEach(function(k) { html += '<div class="fld"><label>' + TL[k] + '</label><input type="number" id="t_' + k + '" value="' + (tend[k] !== undefined ? tend[k] : 50) + '" class="ti-inp"></div>'; });
+  html += '</div>';
+  html += '<label class="check-row"><input type="checkbox" id="useTend"' + (p && p.tendencies ? ' checked' : '') + '> Save custom tendencies</label>';
+
+  // Submit
+  html += '<button class="btn-sub ' + (isEdit ? 'btn-upd-style' : 'btn-add-style') + '" onclick="submitForm()">' + (isEdit ? 'Update Player' : 'Add to Roster') + '</button>';
+  if (isEdit) { html += '<button class="btn-cancel" onclick="cancelEdit()">Cancel</button>'; }
+  return html;
+}
+
+function renderMB() {
+  var mb = document.getElementById('mb');
+  var html = '<div class="panel" id="formPanel" style="position: sticky; top: 0;">' + buildForm(null) + '</div>';
+  html += '<div class="panel"><div class="ptitle">Roster &mdash; ' + roster.length + ' players</div>';
+  html += '<div class="plist" id="plist">';
+  if (roster.length === 0) { html += '<div class="empty">No players yet</div>'; }
+  else { roster.forEach(function(p, i) { html += pCard(p, i); }); }
+  html += '</div></div>';
+  mb.innerHTML = html;
+}
+
+function pCard(p, i) {
+  var stars = p.stars + ' stars';
+  var ptags = '';
+  Object.keys(ATT_OFF_L).forEach(function(k) { ptags += '<span class="tag">' + ATT_OFF_L[k].substring(0,3) + ' ' + getAttr(p,k,75) + '</span>'; });
+  var ttags = '';
+  if (p.tendencies) { TK.forEach(function(k) { ttags += '<span class="tag b">' + TL[k] + ' ' + p.tendencies[k] + '</span>'; }); }
+  else { ttags = '<span class="tag" style="opacity:.4">auto tendencies</span>'; }
+  
+  return '<div class="pcard' + (editIdx === i ? ' editing' : '') + '" id="pc' + i + '">' +
+    '<div class="pi">' +
+      '<h4>' + p.firstName + ' ' + p.lastName + ' <span style="color:var(--mut);font-weight:400;font-size:10px">' + p.position + ' - ' + p.age + 'y - ' + p.height + 'cm</span></h4>' +
+      '<div class="tags">' + ptags + '<span class="tag g">' + stars + '</span><span class="tag p">Pot: ' + (p.potential||80) + '</span></div>' +
+      '<div class="tags" style="margin-top:3px">' + ttags + '</div>' +
+    '</div>' +
+    '<div class="pctrls">' +
+      '<button class="btn-edit" onclick="startEdit(' + i + ')">Edit</button>' +
+      '<button class="btn-rm" onclick="removeP(' + i + ')">X</button>' +
+    '</div>' +
+    '</div>';
+}
+
+function startEdit(idx) {
+  editIdx = idx;
+  document.getElementById('formPanel').innerHTML = buildForm(roster[idx]);
+  document.getElementById('formPanel').scrollIntoView({ behavior: 'smooth' });
+  var cards = document.querySelectorAll('.pcard');
+  for (var i = 0; i < cards.length; i++) { cards[i].classList.toggle('editing', i === idx); }
+}
+
+function cancelEdit() {
+  editIdx = -1;
+  document.getElementById('formPanel').innerHTML = buildForm(null);
+  var cards = document.querySelectorAll('.pcard');
+  for (var i = 0; i < cards.length; i++) { cards[i].classList.remove('editing'); }
+}
+
+function collectForm() {
+  var fn = document.getElementById('fn').value.trim();
+  var ln = document.getElementById('ln').value.trim();
+  if (!fn || !ln) { toast('Enter player name', 'err'); return null; }
+  var p = {
+    firstName: fn, lastName: ln,
+    position: document.getElementById('pos').value,
+    age: parseInt(document.getElementById('age').value),
+    height: parseInt(document.getElementById('ht').value),
+    weight: parseInt(document.getElementById('wt').value),
+    stars: parseFloat(document.getElementById('stars').value),
+    potential: parseInt(document.getElementById('pot').value),
+    attributes: {}
+  };
+  
+  var all_atts = ATT_OFF.concat(ATT_PHY).concat(ATT_DEF);
+  all_atts.forEach(function(a) { 
+    var id = 'a_' + a;
+    if (a === 'basketballIQ') id = 'a_basketballIQ'; // mapping for IQ
+    p.attributes[a] = parseInt(document.getElementById(id).value); 
+  });
+
+  if (document.getElementById('useTend').checked) {
+    p.tendencies = {};
+    TK.forEach(function(k) { p.tendencies[k] = parseInt(document.getElementById('t_' + k).value); });
+  }
+  return p;
+}
+
+function submitForm() {
+  var p = collectForm();
+  if (!p) return;
+  if (editIdx >= 0) {
+    apiPost('/api/player/' + sel + '/' + editIdx, p, 'PUT', function(r) {
+      if (r.ok) { toast('Player updated!', 'ok'); editIdx = -1; pick(sel); init(); }
+      else toast(r.error || 'Error', 'err');
+    });
+  } else {
+    apiPost('/api/player/' + sel, p, 'POST', function(r) {
+      if (r.ok) { toast(p.firstName + ' added!', 'ok'); pick(sel); init(); }
+      else toast(r.error || 'Error', 'err');
+    });
+  }
+}
+
+function removeP(idx) {
+  if (!confirm('Remove ' + roster[idx].firstName + ' ' + roster[idx].lastName + '?')) return;
+  apiDel('/api/player/' + sel + '/' + idx, function(r) {
+    if (r.ok) { toast('Removed', 'ok'); if (editIdx === idx) editIdx = -1; pick(sel); init(); }
+    else toast(r.error, 'err');
+  });
+}
+
+function toast(msg, type) {
+  var t = document.createElement('div');
+  t.className = 'toast ' + (type === 'ok' ? 'tok' : 'terr');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function() { t.remove(); }, 2200);
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import type { Team } from '../../models/Team';
 import { NBA_TEAMS } from '../../data/teams';
+import { EURO_TEAMS } from '../../data/euro/teams';
+import { useGame } from '../../store/GameContext';
 
 interface TeamSelectionViewProps {
     onSelectTeam: (teamId: string) => void;
@@ -8,10 +10,14 @@ interface TeamSelectionViewProps {
 }
 
 export const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onSelectTeam, onCreateTeam }) => {
+    const { leagueType, competitionType } = useGame();
     const [selectedId, setSelectedId] = useState<string | null>(null);
 
-    const westernTeams = NBA_TEAMS.filter(t => t.conference === 'West');
-    const easternTeams = NBA_TEAMS.filter(t => t.conference === 'East');
+    const teamsToDisplay = leagueType === 'EURO' 
+        ? EURO_TEAMS.filter(t => t.conference === competitionType)
+        : NBA_TEAMS;
+    const westernTeams = teamsToDisplay.filter(t => t.conference === 'West' || t.conference === 'EuroLeague' || t.conference === 'EuroCup');
+    const easternTeams = teamsToDisplay.filter(t => t.conference === 'East');
 
     const handleConfirm = () => {
         if (selectedId) {
@@ -44,29 +50,52 @@ export const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onSelectTe
             >
                 {/* Watermark Logo */}
                 {team.logo && (
-                    <img
-                        src={team.logo}
-                        alt=""
-                        style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: '120%', // Oversized
-                            height: '120%',
-                            objectFit: 'contain',
-                            opacity: isSelected ? 0.15 : 0.05,
-                            filter: isSelected ? 'none' : 'grayscale(100%)',
-                            pointerEvents: 'none',
-                            zIndex: 0
-                        }}
-                    />
+                    <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        overflow: 'hidden',
+                        zIndex: 0,
+                        pointerEvents: 'none'
+                    }}>
+                        <img
+                            src={team.logo}
+                            alt=""
+                            style={{
+                                width: '90%', 
+                                height: '90%',
+                                objectFit: 'contain',
+                                opacity: isSelected ? 0.3 : 0.06,
+                                filter: isSelected ? 'none' : 'grayscale(100%) brightness(0.8)',
+                                transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                                transform: isSelected ? 'scale(1.05)' : 'scale(1)',
+                            }}
+                        />
+                    </div>
                 )}
 
-                <div style={{ position: 'relative', zIndex: 1 }}>
-                    <div style={{ fontWeight: 600, color: '#666', fontSize: '0.9rem' }}>{team.city}</div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: isSelected ? 'var(--primary)' : '#222', margin: '5px 0' }}>{team.name}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#888' }}>{team.abbreviation}</div>
+                <div style={{ position: 'relative', zIndex: 1, width: '100%', padding: '0 10px' }}>
+                    <div style={{ fontWeight: 600, color: '#666', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px' }}>{team.city}</div>
+                    <div style={{ 
+                        fontSize: team.name.length > 22 ? '1.1rem' : team.name.length > 15 ? '1.3rem' : '1.6rem', 
+                        fontWeight: 950, 
+                        color: isSelected ? 'var(--primary)' : '#222', 
+                        margin: '4px 0',
+                        lineHeight: 1.1,
+                        wordBreak: 'break-word',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
+                    }}>
+                        {team.name}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#888', fontWeight: 800, letterSpacing: '2px' }}>{team.abbreviation}</div>
                 </div>
             </div>
         );
@@ -89,20 +118,23 @@ export const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onSelectTe
             <h1 style={{ color: 'var(--text, #ffffff)', marginBottom: '10px' }}>Select Your Team</h1>
             <p style={{ marginBottom: '50px', color: 'var(--text-secondary, #888)' }}>Choose the franchise you want to lead to glory, or create your own.</p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: leagueType === 'EURO' ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px' }}>
                 <div>
-                    <h2 style={{ borderBottom: '2px solid #e74c3c', display: 'inline-block', marginBottom: '20px', color: 'var(--text, #fff)' }}>Western Conference</h2>
+                    {leagueType === 'NBA' && <h2 style={{ borderBottom: '2px solid #e74c3c', display: 'inline-block', marginBottom: '20px', color: 'var(--text, #fff)' }}>Western Conference</h2>}
+                    {leagueType === 'EURO' && <h2 style={{ borderBottom: '2px solid #EAB308', display: 'inline-block', marginBottom: '20px', color: 'var(--text, #fff)' }}>All Teams</h2>}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '20px' }}>
                         {westernTeams.map(team => <TeamCard key={team.id} team={team} />)}
                     </div>
                 </div>
 
-                <div>
-                    <h2 style={{ borderBottom: '2px solid #2980b9', display: 'inline-block', marginBottom: '20px', color: 'var(--text, #fff)' }}>Eastern Conference</h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '20px' }}>
-                        {easternTeams.map(team => <TeamCard key={team.id} team={team} />)}
+                {leagueType === 'NBA' && (
+                    <div>
+                        <h2 style={{ borderBottom: '2px solid #2980b9', display: 'inline-block', marginBottom: '20px', color: 'var(--text, #fff)' }}>Eastern Conference</h2>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '20px' }}>
+                            {easternTeams.map(team => <TeamCard key={team.id} team={team} />)}
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             {/* Expansion Franchise Section */}

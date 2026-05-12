@@ -54,7 +54,8 @@ export class LiveGameEngine {
         homeCoach?: Coach,
         awayCoach?: Coach,
         userTeamId?: string,
-        existingResult?: MatchResult
+        existingResult?: MatchResult,
+        leagueType?: 'NBA' | 'EURO'
     ) {
         this.allPlayers = [...homeRoster, ...awayRoster];
 
@@ -91,7 +92,8 @@ export class LiveGameEngine {
                 awayCoach,
                 date,
                 userTeamId,
-                isInteractive: true
+                isInteractive: true,
+                leagueType
             });
         }
         this.allEvents = this.matchResult!.events;

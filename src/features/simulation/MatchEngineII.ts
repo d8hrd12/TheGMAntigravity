@@ -214,7 +214,31 @@ function getLineupForTime(schedule: TeamRotationData[], roster: Player[], quarte
 import { StatsAccumulator } from './StatsAccumulator';
 
 export function simulateMatchII(input: MatchInput): MatchResult {
-    const { homeTeam, awayTeam, homeRoster, awayRoster, date, userTeamId, homeCoach, awayCoach } = input;
+    let { homeTeam, awayTeam, homeRoster, awayRoster, date, userTeamId, homeCoach, awayCoach } = input;
+
+    // --- HOME COURT ADVANTAGE (EURO ONLY) ---
+    if (input.leagueType === 'EURO') {
+        homeRoster = homeRoster.map(p => ({
+            ...p,
+            attributes: {
+                ...p.attributes,
+                finishing: Math.min(99, p.attributes.finishing * 1.05),
+                midRange: Math.min(99, p.attributes.midRange * 1.05),
+                threePointShot: Math.min(99, p.attributes.threePointShot * 1.05),
+                freeThrow: Math.min(99, p.attributes.freeThrow * 1.05),
+                ballHandling: Math.min(99, p.attributes.ballHandling * 1.05),
+                playmaking: Math.min(99, p.attributes.playmaking * 1.05),
+                offensiveRebounding: Math.min(99, p.attributes.offensiveRebounding * 1.05),
+                defensiveRebounding: Math.min(99, p.attributes.defensiveRebounding * 1.05),
+                interiorDefense: Math.min(99, p.attributes.interiorDefense * 1.05),
+                perimeterDefense: Math.min(99, p.attributes.perimeterDefense * 1.05),
+                blocking: Math.min(99, p.attributes.blocking * 1.05),
+                stealing: Math.min(99, p.attributes.stealing * 1.05),
+                athleticism: Math.min(99, p.attributes.athleticism * 1.05),
+                basketballIQ: Math.min(99, p.attributes.basketballIQ * 1.05),
+            }
+        }));
+    }
 
     // 1. Setup Context
     const homeStrategy = homeTeam.tactics || determineAIStrategy(homeRoster);

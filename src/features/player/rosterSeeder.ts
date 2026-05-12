@@ -3,6 +3,7 @@ import type { Player, PlayerAttributes, Position } from '../../models/Player';
 import type { Team } from '../../models/Team';
 import type { RealPlayerDef } from '../../data/realRosters';
 import { REAL_ROSTERS } from '../../data/realRosters';
+import { EURO_ROSTERS } from '../../data/euro/realRosters';
 import { generatePlayer, deriveTendenciesFromAttributes, deriveArchetypeName, PERSONALITIES } from './playerGenerator';
 import { generateUUID } from '../../utils/uuid';
 import { calculateOverall, calculateFairSalary } from '../../utils/playerUtils';
@@ -16,6 +17,7 @@ function getKeyAttributes(archetype: string, pos: Position): (keyof PlayerAttrib
     if (pos === 'C' || pos === 'PF') keys.push('interiorDefense', 'defensiveRebound', 'finishing');
 
     // Archetype Specifics
+    if (!archetype) return keys;
     if (archetype.includes('Playmaker') || archetype.includes('Floor General')) {
         keys.push('playmaking', 'ballHandling', 'basketballIQ');
     }
@@ -210,22 +212,57 @@ export function optimizeTeamRotation(players: Player[]) {
     }
 }
 
-export function seedRealRosters(teams: Team[]): { players: Player[], contracts: Contract[] } {
-    let allPlayers: Player[] = [];
-    let allContracts: Contract[] = [];
+export function seedRealRosters(teams: Team[], leagueType: 'NBA' | 'EURO' = 'NBA'): { players: Player[], contracts: Contract[] } {
+    const allPlayers: Player[] = [];
+    const allContracts: Contract[] = [];
+    
+    const rostersToUse = leagueType === 'EURO' ? EURO_ROSTERS : REAL_ROSTERS;
 
     teams.forEach(team => {
-        const realPlayers = REAL_ROSTERS[team.abbreviation];
+        const realPlayers = rostersToUse[team.abbreviation];
 
         // 1. Generate Real Players
         if (realPlayers) {
             realPlayers.forEach(def => {
-                const position = normalizePosition(def.pos);
-                // Use imported attributes or fallback to OVR-based generation
-                const attrs = def.attributes || generateAttributesForOvr(def.ovr, position, def.archetype);
-                if (!attrs.freeThrow) attrs.freeThrow = def.ovr; // Fallback
+                const position = normalizePosition(def.pos || (def as any).position || 'SG');
+                
+                // Handle Simple Euro Format
+                // Determine Attributes
+                let attrs: PlayerAttributes;
+                if (def.attributes) {
+                    attrs = { ...def.attributes };
+                } else if ((def as any).shooting !== undefined) {
+                    const euro = def as any;
+                    attrs = {
+                        finishing: euro.slashing || 70,
+                        midRange: euro.shooting || 70,
+                        threePointShot: euro.shooting || 70,
+                        freeThrow: euro.shooting || 75,
+                        playmaking: euro.playmaking || 70,
+                        ballHandling: euro.playmaking || 70,
+                        basketballIQ: 80,
+                        interiorDefense: euro.defense || 70,
+                        perimeterDefense: euro.defense || 70,
+                        stealing: euro.defense || 70,
+                        blocking: euro.defense || 70,
+                        offensiveRebound: euro.rebounding || 70,
+                        defensiveRebound: euro.rebounding || 70,
+                        athleticism: euro.athleticism || 75
+                    };
+                } else {
+                    attrs = generateAttributesForOvr(def.ovr || 75, position, def.archetype || 'Balanced');
+                }
+                
+                if (!attrs.freeThrow) attrs.freeThrow = (def.ovr || 75); // Fallback
                 const physicals = generatePhysicals(position);
-                const tendencies = deriveTendenciesFromAttributes(attrs, position);
+                
+                // USER REQUEST: Use provided Metric Vitals if available
+                const height = (def as any).height || physicals.height;
+                const weight = (def as any).weight || physicals.weight;
+
+                const tendencies = (def as any).tendencies
+                    ? { ...deriveTendenciesFromAttributes(attrs, position), ...(def as any).tendencies }
+                    : deriveTendenciesFromAttributes(attrs, position);
 
                 if (def.lastName === 'Flagg') {
                     console.log('SEEDING FLAGG:', def.firstName, def.lastName);
@@ -239,9 +276,9 @@ export function seedRealRosters(teams: Team[]): { players: Player[], contracts: 
                     firstName: def.firstName,
                     lastName: def.lastName,
                     position: position,
-                    age: def.age,
-                    height: physicals.height,
-                    weight: physicals.weight,
+                    age: def.age || 25,
+                    height: height,
+                    weight: weight,
                     personality: PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)],
                     attributes: attrs,
                     archetype: deriveArchetypeName(attrs, tendencies, position),
@@ -263,10 +300,10 @@ export function seedRealRosters(teams: Team[]): { players: Player[], contracts: 
                         threePointAssisted: 0
                     },
                     careerStats: [],
-                    potential: Math.min(99, def.ovr + (30 - def.age > 0 ? (30 - def.age) * 2 : 0)), // Simple potential logic
+                    potential: (def as any).potential || Math.min(99, (def.ovr || 75) + (30 - (def.age || 25) > 0 ? (30 - (def.age || 25)) * 2 : 0)),
                     loveForTheGame: 15,
                     badges: def.badges,
-                    overall: calculateOverall(attrs, position),
+                    overall: (def as any).stars ? Math.round((def as any).stars * 20) : calculateOverall(attrs, position),
                     jerseyNumber: Math.floor(Math.random() * 100),
                     acquisition: {
                         type: 'initial',
@@ -299,8 +336,12 @@ export function seedRealRosters(teams: Team[]): { players: Player[], contracts: 
             });
         }
 
-        // 2. Fill Rest of Roster (Target 14 players)
+        // 2. Fill Rest of Roster (Target 14 players) - ONLY if it's a generic team
         const currentCount = realPlayers ? realPlayers.length : 0;
+        
+        // Skip filling for Real Rosters to ensure 100% replacement accuracy
+        if (realPlayers) return; 
+
         const needed = 14 - currentCount;
 
         for (let i = 0; i < needed; i++) {

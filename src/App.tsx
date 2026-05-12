@@ -3,6 +3,7 @@ import { formatDate } from './utils/dateUtils';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import type { Player } from './models/Player'; 
 import { LeagueView } from './features/league/LeagueView';
+import EuroPlayInView from './features/playoffs/EuroPlayInView';
 import { AwardsPopup } from './features/awards/AwardsPopup';
 import type { SeasonAwards } from './models/Awards';
 import { TeamStatsView } from './features/stats/TeamStatsView';
@@ -108,6 +109,7 @@ function AppContent() {
     coaches,
     completeLiveGame,
     games,
+    leagueType,
     news,
     tradeHistory,
     signFreeAgent,
@@ -365,6 +367,7 @@ function AppContent() {
                 onGameEnd={completeLiveGame} 
                 userTeamId={userTeamId} 
                 date={date} 
+                leagueType={gameState.leagueType}
             />;
         }
     }
@@ -533,6 +536,8 @@ function AppContent() {
         />;
       case 'playoffs':
         return <PlayoffView onBack={() => setView('dashboard')} onNavigate={(v: string) => setView(v)} />;
+      case 'euro_playin':
+        return <EuroPlayInView />;
       case 'offseason_menu':
         return <OffseasonMenuView />;
       case 'retirement':
@@ -587,7 +592,7 @@ function AppContent() {
   const isNavLocked = view === 'draft' || view === 'draft_summary';
 
   return (
-    <div className="app-layout" style={{ '--team-primary': userTeam?.colors?.primary || 'var(--primary)' } as any}>
+    <div className={`app-layout ${leagueType === 'EURO' ? 'euro-theme' : ''}`} style={{ '--team-primary': userTeam?.colors?.primary || 'var(--primary)' } as any}>
       {/* SIDEBAR */}
       <div className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`} onClick={() => setIsSidebarOpen(false)} />
       <aside className={`sidebar ${isSidebarOpen ? 'expanded' : ''}`}>
@@ -674,10 +679,10 @@ function AppContent() {
             display: 'grid', 
             gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', 
             alignItems: 'center', 
-            padding: 'env(safe-area-inset-top, 10px) 20px 10px 20px', 
-            minHeight: '70px', 
-            gap: '10px',
-            background: 'linear-gradient(to bottom, rgba(var(--bg-body-rgb), 0.9), transparent)',
+            padding: 'env(safe-area-inset-top, 4px) 12px 4px 12px', 
+            minHeight: '52px', 
+            gap: '8px',
+            background: 'linear-gradient(to bottom, rgba(var(--bg-body-rgb), 0.95), transparent)',
             borderBottom: '1px solid var(--border-color)',
             backdropFilter: 'blur(10px)',
             zIndex: 1000,
@@ -717,10 +722,10 @@ function AppContent() {
                   style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: '16px', 
-                    padding: '6px 20px', 
+                    gap: '10px', 
+                    padding: '4px 12px', 
                     background: 'var(--bg-card)', 
-                    borderRadius: '30px', 
+                    borderRadius: '20px', 
                     border: '1px solid var(--border-color)',
                     boxShadow: 'var(--shadow-sm)',
                     transition: 'all 0.2s ease',
@@ -736,14 +741,14 @@ function AppContent() {
                   }}
                 >
                   <div style={{ 
-                    width: '36px', 
-                    height: '36px', 
+                    width: '28px', 
+                    height: '28px', 
                     background: 'var(--bg-body)', 
                     borderRadius: '50%', 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center',
-                    padding: '4px',
+                    padding: '3px',
                     border: '1px solid var(--border-color)'
                   }}>
                     <img src={userTeam.logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
@@ -753,9 +758,9 @@ function AppContent() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ 
                         fontWeight: '900', 
-                        fontSize: '1rem', 
+                        fontSize: '0.85rem', 
                         color: 'var(--text-main)', 
-                        letterSpacing: '-0.02em',
+                        letterSpacing: '-0.01em',
                         textTransform: 'uppercase'
                       }}>
                         {userTeam.name}
@@ -766,7 +771,7 @@ function AppContent() {
                         background: 'var(--border-color)' 
                       }}></div>
                       <span style={{
-                        fontSize: '0.8rem',
+                        fontSize: '0.7rem',
                         fontWeight: 800,
                         color: 'var(--team-primary)'
                       }}>
@@ -779,16 +784,16 @@ function AppContent() {
                   <div style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: '4px',
+                    gap: '3px',
                     background: 'rgba(218, 165, 32, 0.1)',
-                    padding: '3px 10px',
-                    borderRadius: '12px',
-                    border: '1px solid rgba(218, 165, 32, 0.3)',
-                    marginLeft: '4px'
+                    padding: '2px 8px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(218, 165, 32, 0.2)',
+                    marginLeft: '2px'
                   }}>
-                    <Trophy size={10} color="#DAA520" fill="#DAA520" />
+                    <Trophy size={9} color="#DAA520" fill="#DAA520" />
                     <span style={{ 
-                      fontSize: '0.75rem', 
+                      fontSize: '0.65rem', 
                       color: '#DAA520', 
                       fontWeight: 900,
                       letterSpacing: '0.05em'
@@ -801,28 +806,28 @@ function AppContent() {
             </div>
 
             {/* Right: Record & Global Stats */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '15px', minWidth: 0 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.2 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ 
-                    padding: '2px 8px', 
-                    background: 'var(--team-primary)', 
-                    borderRadius: '6px',
-                    color: '#fff',
-                    fontSize: '0.9rem',
-                    fontWeight: 900,
-                    boxShadow: '0 2px 8px rgba(var(--team-primary-rgb), 0.3)'
-                  }}>
-                    {userTeam?.wins ?? 0}-{userTeam?.losses ?? 0}
-                  </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', minWidth: 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                <div style={{ 
+                  padding: '2px 6px', 
+                  background: 'var(--team-primary)', 
+                  borderRadius: '4px',
+                  color: '#fff',
+                  fontSize: '0.75rem',
+                  fontWeight: 900,
+                  boxShadow: '0 2px 6px rgba(var(--team-primary-rgb), 0.2)',
+                  whiteSpace: 'nowrap'
+                }}>
+                  {userTeam?.wins ?? 0}-{userTeam?.losses ?? 0}
                 </div>
                 <div style={{ 
-                  fontSize: '0.65rem', 
+                  fontSize: '0.55rem', 
                   color: 'var(--text-muted)', 
                   textTransform: 'uppercase', 
                   fontWeight: 800, 
                   letterSpacing: '0.05em',
-                  marginTop: '4px'
+                  whiteSpace: 'nowrap',
+                  textAlign: 'right'
                 }}>
                   {seasonPhase.replace('_', ' ')}
                 </div>

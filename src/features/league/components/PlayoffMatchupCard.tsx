@@ -55,7 +55,7 @@ export const PlayoffMatchupCard: React.FC<PlayoffMatchupCardProps> = ({ series }
         }}>
             {/* Conference / Seed Info (Optional, skipping for clean look or adding small tag) */}
             <div style={{ marginBottom: '4px', fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
-                {series.conference} Conference
+                {series.conference.includes('Euro') ? series.conference : `${series.conference} Conference`}
             </div>
 
             <TeamRow

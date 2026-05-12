@@ -230,6 +230,7 @@ export interface MatchInput {
     userTeamId?: string; // To enforce strict rotation
     isInteractive?: boolean;
     isPlayoffs?: boolean;
+    leagueType?: 'NBA' | 'EURO';
 }
 
 export interface MerchCampaign {

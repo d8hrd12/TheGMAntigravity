@@ -10,6 +10,7 @@ export const SimControls: React.FC = () => {
         advanceDay, 
         isTrainingCampComplete,
         seasonGamesPlayed,
+        leagueType,
         triggerDraft,
         isSimulating,
         setShowPayrollModal,
@@ -49,7 +50,9 @@ export const SimControls: React.FC = () => {
         </button>
     );
 
-    const isSeasonComplete = seasonPhase === 'regular_season' && seasonGamesPlayed >= 82;
+    // Euro season = 38 match-days; NBA season = 82 games
+    const regularSeasonLength = leagueType === 'EURO' ? 38 : 82;
+    const isSeasonComplete = seasonPhase === 'regular_season' && seasonGamesPlayed >= regularSeasonLength;
 
 
     if (
@@ -84,7 +87,20 @@ export const SimControls: React.FC = () => {
                 <SimButton
                     onClick={startPlayoffs}
                     icon={Trophy}
-                    label="START PLAYOFFS"
+                    label={leagueType === 'EURO' ? "START POST-SEASON" : "START PLAYOFFS"}
+                    variant="primary"
+                />
+            </div>
+        );
+    }
+
+    if (seasonPhase === 'euro_playin') {
+        return (
+            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                <SimButton
+                    onClick={() => setView('euro_playin')}
+                    icon={Trophy}
+                    label="GO TO PLAY-IN"
                     variant="primary"
                 />
             </div>

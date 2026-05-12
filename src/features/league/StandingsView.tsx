@@ -14,12 +14,9 @@ export const StandingsView: React.FC<StandingsViewProps> = ({ teams, onBack }) =
         return a.losses - b.losses;
     });
 
-    const westTeams = sortTeams(teams.filter(t => t.conference === 'West'));
-    const eastTeams = sortTeams(teams.filter(t => t.conference === 'East'));
-
     const StandingsTable = ({ title, teams }: { title: string, teams: Team[] }) => (
         <div style={{ marginBottom: '30px', overflowX: 'auto' }}>
-            <h3 style={{ borderBottom: `2px solid ${title.includes('West') ? '#e74c3c' : '#3498db'}`, paddingBottom: '5px', display: 'inline-block' }}>
+            <h3 style={{ borderBottom: `2px solid ${title.includes('West') ? '#e74c3c' : title.includes('East') ? '#3498db' : '#f1c40f'}`, paddingBottom: '5px', display: 'inline-block' }}>
                 {title}
             </h3>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', marginTop: '10px' }}>
@@ -53,6 +50,28 @@ export const StandingsView: React.FC<StandingsViewProps> = ({ teams, onBack }) =
             </table>
         </div>
     );
+
+    const euroLeagueTeams = sortTeams(teams.filter(t => t.conference === 'EuroLeague'));
+    const euroCupTeams = sortTeams(teams.filter(t => t.conference === 'EuroCup'));
+    const isEuro = euroLeagueTeams.length > 0 || euroCupTeams.length > 0;
+
+    if (isEuro) {
+        return (
+            <div style={{ minHeight: '100vh', padding: '20px' }}>
+                <PageHeader
+                    title="Euro Standings"
+                    onBack={onBack}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                    {euroLeagueTeams.length > 0 && <StandingsTable title="EuroLeague" teams={euroLeagueTeams} />}
+                    {euroCupTeams.length > 0 && <StandingsTable title="EuroCup" teams={euroCupTeams} />}
+                </div>
+            </div>
+        );
+    }
+
+    const westTeams = sortTeams(teams.filter(t => t.conference === 'West'));
+    const eastTeams = sortTeams(teams.filter(t => t.conference === 'East'));
 
     return (
         <div style={{ minHeight: '100vh', padding: '20px' }}>

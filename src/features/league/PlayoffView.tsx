@@ -55,6 +55,8 @@ export const PlayoffView: React.FC<PlayoffViewProps> = ({ onNavigate, onBack }) 
     // Split by Conference if not Finals
     const westSeries = currentRoundSeries.filter(s => s.conference === 'West');
     const eastSeries = currentRoundSeries.filter(s => s.conference === 'East');
+    const elSeries = currentRoundSeries.filter(s => s.conference === 'EuroLeague');
+    const ecSeries = currentRoundSeries.filter(s => s.conference === 'EuroCup');
     const finalsSeries = currentRoundSeries.filter(s => s.conference === 'Finals');
 
     return (
@@ -141,24 +143,52 @@ export const PlayoffView: React.FC<PlayoffViewProps> = ({ onNavigate, onBack }) 
                 ) : (
                     <>
                         {/* Western Conference */}
-                        <div>
-                            <h4 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '10px', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
-                                Western Conference
-                            </h4>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                {westSeries.length > 0 ? westSeries.map(s => <PlayoffMatchupCard key={s.id} series={s} />) : <div style={{ color: '#666', fontSize: '0.8rem', fontStyle: 'italic' }}>No matchups yet</div>}
+                        {westSeries.length > 0 && (
+                            <div>
+                                <h4 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '10px', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
+                                    Western Conference
+                                </h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    {westSeries.map(s => <PlayoffMatchupCard key={s.id} series={s} />)}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Eastern Conference */}
-                        <div>
-                            <h4 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '10px', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
-                                Eastern Conference
-                            </h4>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                {eastSeries.length > 0 ? eastSeries.map(s => <PlayoffMatchupCard key={s.id} series={s} />) : <div style={{ color: '#666', fontSize: '0.8rem', fontStyle: 'italic' }}>No matchups yet</div>}
+                        {eastSeries.length > 0 && (
+                            <div>
+                                <h4 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '10px', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
+                                    Eastern Conference
+                                </h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    {eastSeries.map(s => <PlayoffMatchupCard key={s.id} series={s} />)}
+                                </div>
                             </div>
-                        </div>
+                        )}
+
+                        {/* EuroLeague */}
+                        {elSeries.length > 0 && (
+                            <div>
+                                <h4 style={{ fontSize: '0.8rem', color: '#f39c12', textTransform: 'uppercase', marginBottom: '10px', borderBottom: '1px solid #f39c12', paddingBottom: '4px' }}>
+                                    EuroLeague
+                                </h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    {elSeries.map(s => <PlayoffMatchupCard key={s.id} series={s} />)}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* EuroCup */}
+                        {ecSeries.length > 0 && (
+                            <div>
+                                <h4 style={{ fontSize: '0.8rem', color: '#3498db', textTransform: 'uppercase', marginBottom: '10px', borderBottom: '1px solid #3498db', paddingBottom: '4px' }}>
+                                    EuroCup
+                                </h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    {ecSeries.map(s => <PlayoffMatchupCard key={s.id} series={s} />)}
+                                </div>
+                            </div>
+                        )}
                     </>
                 )}
 

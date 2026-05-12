@@ -11,12 +11,13 @@ interface HeroSectionProps {
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onEnterPlayoffs, onStartSeasonTrigger, onStartTrainingTrigger }) => {
-    const { teams, userTeamId, seasonPhase, seasonGamesPlayed, advanceDay, triggerDraft, isTrainingCampComplete } = useGame();
+    const { teams, userTeamId, seasonPhase, seasonGamesPlayed, leagueType, advanceDay, triggerDraft, isTrainingCampComplete } = useGame();
     const userTeam = teams.find(t => t.id === userTeamId);
 
     if (!userTeam) return null;
 
-    const isSeasonComplete = seasonPhase === 'regular_season' && seasonGamesPlayed >= 82;
+    const regularSeasonLength = leagueType === 'EURO' ? 38 : 82;
+    const isSeasonComplete = seasonPhase === 'regular_season' && seasonGamesPlayed >= regularSeasonLength;
 
     const mainAction = (seasonPhase === 'pre_season')
         ? (isTrainingCampComplete ? onStartSeasonTrigger : onStartTrainingTrigger)

@@ -3,6 +3,7 @@ import { useGame } from '../../store/GameContext';
 import { DashboardCard } from './DashboardCard';
 import { SimControls } from './SimControls';
 import { TeamMoraleDashboard } from './TeamMoraleDashboard';
+import { EuroMatchCalendar } from './EuroMatchCalendar';
 import { Users, BarChart3, TrendingUp, Zap, AlertCircle, ChevronRight } from 'lucide-react';
 import { calculateOverall } from '../../utils/playerUtils';
 import { StarRating } from '../../components/StarRating';
@@ -29,7 +30,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         contracts,
         date,
         seasonPhase,
-        seasonGamesPlayed
+        seasonGamesPlayed,
+        leagueType,
     } = useGame();
 
     const userTeam = useMemo(() => teams.find(t => t.id === userTeamId), [teams, userTeamId]);
@@ -164,6 +166,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <SimControls />
 
+            {/* EURO MATCH CALENDAR — only visible in Euro mode */}
+            {(leagueType === 'EURO' || userTeam?.conference === 'EuroLeague' || userTeam?.conference === 'EuroCup') && (
+                <div className="col-10">
+                    <EuroMatchCalendar />
+                </div>
+            )}
+
             <div className="dashboard-grid">
                 {/* 1. STARTING 5 WIDGET */}
                 {/* ... (Starting 5 content) ... */}
@@ -187,8 +196,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
                                 <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'var(--team-primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.7rem', flexShrink: 0 }}>
                                     {player.position}
                                 </div>
-                                <div style={{ flex: 1 }}>
-                                    <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-main)' }}>{player.firstName[0]}. {player.lastName.toUpperCase()}</div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ 
+                                        fontSize: (player.lastName.length + 3) > 14 ? '0.65rem' : '0.8rem', 
+                                        fontWeight: 800, 
+                                        color: 'var(--text-main)',
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis'
+                                    }}>
+                                        {player.firstName[0]}. {player.lastName.toUpperCase()}
+                                    </div>
                                     <StarRating stars={player.stars} size={12} />
                                 </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center', minWidth: '220px' }}>
@@ -290,8 +308,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
                                     cursor: 'pointer'
                                 }}
                             >
-                                <div style={{ flex: 1 }}>
-                                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-main)' }}>{contract.playerName}</div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ 
+                                        fontSize: contract.playerName.length > 15 ? '0.65rem' : '0.75rem', 
+                                        fontWeight: 800, 
+                                        color: 'var(--text-main)',
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis'
+                                    }}>
+                                        {contract.playerName}
+                                    </div>
                                     <StarRating stars={contract.stars} size={10} />
                                 </div>
                                 <div style={{ textAlign: 'right' }}>

@@ -13,7 +13,7 @@ import { calculateOverall, calculateTendencies } from '../../utils/playerUtils';
 import { getFuzzyAttribute, getFuzzyPotential, getPotentialGrade } from '../../utils/scoutingUtils';
 import { getAttributePotential } from '../../utils/trainingUtils';
 import { DraftHistoryModal } from '../draft/DraftHistoryModal';
-import { calculateTeamBaseline, calculateStars } from '../../utils/starUtils';
+import { calculateTeamBaseline, calculatePlayerStars } from '../../utils/starUtils';
 import { StarRating } from '../../components/StarRating';
 
 interface PlayerDetailViewProps {
@@ -139,8 +139,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
     const overall = calculateOverall(player);
     const targetTeamId = (player.teamId && player.teamId !== 'FA') ? player.teamId : userTeamId;
     const teamPlayers = players.filter(p => p.teamId === targetTeamId);
-    const teamBaseline = calculateTeamBaseline(teamPlayers);
-    const stars = calculateStars(overall, teamBaseline);
+    const stars = calculatePlayerStars(player, teamPlayers);
 
 
     const playerAwards = React.useMemo(() => {
