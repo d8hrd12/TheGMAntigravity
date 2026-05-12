@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, type ReactNode, useCallback } from 'react';
 import { simulateFreeAgencyDay } from '../features/free_agency/logic/FreeAgencyEngine';
 import type { FreeAgencyOffer } from '../features/free_agency/logic/FreeAgencyEngine';
 import type { Coach, PlayingStyle } from '../models/Coach';
@@ -12,6 +12,7 @@ import { generatePlayer } from '../features/player/playerGenerator';
 import { generateCoach, getTacticsForStyle } from '../features/team/coachGenerator';
 import { shouldFireCoach, fireCoach, hireCoach } from '../features/team/CoachLogic';
 import { seedRealRosters } from '../features/player/rosterSeeder';
+import { generateLocalTalentPool, calculateOverall } from '../utils/playerUtils';
 import { processGMDismissals, updateTeamStrategy } from '../features/team/GMManagement';
 import { initializeLeagueGMs } from '../features/team/gmGenerator';
 import type { SocialMediaPost } from '../models/SocialMediaPost';
@@ -32,7 +33,7 @@ import { updatePlayerMorale, applyTeamDynamics, checkTradeRequests, checkProveIt
 import { optimizeRotation } from '../utils/rotationUtils';
 import { formatDate } from '../utils/dateUtils';
 
-import { calculateOverall, checkHallOfFameEligibility, calculateFairSalary, calculateSecondaryPosition } from '../utils/playerUtils';
+import { checkHallOfFameEligibility, calculateFairSalary, calculateSecondaryPosition } from '../utils/playerUtils';
 import { calculateStars, calculateTeamBaseline, getStarString } from '../utils/starUtils';
 import { NBA_TEAMS } from '../data/teams';
 import { EURO_TEAMS } from '../data/euro/teams';
@@ -174,7 +175,10 @@ export interface GameState {
         training: boolean;
         trainingResults: boolean;
         paySalaries: boolean;
+        localTalent: boolean;
+        financials: boolean;
     };
+    localTalentPool: LocalTalent[];
     showAwardsModal: 'regular' | 'finals' | null;
     showMidSeasonProgressionModal: boolean;
     currentHallOfFame: Player[];
@@ -220,6 +224,26 @@ export interface GameState {
         seedsLocked: Record<string, string[]>; // conf -> array of top 6 IDs
     };
     view: string;
+}
+
+export interface LocalTalent extends Player {
+    potential: number; // 0-100
+    hype: number; // 0-100
+    youthStats?: {
+        last10: {
+            pts: number;
+            reb: number;
+            ast: number;
+            fgp: number;
+            date: Date;
+        }[];
+        seasonAvg: {
+            pts: number;
+            reb: number;
+            ast: number;
+        };
+    };
+    growthTrend: 'stagnant' | 'steady' | 'rapid' | 'generational';
 }
 
 // --- New Trade Interface for Interactivity ---
@@ -396,8 +420,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
             freeAgency: false,
             training: false,
             trainingResults: false,
-            paySalaries: false
+            paySalaries: false,
+            localTalent: false,
+            financials: false
         },
+        localTalentPool: [],
         showAwardsModal: null,
         showMidSeasonProgressionModal: false,
         currentHallOfFame: [],
@@ -927,6 +954,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             }
 
             const INITIAL_SALARY_CAP = 155000000;
+            const EURO_BASE_CAP = 30000000; // Used as a fallback for league-wide state
 
             // 4. Initialize AI GMs
             const allTeamIds = teams.map(t => t.id);
@@ -944,14 +972,36 @@ export function GameProvider({ children }: { children: ReactNode }) {
             teams.forEach(t => {
                 const teamContracts = contracts.filter(c => c.teamId === t.id);
                 const totalSalary = teamContracts.reduce((sum, c) => sum + c.amount, 0);
-                t.salaryCapSpace = INITIAL_SALARY_CAP - totalSalary;
                 
-                // Ensure healthy starting cash (Standard NBA Reserve)
-                t.cash = 100000000;
+                if (gameState.leagueType === 'EURO') {
+                    // EURO EXCLUSIVE FINANCIAL SYSTEM
+                    let teamSalaryCap = t.conference === 'EuroLeague' ? 25000000 : 8000000;
+                    
+                    if (t.conference === 'EuroLeague') {
+                        if (t.cash >= 25000000) teamSalaryCap = 35000000; // Powerhouses (Panathinaikos, Real Madrid, etc.)
+                        else if (t.cash >= 18000000) teamSalaryCap = 25000000; // Contenders (Olympiacos, Milan, etc.)
+                        else teamSalaryCap = 18000000; // Lower tier EL
+                    } else if (t.conference === 'EuroCup') {
+                        if (t.cash >= 8000000) teamSalaryCap = 15000000; // Top EuroCup (Hapoel Jerusalem, London)
+                        else teamSalaryCap = 8000000; // Standard EuroCup
+                    }
+                    
+                    t.salaryCapSpace = teamSalaryCap - totalSalary;
+                    // Note: t.cash is preserved from teams.ts for European teams
+                } else {
+                    // NBA FINANCIAL SYSTEM (UNTOUCHED)
+                    t.salaryCapSpace = INITIAL_SALARY_CAP - totalSalary;
+                    t.cash = 100000000; // Standard NBA Reserve
+                }
 
                 if (t.id === userTeamId) {
-                    if (difficulty === 'Easy') t.cash += 50000000;
-                    if (difficulty === 'Hard') t.cash -= 50000000;
+                    if (gameState.leagueType === 'EURO') {
+                        if (difficulty === 'Easy') t.cash += 10000000; 
+                        if (difficulty === 'Hard') t.cash -= 5000000;
+                    } else {
+                        if (difficulty === 'Easy') t.cash += 50000000;
+                        if (difficulty === 'Hard') t.cash -= 50000000;
+                    }
                 }
 
                 t.rosterIds = updatedPlayers.filter(p => p.teamId === t.id).map(p => p.id);
@@ -1031,7 +1081,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 contracts,
                 games: [],
                 date: new Date(2025, 9, 22), // Oct 22
-                salaryCap: INITIAL_SALARY_CAP,
+                salaryCap: gameState.leagueType === 'EURO' ? EURO_BASE_CAP : INITIAL_SALARY_CAP,
                 coaches: initialCoaches, // Add coaches here
                 news: [],
                 isInitialized: true,
@@ -1060,8 +1110,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     freeAgency: false,
                     training: false,
                     trainingResults: false,
-                    paySalaries: false
+                    paySalaries: false,
+                    localTalent: false,
+                    financials: false
                 },
+                localTalentPool: generateLocalTalentPool(30),
                 seasonPhase: currentSeasonPhase,
                 playoffs: [],
                 transactions: [],
@@ -1186,7 +1239,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 contracts,
                 games: [],
                 date: new Date(2025, 9, 22), // Oct 22
-                salaryCap: 140000000,
+                salaryCap: gameState.leagueType === 'EURO' ? 30000000 : 155000000,
                 coaches: initialCoaches, // Add coaches here
                 news: [],
                 isInitialized: true,
@@ -1205,6 +1258,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 draftOrder: [],
                 draftResults: [],
                 draftHistory: {},
+                localTalentPool: [],
                 offseasonTasks: {
                     retirements: false,
                     scouting: false,
@@ -1214,7 +1268,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     freeAgency: false,
                     training: false,
                     trainingResults: false,
-                    paySalaries: false
+                    paySalaries: false,
+                    localTalent: false,
+                    financials: false
                 },
                 seasonPhase: currentSeasonPhase,
                 playoffs: [],
@@ -4036,10 +4092,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     }
                 }
 
-                if (series.homeWins === 4 && !series.winnerId) {
+                const winsNeeded = prev.leagueType === 'EURO' ? (series.round === 1 ? 3 : 1) : 4;
+
+                if (series.homeWins >= winsNeeded && !series.winnerId) {
                     series.winnerId = series.homeTeamId;
                 }
-                if (series.awayWins === 4 && !series.winnerId) {
+                if (series.awayWins >= winsNeeded && !series.winnerId) {
                     series.winnerId = series.awayTeamId;
                 }
 
@@ -4441,7 +4499,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         seasonPhase: 'offseason',
                         view: 'offseason_menu',
                         showAwardsModal: 'finals',
-                        offseasonTasks: {
+                        offseasonTasks: prev.leagueType === 'EURO' ? {
+                            retirements: false,
+                            scouting: false,
+                            coaching: false,
+                            draft: false,
+                            resigning: false,
+                            freeAgency: false,
+                            localTalent: false,
+                            financials: false,
+                            training: false,
+                            trainingResults: false,
+                            paySalaries: false
+                        } : {
                             retirements: false,
                             scouting: false,
                             coaching: false,
@@ -4450,7 +4520,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             freeAgency: false,
                             training: false,
                             trainingResults: false,
-                            paySalaries: false
+                            paySalaries: false,
+                            localTalent: false,
+                            financials: false
                         },
                         salaryCap: finalSalaryCap,
                         teams: finalTeams,
@@ -4589,6 +4661,59 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 
 
+    const simulateYouthLeague = useCallback(() => {
+        setGameState(prev => {
+            const newPool = prev.localTalentPool.map(player => {
+                const ovr = calculateOverall(player);
+                
+                // Slow Growth during season
+                const growthRate = player.growthTrend === 'generational' ? 0.35 : 
+                                  player.growthTrend === 'rapid' ? 0.18 : 
+                                  player.growthTrend === 'steady' ? 0.08 : 0.02;
+                
+                const newAttrs = { ...player.attributes };
+                Object.keys(newAttrs).forEach(key => {
+                    if (Math.random() < growthRate) {
+                        (newAttrs as any)[key] = Math.min(99, (newAttrs as any)[key] + (Math.random() * 0.4));
+                    }
+                });
+
+                const newGame = {
+                    pts: (ovr / 4) + (Math.random() * 12),
+                    reb: (ovr / 10) + (Math.random() * 6),
+                    ast: (ovr / 12) + (Math.random() * 5),
+                    fgp: 35 + (Math.random() * 25),
+                    date: new Date(prev.date)
+                };
+
+                const newLast10 = [newGame, ...player.youthStats?.last10 || []].slice(0, 10);
+                const performance = (newGame.pts + newGame.reb + newGame.ast);
+                const newHype = Math.min(100, Math.max(0, player.hype + (performance > 25 ? 0.8 : -0.3)));
+
+                return {
+                    ...player,
+                    attributes: newAttrs,
+                    hype: newHype,
+                    youthStats: {
+                        last10: newLast10,
+                        seasonAvg: {
+                            pts: newLast10.reduce((s, g) => s + g.pts, 0) / newLast10.length,
+                            reb: newLast10.reduce((s, g) => s + g.reb, 0) / newLast10.length,
+                            ast: newLast10.reduce((s, g) => s + g.ast, 0) / newLast10.length
+                        }
+                    }
+                };
+            });
+
+            if (newPool.length < 30) {
+                const needed = 30 - newPool.length;
+                const additions = generateLocalTalentPool(needed);
+                return { ...prev, localTalentPool: [...newPool, ...additions] };
+            }
+
+            return { ...prev, localTalentPool: newPool };
+        });
+    }, []);
 
     const advanceDay = async () => {
         // If in Free Agency, redirect relative to context
@@ -4768,7 +4893,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
                     if (!homeTeam || !awayTeam) return;
 
-                    while (homeWins < 4 && awayWins < 4) {
+                    const winsNeeded = prev.leagueType === 'EURO' ? (series.round === 1 ? 3 : 1) : 4;
+
+                    while (homeWins < winsNeeded && awayWins < winsNeeded) {
                         const gameNum = homeWins + awayWins;
                         const isHomeCourt = [0, 1, 4, 6].includes(gameNum);
 
@@ -4852,7 +4979,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
                     series.homeWins = homeWins;
                     series.awayWins = awayWins;
-                    series.winnerId = homeWins === 4 ? series.homeTeamId : series.awayTeamId;
+                    series.winnerId = homeWins >= winsNeeded ? series.homeTeamId : series.awayTeamId;
                 });
 
                 // 4. GENERATE NEXT ROUND
@@ -5023,7 +5150,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             retiredPlayersHistory: [...(prev.retiredPlayersHistory || []), { year: finishedSeasonYear, players: retiredPlayers }],
                             draftClass,
                             draftOrder: [...finalTeams].sort((a, b) => a.wins - b.wins).map(t => t.id).concat([...finalTeams].sort((a, b) => a.wins - b.wins).map(t => t.id)),
-                            offseasonTasks: { retirements: false, scouting: false, coaching: false, draft: false, resigning: false, freeAgency: false, training: false, trainingResults: false, paySalaries: false },
+                            offseasonTasks: { retirements: false, scouting: false, coaching: false, draft: false, resigning: false, freeAgency: false, localTalent: false, financials: false, training: false, trainingResults: false, paySalaries: false },
                             date: date,
                             isProcessing: false
                         };
@@ -5440,11 +5567,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
             }
 
             setGameState({
-                leagueType: 'NBA', // Default if missing in spread
-                competitionType: 'NBA', // Default if missing in spread
                 ...loadedState,
+                leagueType: loadedState.leagueType || 'NBA',
+                competitionType: loadedState.competitionType || 'NBA',
                 currentSaveSlot: slotId
-            } as any); // Cast to any to satisfy TS while maintaining defaults-over-spread logic if needed, or better, just ensure they are in loadedState.
+            });
 
             console.log(`Game Loaded from Slot ${slotId}`);
             return true;

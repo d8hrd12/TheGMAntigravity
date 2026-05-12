@@ -68,6 +68,11 @@ import { OffseasonMenuView } from './features/offseason/OffseasonMenuView';
 import { TrainingReportView } from './features/training/TrainingReportView';
 import { GMProfile } from './components/team/GMProfile';
 import { GMListView } from './features/league/GMListView';
+import { EuroOffseasonMenuView } from './features/offseason/EuroOffseasonMenuView';
+import { EuroResigningView } from './features/offseason/EuroResigningView';
+import { EuroFreeAgencyView } from './features/offseason/EuroFreeAgencyView';
+import { EuroFinancialsView } from './features/offseason/EuroFinancialsView';
+import { EuroLocalTalentView } from './features/offseason/EuroLocalTalentView';
 import { App as CapApp } from '@capacitor/app';
 
 function AppContent() {
@@ -331,6 +336,12 @@ function AppContent() {
         { id: 'news', label: 'League News' },
       ]
     },
+    ...(leagueType === 'EURO' ? [{ 
+      id: 'euro_local_talent', 
+      label: 'Local Talents', 
+      icon: <Star size={20} />,
+      items: [] 
+    }] : [])
   ];
 
   const lastFive = useMemo(() => {
@@ -367,7 +378,7 @@ function AppContent() {
                 onGameEnd={completeLiveGame} 
                 userTeamId={userTeamId} 
                 date={date} 
-                leagueType={gameState.leagueType}
+                leagueType={leagueType}
             />;
         }
     }
@@ -539,7 +550,15 @@ function AppContent() {
       case 'euro_playin':
         return <EuroPlayInView />;
       case 'offseason_menu':
-        return <OffseasonMenuView />;
+        return leagueType === 'EURO' ? <EuroOffseasonMenuView /> : <OffseasonMenuView />;
+      case 'euro_resigning':
+        return <EuroResigningView />;
+      case 'euro_free_agency':
+        return <EuroFreeAgencyView />;
+      case 'euro_financials':
+        return <EuroFinancialsView />;
+      case 'euro_local_talent':
+        return <EuroLocalTalentView onBack={handleBack} />;
       case 'retirement':
         return <RetiredPlayersSummaryView onSelectPlayer={setSelectedPlayerId} />;
       case 'scouting':

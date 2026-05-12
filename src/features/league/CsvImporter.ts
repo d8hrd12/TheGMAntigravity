@@ -243,7 +243,7 @@ export const importNbaPlayers = async (teams: Team[], existingPlayers: Player[])
             teamRosterCounts[teamId]++;
 
             // Generate Contract for imported player
-            let contractAmount = calculateFairSalary(player.overall);
+            let contractAmount = calculateFairSalary(player.overall, 'NBA');
             let yearsLeft = Math.floor(Math.random() * 4) + 1;
 
             // OVERRIDE WITH REAL CONTRACT DATA IF AVAILABLE

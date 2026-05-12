@@ -134,30 +134,52 @@ export const getPotentialGrade = (potential: number): string => {
 
 /**
  * Calculates a fair annual salary based on player Overall (OVR)
- * Formula: Min Salary + (Normalized OVR ^ 2.5) * (Max - Min)
+ * Supports both NBA and EURO financial systems.
  */
-export const calculateFairSalary = (ovr: number): number => {
-    const SALARY_CAP = 155000000;
-    const MIN_SALARY = SALARY_CAP * 0.008; // Approx 1.1M
-    
-    let salary = MIN_SALARY;
-    if (ovr >= 95) {
-        salary = SALARY_CAP * 0.35; // Supermax
-    } else if (ovr >= 90) {
-        salary = SALARY_CAP * 0.28;
-    } else if (ovr >= 85) {
-        salary = SALARY_CAP * 0.20;
-    } else if (ovr >= 80) {
-        salary = SALARY_CAP * 0.12;
-    } else if (ovr >= 75) {
-        salary = SALARY_CAP * 0.06;
-    } else if (ovr >= 70) {
-        salary = SALARY_CAP * 0.03;
+export const calculateFairSalary = (ovr: number, leagueType: 'NBA' | 'EURO' = 'NBA'): number => {
+    if (leagueType === 'EURO') {
+        const EURO_MAX = 3500000; // €3.5M Supermax for EuroLeague
+        const EURO_MIN = 150000;  // €150k Minimum
+        
+        let salary = EURO_MIN;
+        if (ovr >= 95) {
+            salary = EURO_MAX; 
+        } else if (ovr >= 90) {
+            salary = 2500000; // ~€2.5M (Star)
+        } else if (ovr >= 85) {
+            salary = 1500000; // ~€1.5M (High-end Starter)
+        } else if (ovr >= 80) {
+            salary = 800000;  // ~€800k (Starter/Key rotation)
+        } else if (ovr >= 75) {
+            salary = 400000;  // ~€400k (Bench)
+        } else if (ovr >= 70) {
+            salary = 250000;  // ~€250k (Deep Bench)
+        } else {
+            salary = EURO_MIN;
+        }
+        return Math.round(salary / 10000) * 10000; // Round to nearest 10k
     } else {
-        salary = MIN_SALARY;
+        const SALARY_CAP = 155000000;
+        const MIN_SALARY = SALARY_CAP * 0.008; // Approx 1.1M
+        
+        let salary = MIN_SALARY;
+        if (ovr >= 95) {
+            salary = SALARY_CAP * 0.35; // Supermax
+        } else if (ovr >= 90) {
+            salary = SALARY_CAP * 0.28;
+        } else if (ovr >= 85) {
+            salary = SALARY_CAP * 0.20;
+        } else if (ovr >= 80) {
+            salary = SALARY_CAP * 0.12;
+        } else if (ovr >= 75) {
+            salary = SALARY_CAP * 0.06;
+        } else if (ovr >= 70) {
+            salary = SALARY_CAP * 0.03;
+        } else {
+            salary = MIN_SALARY;
+        }
+        return Math.round(salary / 100000) * 100000;
     }
-
-    return Math.round(salary / 100000) * 100000;
 };
 
 export const calculateTendencies = (player: Player, minutes: number = 0, teammates: Player[] = []): Player['tendencies'] => {
@@ -352,4 +374,102 @@ export const formatFullStatLine = (player: Player): string => {
     const tpp = s.threeAttempted > 0 ? ((s.threeMade / s.threeAttempted) * 100).toFixed(1) : '0.0';
 
     return `${ppg} PTS • ${rpg} REB • ${apg} AST • ${spg} STL • ${bpg} BLK • ${fgp}% FG • ${tpp}% 3P`;
+};
+
+export const generateYouthPlayer = (id: string, age: number): any => {
+    const positions: Position[] = ['PG', 'SG', 'SF', 'PF', 'C'];
+    const position = positions[Math.floor(Math.random() * positions.length)];
+    
+    // European Name Pool
+    const firstNames = ['Luka', 'Nikola', 'Vassilis', 'Milos', 'Bogdan', 'Mario', 'Facundo', 'Dzanan', 'Nando', 'Toko', 'Guerschon', 'Kostas', 'Sasha', 'Jan', 'Edy', 'Sergio', 'Rudy', 'Lorenzo', 'Wade', 'Mike', 'Keenan', 'Darius', 'Shane', 'Will', 'Jordan', 'Marco', 'Nicolo', 'Gabriel', 'Mateusz', 'Rokas'];
+    const lastNames = ['Doncic', 'Jokic', 'Spanoulis', 'Teodosic', 'Bogdanovic', 'Hezonja', 'Campazzo', 'Musa', 'De Colo', 'Shengelia', 'Yabusele', 'Sloukas', 'Vezenkov', 'Vesely', 'Tavares', 'Llull', 'Fernandez', 'Brown', 'Baldwin', 'James', 'Evans', 'Thompson', 'Larkin', 'Clyburn', 'Loyd', 'Belinelli', 'Melli', 'Deck', 'Ponitka', 'Jokubaitis'];
+    
+    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+
+    // Generational check (0.5% chance)
+    const isGenerational = Math.random() < 0.005;
+    
+    // Base OVR ranges
+    let baseMin = 30;
+    let baseMax = 40;
+    if (age === 17) { baseMin = 40; baseMax = 50; }
+    if (age === 18) { baseMin = 50; baseMax = 60; }
+    
+    if (isGenerational) {
+        baseMin += 25;
+        baseMax += 30;
+    }
+
+    const targetOvr = baseMin + Math.floor(Math.random() * (baseMax - baseMin));
+    
+    // Generate attributes around targetOvr
+    const attributes: PlayerAttributes = {
+        finishing: targetOvr + (Math.random() * 10 - 5),
+        midRange: targetOvr + (Math.random() * 10 - 5),
+        threePointShot: targetOvr + (Math.random() * 10 - 5),
+        freeThrow: targetOvr + (Math.random() * 10 - 5),
+        playmaking: targetOvr + (Math.random() * 10 - 5),
+        ballHandling: targetOvr + (Math.random() * 10 - 5),
+        offensiveRebound: targetOvr + (Math.random() * 10 - 5),
+        defensiveRebound: targetOvr + (Math.random() * 10 - 5),
+        interiorDefense: targetOvr + (Math.random() * 10 - 5),
+        perimeterDefense: targetOvr + (Math.random() * 10 - 5),
+        stealing: targetOvr + (Math.random() * 10 - 5),
+        blocking: targetOvr + (Math.random() * 10 - 5),
+        athleticism: targetOvr + (Math.random() * 10 - 5),
+        basketballIQ: targetOvr + (Math.random() * 10 - 5)
+    };
+
+    // Potential (Kids usually have high upside)
+    const potential = isGenerational ? 95 + Math.random() * 4 : 70 + Math.random() * 25;
+    const hype = isGenerational ? 90 + Math.random() * 9 : 10 + Math.random() * 60;
+
+    // Simulate Last 10
+    const last10 = Array.from({ length: 10 }).map(() => ({
+        pts: (targetOvr / 4) + (Math.random() * 10),
+        reb: (targetOvr / 10) + (Math.random() * 5),
+        ast: (targetOvr / 12) + (Math.random() * 4),
+        fgp: 35 + (Math.random() * 20),
+        date: new Date()
+    }));
+
+    const trends: ('stagnant' | 'steady' | 'rapid' | 'generational')[] = ['stagnant', 'steady', 'steady', 'rapid'];
+    const growthTrend = isGenerational ? 'generational' : trends[Math.floor(Math.random() * trends.length)];
+
+    return {
+        id,
+        firstName,
+        lastName,
+        age,
+        position,
+        height: 185 + Math.floor(Math.random() * 30),
+        weight: 75 + Math.floor(Math.random() * 40),
+        attributes,
+        potential,
+        hype,
+        growthTrend,
+        youthStats: {
+            last10,
+            seasonAvg: {
+                pts: last10.reduce((s, g) => s + g.pts, 0) / 10,
+                reb: last10.reduce((s, g) => s + g.reb, 0) / 10,
+                ast: last10.reduce((s, g) => s + g.ast, 0) / 10
+            }
+        },
+        teamId: '',
+        isInjured: false,
+        injuryType: null,
+        daysOut: 0,
+        careerStats: [],
+        seasonStats: { points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, gamesPlayed: 0, fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0, ftMade: 0, ftAttempted: 0, minutes: 0 },
+        tendencies: { shooting: 50, passing: 50, inside: 50, outside: 50, defense: 50 }
+    };
+};
+
+export const generateLocalTalentPool = (count: number = 30): any[] => {
+    return Array.from({ length: count }).map((_, i) => {
+        const age = 16 + Math.floor(Math.random() * 3); // 16, 17, or 18
+        return generateYouthPlayer(`youth_${Date.now()}_${i}`, age);
+    });
 };

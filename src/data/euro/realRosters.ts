@@ -8,7 +8,7 @@ export const EURO_ROSTERS: Record<string, any[]> = {
 
     // ─── OLYMPIACOS (OLY) ───────────────────────────────────────────────────
     'OLY': [
-        { firstName: 'Sasha', lastName: 'Vezenkov', position: 'PF', age: 30, height: 206, weight: 102, stars: 5.0, potential: 96,
+        { firstName: 'Sasha', lastName: 'Vezenkov', position: 'PF', age: 30, height: 206, weight: 102, stars: 5.0, potential: 96, contract: { amount: 3700000, years: 4 },
           attributes: {
             finishing: 92, midRange: 88, threePointShot: 90, freeThrow: 89,
             playmaking: 62, ballHandling: 85, basketballIQ: 96, athleticism: 78,
@@ -24,7 +24,7 @@ export const EURO_ROSTERS: Record<string, any[]> = {
             offensiveRebound: 55, defensiveRebound: 65
           },
           tendencies: { shooting: 92, passing: 65, inside: 55, outside: 94, defensiveAggression: 55, foulTendency: 45 } },
-        { firstName: 'Evan', lastName: 'Fournier', position: 'SF', age: 33, height: 198, weight: 93, stars: 4.5, potential: 86,
+        { firstName: 'Evan', lastName: 'Fournier', position: 'SF', age: 33, height: 198, weight: 93, stars: 4.5, potential: 86, contract: { amount: 2000000, years: 2 },
           attributes: {
             finishing: 80, midRange: 84, threePointShot: 87, freeThrow: 80,
             playmaking: 78, ballHandling: 78, basketballIQ: 90, athleticism: 76,
@@ -32,7 +32,7 @@ export const EURO_ROSTERS: Record<string, any[]> = {
             offensiveRebound: 50, defensiveRebound: 62
           },
           tendencies: { shooting: 94, passing: 72, inside: 50, outside: 92, defensiveAggression: 50, foulTendency: 40 } },
-        { firstName: 'Nikola', lastName: 'Milutinov', position: 'C', age: 31, height: 213, weight: 116, stars: 5.0, potential: 94,
+        { firstName: 'Nikola', lastName: 'Milutinov', position: 'C', age: 31, height: 213, weight: 116, stars: 5.0, potential: 94, contract: { amount: 2000000, years: 1 },
           attributes: {
             finishing: 96, midRange: 65, threePointShot: 25, freeThrow: 78,
             playmaking: 68, ballHandling: 65, basketballIQ: 92, athleticism: 72,
@@ -156,7 +156,7 @@ export const EURO_ROSTERS: Record<string, any[]> = {
 
     // ─── ANADOLU EFES (IST) ───────────────────────────────────────────────────
     'IST': [
-        { firstName: 'Shane', lastName: 'Larkin', position: 'PG', age: 32, height: 182, weight: 79, stars: 5.0, potential: 92,
+        { firstName: 'Shane', lastName: 'Larkin', position: 'PG', age: 32, height: 182, weight: 79, stars: 5.0, potential: 92, contract: { amount: 3000000, years: 2 },
           attributes: {
             finishing: 85, midRange: 88, threePointShot: 94, freeThrow: 89,
             playmaking: 92, ballHandling: 96, basketballIQ: 95, athleticism: 88,
@@ -297,7 +297,7 @@ export const EURO_ROSTERS: Record<string, any[]> = {
     // Empty rosters for remaining teams (to be filled team by team)
     // ─── PANATHINAIKOS (PAN) ────────────────────────────────────────────────
     'PAN': [
-        { firstName: 'Kendrick', lastName: 'Nunn', position: 'SG', age: 29, height: 191, weight: 86, stars: 5.0, potential: 92,
+        { firstName: 'Kendrick', lastName: 'Nunn', position: 'SG', age: 29, height: 191, weight: 86, stars: 5.0, potential: 92, contract: { amount: 2500000, years: 2 },
           attributes: {
             finishing: 92, midRange: 92, threePointShot: 89, freeThrow: 89,
             playmaking: 82, ballHandling: 90, basketballIQ: 92, athleticism: 90,
@@ -321,7 +321,7 @@ export const EURO_ROSTERS: Record<string, any[]> = {
             offensiveRebound: 45, defensiveRebound: 65
           },
           tendencies: { shooting: 82, passing: 68, inside: 75, outside: 85, defensiveAggression: 75, foulTendency: 50 } },
-        { firstName: 'Kostas', lastName: 'Sloukas', position: 'PG', age: 34, height: 190, weight: 87, stars: 4.5, potential: 86,
+        { firstName: 'Kostas', lastName: 'Sloukas', position: 'PG', age: 34, height: 190, weight: 87, stars: 4.5, potential: 86, contract: { amount: 2800000, years: 2 },
           attributes: {
             finishing: 78, midRange: 85, threePointShot: 88, freeThrow: 91,
             playmaking: 98, ballHandling: 92, basketballIQ: 99, athleticism: 78,
@@ -337,7 +337,7 @@ export const EURO_ROSTERS: Record<string, any[]> = {
             offensiveRebound: 35, defensiveRebound: 42
           },
           tendencies: { shooting: 92, passing: 92, inside: 75, outside: 75, defensiveAggression: 82, foulTendency: 45 } },
-        { firstName: 'Mathias', lastName: 'Lessort', position: 'C', age: 29, height: 206, weight: 112, stars: 4.5, potential: 88,
+        { firstName: 'Mathias', lastName: 'Lessort', position: 'C', age: 29, height: 206, weight: 112, stars: 4.5, potential: 88, contract: { amount: 1800000, years: 1 },
           attributes: {
             finishing: 92, midRange: 35, threePointShot: 25, freeThrow: 67,
             playmaking: 62, ballHandling: 65, basketballIQ: 92, athleticism: 92,
@@ -345,7 +345,7 @@ export const EURO_ROSTERS: Record<string, any[]> = {
             offensiveRebound: 88, defensiveRebound: 85
           },
           tendencies: { shooting: 65, passing: 62, inside: 98, outside: 25, defensiveAggression: 92, foulTendency: 75 } },
-        { firstName: 'Juancho', lastName: 'Hernangomez', position: 'PF', age: 29, height: 206, weight: 97, stars: 4.0, potential: 86,
+        { firstName: 'Juancho', lastName: 'Hernangomez', position: 'PF', age: 29, height: 206, weight: 97, stars: 4.0, potential: 86, contract: { amount: 2200000, years: 1 },
           attributes: {
             finishing: 82, midRange: 78, threePointShot: 86, freeThrow: 75,
             playmaking: 65, ballHandling: 72, basketballIQ: 92, athleticism: 85,
@@ -420,7 +420,7 @@ export const EURO_ROSTERS: Record<string, any[]> = {
             offensiveRebound: 55, defensiveRebound: 72
           },
           tendencies: { shooting: 92, passing: 72, inside: 75, outside: 94, defensiveAggression: 75, foulTendency: 55 } },
-        { firstName: 'Mario', lastName: 'Hezonja', position: 'SF', age: 30, height: 203, weight: 110, stars: 5.0, potential: 90,
+        { firstName: 'Mario', lastName: 'Hezonja', position: 'SF', age: 30, height: 203, weight: 110, stars: 5.0, potential: 90, contract: { amount: 2500000, years: 4 },
           attributes: {
             finishing: 92, midRange: 85, threePointShot: 85, freeThrow: 81,
             playmaking: 78, ballHandling: 88, basketballIQ: 90, athleticism: 92,
@@ -428,7 +428,7 @@ export const EURO_ROSTERS: Record<string, any[]> = {
             offensiveRebound: 35, defensiveRebound: 65
           },
           tendencies: { shooting: 99, passing: 75, inside: 85, outside: 85, defensiveAggression: 75, foulTendency: 50 } },
-        { firstName: 'Facundo', lastName: 'Campazzo', position: 'PG', age: 34, height: 178, weight: 88, stars: 5.0, potential: 88,
+        { firstName: 'Facundo', lastName: 'Campazzo', position: 'PG', age: 34, height: 178, weight: 88, stars: 5.0, potential: 88, contract: { amount: 2800000, years: 3 },
           attributes: {
             finishing: 78, midRange: 88, threePointShot: 93, freeThrow: 85,
             playmaking: 99, ballHandling: 96, basketballIQ: 99, athleticism: 85,
@@ -436,7 +436,7 @@ export const EURO_ROSTERS: Record<string, any[]> = {
             offensiveRebound: 35, defensiveRebound: 42
           },
           tendencies: { shooting: 78, passing: 99, inside: 55, outside: 93, defensiveAggression: 99, foulTendency: 55 } },
-        { firstName: 'Edy', lastName: 'Tavares', position: 'C', age: 33, height: 221, weight: 120, stars: 5.0, potential: 90,
+        { firstName: 'Edy', lastName: 'Tavares', position: 'C', age: 33, height: 221, weight: 120, stars: 5.0, potential: 90, contract: { amount: 3000000, years: 4 },
           attributes: {
             finishing: 94, midRange: 25, threePointShot: 25, freeThrow: 73,
             playmaking: 52, ballHandling: 58, basketballIQ: 94, athleticism: 78,
@@ -519,7 +519,7 @@ export const EURO_ROSTERS: Record<string, any[]> = {
     ],
     // ─── FC BARCELONA (BAR) ─────────────────────────────────────────────────
     'BAR': [
-        { firstName: 'Kevin', lastName: 'Punter', position: 'SG', age: 31, height: 193, weight: 86, stars: 5.0, potential: 92,
+        { firstName: 'Kevin', lastName: 'Punter', position: 'SG', age: 31, height: 193, weight: 86, stars: 5.0, potential: 92, contract: { amount: 2200000, years: 1 },
           attributes: {
             finishing: 85, midRange: 94, threePointShot: 92, freeThrow: 87,
             playmaking: 78, ballHandling: 90, basketballIQ: 92, athleticism: 85,
@@ -527,7 +527,7 @@ export const EURO_ROSTERS: Record<string, any[]> = {
             offensiveRebound: 35, defensiveRebound: 45
           },
           tendencies: { shooting: 95, passing: 65, inside: 60, outside: 95, defensiveAggression: 70, foulTendency: 45 } },
-        { firstName: 'Will', lastName: 'Clyburn', position: 'SF', age: 34, height: 201, weight: 95, stars: 4.5, potential: 88,
+        { firstName: 'Will', lastName: 'Clyburn', position: 'SF', age: 34, height: 201, weight: 95, stars: 4.5, potential: 88, contract: { amount: 1800000, years: 2 },
           attributes: {
             finishing: 88, midRange: 85, threePointShot: 88, freeThrow: 73,
             playmaking: 72, ballHandling: 85, basketballIQ: 90, athleticism: 84,
@@ -535,7 +535,7 @@ export const EURO_ROSTERS: Record<string, any[]> = {
             offensiveRebound: 55, defensiveRebound: 72
           },
           tendencies: { shooting: 92, passing: 65, inside: 75, outside: 88, defensiveAggression: 75, foulTendency: 50 } },
-        { firstName: 'Tornike', lastName: 'Shengelia', position: 'PF', age: 33, height: 206, weight: 109, stars: 4.5, potential: 88,
+        { firstName: 'Tornike', lastName: 'Shengelia', position: 'PF', age: 33, height: 206, weight: 109, stars: 4.5, potential: 88, contract: { amount: 2000000, years: 1 },
           attributes: {
             finishing: 90, midRange: 82, threePointShot: 85, freeThrow: 82,
             playmaking: 82, ballHandling: 84, basketballIQ: 94, athleticism: 82,
@@ -575,7 +575,7 @@ export const EURO_ROSTERS: Record<string, any[]> = {
             offensiveRebound: 35, defensiveRebound: 42
           },
           tendencies: { shooting: 92, passing: 72, inside: 55, outside: 92, defensiveAggression: 65, foulTendency: 50 } },
-        { firstName: 'Willy', lastName: 'Hernangomez', position: 'C', age: 30, height: 211, weight: 113, stars: 4.0, potential: 88,
+        { firstName: 'Willy', lastName: 'Hernangomez', position: 'C', age: 30, height: 211, weight: 113, stars: 4.0, potential: 88, contract: { amount: 2200000, years: 2 },
           attributes: {
             finishing: 92, midRange: 60, threePointShot: 35, freeThrow: 66,
             playmaking: 55, ballHandling: 62, basketballIQ: 85, athleticism: 80,
@@ -642,7 +642,7 @@ export const EURO_ROSTERS: Record<string, any[]> = {
             offensiveRebound: 65, defensiveRebound: 75
           },
           tendencies: { shooting: 95, passing: 65, inside: 85, outside: 78, defensiveAggression: 85, foulTendency: 60 } },
-        { firstName: 'Wade', lastName: 'Baldwin IV', position: 'PG', age: 28, height: 193, weight: 91, stars: 5.0, potential: 92,
+        { firstName: 'Wade', lastName: 'Baldwin IV', position: 'PG', age: 28, height: 193, weight: 91, stars: 5.0, potential: 92, contract: { amount: 2500000, years: 2 },
           attributes: {
             finishing: 88, midRange: 85, threePointShot: 85, freeThrow: 79,
             playmaking: 99, ballHandling: 92, basketballIQ: 94, athleticism: 94,
@@ -749,7 +749,7 @@ export const EURO_ROSTERS: Record<string, any[]> = {
     ],
     // ─── AS MONACO (MCO) ────────────────────────────────────────────────────
     'MCO': [
-        { firstName: 'Mike', lastName: 'James', position: 'PG', age: 34, height: 185, weight: 89, stars: 5.0, potential: 92,
+        { firstName: 'Mike', lastName: 'James', position: 'PG', age: 34, height: 185, weight: 89, stars: 5.0, potential: 92, contract: { amount: 2500000, years: 3 },
           attributes: {
             finishing: 88, midRange: 92, threePointShot: 85, freeThrow: 86,
             playmaking: 99, ballHandling: 98, basketballIQ: 96, athleticism: 85,
@@ -773,7 +773,7 @@ export const EURO_ROSTERS: Record<string, any[]> = {
             offensiveRebound: 35, defensiveRebound: 48
           },
           tendencies: { shooting: 88, passing: 92, inside: 65, outside: 85, defensiveAggression: 65, foulTendency: 50 } },
-        { firstName: 'Nikola', lastName: 'Mirotic', position: 'PF', age: 34, height: 208, weight: 113, stars: 4.5, potential: 90,
+        { firstName: 'Nikola', lastName: 'Mirotic', position: 'PF', age: 34, height: 208, weight: 113, stars: 4.5, potential: 90, contract: { amount: 2500000, years: 2 },
           attributes: {
             finishing: 82, midRange: 88, threePointShot: 92, freeThrow: 82,
             playmaking: 72, ballHandling: 75, basketballIQ: 94, athleticism: 75,

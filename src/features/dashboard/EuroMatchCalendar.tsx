@@ -108,8 +108,8 @@ export const EuroMatchCalendar: React.FC = () => {
     const visible = matchDays.slice(clampedOffset, clampedOffset + WINDOW);
 
     // Stats summary
-    const played = matchDays.filter(m => m.isPlayed && m.result);
-    const wins = played.filter(m => m.result?.won).length;
+    const played = matchDays.filter(m => m && m.isPlayed && m.result);
+    const wins = played.filter(m => m && m.result?.won).length;
     const losses = played.length - wins;
 
     if (!isEuroMode || !userTeam) return null;
@@ -190,6 +190,7 @@ export const EuroMatchCalendar: React.FC = () => {
                     </div>
                 ) : (
                     visible.map((md) => {
+                        if (!md) return null;
                         const isPending = md.matchDay === seasonGamesPlayed + 1;
                         const isPlayed = md.isPlayed && md.result !== null;
                         const opp = md.opponent;

@@ -311,7 +311,7 @@ export function seedRealRosters(teams: Team[], leagueType: 'NBA' | 'EURO' = 'NBA
                     }
                 };
                 // Generate Real Contract
-                let contractAmount = calculateFairSalary(player.overall);
+                let contractAmount = calculateFairSalary(player.overall, leagueType);
                 let yearsLeft = Math.floor(Math.random() * 4) + 1; // 1-4 years
 
                 if (def.contract) {
@@ -356,7 +356,7 @@ export function seedRealRosters(teams: Team[], leagueType: 'NBA' | 'EURO' = 'NBA
             allPlayers.push(filler);
 
             // Generate Fair Generic Contract
-            const fairSalary = calculateFairSalary(filler.overall);
+            const fairSalary = calculateFairSalary(filler.overall, leagueType);
             const years = filler.age < 24 ? 3 : Math.floor(Math.random() * 2) + 1; // Prospects get 3yr, vets 1-2
 
             allContracts.push({

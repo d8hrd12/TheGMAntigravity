@@ -482,4 +482,4 @@ export const EURO_TEAMS: Team[] = [
         wins: 0, losses: 0, cash: 3800000, fanInterest: 0.9, marketSize: 'Large', ownerPatience: 70,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     }
-];
+] as any;

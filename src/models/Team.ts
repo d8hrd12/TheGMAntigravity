@@ -59,9 +59,17 @@ export interface Team {
     colors?: {
         primary: string;
         secondary: string;
+        accent?: string;
     };
+    division?: string;
     draftPicks: DraftPick[];
     rivalIds: string[];
+    preseasonWins?: number;
+    preseasonLosses?: number;
+    playoffWins?: number;
+    playoffLosses?: number;
+    titles?: number;
+    retiredNumbers?: number[];
     history: { year: number; wins: number; losses: number; playoffResult?: string; }[];
 
     // Strategy

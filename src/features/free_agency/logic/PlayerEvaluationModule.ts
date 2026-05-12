@@ -96,23 +96,34 @@ export const evaluateFreeAgent = (
 
     // 3. CONTRACT EFFICIENCY (0-20)
     let contractScore = 10;
-    const capHitPct = projectedContract.amount / 140000000; // Assuming 140M cap
+    
+    const isEuro = team.conference === 'EuroLeague' || team.conference === 'EuroCup';
+    const estimatedCap = isEuro ? 25000000 : 140000000;
+    const capHitPct = projectedContract.amount / estimatedCap;
 
     // Value Check
-    // Simple heuristic: 1M per 1 OVR point above 60? 
-    // Let's use specific tiers
     let marketValue = 0;
-    if (ovr >= 90) marketValue = 45000000;
-    else if (ovr >= 85) marketValue = 30000000;
-    else if (ovr >= 80) marketValue = 18000000;
-    else if (ovr >= 75) marketValue = 8000000;
-    else marketValue = 2000000;
+    if (isEuro) {
+        if (ovr >= 95) marketValue = 3500000;
+        else if (ovr >= 90) marketValue = 2500000;
+        else if (ovr >= 85) marketValue = 1500000;
+        else if (ovr >= 80) marketValue = 800000;
+        else if (ovr >= 75) marketValue = 400000;
+        else marketValue = 250000;
+    } else {
+        if (ovr >= 90) marketValue = 45000000;
+        else if (ovr >= 85) marketValue = 30000000;
+        else if (ovr >= 80) marketValue = 18000000;
+        else if (ovr >= 75) marketValue = 8000000;
+        else marketValue = 2000000;
+    }
 
     if (projectedContract.amount < marketValue * 0.8) contractScore += 10; // Steal
     else if (projectedContract.amount > marketValue * 1.2) contractScore -= 10; // Overpay
 
     // Cap Flexibility
-    if (salaryCapSpace - projectedContract.amount < 5000000) contractScore -= 5; // Tight fit
+    const flexibilityThreshold = isEuro ? 1000000 : 5000000;
+    if (salaryCapSpace - projectedContract.amount < flexibilityThreshold) contractScore -= 5; // Tight fit
 
     contractScore = Math.max(0, Math.min(20, contractScore));
 

@@ -204,4 +204,4 @@ const getTeamLogo = (abbreviation: string) => {
 export const NBA_TEAMS: Team[] = RAW_TEAMS.map(t => ({
     ...t,
     logo: getTeamLogo(t.abbreviation)
-}));
+})) as any;

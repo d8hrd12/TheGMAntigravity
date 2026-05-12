@@ -149,7 +149,7 @@ const EuroPlayInView: React.FC = () => {
             <div style={{ 
                 background: 'var(--bg-card)', 
                 borderRadius: '16px', 
-                padding: '16px', 
+                padding: '10px', 
                 border: isUserMatch ? '2px solid var(--team-primary)' : '1px solid var(--border-color)',
                 boxShadow: 'var(--shadow-md)',
                 position: 'relative',
@@ -166,19 +166,25 @@ const EuroPlayInView: React.FC = () => {
                     {matchup.type === '7vs8' ? '7TH SEED BATTLE' : matchup.type === '9vs10' ? 'ELIMINATION GAME' : 'FINAL SEED DECIDER'}
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
                     {/* AWAY */}
                     <div style={{ flex: 1, textAlign: 'center' }}>
-                        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: away?.colors.primary, margin: '0 auto 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.2rem', fontWeight: 900 }}>
-                            {away?.name[0]}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '2px' }}>{away?.abbreviation}</div>
-                        <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>OVR: {getTeamOvr(matchup.awayTeamId)}</div>
+                        {away?.logo ? (
+                            <div style={{ width: '40px', height: '40px', margin: '0 auto 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-main)', borderRadius: '10px', padding: '4px', border: '1px solid var(--border-color)' }}>
+                                <img src={away.logo} alt={away.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                            </div>
+                        ) : (
+                            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: away?.colors?.primary || 'var(--team-primary)', margin: '0 auto 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.1rem', fontWeight: 900 }}>
+                                {away?.name[0]}
+                            </div>
+                        )}
+                        <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '2px' }}>{away?.abbreviation}</div>
+                        <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)' }}>OVR: {getTeamOvr(matchup.awayTeamId)}</div>
                     </div>
 
                     <div style={{ textAlign: 'center' }}>
                         {matchup.played ? (
-                            <div style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--text-main)' }}>
+                            <div style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--text-main)' }}>
                                 {matchup.result?.awayScore} - {matchup.result?.homeScore}
                             </div>
                         ) : (
@@ -188,11 +194,17 @@ const EuroPlayInView: React.FC = () => {
 
                     {/* HOME */}
                     <div style={{ flex: 1, textAlign: 'center' }}>
-                        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: home?.colors.primary, margin: '0 auto 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.2rem', fontWeight: 900 }}>
-                            {home?.name[0]}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '2px' }}>{home?.abbreviation}</div>
-                        <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>OVR: {getTeamOvr(matchup.homeTeamId)}</div>
+                        {home?.logo ? (
+                            <div style={{ width: '40px', height: '40px', margin: '0 auto 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-main)', borderRadius: '10px', padding: '4px', border: '1px solid var(--border-color)' }}>
+                                <img src={home.logo} alt={home.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                            </div>
+                        ) : (
+                            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: home?.colors?.primary || 'var(--team-primary)', margin: '0 auto 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.1rem', fontWeight: 900 }}>
+                                {home?.name[0]}
+                            </div>
+                        )}
+                        <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '2px' }}>{home?.abbreviation}</div>
+                        <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)' }}>OVR: {getTeamOvr(matchup.homeTeamId)}</div>
                     </div>
                 </div>
 
@@ -243,18 +255,18 @@ const EuroPlayInView: React.FC = () => {
     };
 
     return (
-        <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ padding: '8px', maxWidth: '1200px', margin: '0 auto' }}>
             <PageHeader 
                 title="EURO PLAY-IN TOURNAMENT" 
                 onBack={() => setGameState(prev => ({ ...prev, view: 'dashboard' }))}
             />
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', marginTop: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '24px' }}>
                 {/* EUROLEAGUE SECTION */}
                 <section>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', color: '#f39c12' }}>
-                        <Trophy size={20} />
-                        <h2 style={{ fontSize: '1.2rem', fontWeight: 900, margin: 0 }}>EUROLEAGUE</h2>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: '#f39c12' }}>
+                        <Trophy size={16} />
+                        <h2 style={{ fontSize: '1rem', fontWeight: 900, margin: 0 }}>EUROLEAGUE</h2>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         {elMatchups.map((m: PlayInMatchup) => <MatchupCard key={m.id} matchup={m} />)}
@@ -268,9 +280,9 @@ const EuroPlayInView: React.FC = () => {
 
                 {/* EUROCUP SECTION */}
                 <section>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', color: '#3498db' }}>
-                        <Trophy size={20} />
-                        <h2 style={{ fontSize: '1.2rem', fontWeight: 900, margin: 0 }}>EUROCUP</h2>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: '#3498db' }}>
+                        <Trophy size={16} />
+                        <h2 style={{ fontSize: '1rem', fontWeight: 900, margin: 0 }}>EUROCUP</h2>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         {ecMatchups.map((m: PlayInMatchup) => <MatchupCard key={m.id} matchup={m} />)}
