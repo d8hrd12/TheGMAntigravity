@@ -20,6 +20,7 @@ import type { SocialMediaPost } from '../models/SocialMediaPost';
 
 import { LiveGameEngine } from '../features/simulation/LiveGameEngine';
 import { simulateMatchV3 as simulateMatch } from '../features/simulation/v3/MatchEngineV3';
+import { simulateEuroMatch } from '../features/simulation/euro/EuroMatchEngine';
 import { generateDailyPosts } from '../socialMediaUtils';
 import type { MatchResult, TeamRotationData, PlayerStats, MerchCampaign, ActiveMerchCampaign } from '../features/simulation/SimulationTypes';
 
@@ -3797,7 +3798,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     const hCoach = prev.coaches.find(c => c.teamId === home.id);
                     const aCoach = prev.coaches.find(c => c.teamId === away.id);
 
-                    result = simulateMatch({
+                    const matchInput = {
                         homeTeam: home,
                         awayTeam: away,
                         homeRoster: hRoster,
@@ -3807,7 +3808,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         date: prev.date,
                         userTeamId: prev.userTeamId,
                         leagueType: prev.leagueType
-                    });
+                    };
+                    result = prev.leagueType === 'EURO'
+                        ? simulateEuroMatch(matchInput)
+                        : simulateMatch(matchInput);
                 }
                 results.push(result);
 
@@ -4130,14 +4134,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     const homeRoster = activePlayers.filter(p => p.teamId === homeTeam.id);
                     const awayRoster = activePlayers.filter(p => p.teamId === awayTeam.id);
 
-                    const result = simulateMatch({
+                    const playoffInput = {
                         homeTeam,
                         awayTeam,
                         homeRoster,
                         awayRoster,
                         date: nextDate,
-                        userTeamId: prev.userTeamId
-                    });
+                        userTeamId: prev.userTeamId,
+                        isPlayoffs: true,
+                        leagueType: prev.leagueType
+                    };
+                    const result = prev.leagueType === 'EURO'
+                        ? simulateEuroMatch(playoffInput)
+                        : simulateMatch(playoffInput);
                     newGames.push(result);
 
                     if (result.winnerId === series.homeTeamId) {
@@ -4964,14 +4973,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         const p2Roster = statePlayers.filter(p => p.teamId === p2.id);
 
                         // Simulate Match
-                        const result = simulateMatch({
+                        const simInput = {
                             homeTeam: p1,
                             awayTeam: p2,
                             homeRoster: p1Roster,
                             awayRoster: p2Roster,
                             date: new Date(date),
-                            userTeamId: gameState.userTeamId
-                        });
+                            userTeamId: gameState.userTeamId,
+                            isPlayoffs: true,
+                            leagueType: gameState.leagueType
+                        };
+                        const result = gameState.leagueType === 'EURO'
+                            ? simulateEuroMatch(simInput)
+                            : simulateMatch(simInput);
                         stateGames.push(result);
 
                         if (result.winnerId === series.homeTeamId) homeWins++;
