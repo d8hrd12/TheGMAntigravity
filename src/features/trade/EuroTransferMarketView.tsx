@@ -310,6 +310,7 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack }) => {
     const [transferPhase, setTransferPhase] = useState<'SELECT' | 'TEAM_NEGOTIATION' | 'PLAYER_NEGOTIATION'>('SELECT');
     
     // Browse Logic
+    const [marketTab, setMarketTab] = useState<'TRANSFERS' | 'FREE_AGENTS'>('TRANSFERS');
     const [searchMode, setSearchMode] = useState<'PLAYERS' | 'TEAMS' | 'NBA'>('PLAYERS');
     const [leagueFilter, setLeagueFilter] = useState<'EuroLeague' | 'EuroCup'>('EuroLeague');
     const [browsingTeamId, setBrowsingTeamId] = useState<string | null>(null);
@@ -346,6 +347,13 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack }) => {
             })
             .sort((a, b) => calculateOverall(b) - calculateOverall(a));
     }, [otherPlayers, searchTerm, positionFilter, teams, userTeam]);
+
+    const filteredFreeAgents = useMemo(() => {
+        return players.filter(p => !p.teamId && !p.id.startsWith('nba_target'))
+            .filter(p => (`${p.firstName} ${p.lastName}`).toLowerCase().includes(searchTerm.toLowerCase()))
+            .filter(p => positionFilter === 'All' || p.position === positionFilter)
+            .sort((a, b) => calculateOverall(b) - calculateOverall(a));
+    }, [players, searchTerm, positionFilter]);
 
 
     const filteredNBAPool = useMemo(() => {
@@ -504,62 +512,94 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack }) => {
                 </button>
                 <div>
                     <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <ArrowRightLeft color="var(--team-primary)" /> EUROPEAN TRANSFER MARKET
+                        <ArrowRightLeft color="var(--team-primary)" /> EUROPEAN MARKET
                     </h1>
                     <p style={{ margin: '4px 0 0 0', color: 'var(--text-dim)', fontSize: '0.9rem' }}>
-                        Buy out players from other teams using your cash reserves.
+                        {marketTab === 'TRANSFERS' 
+                            ? "Buy out players from other teams using your cash reserves."
+                            : "Sign players who have been cut or didn't re-sign with their teams."}
                     </p>
                 </div>
+            </div>
+
+            {/* Main Market Tab Toggle */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+                <button 
+                    onClick={() => { setMarketTab('TRANSFERS'); setSearchMode('PLAYERS'); setBrowsingTeamId(null); setSelectedPlayer(null); }}
+                    style={{ 
+                        padding: '12px 24px', borderRadius: '14px', border: 'none',
+                        background: marketTab === 'TRANSFERS' ? 'var(--team-primary)' : 'var(--bg-card)',
+                        color: marketTab === 'TRANSFERS' ? '#fff' : 'var(--text-dim)',
+                        fontWeight: 900, cursor: 'pointer', transition: 'all 0.2s',
+                        fontSize: '1rem', boxShadow: marketTab === 'TRANSFERS' ? '0 4px 15px rgba(var(--team-primary-rgb), 0.3)' : 'none'
+                    }}
+                >
+                    TRANSFERS
+                </button>
+                <button 
+                    onClick={() => { setMarketTab('FREE_AGENTS'); setBrowsingTeamId(null); setSelectedPlayer(null); }}
+                    style={{ 
+                        padding: '12px 24px', borderRadius: '14px', border: 'none',
+                        background: marketTab === 'FREE_AGENTS' ? 'var(--team-primary)' : 'var(--bg-card)',
+                        color: marketTab === 'FREE_AGENTS' ? '#fff' : 'var(--text-dim)',
+                        fontWeight: 900, cursor: 'pointer', transition: 'all 0.2s',
+                        fontSize: '1rem', boxShadow: marketTab === 'FREE_AGENTS' ? '0 4px 15px rgba(var(--team-primary-rgb), 0.3)' : 'none'
+                    }}
+                >
+                    FREE AGENTS
+                </button>
             </div>
 
             <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                 {/* Left Pane: Target Search */}
                 <div style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', gap: '16px', minWidth: '300px' }}>
                     
-                    {/* Search Mode Toggle */}
-                    <div style={{ display: 'flex', background: 'var(--bg-card)', borderRadius: '12px', padding: '4px', border: '1px solid var(--border-color)' }}>
-                        <button 
-                            onClick={() => { setSearchMode('PLAYERS'); setBrowsingTeamId(null); }}
-                            style={{ 
-                                flex: 1, padding: '10px', borderRadius: '8px', border: 'none',
-                                background: searchMode === 'PLAYERS' ? 'var(--team-primary)' : 'transparent',
-                                color: searchMode === 'PLAYERS' ? '#fff' : 'var(--text-dim)',
-                                fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s'
-                            }}
-                        >
-                            PLAYERS
-                        </button>
-                        <button 
-                            onClick={() => setSearchMode('TEAMS')}
-                            style={{ 
-                                flex: 1, padding: '10px', borderRadius: '8px', border: 'none',
-                                background: searchMode === 'TEAMS' ? 'var(--team-primary)' : 'transparent',
-                                color: searchMode === 'TEAMS' ? '#fff' : 'var(--text-dim)',
-                                fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s'
-                            }}
-                        >
-                            TEAMS
-                        </button>
-                        <button 
-                            onClick={() => { setSearchMode('NBA'); setBrowsingTeamId(null); }}
-                            style={{ 
-                                flex: 1, padding: '10px', borderRadius: '8px', border: 'none',
-                                background: searchMode === 'NBA' ? 'var(--team-primary)' : 'transparent',
-                                color: searchMode === 'NBA' ? '#fff' : 'var(--text-dim)',
-                                fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s'
-                            }}
-                        >
-                            NBA
-                        </button>
-                    </div>
+                    {/* Search Mode Toggle (Only for Transfers) */}
+                    {marketTab === 'TRANSFERS' && (
+                        <div style={{ display: 'flex', background: 'var(--bg-card)', borderRadius: '12px', padding: '4px', border: '1px solid var(--border-color)' }}>
+                            <button 
+                                onClick={() => { setSearchMode('PLAYERS'); setBrowsingTeamId(null); }}
+                                style={{ 
+                                    flex: 1, padding: '10px', borderRadius: '8px', border: 'none',
+                                    background: searchMode === 'PLAYERS' ? 'var(--team-primary)' : 'transparent',
+                                    color: searchMode === 'PLAYERS' ? '#fff' : 'var(--text-dim)',
+                                    fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s'
+                                }}
+                            >
+                                PLAYERS
+                            </button>
+                            <button 
+                                onClick={() => setSearchMode('TEAMS')}
+                                style={{ 
+                                    flex: 1, padding: '10px', borderRadius: '8px', border: 'none',
+                                    background: searchMode === 'TEAMS' ? 'var(--team-primary)' : 'transparent',
+                                    color: searchMode === 'TEAMS' ? '#fff' : 'var(--text-dim)',
+                                    fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s'
+                                }}
+                            >
+                                TEAMS
+                            </button>
+                            <button 
+                                onClick={() => { setSearchMode('NBA'); setBrowsingTeamId(null); }}
+                                style={{ 
+                                    flex: 1, padding: '10px', borderRadius: '8px', border: 'none',
+                                    background: searchMode === 'NBA' ? 'var(--team-primary)' : 'transparent',
+                                    color: searchMode === 'NBA' ? '#fff' : 'var(--text-dim)',
+                                    fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s'
+                                }}
+                            >
+                                NBA
+                            </button>
+                        </div>
+                    )}
 
-                    {searchMode === 'PLAYERS' ? (
+                    {(marketTab === 'FREE_AGENTS' || searchMode === 'PLAYERS') && (
                         <>
                             <div style={{ position: 'relative' }}>
                                 <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
                                 <input 
                                     type="text" 
-                                    placeholder="Search players to buy out..." 
+                                    placeholder={marketTab === 'TRANSFERS' ? "Search players to buy out..." : "Search free agents..."}
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     style={{ 
@@ -586,7 +626,9 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack }) => {
                                 ))}
                             </div>
                         </>
-                    ) : !browsingTeamId ? (
+                    )}
+
+                    {marketTab === 'TRANSFERS' && searchMode !== 'PLAYERS' && !browsingTeamId && (
                         <>
                             {searchMode !== 'NBA' && (
                                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -630,7 +672,9 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack }) => {
                                 );
                             })()}
                         </>
-                    ) : (
+                    )}
+
+                    {marketTab === 'TRANSFERS' && searchMode === 'TEAMS' && browsingTeamId && (
                         <button 
                             onClick={() => setBrowsingTeamId(null)}
                             style={{ 
@@ -643,9 +687,33 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack }) => {
                         </button>
                     )}
 
+                    {marketTab === 'FREE_AGENTS' && filteredFreeAgents.length === 0 && (
+                        <div style={{ padding: '40px 20px', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '16px' }}>
+                            <div style={{ marginBottom: '16px', opacity: 0.3 }}>
+                                <Search size={48} style={{ margin: '0 auto' }} />
+                            </div>
+                            <h3 style={{ margin: '0 0 8px 0', fontWeight: 800 }}>No Free Agents Found</h3>
+                            <p style={{ margin: 0, color: 'var(--text-dim)', fontSize: '0.9rem' }}>
+                                It looks like there are no players currently without a team. 
+                                This list will populate as players are cut or their contracts expire.
+                            </p>
+                        </div>
+                    )}
+
                     <div style={{ background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
                         <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
-                            {searchMode === 'PLAYERS' ? (
+                            {marketTab === 'FREE_AGENTS' ? (
+                                filteredFreeAgents.map(player => (
+                                    <PlayerListItem 
+                                        key={player.id}
+                                        player={player}
+                                        allPlayers={players}
+                                        userTeam={userTeam}
+                                        isSelected={selectedPlayer?.id === player.id}
+                                        onClick={() => handleSelectPlayer(player)}
+                                    />
+                                ))
+                            ) : searchMode === 'PLAYERS' ? (
                                 filteredPlayers.slice(0, 50).map(player => (
                                     <PlayerListItem 
                                         key={player.id}
