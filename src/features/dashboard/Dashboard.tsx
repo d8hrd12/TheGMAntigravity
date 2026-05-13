@@ -197,25 +197,41 @@ export const Dashboard: React.FC<DashboardProps> = ({
                                 onMouseEnter={(e) => e.currentTarget.style.transform = 'translateX(4px)'}
                                 onMouseLeave={(e) => e.currentTarget.style.transform = 'translateX(0)'}
                             >
-                                {/* Left: Position Badge */}
-                                <div style={{ 
-                                    width: '38px', 
-                                    height: '38px', 
-                                    borderRadius: '10px', 
-                                    background: 'var(--team-primary)', 
-                                    color: '#fff', 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    justifyContent: 'center', 
-                                    fontWeight: 900, 
-                                    fontSize: '0.8rem', 
-                                    flexShrink: 0,
-                                    boxShadow: '0 4px 10px rgba(var(--primary-rgb), 0.3)'
-                                }}>
-                                    {player.position}
+                                {/* Left Column: Position & Label */}
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{ 
+                                        width: '38px', 
+                                        height: '38px', 
+                                        borderRadius: '10px', 
+                                        background: 'var(--team-primary)', 
+                                        color: '#fff', 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center', 
+                                        fontWeight: 900, 
+                                        fontSize: '0.8rem', 
+                                        flexShrink: 0,
+                                        boxShadow: '0 4px 10px rgba(var(--primary-rgb), 0.3)'
+                                    }}>
+                                        {player.position}
+                                    </div>
+                                    <div style={{ 
+                                        writingMode: 'vertical-lr', 
+                                        textTransform: 'uppercase', 
+                                        fontSize: '0.5rem', 
+                                        fontWeight: 900, 
+                                        color: 'var(--text-dim)', 
+                                        letterSpacing: '0.2em',
+                                        opacity: 0.5,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                    }}>
+                                        <BarChart3 size={8} /> STATS
+                                    </div>
                                 </div>
 
-                                {/* Right: 3-Layer Info */}
+                                {/* Right Column: 3-Layer Info */}
                                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0 }}>
                                     {/* Line 1: Name */}
                                     <div style={{ 
