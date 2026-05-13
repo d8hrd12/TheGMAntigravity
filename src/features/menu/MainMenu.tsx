@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useGame } from '../../store/GameContext';
 import { TeamSelectionView } from '../ui/TeamSelectionView';
-import { NewGameSetupView } from '../ui/NewGameSetupView';
 import { CreateTeamView } from './CreateTeamView';
 import { SaveLoadView } from '../ui/SaveLoadView';
 import { LeagueSelectionView } from './LeagueSelectionView';
@@ -12,13 +11,9 @@ import { Play, FolderOpen, Settings, Trophy, Users } from 'lucide-react';
 export const MainMenu: React.FC = () => {
     const { startNewGame, loadGame, setLeagueType, leagueType, setCompetitionType, competitionType } = useGame();
     const [view, setView] = useState<'main' | 'mode_selection' | 'competition_selection' | 'setup' | 'selection' | 'create_team'>('main');
-    const [setupData, setSetupData] = useState<{ difficulty: 'Easy' | 'Medium' | 'Hard' } | null>(null);
+    const [setupData, setSetupData] = useState<{ difficulty: 'Easy' | 'Medium' | 'Hard' }>({ difficulty: 'Medium' });
     const [showLoadMenu, setShowLoadMenu] = useState(false);
 
-    const handleSetupComplete = (difficulty: 'Easy' | 'Medium' | 'Hard') => {
-        setSetupData({ difficulty });
-        setView('selection');
-    };
 
     if (view === 'mode_selection') {
         return <LeagueSelectionView 
@@ -26,7 +21,7 @@ export const MainMenu: React.FC = () => {
                 setLeagueType(type);
                 if (type === 'NBA') {
                     setCompetitionType('NBA');
-                    setView('setup');
+                    setView('selection');
                 } else {
                     setView('competition_selection');
                 }
@@ -39,21 +34,18 @@ export const MainMenu: React.FC = () => {
         return <CompetitionSelectionView 
             onSelect={(comp) => {
                 setCompetitionType(comp);
-                setView('setup');
+                setView('selection');
             }}
             onBack={() => setView('mode_selection')}
         />;
     }
 
-    if (view === 'setup') {
-        return <NewGameSetupView onNext={handleSetupComplete} onBack={() => setView('main')} />;
-    }
 
     if (view === 'create_team') {
         return <CreateTeamView onBack={() => setView('main')} />;
     }
 
-    if (view === 'selection' && setupData) {
+    if (view === 'selection') {
         return <TeamSelectionView
             onSelectTeam={(teamId) => {
                 try {
