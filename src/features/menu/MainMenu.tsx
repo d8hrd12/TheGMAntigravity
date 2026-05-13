@@ -204,15 +204,16 @@ export const MainMenu: React.FC = () => {
                         LevedisGames™ presents
                     </div>
                     <h1 style={{ 
-                        fontSize: '5rem', 
-                        fontWeight: 950, 
-                        letterSpacing: '-2px', 
-                        lineHeight: 0.85,
+                        fontSize: '7rem', 
+                        fontWeight: 1000, 
+                        letterSpacing: '-4px', 
+                        lineHeight: 0.8,
                         margin: 0,
                         textTransform: 'uppercase',
                         fontFamily: "'SF TransRobotics', 'Orbitron', sans-serif",
                         fontStyle: 'italic',
-                        transform: 'skewX(-5deg)' // Extra italic effect for that robotics feel
+                        transform: 'skewX(-8deg)',
+                        textShadow: '0 10px 30px rgba(0,0,0,0.5)'
                     }}>
                         TheGm™<br/>
                         <span style={{ color: '#FF5F1F' }}>2026</span>
