@@ -23,10 +23,15 @@ export const CompetitionSelectionView: React.FC<CompetitionSelectionViewProps> =
             backgroundPosition: 'center',
             backgroundAttachment: 'fixed',
             color: '#fff',
-            fontFamily: 'var(--font-main)',
+            fontFamily: "'Outfit', 'Inter', sans-serif",
             overflow: 'hidden',
             position: 'relative'
         }}>
+            {/* Font Import */}
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+            </style>
+
             {/* Dark Overlay for Readability */}
             <div style={{
                 position: 'absolute',

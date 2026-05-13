@@ -78,7 +78,7 @@ export const MainMenu: React.FC = () => {
             backgroundPosition: 'center',
             backgroundAttachment: 'fixed',
             color: '#fff',
-            fontFamily: 'var(--font-main)'
+            fontFamily: "'Inter', sans-serif"
         }}>
             {/* Dark Overlay with Gradient */}
             <div style={{

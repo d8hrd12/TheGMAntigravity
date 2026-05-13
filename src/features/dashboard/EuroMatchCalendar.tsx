@@ -257,7 +257,14 @@ export const EuroMatchCalendar: React.FC = () => {
                                 </div>
 
                                 {/* Opponent */}
-                                <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    {opp?.logo && (
+                                        <img 
+                                            src={opp.logo} 
+                                            alt={opp.name} 
+                                            style={{ width: '22px', height: '22px', objectFit: 'contain' }} 
+                                        />
+                                    )}
                                     <div style={{
                                         fontSize: '0.72rem',
                                         fontWeight: 800,
@@ -268,20 +275,9 @@ export const EuroMatchCalendar: React.FC = () => {
                                     }}>
                                         {md.isHome ? 'vs' : '@'}{' '}
                                         <span style={{ color: isPending ? '#e8c456' : undefined }}>
-                                            {opp?.abbreviation ?? opp?.name ?? 'TBD'}
+                                            {opp?.name ?? 'TBD'}
                                         </span>
                                     </div>
-                                    {opp && (
-                                        <div style={{
-                                            fontSize: '0.55rem',
-                                            color: 'var(--text-muted)',
-                                            whiteSpace: 'nowrap',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                        }}>
-                                            {opp.city}
-                                        </div>
-                                    )}
                                 </div>
 
                                 {/* Result / Status */}
