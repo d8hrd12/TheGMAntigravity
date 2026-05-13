@@ -184,39 +184,101 @@ export const Dashboard: React.FC<DashboardProps> = ({
                                 onClick={() => onSelectPlayer(player.id)}
                                 style={{ 
                                     display: 'flex', 
-                                    alignItems: 'center', 
-                                    gap: '10px', 
-                                    padding: '8px', 
+                                    alignItems: 'flex-start', 
+                                    gap: '12px', 
+                                    padding: '12px', 
                                     background: 'var(--bg-card)', 
-                                    borderRadius: '10px', 
+                                    borderRadius: '12px', 
                                     border: '1px solid var(--border-color)',
-                                    cursor: 'pointer'
+                                    cursor: 'pointer',
+                                    transition: 'transform 0.2s ease',
+                                    boxShadow: 'var(--shadow-sm)'
                                 }}
+                                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateX(4px)'}
+                                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateX(0)'}
                             >
-                                <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'var(--team-primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.7rem', flexShrink: 0 }}>
+                                {/* Left: Position Badge */}
+                                <div style={{ 
+                                    width: '38px', 
+                                    height: '38px', 
+                                    borderRadius: '10px', 
+                                    background: 'var(--team-primary)', 
+                                    color: '#fff', 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center', 
+                                    fontWeight: 900, 
+                                    fontSize: '0.8rem', 
+                                    flexShrink: 0,
+                                    boxShadow: '0 4px 10px rgba(var(--primary-rgb), 0.3)'
+                                }}>
                                     {player.position}
                                 </div>
-                                <div style={{ flex: 1, minWidth: 0 }}>
+
+                                {/* Right: 3-Layer Info */}
+                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0 }}>
+                                    {/* Line 1: Name */}
                                     <div style={{ 
-                                        fontSize: (player.lastName.length + 3) > 14 ? '0.65rem' : '0.8rem', 
-                                        fontWeight: 800, 
+                                        fontSize: '0.95rem', 
+                                        fontWeight: 900, 
                                         color: 'var(--text-main)',
                                         whiteSpace: 'nowrap',
                                         overflow: 'hidden',
-                                        textOverflow: 'ellipsis'
+                                        textOverflow: 'ellipsis',
+                                        letterSpacing: '-0.02em'
                                     }}>
-                                        {player.firstName[0]}. {player.lastName.toUpperCase()}
+                                        {player.firstName} {player.lastName.toUpperCase()}
                                     </div>
-                                    <StarRating stars={player.stars} size={12} />
-                                </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center', minWidth: '220px' }}>
-                                    <div><div style={{ fontSize: '0.5rem', color: 'var(--text-muted)' }}>PTS</div><div style={{ fontSize: '0.7rem', fontWeight: 800 }}>{player.ppg}</div></div>
-                                    <div><div style={{ fontSize: '0.5rem', color: 'var(--text-muted)' }}>REB</div><div style={{ fontSize: '0.7rem', fontWeight: 800 }}>{player.rpg}</div></div>
-                                    <div><div style={{ fontSize: '0.5rem', color: 'var(--text-muted)' }}>AST</div><div style={{ fontSize: '0.7rem', fontWeight: 800 }}>{player.apg}</div></div>
-                                    <div><div style={{ fontSize: '0.5rem', color: 'var(--text-muted)' }}>STL</div><div style={{ fontSize: '0.7rem', fontWeight: 800 }}>{player.spg}</div></div>
-                                    <div><div style={{ fontSize: '0.5rem', color: 'var(--text-muted)' }}>BLK</div><div style={{ fontSize: '0.7rem', fontWeight: 800 }}>{player.bpg}</div></div>
-                                    <div><div style={{ fontSize: '0.5rem', color: 'var(--text-muted)' }}>FG%</div><div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--team-primary)' }}>{player.fgp}%</div></div>
-                                    <div><div style={{ fontSize: '0.5rem', color: 'var(--text-muted)' }}>3P%</div><div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--team-primary)' }}>{player.tpp}%</div></div>
+
+                                    {/* Line 2: Stars */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <StarRating stars={player.stars} size={14} />
+                                        <div style={{ width: '1px', height: '10px', background: 'var(--border-color)' }}></div>
+                                        <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-dim)' }}>
+                                            OVERALL: {calculateOverall(player)}
+                                        </div>
+                                    </div>
+
+                                    {/* Line 3: Stats Grid */}
+                                    <div style={{ 
+                                        display: 'grid', 
+                                        gridTemplateColumns: 'repeat(7, 1fr)', 
+                                        gap: '4px', 
+                                        textAlign: 'center', 
+                                        background: 'rgba(var(--text-main-rgb), 0.03)', 
+                                        padding: '8px 4px', 
+                                        borderRadius: '8px',
+                                        marginTop: '4px'
+                                    }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span style={{ fontSize: '0.5rem', color: 'var(--text-dim)', fontWeight: 800 }}>PTS</span>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 900 }}>{player.ppg}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span style={{ fontSize: '0.5rem', color: 'var(--text-dim)', fontWeight: 800 }}>REB</span>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 900 }}>{player.rpg}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span style={{ fontSize: '0.5rem', color: 'var(--text-dim)', fontWeight: 800 }}>AST</span>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 900 }}>{player.apg}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span style={{ fontSize: '0.5rem', color: 'var(--text-dim)', fontWeight: 800 }}>STL</span>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 900 }}>{player.spg}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span style={{ fontSize: '0.5rem', color: 'var(--text-dim)', fontWeight: 800 }}>BLK</span>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 900 }}>{player.bpg}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span style={{ fontSize: '0.5rem', color: 'var(--text-dim)', fontWeight: 800 }}>FG%</span>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--team-primary)' }}>{player.fgp}%</span>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span style={{ fontSize: '0.5rem', color: 'var(--text-dim)', fontWeight: 800 }}>3P%</span>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--team-primary)' }}>{player.tpp}%</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         ))}

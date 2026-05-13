@@ -619,7 +619,7 @@ function AppContent() {
     <div className={`app-layout ${leagueType === 'EURO' ? 'euro-theme' : ''}`} style={{ '--team-primary': userTeam?.colors?.primary || 'var(--primary)' } as any}>
       {/* SIDEBAR */}
       <div className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`} onClick={() => setIsSidebarOpen(false)} />
-      <aside className={`sidebar ${isSidebarOpen ? 'expanded' : ''}`}>
+      <aside className={`sidebar ${isSidebarOpen ? 'expanded' : ''}`} style={{ paddingTop: '70px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px', padding: '0 8px' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--team-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
             <Dribbble size={24} />
