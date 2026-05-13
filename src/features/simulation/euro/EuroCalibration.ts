@@ -43,10 +43,10 @@ export const EURO = {
   DREB_PCT:     0.690,
 
   // Playmaking & defense
-  ASSISTS:      22.0,   // Adjusted up to help leaders hit 7-9 APG
+  ASSISTS:      22.0,   
   TURNOVERS:    12.8,
-  STEALS:        4.2,   // Adjusted down to prevent 3+ SPG leaders
-  BLOCKS:        2.2,   // Adjusted up to help leaders hit 1.2-1.5 BPG
+  STEALS:        3.8,   // Lowered from 4.2 to hit 1.4 leader target
+  BLOCKS:        2.2,   
 
   // Shot zone distribution (% of FGA)
   RIM_RATE:    0.22,   
@@ -100,14 +100,14 @@ export const EURO_BASE_USAGE: Record<string, number> = {
  * Position caps.
  */
 export const EURO_USAGE_CAP: Record<string, number> = {
-  PG: 0.23,
-  SG: 0.22,
-  SF: 0.21,
-  PF: 0.20,
-  C:  0.20,
+  PG: 0.29, // Increased from 0.23 to allow ~19 PPG leaders
+  SG: 0.28,
+  SF: 0.27,
+  PF: 0.26,
+  C:  0.24,
 };
 
 /**
  * EuroLeague stars play less than NBA stars (25-31 MPG).
  */
-export const EURO_MINUTES_BY_RANK = [31, 29, 27, 25, 23, 20, 15, 12, 10, 8, 4, 0, 0];
+export const EURO_MINUTES_BY_RANK = [31, 30, 29, 28, 26, 22, 16, 12, 6, 0, 0, 0, 0];
