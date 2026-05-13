@@ -523,7 +523,7 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack }) => {
             </div>
 
             {/* Main Market Tab Toggle */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '24px' }}>
                 <button 
                     onClick={() => { setMarketTab('TRANSFERS'); setSearchMode('PLAYERS'); setBrowsingTeamId(null); setSelectedPlayer(null); }}
                     style={{ 

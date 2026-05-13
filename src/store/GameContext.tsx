@@ -2760,56 +2760,72 @@ export function GameProvider({ children }: { children: ReactNode }) {
         });
     };
 
-    const endFreeAgency = () => {
-        setGameState(prev => {
-            let nextState = { ...prev };
+    const endFreeAgency = async () => {
+        // Build the force-filled state synchronously first
+        let nextState = { ...gameState };
 
-            // 1. Force Fill Logic
-            // Iterate until all teams have e.g. 13 players
-            let filled = false;
-            let safety = 0;
-            while (!filled && safety < 10) {
-                // Check if any team is < 13
-                const needsFill = nextState.teams.some(t => t.id !== prev.userTeamId && t.rosterIds.length < 13);
-                if (!needsFill) {
-                    filled = true;
-                } else {
-                    nextState = processAiFreeAgencyRound(nextState, true); // Force Fill round
-                }
-                safety++;
-            }
+        // Force Fill Logic — ensure all teams have at least 13 players
+        let filled = false;
+        let safety = 0;
+        while (!filled && safety < 10) {
+            const needsFill = nextState.teams.some(t => t.id !== nextState.userTeamId && t.rosterIds.length < 13);
+            if (!needsFill) { filled = true; } else { nextState = processAiFreeAgencyRound(nextState, true); }
+            safety++;
+        }
 
-            console.log("Free Agency Ended. AI Rosters Filled.");
+        console.log("Free Agency Ended. AI Rosters Filled.");
 
-            return {
-                ...nextState,
+        // ── EURO AI GM OFFSEASON ─────────────────────────────────────────
+        const hasEuroTeams = nextState.teams.some(t => t.conference === 'EuroLeague' || t.conference === 'EuroCup');
+        if (hasEuroTeams) {
+            const { simulateEuroAIOffseason } = await import('../features/team/EuroOffseasonAI');
+            const euroResult = simulateEuroAIOffseason({
+                teams: nextState.teams,
                 players: nextState.players,
-                offseasonTasks: {
-                    ...prev.offseasonTasks,
-                    freeAgency: true,
-                    training: false,
-                    trainingResults: false,
-                    paySalaries: false
-                },
-                view: 'offseason_menu',
-                seasonPhase: 'offseason',
-                date: new Date(prev.date.getFullYear(), 9, 1),
-                isTrainingCampComplete: false, // Reset for new season
-                trainingSettings: {}, // Reset selections
-                messages: [
-                    ...prev.messages,
-                    {
-                        id: Date.now().toString(),
-                        date: prev.date,
-                        title: 'Pre-Season Started',
-                        text: 'The new season is approaching. Prepare your team in Training Camp.',
-                        type: 'info',
-                        read: false
-                    }
-                ]
+                contracts: nextState.contracts,
+                localTalentPool: nextState.localTalentPool || [],
+                userTeamId: nextState.userTeamId,
+                gameYear: nextState.date.getFullYear()
+            });
+            nextState = {
+                ...nextState,
+                teams: euroResult.updatedTeams,
+                players: euroResult.updatedPlayers,
+                contracts: euroResult.updatedContracts,
+                localTalentPool: euroResult.remainingLocalTalentPool
             };
-        });
+            console.log('[Euro AI GM] Offseason signings:', euroResult.signingLog);
+        }
+
+        // Apply final state in one setGameState call
+        setGameState(() => ({
+            ...nextState,
+            offseasonTasks: {
+                ...nextState.offseasonTasks,
+                freeAgency: true,
+                training: false,
+                trainingResults: false,
+                paySalaries: false
+            },
+            view: 'offseason_menu',
+            seasonPhase: 'offseason',
+            date: new Date(nextState.date.getFullYear(), 9, 1),
+            isTrainingCampComplete: false,
+            trainingSettings: {},
+            messages: [
+                ...nextState.messages,
+                {
+                    id: Date.now().toString(),
+                    date: nextState.date,
+                    title: 'Pre-Season Started',
+                    text: 'The new season is approaching. Prepare your team in Training Camp.',
+                    type: 'info' as const,
+                    read: false
+                }
+            ]
+        }));
     };
+
 
     // --- AI FREE AGENCY LOGIC ---
     const processAiFreeAgencyRound = (currentState: GameState, forceFill: boolean = false): GameState => {
