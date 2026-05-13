@@ -88,7 +88,6 @@ export const LeagueSelectionView: React.FC<LeagueSelectionViewProps> = ({ onSele
                     icon={<Globe size={48} />}
                     color="#3498db"
                     onClick={() => onSelect('EURO')}
-                    isNew
                 />
             </div>
 
@@ -124,10 +123,9 @@ interface LeagueCardProps {
     icon: React.ReactNode;
     color: string;
     onClick: () => void;
-    isNew?: boolean;
 }
 
-const LeagueCard: React.FC<LeagueCardProps> = ({ title, subtitle, description, icon, color, onClick, isNew }) => {
+const LeagueCard: React.FC<LeagueCardProps> = ({ title, subtitle, description, icon, color, onClick }) => {
     return (
         <motion.div
             whileHover={{ 
@@ -157,22 +155,6 @@ const LeagueCard: React.FC<LeagueCardProps> = ({ title, subtitle, description, i
                 transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
         >
-            {isNew && (
-                <div style={{
-                    position: 'absolute',
-                    top: '20px',
-                    right: '20px',
-                    background: color,
-                    color: '#fff',
-                    padding: '4px 12px',
-                    borderRadius: '100px',
-                    fontSize: '0.7rem',
-                    fontWeight: 900,
-                    letterSpacing: '1px'
-                }}>
-                    NEW MODE
-                </div>
-            )}
 
 
             <div style={{ color: color, fontSize: '0.8rem', fontWeight: 900, letterSpacing: '4px', marginBottom: '8px' }}>
