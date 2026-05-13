@@ -23,26 +23,20 @@ export const CompetitionSelectionView: React.FC<CompetitionSelectionViewProps> =
             backgroundPosition: 'center',
             backgroundAttachment: 'fixed',
             color: '#fff',
-            fontFamily: "'Inter', sans-serif",
+            fontFamily: "'Outfit', 'Inter', sans-serif",
             overflow: 'hidden',
             position: 'relative'
         }}>
+            {/* Font Import */}
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+            </style>
+
             {/* Dark Overlay for Readability */}
             <div style={{
                 position: 'absolute',
                 inset: 0,
-                background: 'linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.8))',
-                zIndex: 0
-            }} />
-            {/* Background Decorative elements */}
-            <div style={{
-                position: 'absolute',
-                top: '-10%',
-                right: '-10%',
-                width: '50%',
-                height: '50%',
-                background: 'radial-gradient(circle, rgba(234, 179, 8, 0.1) 0%, transparent 70%)',
-                filter: 'blur(120px)',
+                background: 'linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.9))',
                 zIndex: 0
             }} />
 
@@ -182,19 +176,19 @@ const CompetitionCard: React.FC<CompetitionCardProps> = ({ title, tagline, descr
             style={{
                 flex: 1,
                 minWidth: 0,
-                minHeight: '380px', 
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: '20px',
-                padding: 'clamp(15px, 3vw, 30px) clamp(10px, 2vw, 20px)',
+                minHeight: '480px', 
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '24px',
+                padding: '40px 30px',
                 cursor: 'pointer',
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'flex-start',
                 textAlign: 'left',
-                backdropFilter: 'blur(10px)',
-                transition: 'border-color 0.3s ease'
+                backdropFilter: 'blur(30px)',
+                transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
         >
             <div style={{ color: color, marginBottom: '25px', height: '32px', display: 'flex', alignItems: 'center' }}>

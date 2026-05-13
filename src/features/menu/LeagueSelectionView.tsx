@@ -23,36 +23,20 @@ export const LeagueSelectionView: React.FC<LeagueSelectionViewProps> = ({ onSele
             backgroundPosition: 'center',
             backgroundAttachment: 'fixed',
             color: '#fff',
-            fontFamily: "'Inter', sans-serif",
+            fontFamily: "'Outfit', 'Inter', sans-serif",
             overflow: 'hidden',
             position: 'relative'
         }}>
+            {/* Font Import */}
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+            </style>
+
             {/* Dark Overlay for Readability */}
             <div style={{
                 position: 'absolute',
                 inset: 0,
-                background: 'linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.8))',
-                zIndex: 0
-            }} />
-            {/* Background Decorative elements */}
-            <div style={{
-                position: 'absolute',
-                top: '-10%',
-                left: '-10%',
-                width: '40%',
-                height: '40%',
-                background: 'radial-gradient(circle, rgba(255, 95, 31, 0.15) 0%, transparent 70%)',
-                filter: 'blur(100px)',
-                zIndex: 0
-            }} />
-            <div style={{
-                position: 'absolute',
-                bottom: '-10%',
-                right: '-10%',
-                width: '40%',
-                height: '40%',
-                background: 'radial-gradient(circle, rgba(52, 152, 219, 0.15) 0%, transparent 70%)',
-                filter: 'blur(100px)',
+                background: 'linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.9))',
                 zIndex: 0
             }} />
 
@@ -157,11 +141,11 @@ const LeagueCard: React.FC<LeagueCardProps> = ({ title, subtitle, description, i
             style={{
                 flex: 1,
                 minWidth: 0,
-                minHeight: '380px', 
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: '20px',
-                padding: 'clamp(15px, 3vw, 30px) clamp(10px, 2vw, 20px)',
+                minHeight: '480px', 
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '24px',
+                padding: '40px 30px',
                 cursor: 'pointer',
                 position: 'relative',
                 overflow: 'hidden',
@@ -169,8 +153,8 @@ const LeagueCard: React.FC<LeagueCardProps> = ({ title, subtitle, description, i
                 flexDirection: 'column',
                 alignItems: 'flex-start',
                 textAlign: 'left',
-                backdropFilter: 'blur(20px)',
-                transition: 'border-color 0.3s ease'
+                backdropFilter: 'blur(30px)',
+                transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
         >
             {isNew && (
@@ -190,20 +174,6 @@ const LeagueCard: React.FC<LeagueCardProps> = ({ title, subtitle, description, i
                 </div>
             )}
 
-            <div style={{ 
-                width: '80px', 
-                height: '80px', 
-                borderRadius: '20px', 
-                background: `${color}22`, 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                color: color,
-                marginBottom: '30px',
-                border: `1px solid ${color}44`
-            }}>
-                {icon}
-            </div>
 
             <div style={{ color: color, fontSize: '0.8rem', fontWeight: 900, letterSpacing: '4px', marginBottom: '8px' }}>
                 {subtitle}
