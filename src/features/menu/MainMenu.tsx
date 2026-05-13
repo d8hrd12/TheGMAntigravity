@@ -173,6 +173,37 @@ export const MainMenu: React.FC = () => {
                 zIndex: 1
             }} />
 
+            {/* Top Black Bar */}
+            <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '40px',
+                background: 'rgba(0,0,0,0.9)',
+                borderBottom: '1px solid rgba(255,255,255,0.05)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 10,
+                backdropFilter: 'blur(10px)'
+            }}>
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    style={{ 
+                        fontSize: '0.65rem', 
+                        fontWeight: 900, 
+                        color: '#FF5F1F', 
+                        letterSpacing: '6px', 
+                        textTransform: 'uppercase'
+                    }}
+                >
+                    LevedisGames™ presents
+                </motion.div>
+            </div>
+
             {/* Content Container */}
             <motion.div 
                 initial={{ opacity: 0, y: 30 }}
@@ -183,55 +214,40 @@ export const MainMenu: React.FC = () => {
                     textAlign: 'center',
                     width: '100%',
                     maxWidth: '500px',
-                    padding: '20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    minHeight: '100dvh'
+                    padding: '0 20px'
                 }}
             >
-                {/* Spacer to push content down slightly to account for visual weight of footer */}
-                <div style={{ flex: 1 }} />
-
                 {/* Logo Area */}
                 <motion.div
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    style={{ marginBottom: '40px', position: 'relative' }}
+                    style={{ marginBottom: '60px' }}
                 >
-                    <div style={{ 
-                        fontSize: '0.8rem', 
-                        fontWeight: 900, 
-                        color: '#FF5F1F', 
-                        letterSpacing: '8px', 
-                        textTransform: 'uppercase',
-                        marginBottom: '10px'
-                    }}>
-                        LevedisGames™ presents
-                    </div>
                     <h1 style={{ 
-                        fontSize: '5.6rem', 
-                        fontWeight: 1000, 
-                        letterSpacing: '-3px', 
+                        fontSize: 'clamp(3rem, 15vw, 6rem)', 
+                        fontWeight: 900, 
+                        letterSpacing: '-2px', 
                         lineHeight: 0.85,
                         margin: 0,
                         textTransform: 'uppercase',
-                        fontFamily: "'SF TransRobotics', 'Orbitron', sans-serif",
-                        fontStyle: 'italic',
-                        transform: 'skewX(-8deg)',
-                        textShadow: '0 10px 30px rgba(0,0,0,0.5)',
-                        position: 'relative',
-                        display: 'inline-block'
+                        fontFamily: "'Orbitron', sans-serif"
                     }}>
-                        TheGm<span style={{ position: 'absolute', fontSize: '0.3em', top: '0.1em', marginLeft: '2px' }}>™</span><br/>
+                        TheGm™<br/>
                         <span style={{ color: '#FF5F1F' }}>2026</span>
                     </h1>
+                    <div style={{ 
+                        height: '2px', 
+                        width: '80px', 
+                        background: '#FF5F1F', 
+                        margin: '20px auto',
+                        borderRadius: '10px',
+                        boxShadow: '0 0 15px rgba(255, 95, 31, 0.5)'
+                    }} />
                 </motion.div>
 
                 {/* Navigation Buttons */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', width: '100%' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     <MenuButton 
                         icon={<Play size={20} />} 
                         label="New Career" 
@@ -259,25 +275,39 @@ export const MainMenu: React.FC = () => {
                     />
                 </div>
 
-                {/* Bottom Spacer and Footer */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingBottom: '20px' }}>
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 1, duration: 1 }}
-                        style={{ 
-                            fontSize: '0.7rem', 
-                            color: 'rgba(255,255,255,0.3)', 
-                            fontWeight: 700,
-                            letterSpacing: '2px',
-                            textTransform: 'uppercase'
-                        }}
-                    >
-                        V.5.7.0 Powered by MyMac&MyMadness
-                    </motion.div>
-                </div>
+                {/* Footer Info */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1, duration: 1 }}
+                    style={{ 
+                        marginTop: '80px', 
+                        fontSize: '0.7rem', 
+                        color: 'rgba(255,255,255,0.3)', 
+                        fontWeight: 700,
+                        letterSpacing: '2px',
+                        textTransform: 'uppercase'
+                    }}
+                >
+                    V.5.7.0 Powered by MyMac&MyMadness
+                </motion.div>
             </motion.div>
 
+            {/* Corner Decorative Elements */}
+            <div style={{
+                position: 'absolute',
+                bottom: '40px',
+                left: '40px',
+                zIndex: 2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '15px',
+                opacity: 0.6
+            }}>
+                <Trophy size={20} color="#FF5F1F" />
+                <div style={{ height: '1px', width: '40px', background: 'rgba(255,255,255,0.2)' }} />
+                <span style={{ fontSize: '0.7rem', fontWeight: 900, letterSpacing: '2px' }}>HALL OF FAME</span>
+            </div>
         </div>
     );
 };
