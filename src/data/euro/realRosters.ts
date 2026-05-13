@@ -297,118 +297,134 @@ export const EURO_ROSTERS: Record<string, any[]> = {
     // Empty rosters for remaining teams (to be filled team by team)
     // ─── PANATHINAIKOS (PAN) ────────────────────────────────────────────────
     'PAN': [
-        { firstName: 'Kendrick', lastName: 'Nunn', position: 'SG', age: 29, height: 191, weight: 86, stars: 5.0, potential: 92, contract: { amount: 2500000, years: 2 },
+        { firstName: 'Kendrick', lastName: 'Nunn', position: 'SG', age: 29, height: 191, weight: 86, stars: 5.0, potential: 94, contract: { amount: 2800000, years: 2 },
           attributes: {
-            finishing: 92, midRange: 92, threePointShot: 89, freeThrow: 89,
-            playmaking: 82, ballHandling: 90, basketballIQ: 92, athleticism: 90,
+            finishing: 94, midRange: 94, threePointShot: 89, freeThrow: 89,
+            playmaking: 85, ballHandling: 92, basketballIQ: 94, athleticism: 88,
             interiorDefense: 35, perimeterDefense: 78, stealing: 78, blocking: 25,
             offensiveRebound: 35, defensiveRebound: 42
           },
-          tendencies: { shooting: 95, passing: 75, inside: 75, outside: 89, defensiveAggression: 75, foulTendency: 50 } },
-        { firstName: 'Nigel', lastName: 'Hayes-Davis', position: 'PF', age: 30, height: 203, weight: 103, stars: 5.0, potential: 90,
+          tendencies: { shooting: 98, passing: 65, inside: 70, outside: 95, defensiveAggression: 70, foulTendency: 45 } },
+        { firstName: 'Nigel', lastName: 'Hayes-Davis', position: 'PF', age: 30, height: 203, weight: 103, stars: 4.5, potential: 90, contract: { amount: 2400000, years: 2 },
           attributes: {
-            finishing: 88, midRange: 85, threePointShot: 82, freeThrow: 86,
-            playmaking: 72, ballHandling: 78, basketballIQ: 95, athleticism: 88,
-            interiorDefense: 85, perimeterDefense: 85, stealing: 85, blocking: 45,
-            offensiveRebound: 65, defensiveRebound: 68
+            finishing: 85, midRange: 82, threePointShot: 80, freeThrow: 86,
+            playmaking: 75, ballHandling: 78, basketballIQ: 95, athleticism: 85,
+            interiorDefense: 88, perimeterDefense: 88, stealing: 94, blocking: 65,
+            offensiveRebound: 75, defensiveRebound: 78
           },
-          tendencies: { shooting: 85, passing: 72, inside: 75, outside: 82, defensiveAggression: 88, foulTendency: 60 } },
-        { firstName: 'Cedi', lastName: 'Osman', position: 'SF', age: 29, height: 201, weight: 104, stars: 4.5, potential: 88,
+          tendencies: { shooting: 85, passing: 75, inside: 65, outside: 75, defensiveAggression: 95, foulTendency: 65 } },
+        { firstName: 'Cedi', lastName: 'Osman', position: 'SF', age: 29, height: 201, weight: 104, stars: 4.5, potential: 88, contract: { amount: 2200000, years: 1 },
           attributes: {
-            finishing: 85, midRange: 82, threePointShot: 85, freeThrow: 83,
-            playmaking: 68, ballHandling: 82, basketballIQ: 90, athleticism: 85,
-            interiorDefense: 62, perimeterDefense: 82, stealing: 75, blocking: 25,
+            finishing: 82, midRange: 84, threePointShot: 88, freeThrow: 83,
+            playmaking: 75, ballHandling: 82, basketballIQ: 88, athleticism: 84,
+            interiorDefense: 62, perimeterDefense: 78, stealing: 68, blocking: 25,
             offensiveRebound: 45, defensiveRebound: 65
           },
-          tendencies: { shooting: 82, passing: 68, inside: 75, outside: 85, defensiveAggression: 75, foulTendency: 50 } },
-        { firstName: 'Kostas', lastName: 'Sloukas', position: 'PG', age: 34, height: 190, weight: 87, stars: 4.5, potential: 86, contract: { amount: 2800000, years: 2 },
+          tendencies: { shooting: 85, passing: 72, inside: 70, outside: 85, defensiveAggression: 65, foulTendency: 45 } },
+        { firstName: 'Kostas', lastName: 'Sloukas', position: 'PG', age: 34, height: 190, weight: 87, stars: 4.5, potential: 88, contract: { amount: 3000000, years: 2 },
           attributes: {
-            finishing: 78, midRange: 85, threePointShot: 88, freeThrow: 91,
-            playmaking: 98, ballHandling: 92, basketballIQ: 99, athleticism: 78,
+            finishing: 80, midRange: 88, threePointShot: 88, freeThrow: 91,
+            playmaking: 98, ballHandling: 95, basketballIQ: 99, athleticism: 75,
             interiorDefense: 35, perimeterDefense: 75, stealing: 72, blocking: 25,
-            offensiveRebound: 35, defensiveRebound: 45
+            offensiveRebound: 35, defensiveRebound: 48
           },
-          tendencies: { shooting: 78, passing: 99, inside: 55, outside: 88, defensiveAggression: 70, foulTendency: 45 } },
-        { firstName: 'T.J.', lastName: 'Shorts II', position: 'PG', age: 27, height: 175, weight: 73, stars: 4.0, potential: 90,
+          tendencies: { shooting: 78, passing: 99, inside: 55, outside: 90, defensiveAggression: 70, foulTendency: 45 } },
+        { firstName: 'T.J.', lastName: 'Shorts II', position: 'PG', age: 27, height: 175, weight: 73, stars: 4.5, potential: 92, contract: { amount: 2000000, years: 2 },
           attributes: {
-            finishing: 88, midRange: 85, threePointShot: 75, freeThrow: 72,
-            playmaking: 92, ballHandling: 96, basketballIQ: 94, athleticism: 94,
-            interiorDefense: 35, perimeterDefense: 78, stealing: 85, blocking: 25,
-            offensiveRebound: 35, defensiveRebound: 42
+            finishing: 88, midRange: 85, threePointShot: 72, freeThrow: 72,
+            playmaking: 92, ballHandling: 98, basketballIQ: 95, athleticism: 96,
+            interiorDefense: 32, perimeterDefense: 82, stealing: 85, blocking: 20,
+            offensiveRebound: 32, defensiveRebound: 40
           },
-          tendencies: { shooting: 92, passing: 92, inside: 75, outside: 75, defensiveAggression: 82, foulTendency: 45 } },
-        { firstName: 'Mathias', lastName: 'Lessort', position: 'C', age: 29, height: 206, weight: 112, stars: 4.5, potential: 88, contract: { amount: 1800000, years: 1 },
+          tendencies: { shooting: 92, passing: 94, inside: 85, outside: 65, defensiveAggression: 80, foulTendency: 50 } },
+        { firstName: 'Mathias', lastName: 'Lessort', position: 'C', age: 29, height: 206, weight: 112, stars: 4.0, potential: 88, contract: { amount: 2000000, years: 1 },
           attributes: {
-            finishing: 92, midRange: 35, threePointShot: 25, freeThrow: 67,
-            playmaking: 62, ballHandling: 65, basketballIQ: 92, athleticism: 92,
-            interiorDefense: 88, perimeterDefense: 45, stealing: 78, blocking: 45,
-            offensiveRebound: 88, defensiveRebound: 85
+            finishing: 90, midRange: 35, threePointShot: 25, freeThrow: 83,
+            playmaking: 72, ballHandling: 68, basketballIQ: 94, athleticism: 95,
+            interiorDefense: 92, perimeterDefense: 45, stealing: 98, blocking: 75,
+            offensiveRebound: 94, defensiveRebound: 88
           },
-          tendencies: { shooting: 65, passing: 62, inside: 98, outside: 25, defensiveAggression: 92, foulTendency: 75 } },
+          tendencies: { shooting: 75, passing: 72, inside: 99, outside: 25, defensiveAggression: 98, foulTendency: 85 } },
         { firstName: 'Juancho', lastName: 'Hernangomez', position: 'PF', age: 29, height: 206, weight: 97, stars: 4.0, potential: 86, contract: { amount: 2200000, years: 1 },
           attributes: {
-            finishing: 82, midRange: 78, threePointShot: 86, freeThrow: 75,
-            playmaking: 65, ballHandling: 72, basketballIQ: 92, athleticism: 85,
-            interiorDefense: 75, perimeterDefense: 78, stealing: 72, blocking: 45,
-            offensiveRebound: 78, defensiveRebound: 88
+            finishing: 78, midRange: 82, threePointShot: 86, freeThrow: 75,
+            playmaking: 68, ballHandling: 75, basketballIQ: 94, athleticism: 85,
+            interiorDefense: 82, perimeterDefense: 82, stealing: 78, blocking: 85,
+            offensiveRebound: 82, defensiveRebound: 95
           },
-          tendencies: { shooting: 78, passing: 65, inside: 65, outside: 86, defensiveAggression: 75, foulTendency: 55 } },
-        { firstName: 'Richaun', lastName: 'Holmes', position: 'C', age: 31, height: 206, weight: 107, stars: 3.5, potential: 82,
+          tendencies: { shooting: 75, passing: 68, inside: 65, outside: 85, defensiveAggression: 85, foulTendency: 55 } },
+        { firstName: 'Jerian', lastName: 'Grant', position: 'PG', age: 32, height: 196, weight: 90, stars: 3.5, potential: 82,
           attributes: {
-            finishing: 90, midRange: 45, threePointShot: 25, freeThrow: 68,
-            playmaking: 55, ballHandling: 58, basketballIQ: 85, athleticism: 90,
-            interiorDefense: 85, perimeterDefense: 45, stealing: 65, blocking: 75,
-            offensiveRebound: 78, defensiveRebound: 72
+            finishing: 75, midRange: 82, threePointShot: 82, freeThrow: 82,
+            playmaking: 85, ballHandling: 88, basketballIQ: 95, athleticism: 85,
+            interiorDefense: 45, perimeterDefense: 95, stealing: 82, blocking: 35,
+            offensiveRebound: 35, defensiveRebound: 38
           },
-          tendencies: { shooting: 60, passing: 52, inside: 95, outside: 25, defensiveAggression: 88, foulTendency: 70 } },
-        { firstName: 'Jerian', lastName: 'Grant', position: 'PG', age: 32, height: 196, weight: 90, stars: 3.5, potential: 80,
+          tendencies: { shooting: 75, passing: 88, inside: 65, outside: 95, defensiveAggression: 98, foulTendency: 45 } },
+        { firstName: 'Kenneth', lastName: 'Faried', position: 'PF', age: 35, height: 203, weight: 100, stars: 4.5, potential: 78,
           attributes: {
-            finishing: 82, midRange: 82, threePointShot: 84, freeThrow: 82,
-            playmaking: 85, ballHandling: 88, basketballIQ: 92, athleticism: 85,
-            interiorDefense: 45, perimeterDefense: 92, stealing: 92, blocking: 25,
-            offensiveRebound: 35, defensiveRebound: 42
+            finishing: 88, midRange: 25, threePointShot: 25, freeThrow: 65,
+            playmaking: 55, ballHandling: 62, basketballIQ: 82, athleticism: 88,
+            interiorDefense: 85, perimeterDefense: 55, stealing: 78, blocking: 92,
+            offensiveRebound: 98, defensiveRebound: 88
           },
-          tendencies: { shooting: 75, passing: 85, inside: 65, outside: 84, defensiveAggression: 95, foulTendency: 50 } },
-        { firstName: 'Omer', lastName: 'Yurtseven', position: 'C', age: 26, height: 211, weight: 120, stars: 3.5, potential: 88,
+          tendencies: { shooting: 75, passing: 52, inside: 98, outside: 25, defensiveAggression: 95, foulTendency: 80 } },
+        { firstName: 'Nikos', lastName: 'Rogkavopoulos', position: 'SF', age: 23, height: 203, weight: 91, stars: 4.0, potential: 92,
           attributes: {
-            finishing: 88, midRange: 35, threePointShot: 25, freeThrow: 81,
-            playmaking: 58, ballHandling: 62, basketballIQ: 85, athleticism: 78,
-            interiorDefense: 92, perimeterDefense: 35, stealing: 72, blocking: 95,
-            offensiveRebound: 88, defensiveRebound: 85
+            finishing: 78, midRange: 82, threePointShot: 80, freeThrow: 89,
+            playmaking: 72, ballHandling: 82, basketballIQ: 88, athleticism: 85,
+            interiorDefense: 58, perimeterDefense: 82, stealing: 78, blocking: 25,
+            offensiveRebound: 58, defensiveRebound: 65
           },
-          tendencies: { shooting: 65, passing: 58, inside: 92, outside: 25, defensiveAggression: 92, foulTendency: 75 } },
-        { firstName: 'Kenneth', lastName: 'Faried', position: 'PF', age: 35, height: 203, weight: 100, stars: 3.5, potential: 78,
+          tendencies: { shooting: 88, passing: 70, inside: 65, outside: 92, defensiveAggression: 75, foulTendency: 55 } },
+        { firstName: 'Kostas', lastName: 'Mitoglou', position: 'PF', age: 28, height: 210, weight: 116, stars: 3.5, potential: 85,
           attributes: {
-            finishing: 88, midRange: 25, threePointShot: 25, freeThrow: 66,
-            playmaking: 52, ballHandling: 58, basketballIQ: 82, athleticism: 92,
-            interiorDefense: 82, perimeterDefense: 45, stealing: 72, blocking: 95,
-            offensiveRebound: 99, defensiveRebound: 88
+            finishing: 75, midRange: 78, threePointShot: 65, freeThrow: 81,
+            playmaking: 68, ballHandling: 72, basketballIQ: 94, athleticism: 82,
+            interiorDefense: 85, perimeterDefense: 68, stealing: 78, blocking: 75,
+            offensiveRebound: 80, defensiveRebound: 85
           },
-          tendencies: { shooting: 60, passing: 52, inside: 95, outside: 25, defensiveAggression: 95, foulTendency: 75 } },
-        { firstName: 'Nikos', lastName: 'Rogkavopoulos', position: 'SF', age: 23, height: 203, weight: 91, stars: 3.0, potential: 88,
+          tendencies: { shooting: 85, passing: 65, inside: 75, outside: 80, defensiveAggression: 85, foulTendency: 60 } },
+        { firstName: 'Vasilis', lastName: 'Toliopoulos', position: 'PG', age: 28, height: 188, weight: 86, stars: 3.5, potential: 82,
           attributes: {
-            finishing: 78, midRange: 80, threePointShot: 83, freeThrow: 89,
-            playmaking: 62, ballHandling: 78, basketballIQ: 88, athleticism: 82,
-            interiorDefense: 55, perimeterDefense: 75, stealing: 72, blocking: 25,
-            offensiveRebound: 55, defensiveRebound: 62
+            finishing: 82, midRange: 80, threePointShot: 78, freeThrow: 99,
+            playmaking: 85, ballHandling: 88, basketballIQ: 88, athleticism: 85,
+            interiorDefense: 35, perimeterDefense: 72, stealing: 78, blocking: 20,
+            offensiveRebound: 25, defensiveRebound: 38
           },
-          tendencies: { shooting: 78, passing: 62, inside: 65, outside: 83, defensiveAggression: 75, foulTendency: 50 } },
-        { firstName: 'Alexandros', lastName: 'Samodurov', position: 'PF', age: 20, height: 210, weight: 95, stars: 3.0, potential: 95,
+          tendencies: { shooting: 85, passing: 82, inside: 60, outside: 90, defensiveAggression: 75, foulTendency: 50 } },
+        { firstName: 'Alexandros', lastName: 'Samodurov', position: 'PF', age: 20, height: 210, weight: 95, stars: 4.0, potential: 96,
           attributes: {
-            finishing: 82, midRange: 75, threePointShot: 75, freeThrow: 67,
-            playmaking: 58, ballHandling: 72, basketballIQ: 85, athleticism: 88,
-            interiorDefense: 85, perimeterDefense: 55, stealing: 72, blocking: 99,
+            finishing: 80, midRange: 75, threePointShot: 80, freeThrow: 67,
+            playmaking: 62, ballHandling: 75, basketballIQ: 88, athleticism: 92,
+            interiorDefense: 85, perimeterDefense: 65, stealing: 72, blocking: 95,
             offensiveRebound: 65, defensiveRebound: 75
           },
-          tendencies: { shooting: 72, passing: 58, inside: 82, outside: 75, defensiveAggression: 92, foulTendency: 65 } },
-        { firstName: 'Kostas', lastName: 'Mitoglou', position: 'PF', age: 28, height: 210, weight: 116, stars: 3.0, potential: 82,
+          tendencies: { shooting: 75, passing: 62, inside: 85, outside: 80, defensiveAggression: 90, foulTendency: 60 } },
+        { firstName: 'Marius', lastName: 'Grigonis', position: 'SG', age: 30, height: 198, weight: 93, stars: 2.5, potential: 78,
           attributes: {
-            finishing: 82, midRange: 78, threePointShot: 73, freeThrow: 81,
-            playmaking: 62, ballHandling: 68, basketballIQ: 92, athleticism: 80,
-            interiorDefense: 82, perimeterDefense: 65, stealing: 75, blocking: 65,
-            offensiveRebound: 75, defensiveRebound: 85
+            finishing: 65, midRange: 75, threePointShot: 75, freeThrow: 79,
+            playmaking: 75, ballHandling: 80, basketballIQ: 92, athleticism: 78,
+            interiorDefense: 45, perimeterDefense: 78, stealing: 65, blocking: 30,
+            offensiveRebound: 40, defensiveRebound: 52
           },
-          tendencies: { shooting: 75, passing: 62, inside: 85, outside: 73, defensiveAggression: 85, foulTendency: 65 } }
+          tendencies: { shooting: 75, passing: 85, inside: 55, outside: 85, defensiveAggression: 65, foulTendency: 45 } },
+        { firstName: 'Panagiotis', lastName: 'Kalaitzakis', position: 'SF', age: 26, height: 200, weight: 92, stars: 2.5, potential: 80,
+          attributes: {
+            finishing: 65, midRange: 68, threePointShot: 60, freeThrow: 50,
+            playmaking: 68, ballHandling: 72, basketballIQ: 82, athleticism: 88,
+            interiorDefense: 62, perimeterDefense: 90, stealing: 82, blocking: 25,
+            offensiveRebound: 48, defensiveRebound: 55
+          },
+          tendencies: { shooting: 65, passing: 72, inside: 65, outside: 60, defensiveAggression: 95, foulTendency: 65 } },
+        { firstName: 'Ioannis', lastName: 'Kouzeloglou', position: 'PF', age: 29, height: 207, weight: 102, stars: 2.0, potential: 75,
+          attributes: {
+            finishing: 55, midRange: 65, threePointShot: 25, freeThrow: 85,
+            playmaking: 55, ballHandling: 62, basketballIQ: 85, athleticism: 80,
+            interiorDefense: 78, perimeterDefense: 55, stealing: 55, blocking: 45,
+            offensiveRebound: 75, defensiveRebound: 72
+          },
+          tendencies: { shooting: 60, passing: 55, inside: 75, outside: 25, defensiveAggression: 80, foulTendency: 55 } }
     ],
     // ─── REAL MADRID (MAD) ──────────────────────────────────────────────────
     'MAD': [
@@ -4099,5 +4115,23 @@ export const EURO_ROSTERS: Record<string, any[]> = {
             offensiveRebound: 58, defensiveRebound: 60
           },
           tendencies: { shooting: 75, passing: 65, inside: 60, outside: 75, defensiveAggression: 60, foulTendency: 45 } }
+    ],
+    'FA': [
+        { firstName: 'Omer', lastName: 'Yurtseven', position: 'C', age: 26, height: 211, weight: 120, stars: 4.5, potential: 92,
+          attributes: {
+            finishing: 88, midRange: 65, threePointShot: 25, freeThrow: 81,
+            playmaking: 62, ballHandling: 65, basketballIQ: 90, athleticism: 82,
+            interiorDefense: 94, perimeterDefense: 35, stealing: 72, blocking: 92,
+            offensiveRebound: 92, defensiveRebound: 94
+          },
+          tendencies: { shooting: 82, passing: 58, inside: 95, outside: 25, defensiveAggression: 92, foulTendency: 70 } },
+        { firstName: 'Richaun', lastName: 'Holmes', position: 'C', age: 31, height: 206, weight: 107, stars: 4.0, potential: 82,
+          attributes: {
+            finishing: 90, midRange: 55, threePointShot: 25, freeThrow: 68,
+            playmaking: 55, ballHandling: 62, basketballIQ: 88, athleticism: 92,
+            interiorDefense: 85, perimeterDefense: 45, stealing: 75, blocking: 88,
+            offensiveRebound: 85, defensiveRebound: 82
+          },
+          tendencies: { shooting: 75, passing: 55, inside: 95, outside: 25, defensiveAggression: 85, foulTendency: 70 } }
     ]
 };

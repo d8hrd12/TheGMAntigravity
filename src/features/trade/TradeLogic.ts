@@ -7,6 +7,7 @@ import { calculateOverall } from '../../utils/playerUtils';
 import { calculateStars } from '../../utils/starUtils';
 import type { TradeProposal } from '../../models/TradeProposal';
 import type { AI_GM } from '../../models/AI_GM';
+import { calculateEuroBuyoutFee } from '../team/EuroAIGMModule';
 
 // ----------------------------------------------------------------------------
 // 1. CORE PHILOSOPHY: TEAM STATES & NEEDS
@@ -455,4 +456,83 @@ export function validateTradeProposal(proposal: TradeProposal, players: Player[]
     }
 
     return true;
+}
+
+export function generateTransferOffers(
+    userTeam: Team,
+    shopPlayerId: string,
+    allTeams: Team[],
+    players: Player[],
+    contracts: Contract[],
+    currentYear: number,
+    gms?: AI_GM[]
+): TradeProposal[] {
+    const shopPlayer = players.find(p => p.id === shopPlayerId);
+    if (!shopPlayer) return [];
+    
+    const offers: TradeProposal[] = [];
+    const userRoster = players.filter(p => p.teamId === userTeam.id);
+    const ovr = calculateOverall(shopPlayer);
+
+    for (const aiTeam of allTeams.filter(t => t.id !== userTeam.id && t.id !== '31')) {
+        const aiGm = gms?.find(g => g.id === aiTeam.gmId);
+        const aiRoster = players.filter(p => p.teamId === aiTeam.id);
+        const aiDirection = getTeamDirection(aiTeam, aiRoster);
+        
+        // 1. POSITION NEEED CALCULATION
+        const playersAtPos = aiRoster.filter(p => p.position === shopPlayer.position);
+        const bestAtPos = playersAtPos.sort((a,b) => calculateOverall(b) - calculateOverall(a))[0];
+        const needScore = bestAtPos ? Math.max(0, ovr - calculateOverall(bestAtPos) + 5) : 15; // Higher if player is better than current starter
+        
+        // 2. STRATEGIC FIT
+        let interestScore = 0;
+        const isYoungTalent = shopPlayer.age <= 24 && (shopPlayer.potential || 0) >= 85;
+        
+        if (aiDirection === 'Contender' || aiDirection === 'PlayoffTeam') {
+            if (ovr >= 80) interestScore += 20;
+            if (ovr >= 85) interestScore += 15;
+            if (needScore > 5) interestScore += needScore;
+        } else {
+            // Rebuilders
+            if (isYoungTalent) interestScore += 25;
+            if ((shopPlayer.potential || 0) >= 90) interestScore += 15;
+            interestScore += needScore * 0.5;
+        }
+
+        // GM PHILOSOPHY
+        if (aiGm?.philosophy === 'Youth' && isYoungTalent) interestScore += 10;
+        if (aiGm?.philosophy === 'Win Now' && ovr >= 82) interestScore += 10;
+
+        // 3. CASH CHECK & OFFER CALCULATION
+        const marketFee = calculateEuroBuyoutFee(shopPlayer, userTeam, userRoster);
+        
+        // Teams only offer if interest is high enough
+        if (interestScore >= 15) {
+            // Variation based on how much they want him
+            const bias = 0.85 + (interestScore / 100); 
+            const variance = (0.9 + Math.random() * 0.2) * bias;
+            
+            let finalOffer = Math.round(marketFee * variance);
+            
+            // Strict Liquidity Constraint: AI will never offer more than 90% of their total cash
+            const maxAffordable = Math.round(aiTeam.cash * 0.9);
+            finalOffer = Math.min(finalOffer, maxAffordable);
+
+            // Minimum offer threshold (AI won't insult if they are interested)
+            if (finalOffer > (marketFee * 0.6) && finalOffer > 100000) {
+                offers.push({
+                    userPlayerIds: [shopPlayerId],
+                    userPickIds: [],
+                    aiPlayerIds: [], 
+                    aiPickIds: [],
+                    aiTeamId: aiTeam.id,
+                    transferFee: finalOffer,
+                    status: 'pending'
+                });
+            }
+        }
+    }
+    
+    // Return top 6 offers by cash amount
+    return offers.sort((a, b) => (b.transferFee || 0) - (a.transferFee || 0)).slice(0, 6);
 }

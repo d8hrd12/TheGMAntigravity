@@ -375,5 +375,63 @@ export function seedRealRosters(teams: Team[], leagueType: 'NBA' | 'EURO' = 'NBA
         optimizeTeamRotation(teamPlayers);
     });
 
+    // 3. Seed Free Agents
+    if (rostersToUse['FA']) {
+        rostersToUse['FA'].forEach(def => {
+            const position = normalizePosition(def.pos || (def as any).position || 'SG');
+            
+            let attrs: PlayerAttributes;
+            if (def.attributes) {
+                attrs = { ...def.attributes };
+            } else {
+                attrs = generateAttributesForOvr(def.ovr || 75, position, def.archetype || 'Balanced');
+            }
+            
+            const physicals = generatePhysicals(position);
+            const height = (def as any).height || physicals.height;
+            const weight = (def as any).weight || physicals.weight;
+
+            const tendencies = (def as any).tendencies
+                ? { ...deriveTendenciesFromAttributes(attrs, position), ...(def as any).tendencies }
+                : deriveTendenciesFromAttributes(attrs, position);
+
+            const player: Player = {
+                id: generateUUID(),
+                firstName: def.firstName,
+                lastName: def.lastName,
+                position: position,
+                age: def.age || 25,
+                height: height,
+                weight: weight,
+                personality: PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)],
+                attributes: attrs,
+                archetype: deriveArchetypeName(attrs, tendencies, position),
+                tendencies: tendencies,
+                morale: 90, fatigue: 0, stamina: 100,
+                teamId: undefined,
+                yearsOfService: Math.max(0, (def.age || 25) - 19),
+                isStarter: false,
+                minutes: 0,
+                seasonStats: {
+                    gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0,
+                    steals: 0, blocks: 0, turnovers: 0, offensiveRebounds: 0, defensiveRebounds: 0,
+                    fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0,
+                    ftMade: 0, ftAttempted: 0, fouls: 0, plusMinus: 0,
+                    rimMade: 0, rimAttempted: 0, rimAssisted: 0,
+                    midRangeMade: 0, midRangeAttempted: 0, midRangeAssisted: 0,
+                    threePointAssisted: 0
+                },
+                careerStats: [],
+                potential: (def as any).potential || Math.min(99, (def.ovr || 75) + 5),
+                loveForTheGame: 15,
+                badges: def.badges,
+                overall: (def as any).stars ? Math.round((def as any).stars * 20) : calculateOverall(attrs, position),
+                jerseyNumber: Math.floor(Math.random() * 100),
+                acquisition: { type: 'free_agency', year: 2024 }
+            };
+            allPlayers.push(player);
+        });
+    }
+
     return { players: allPlayers, contracts: allContracts };
 }

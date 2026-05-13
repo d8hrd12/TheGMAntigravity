@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../../store/GameContext';
-import { generateTradeOffers } from './TradeLogic';
+import { generateTradeOffers, generateTransferOffers } from './TradeLogic';
 import type { Player } from '../../models/Player';
 import type { Team } from '../../models/Team';
 import type { TradeProposal } from '../../models/TradeProposal';
 import { calculateOverall } from '../../utils/playerUtils';
 import { calculateStars, calculateTeamBaseline } from '../../utils/starUtils';
 import { StarRating } from '../../components/StarRating';
-import { ChevronRight, DollarSign, RefreshCw, X } from 'lucide-react';
+import { ChevronRight, DollarSign, RefreshCw, X, Coins } from 'lucide-react';
 
 interface TradeFinderViewProps {
     shopPlayerId: string;
@@ -17,21 +17,7 @@ interface TradeFinderViewProps {
 }
 
 export const TradeFinderView: React.FC<TradeFinderViewProps> = ({ shopPlayerId, onClose, onAccept, onSelectPlayer }) => {
-    const { teams, players, contracts, salaryCap, date, draftClass, userTeamId } = useGame(); // Need picks? context might not expose picks directly easily
-    // Assuming context exposes 'draftPicks' or similar?
-    // Looking at GameContext, 'draftOrder' is exposed but not raw picks array easily? 
-    // Wait, 'executeTrade' handles picks. 
-    // generateTradeOffers needs picks. 
-    // Let's check GameContext again for 'draftPicks'.
-    // If not exposed, I might need to mock or fetch from teams?
-    // Actually teams have assets? No, teams have rosterIds.
-    // Let's assume for now we pass empty picks array or fix GameContext later to expose picks.
-    // NOTE: GameContext exports 'draftPicks'? No, it likely has internal state.
-    // I will try to use 'draftClass' which is players.
-    // Draft picks are stored in 'draftPicks' in GameState but maybe not exposed in values?
-    // I'll check. If not, I'll update GameContext to expose 'draftPicks' or 'getDraftPicks' helper.
-
-    // For now, let's implement the View assuming we can get offers.
+    const { teams, players, contracts, salaryCap, date, draftClass, userTeamId, leagueType } = useGame(); 
 
     const [offers, setOffers] = useState<TradeProposal[]>([]);
     const [loading, setLoading] = useState(true);
@@ -47,20 +33,31 @@ export const TradeFinderView: React.FC<TradeFinderViewProps> = ({ shopPlayerId, 
                     // Gather all picks from all teams
                     const allPicks = teams.flatMap(t => t.draftPicks);
 
-                    const generated = generateTradeOffers(
-                        userTeam,
-                        shopPlayerId,
-                        teams,
-                        players,
-                        contracts,
-                        allPicks,
-                        salaryCap,
-                        date.getFullYear()
-                    );
-                    setOffers(generated);
+                    if (leagueType === 'EURO') {
+                        const generated = generateTransferOffers(
+                            userTeam,
+                            shopPlayerId,
+                            teams,
+                            players,
+                            contracts,
+                            date.getFullYear()
+                        );
+                        setOffers(generated);
+                    } else {
+                        const generated = generateTradeOffers(
+                            userTeam,
+                            shopPlayerId,
+                            teams,
+                            players,
+                            contracts,
+                            allPicks,
+                            salaryCap,
+                            date.getFullYear()
+                        );
+                        setOffers(generated);
+                    }
                 } catch (err) {
                     console.error("Trade Finder Error:", err);
-                    // We could set an error state here to show in UI
                 } finally {
                     setLoading(false);
                 }
@@ -93,7 +90,7 @@ export const TradeFinderView: React.FC<TradeFinderViewProps> = ({ shopPlayerId, 
                 {/* Header */}
                 <div style={{ padding: '20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-card)' }}>
                     <div>
-                        <h2 style={{ margin: 0, fontSize: '1.4rem' }}>Trade Finder</h2>
+                        <h2 style={{ margin: 0, fontSize: '1.4rem' }}>{leagueType === 'EURO' ? 'Transfer Finder' : 'Trade Finder'}</h2>
                         <p style={{ margin: '5px 0 0', color: 'var(--text-muted)' }}>
                             Shopping <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{shopPlayer.firstName} {shopPlayer.lastName}</span>
                         </p>
@@ -108,7 +105,7 @@ export const TradeFinderView: React.FC<TradeFinderViewProps> = ({ shopPlayerId, 
                     {loading ? (
                         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
                             <RefreshCw className="spin" size={32} style={{ marginBottom: '15px' }} />
-                            <p>Querying League GMs...</p>
+                            <p>{leagueType === 'EURO' ? 'Contacting European Clubs...' : 'Querying League GMs...'}</p>
                         </div>
                     ) : offers.length === 0 ? (
                         <div style={{ textAlign: 'center', marginTop: '50px', color: 'var(--text-muted)' }}>
@@ -144,51 +141,50 @@ export const TradeFinderView: React.FC<TradeFinderViewProps> = ({ shopPlayerId, 
 
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
                                             {/* Incoming Assets */}
-                                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '5px' }}>THEY OFFER</div>
-                                                {offer.aiPlayerIds.map(pid => {
-                                                    const p = players.find(x => x.id === pid);
-                                                    if (!p) return null;
-                                                    // Check for OVR
-                                                    const ovr = calculateOverall(p);
-
-                                                    const aiTeamPlayers = players.filter(x => x.teamId === offer.aiTeamId);
-                                                    const aiTeamBaseline = calculateTeamBaseline(aiTeamPlayers);
-
-                                                    return (
-                                                        <div
-                                                            key={p.id}
-                                                            onClick={() => onSelectPlayer && onSelectPlayer(p.id)}
-                                                            style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px', cursor: 'pointer' }}
-                                                        >
-                                                            <div style={{ fontWeight: 'bold' }}>{p.firstName} {p.lastName}</div>
-                                                            <div style={{ fontSize: '0.8rem', color: '#666', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                                {p.position} • {p.age}yo • <StarRating stars={calculateStars(ovr, aiTeamBaseline)} size={12} />
+                                            {leagueType === 'EURO' ? (
+                                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '5px' }}>THEY OFFER</div>
+                                                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#2ecc71', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                         €{new Intl.NumberFormat('de-DE').format(offer.transferFee || 0)}
+                                                    </div>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Transfer Fee (Immediate Cash)</div>
+                                                </div>
+                                            ) : (
+                                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '5px' }}>THEY OFFER</div>
+                                                    {offer.aiPlayerIds.map(pid => {
+                                                        const p = players.find(x => x.id === pid);
+                                                        if (!p) return null;
+                                                        const ovr = calculateOverall(p);
+                                                        const aiTeamPlayers = players.filter(x => x.teamId === offer.aiTeamId);
+                                                        const aiTeamBaseline = calculateTeamBaseline(aiTeamPlayers);
+                                                        return (
+                                                            <div key={p.id} onClick={() => onSelectPlayer && onSelectPlayer(p.id)} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px', cursor: 'pointer' }}>
+                                                                <div style={{ fontWeight: 'bold' }}>{p.firstName} {p.lastName}</div>
+                                                                <div style={{ fontSize: '0.8rem', color: '#666', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                    {p.position} • {p.age}yo • <StarRating stars={calculateStars(ovr, aiTeamBaseline)} size={12} />
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                                {offer.aiPickIds.map(pid => {
-                                                    // Find pick from all teams
-                                                    const pick = teams.flatMap(t => t.draftPicks).find(p => p.id === pid);
-                                                    if (!pick) return <div key={pid} style={{ fontSize: '0.8rem', color: '#666' }}>Draft Pick (Unknown)</div>;
-
-                                                    return (
-                                                        <div key={pid} style={{ fontSize: '0.85rem', color: 'var(--text-main)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                            <span>{pick.year} Rd {pick.round}</span>
-                                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                                                (via {pick.originalTeamName || 'UNK'})
-                                                            </span>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
+                                                        );
+                                                    })}
+                                                    {offer.aiPickIds.map(pid => {
+                                                        const pick = teams.flatMap(t => t.draftPicks).find(p => p.id === pid);
+                                                        if (!pick) return <div key={pid} style={{ fontSize: '0.8rem', color: '#666' }}>Draft Pick (Unknown)</div>;
+                                                        return (
+                                                            <div key={pid} style={{ fontSize: '0.85rem', color: 'var(--text-main)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                <span>{pick.year} Rd {pick.round}</span>
+                                                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}> (via {pick.originalTeamName || 'UNK'}) </span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
 
                                             <div style={{ color: 'var(--text-muted)' }}>
                                                 <ChevronRight />
                                             </div>
 
-                                            {/* Outgoing (Just Shop Player for now) */}
+                                            {/* Outgoing */}
                                             <div style={{ flex: 1, textAlign: 'right' }}>
                                                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '5px' }}>YOU SEND</div>
                                                 <div style={{ fontWeight: 'bold' }}>{shopPlayer.firstName} {shopPlayer.lastName}</div>
@@ -197,15 +193,24 @@ export const TradeFinderView: React.FC<TradeFinderViewProps> = ({ shopPlayerId, 
 
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '10px' }}>
                                             <div style={{ fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                                <DollarSign size={14} />
-                                                Incoming Salary: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(salaryIn)}
+                                                {leagueType === 'EURO' ? (
+                                                    <>
+                                                        <Coins size={14} color="#f1c40f" />
+                                                        <span>Market Value Buyout</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <DollarSign size={14} />
+                                                        Incoming Salary: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(salaryIn)}
+                                                    </>
+                                                )}
                                             </div>
                                             <button
                                                 onClick={() => onAccept(offer)}
                                                 className="btn-primary"
                                                 style={{ padding: '8px 20px', borderRadius: '8px' }}
                                             >
-                                                View Trade
+                                                {leagueType === 'EURO' ? 'Accept Transfer' : 'View Trade'}
                                             </button>
                                         </div>
                                     </div>

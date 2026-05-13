@@ -71,9 +71,10 @@ interface TradeViewProps {
     draftOrder?: string[];
     seasonPhase?: string;
     seasonGamesPlayed?: number;
+    leagueType?: 'NBA' | 'EURO';
 }
 
-export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, contracts, currentYear, salaryCap, initialAiPlayerId, initialProposal, onExecuteTrade, onBack, onSelectPlayer, gmProfile, draftOrder, seasonPhase, seasonGamesPlayed }) => {
+export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, contracts, currentYear, salaryCap, initialAiPlayerId, initialProposal, onExecuteTrade, onBack, onSelectPlayer, gmProfile, draftOrder, seasonPhase, seasonGamesPlayed, leagueType }) => {
 
     // Helper to find initial team based on player
     const getInitialTeamId = () => {
@@ -229,11 +230,18 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
 
         if (result.accepted) {
             setTimeout(() => {
-                const success = onExecuteTrade(userSelected, userPickSelected, aiSelected, aiPickSelected, selectedTeamId);
+                const success = onExecuteTrade(
+                    userSelected, 
+                    userPickSelected, 
+                    aiSelected, 
+                    aiPickSelected, 
+                    selectedTeamId,
+                    (initialProposal as TradeProposal)?.transferFee || 0
+                );
                 if (success) {
                     setFeedback("Trade Completed! Returning to Dashboard...");
                 } else {
-                    setFeedback("Trade Rejected: Salary Cap Violation!");
+                    setFeedback("Trade Rejected: Financial Violation!");
                 }
             }, 1000);
         }
@@ -340,6 +348,12 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
                 {/* User Team Col */}
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '8px', background: 'var(--bg-card)', minWidth: 0 }}>
                     <h3 style={{ borderBottom: '2px solid var(--primary)', paddingBottom: '5px', fontSize: '0.9rem', marginBottom: '8px' }}>{userTeam.abbreviation} Assets</h3>
+                    {leagueType === 'EURO' && (initialProposal as TradeProposal)?.transferFee && (
+                        <div style={{ padding: '8px', background: 'rgba(46, 204, 113, 0.1)', borderRadius: '8px', marginBottom: '8px', border: '1px solid rgba(46, 204, 113, 0.3)' }}>
+                            <div style={{ fontSize: '0.65rem', color: '#27ae60', fontWeight: 900, textTransform: 'uppercase' }}>Incoming Cash</div>
+                            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#27ae60' }}>€{new Intl.NumberFormat('de-DE').format((initialProposal as TradeProposal).transferFee || 0)}</div>
+                        </div>
+                    )}
                     <TradeFinancialHelper team={userTeam} selectedPlayerIds={userSelected} incomingSalary={userIncoming} title={userTeam.abbreviation} />
                     <div style={{ overflowY: 'auto', flex: 1 }}>
                         <h4 style={{ margin: '5px 0', fontSize: '0.9rem', color: '#666' }}>Players</h4>

@@ -22,7 +22,7 @@ interface TradeCenterViewProps {
     tradeHistory: CompletedTrade[];
     initialAiPlayerId?: string;
     initialProposal?: any;
-    onExecuteTrade: (userPlayerIds: string[], userPickIds: string[], aiPlayerIds: string[], aiPickIds: string[], aiTeamId: string) => boolean;
+    onExecuteTrade: (userPlayerIds: string[], userPickIds: string[], aiPlayerIds: string[], aiPickIds: string[], aiTeamId: string, transferFee?: number) => boolean;
     onSelectPlayer: (playerId: string) => void;
     onSelectTeam: (teamId: string) => void;
     onBack: () => void;
@@ -32,6 +32,7 @@ interface TradeCenterViewProps {
     draftOrder?: string[];
     seasonPhase?: string;
     seasonGamesPlayed?: number;
+    leagueType?: 'NBA' | 'EURO';
 }
 
 export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
@@ -53,7 +54,8 @@ export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
     gmProfile,
     draftOrder,
     seasonPhase,
-    seasonGamesPlayed
+    seasonGamesPlayed,
+    leagueType
 }) => {
     const [activeTab, setActiveTab] = useState<'new' | 'block' | 'log' | 'freeAgents' | 'injuries'>(initialTab);
     const [showTradeDropdown, setShowTradeDropdown] = useState(false);
@@ -227,6 +229,7 @@ export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
                         draftOrder={draftOrder}
                         seasonPhase={seasonPhase}
                         seasonGamesPlayed={seasonGamesPlayed}
+                        leagueType={leagueType}
                     />
                 )}
                 {activeTab === 'block' && (

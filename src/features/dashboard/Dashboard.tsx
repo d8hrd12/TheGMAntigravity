@@ -414,6 +414,34 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </div>
                 </DashboardCard>
             </div>
+
+            {/* Bottom Left Stats Decoration */}
+            <div style={{
+                position: 'fixed',
+                bottom: '90px',
+                left: '24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2px',
+                opacity: 0.2,
+                pointerEvents: 'none',
+                zIndex: 0
+            }}>
+                <BarChart3 size={40} color="var(--text-dim)" />
+                <span style={{ 
+                    fontSize: '0.65rem', 
+                    fontWeight: 900, 
+                    letterSpacing: '0.5em', 
+                    color: 'var(--text-dim)',
+                    marginLeft: '2px',
+                    transform: 'rotate(-90deg)',
+                    transformOrigin: 'left bottom',
+                    position: 'absolute',
+                    left: '48px',
+                    bottom: '12px',
+                    whiteSpace: 'nowrap'
+                }}>STATS</span>
+            </div>
         </div>
     );
 };

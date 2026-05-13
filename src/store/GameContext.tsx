@@ -1768,10 +1768,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
         userPickIds: string[],
         aiPlayerIds: string[],
         aiPickIds: string[],
-        aiTeamId: string
+        aiTeamId: string,
+        transferFee: number = 0
     ): boolean => {
         // --- TRADE WINDOW CHECK ---
-        const { seasonPhase, seasonGamesPlayed } = gameState;
+        const { seasonPhase, seasonGamesPlayed, leagueType } = gameState;
 
         const isOffseason = ['scouting', 'draft', 'resigning', 'free_agency', 'retirement_summary', 'expansion_draft'].includes(seasonPhase);
         const isRegularSeasonBeforeDeadline = (seasonPhase === 'regular_season' && seasonGamesPlayed <= 40);
@@ -1806,6 +1807,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
             // 2. Validate Financials for both teams
             const MATCH_BUFFER = 5000000;
             const validateFinancials = (team: Team, incoming: number, outgoing: number): boolean => {
+                // EURO MODE: No salary matching rules, just cash check
+                if (leagueType === 'EURO') {
+                    // If transferFee is positive, AI pays User. Check if AI has cash.
+                    if (team.id === aiTeamId && transferFee > 0) {
+                        if (team.cash < transferFee) return false;
+                    }
+                    // If transferFee is negative (not expected here but for completeness), User pays AI.
+                    if (team.id === userTeamId && transferFee < 0) {
+                        if (team.cash < Math.abs(transferFee)) return false;
+                    }
+                    return true;
+                }
+
                 const teamContracts = prev.contracts.filter(c => c.teamId === team.id);
                 const currentPayroll = teamContracts.reduce((sum, c) => sum + c.amount, 0);
                 const currentCapSpace = prev.salaryCap - currentPayroll;
@@ -1819,11 +1833,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
             };
 
             if (!validateFinancials(userTeam, aiOutgoingSalary, userOutgoingSalary)) {
-                alert("Trade rejected: Team over salary cap must match incoming and outgoing salaries.");
+                alert(leagueType === 'EURO' ? "Transfer rejected: Insufficient funds." : "Trade rejected: Team over salary cap must match incoming and outgoing salaries.");
                 return prev;
             }
             if (!validateFinancials(aiTeam, userOutgoingSalary, aiOutgoingSalary)) {
-                alert("Trade rejected: AI team over salary cap must match incoming and outgoing salaries.");
+                alert(leagueType === 'EURO' ? "Transfer rejected: AI team has insufficient funds." : "Trade rejected: AI team over salary cap must match incoming and outgoing salaries.");
                 return prev;
             }
 
@@ -1923,7 +1937,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 const teamPayroll = teamContracts.reduce((sum, c) => sum + c.amount, 0);
                 const newCapSpace = prev.salaryCap - teamPayroll;
 
-                return { ...t, draftPicks: newPicks, rosterIds: teamMembers, salaryCapSpace: newCapSpace };
+                // Handle Cash Transfer
+                let finalCash = t.cash;
+                if (t.id === userTeamId) finalCash += transferFee;
+                if (t.id === aiTeamId) finalCash -= transferFee;
+
+                return { ...t, draftPicks: newPicks, rosterIds: teamMembers, salaryCapSpace: newCapSpace, cash: finalCash };
             });
 
             // 4. Log Trade (Updated for Interactivity)

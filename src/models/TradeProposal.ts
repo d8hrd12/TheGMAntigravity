@@ -5,4 +5,5 @@ export interface TradeProposal {
     aiPickIds: string[];
     aiTeamId: string;
     status: 'pending' | 'accepted' | 'rejected';
+    transferFee?: number;
 }

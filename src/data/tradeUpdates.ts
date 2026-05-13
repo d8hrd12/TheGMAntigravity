@@ -60,7 +60,6 @@ const PLAYER_MOVES: TradeMove[] = [
     { player: "Julian Phillips", to: "MIN" },
 
     // Suns / Bucks / Bulls
-    { player: "Nigel Hayes-Davis", to: "MIL" },
     { player: "Ousmane Dieng", to: "MIL" }, // Note: Dieng is traded MULTIPLE times in the user list. Thunder -> Hornets, then Hornets -> Bulls? 
     // Wait, the list has:
     // "Thunder deal Dieng to Hornets (Feb 4)"

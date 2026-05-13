@@ -514,7 +514,7 @@ function AppContent() {
         return <PlayerLeagueListView onBack={() => setView('dashboard')} onSelectPlayer={setSelectedPlayerId} initialMode="history" />;
       case 'trade': 
         if (!userTeam) return null;
-        if (leagueType === 'EURO') {
+        if (leagueType === 'EURO' && !prefilledTrade) {
           return <EuroTransferMarketView onBack={() => setView('dashboard')} />;
         }
         return <TradeCenterView 
@@ -528,14 +528,15 @@ function AppContent() {
           initialProposal={prefilledTrade} 
           tradeHistory={tradeHistory}
           onExecuteTrade={executeTrade} 
-          onSignFreeAgent={signFreeAgent}
           onSelectPlayer={setSelectedPlayerId}
           onSelectTeam={setSelectedTeamId}
-          onBack={() => setView('dashboard')} 
+          onBack={() => { setView('dashboard'); setPrefilledTrade(null); }}
+          onSignFreeAgent={signFreeAgent}
           gmProfile={gmProfile}
           draftOrder={draftOrder}
           seasonPhase={seasonPhase}
           seasonGamesPlayed={seasonGamesPlayed}
+          leagueType={leagueType}
         />;
       case 'financials': 
         return <TeamFinancialsView 
@@ -709,7 +710,7 @@ function AppContent() {
             background: 'linear-gradient(to bottom, rgba(var(--bg-body-rgb), 0.95), transparent)',
             borderBottom: '1px solid var(--border-color)',
             backdropFilter: 'blur(10px)',
-            zIndex: 1000,
+            zIndex: 1100,
             position: 'sticky',
             top: 0
           }}>
