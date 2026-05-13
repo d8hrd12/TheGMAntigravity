@@ -17,12 +17,23 @@ export const LeagueSelectionView: React.FC<LeagueSelectionViewProps> = ({ onSele
             alignItems: 'center',
             justifyContent: 'center',
             padding: '20px',
-            background: '#0a0a0a',
+            backgroundColor: '#000',
+            backgroundImage: 'url("/assets/league_mode_bg.png")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundAttachment: 'fixed',
             color: '#fff',
             fontFamily: "'Inter', sans-serif",
             overflow: 'hidden',
             position: 'relative'
         }}>
+            {/* Dark Overlay for Readability */}
+            <div style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.8))',
+                zIndex: 0
+            }} />
             {/* Background Decorative elements */}
             <div style={{
                 position: 'absolute',
