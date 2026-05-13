@@ -206,10 +206,13 @@ export const MainMenu: React.FC = () => {
                     <h1 style={{ 
                         fontSize: '5rem', 
                         fontWeight: 950, 
-                        letterSpacing: '-5px', 
-                        lineHeight: 0.9,
+                        letterSpacing: '-2px', 
+                        lineHeight: 0.85,
                         margin: 0,
-                        textTransform: 'uppercase'
+                        textTransform: 'uppercase',
+                        fontFamily: "'SF TransRobotics', 'Orbitron', sans-serif",
+                        fontStyle: 'italic',
+                        transform: 'skewX(-5deg)' // Extra italic effect for that robotics feel
                     }}>
                         TheGm™<br/>
                         <span style={{ color: '#FF5F1F' }}>2026</span>
