@@ -132,21 +132,22 @@ export function selectEuroPlayType(
   // Guards: 55% pass chance, Wings: 50%, Bigs: 45%
   // Elite creators (playmaking + IQ): 68%
   // ----------------------------------------------------------------
+  // Elite creators (playmaking + IQ): 82% (up from 68%)
   const isCreator = a.playmaking >= 88 && a.basketballIQ >= 88;
-  const passChance = isCreator ? 0.68
-    : isGuard ? 0.55
-    : isBig   ? 0.45
-    : 0.50;  // SF/Wing
+  const passChance = isCreator ? 0.82
+    : isGuard ? 0.65
+    : isBig   ? 0.50
+    : 0.58;  // SF/Wing
 
   if (Math.random() < passChance && teammates.length > 0) {
     const recipient = pickPassRecipient(teammates);
     const ra = recipient.attributes;
     const zone = zoneForRecipient(recipient, offensiveFocus);
 
-    // Bonus accuracy on assisted shots (open catch-and-shoot / DHO)
-    const bonusAccuracy = zone === 'THREE' ? 0.075
-      : zone === 'RIM'   ? 0.060
-      : 0.050;
+    // Bonus accuracy on assisted shots (EL: less impact than NBA to keep FG% down)
+    const bonusAccuracy = zone === 'THREE' ? 0.045
+      : zone === 'RIM'   ? 0.040
+      : 0.035;
 
     // Play type from context
     let playType: EuroPlayType;

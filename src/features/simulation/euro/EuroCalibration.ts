@@ -43,10 +43,10 @@ export const EURO = {
   DREB_PCT:     0.690,
 
   // Playmaking & defense
-  ASSISTS:      19.2,
+  ASSISTS:      22.0,   // Adjusted up to help leaders hit 7-9 APG
   TURNOVERS:    12.8,
-  STEALS:        6.2,
-  BLOCKS:        1.8,   
+  STEALS:        4.2,   // Adjusted down to prevent 3+ SPG leaders
+  BLOCKS:        2.2,   // Adjusted up to help leaders hit 1.2-1.5 BPG
 
   // Shot zone distribution (% of FGA)
   RIM_RATE:    0.22,   

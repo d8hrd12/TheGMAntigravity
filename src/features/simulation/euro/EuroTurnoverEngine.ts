@@ -51,11 +51,12 @@ export function checkEuroTurnover(
   const defPerim    = def.attributes.perimeterDefense;
   const defIQ       = def.attributes.basketballIQ;
 
-  // Only elite defenders (70+ stealing) have meaningful on-ball steal rates
+  // Only elite defenders (60+ stealing) have meaningful on-ball steal rates
+  // Reduced coefficients to prevent 3+ SPG leaders
   const onBallStealProb = Math.max(0,
-    (defStealing - 60) * 0.0013 +
-    (defPerim    - 60) * 0.0005 +
-    (defIQ       - 70) * 0.0003
+    (defStealing - 60) * 0.00085 +
+    (defPerim    - 60) * 0.00035 +
+    (defIQ       - 70) * 0.00025
   );
   if (Math.random() < onBallStealProb) {
     return { isTurnover: true, isSteal: true, stealerId: def.id, cause: 'steal' };
@@ -69,8 +70,8 @@ export function checkEuroTurnover(
     (p.attributes.stealing + p.attributes.basketballIQ) > (b.attributes.stealing + b.attributes.basketballIQ) ? p : b
   );
   const helpStealProb = Math.max(0,
-    (bestDef.attributes.stealing - 75)    * 0.00045 +
-    (bestDef.attributes.basketballIQ - 75) * 0.00025
+    (bestDef.attributes.stealing - 75)    * 0.00030 +
+    (bestDef.attributes.basketballIQ - 75) * 0.00015
   );
   if (Math.random() < helpStealProb) {
     return { isTurnover: true, isSteal: true, stealerId: bestDef.id, cause: 'steal' };

@@ -96,10 +96,10 @@ export function resolveEuroShot(
   const bestBlocker = defenseLineup.reduce((b, p) =>
     p.attributes.blocking > b.attributes.blocking ? p : b
   );
-  // Block probability scaling: elite rim protectors (90+) should be ~8% per rim attempt
+  // Block probability scaling: elite rim protectors (90+) should be ~12% per rim attempt
   // threshold lowered to 60 to allow more players to record occasional blocks
   const blockProb = zone === 'RIM'
-    ? Math.max(0, (bestBlocker.attributes.blocking - 60) / (99 - 60) * 0.12 * rimProtMod)
+    ? Math.max(0, (bestBlocker.attributes.blocking - 55) / (99 - 55) * 0.18 * rimProtMod)
     : 0;
 
   // ----------------------------------------------------------------
@@ -109,8 +109,9 @@ export function resolveEuroShot(
   const defenderAttr = getDefenderAttr(defender, zone);
   const base = getBasePct(zone);
 
-  // Skill edge: each 1-point attribute gap = ~0.28% shot% change
-  const skillEdge = (shooterAttr - defenderAttr) / 100 * 0.30;
+  // Skill edge: each 1-point attribute gap = ~0.45% shot% change
+  // EL: defense matters more, stars find it harder to separate
+  const skillEdge = (shooterAttr - defenderAttr) / 100 * 0.45;
 
   // Fatigue penalty (only kicks in below 50 stamina)
   const fatiguePenalty = stamina < 50 ? (50 - stamina) * 0.0010 : 0;
