@@ -641,8 +641,17 @@ function AppContent() {
             <Dribbble size={24} />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.1rem', color: 'var(--text-main)', margin: 0 }}>THE GM 2026™</h2>
-            <span style={{ fontSize: '0.6rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Manager v2.0</span>
+            <h2 style={{ 
+              fontSize: '1rem', 
+              color: 'var(--text-main)', 
+              margin: 0, 
+              fontFamily: "'Orbitron', sans-serif",
+              fontWeight: 900,
+              letterSpacing: '1px'
+            }}>
+              THE GM <span style={{ color: '#FF5F1F' }}>2026™</span>
+            </h2>
+            <span style={{ fontSize: '0.6rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700 }}>Manager v5.7.0</span>
           </div>
         </div>
 
