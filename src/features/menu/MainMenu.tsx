@@ -183,15 +183,23 @@ export const MainMenu: React.FC = () => {
                     textAlign: 'center',
                     width: '100%',
                     maxWidth: '500px',
-                    padding: '0 20px'
+                    padding: '20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    minHeight: '100dvh'
                 }}
             >
+                {/* Spacer to push content down slightly to account for visual weight of footer */}
+                <div style={{ flex: 1 }} />
+
                 {/* Logo Area */}
                 <motion.div
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    style={{ marginBottom: '60px' }}
+                    style={{ marginBottom: '40px' }}
                 >
                     <div style={{ 
                         fontSize: '0.8rem', 
@@ -218,17 +226,10 @@ export const MainMenu: React.FC = () => {
                         TheGm™<br/>
                         <span style={{ color: '#FF5F1F' }}>2026</span>
                     </h1>
-                    <div style={{ 
-                        height: '4px', 
-                        width: '100px', 
-                        background: '#FF5F1F', 
-                        margin: '25px auto',
-                        borderRadius: '10px'
-                    }} />
                 </motion.div>
 
                 {/* Navigation Buttons */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', width: '100%' }}>
                     <MenuButton 
                         icon={<Play size={20} />} 
                         label="New Career" 
@@ -256,22 +257,23 @@ export const MainMenu: React.FC = () => {
                     />
                 </div>
 
-                {/* Footer Info */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1, duration: 1 }}
-                    style={{ 
-                        marginTop: '80px', 
-                        fontSize: '0.7rem', 
-                        color: 'rgba(255,255,255,0.3)', 
-                        fontWeight: 700,
-                        letterSpacing: '2px',
-                        textTransform: 'uppercase'
-                    }}
-                >
-                    V.5.7.0 Powered by MyMac&MyMadness
-                </motion.div>
+                {/* Bottom Spacer and Footer */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingBottom: '20px' }}>
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1, duration: 1 }}
+                        style={{ 
+                            fontSize: '0.7rem', 
+                            color: 'rgba(255,255,255,0.3)', 
+                            fontWeight: 700,
+                            letterSpacing: '2px',
+                            textTransform: 'uppercase'
+                        }}
+                    >
+                        V.5.7.0 Powered by MyMac&MyMadness
+                    </motion.div>
+                </div>
             </motion.div>
 
             {/* Corner Decorative Elements */}
