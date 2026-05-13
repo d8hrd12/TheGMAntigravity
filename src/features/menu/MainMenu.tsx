@@ -204,10 +204,10 @@ export const MainMenu: React.FC = () => {
                         LevedisGames™ presents
                     </div>
                     <h1 style={{ 
-                        fontSize: '7rem', 
+                        fontSize: '5.6rem', 
                         fontWeight: 1000, 
-                        letterSpacing: '-4px', 
-                        lineHeight: 0.8,
+                        letterSpacing: '-3px', 
+                        lineHeight: 0.85,
                         margin: 0,
                         textTransform: 'uppercase',
                         fontFamily: "'SF TransRobotics', 'Orbitron', sans-serif",
