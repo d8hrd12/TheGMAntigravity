@@ -636,20 +636,29 @@ function AppContent() {
       {/* SIDEBAR */}
       <div className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`} onClick={() => setIsSidebarOpen(false)} />
       <aside className={`sidebar ${isSidebarOpen ? 'expanded' : ''}`} style={{ paddingTop: '70px' }}>
-        <div style={{ marginBottom: '40px', padding: '0 8px' }}>
+        <div style={{ marginBottom: '40px', padding: '0 12px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <h2 style={{ 
-            fontSize: '1rem', 
+            fontSize: '1.2rem', 
             color: 'var(--text-main)', 
             margin: 0, 
             fontFamily: "'Orbitron', sans-serif",
             fontWeight: 900,
-            letterSpacing: '1.5px',
+            letterSpacing: '-1px',
             whiteSpace: 'nowrap',
-            textShadow: '0 0 1px rgba(255,255,255,0.3)'
+            lineHeight: 1
           }}>
             THE GM <span style={{ color: '#FF5F1F' }}>2026™</span>
           </h2>
-          <span style={{ fontSize: '0.6rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 900, textShadow: '0 0 5px rgba(255, 95, 31, 0.2)' }}>Manager v5.7.0</span>
+          <span style={{ 
+            fontSize: '0.6rem', 
+            color: 'rgba(255,255,255,0.4)', 
+            textTransform: 'uppercase', 
+            letterSpacing: '4px', 
+            fontWeight: 900,
+            paddingLeft: '2px'
+          }}>
+            v5.7.0
+          </span>
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px', opacity: isNavLocked ? 0.5 : 1, pointerEvents: isNavLocked ? 'none' : 'auto' }}>
