@@ -21,12 +21,19 @@ interface LeaderEntry {
 
 export const SeasonLeadersView: React.FC<SeasonLeadersViewProps> = ({ onBack, onSelectPlayer }) => {
     const { players, teams, seasonGamesPlayed, leagueType } = useGame();
-    const [selectedLeague, setSelectedLeague] = React.useState<'EuroLeague' | 'EuroCup'>('EuroLeague');
+    const [selectedLeague, setSelectedLeague] = React.useState<'EuroLeague' | 'EuroCup'>(leagueType === 'EURO' ? 'EuroLeague' : 'EuroLeague');
 
     // Filter teams and players for the current league
-    const leagueTeams = useMemo(() => teams.filter(t => t.conference === selectedLeague), [teams, selectedLeague]);
-    const leagueTeamIds = useMemo(() => new Set(leagueTeams.map(t => t.id)), [leagueTeams]);
-    const leaguePlayers = useMemo(() => players.filter(p => p.teamId && leagueTeamIds.has(p.teamId)), [players, leagueTeamIds]);
+    const leaguePlayers = useMemo(() => {
+        if (leagueType === 'NBA') {
+            // For NBA, just show all players with teams
+            return players.filter(p => p.teamId);
+        } else {
+            // For EURO, filter by conference (EuroLeague or EuroCup)
+            const leagueTeamIds = new Set(teams.filter(t => t.conference === selectedLeague).map(t => t.id));
+            return players.filter(p => p.teamId && leagueTeamIds.has(p.teamId));
+        }
+    }, [players, teams, leagueType, selectedLeague]);
 
     const teamBaseline = useMemo(() => {
         // Just a fast average for display purposes
@@ -166,40 +173,42 @@ export const SeasonLeadersView: React.FC<SeasonLeadersViewProps> = ({ onBack, on
                 title="SEASON LEADERS"
                 onBack={onBack}
             >
-                <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-                    {/* League Toggle */}
-                    <div style={{ 
-                        display: 'flex', 
-                        background: 'rgba(0,0,0,0.2)', 
-                        padding: '4px', 
-                        borderRadius: '10px',
-                        border: '1px solid var(--border-color)',
-                        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)'
-                    }}>
-                        {(['EuroLeague', 'EuroCup'] as const).map(league => (
-                            <button
-                                key={league}
-                                onClick={() => setSelectedLeague(league)}
-                                style={{
-                                    padding: '8px 24px',
-                                    borderRadius: '7px',
-                                    border: 'none',
-                                    background: selectedLeague === league ? 'var(--team-primary)' : 'transparent',
-                                    color: selectedLeague === league ? '#fff' : 'var(--text-dim)',
-                                    fontSize: '0.8rem',
-                                    fontWeight: 900,
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.05em',
-                                    boxShadow: selectedLeague === league ? '0 4px 12px rgba(var(--primary-rgb), 0.3)' : 'none'
-                                }}
-                            >
-                                {league}
-                            </button>
-                        ))}
+                {leagueType === 'EURO' && (
+                    <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+                        {/* League Toggle */}
+                        <div style={{ 
+                            display: 'flex', 
+                            background: 'rgba(0,0,0,0.2)', 
+                            padding: '4px', 
+                            borderRadius: '10px',
+                            border: '1px solid var(--border-color)',
+                            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)'
+                        }}>
+                            {(['EuroLeague', 'EuroCup'] as const).map(league => (
+                                <button
+                                    key={league}
+                                    onClick={() => setSelectedLeague(league)}
+                                    style={{
+                                        padding: '8px 24px',
+                                        borderRadius: '7px',
+                                        border: 'none',
+                                        background: selectedLeague === league ? 'var(--team-primary)' : 'transparent',
+                                        color: selectedLeague === league ? '#fff' : 'var(--text-dim)',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 900,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.05em',
+                                        boxShadow: selectedLeague === league ? '0 4px 12px rgba(var(--primary-rgb), 0.3)' : 'none'
+                                    }}
+                                >
+                                    {league}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
             </PageHeader>
 
             <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
