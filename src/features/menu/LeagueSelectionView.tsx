@@ -23,15 +23,10 @@ export const LeagueSelectionView: React.FC<LeagueSelectionViewProps> = ({ onSele
             backgroundPosition: 'center',
             backgroundAttachment: 'fixed',
             color: '#fff',
-            fontFamily: "'Outfit', 'Inter', sans-serif",
+            fontFamily: 'var(--font-main)',
             overflow: 'hidden',
             position: 'relative'
         }}>
-            {/* Font Import */}
-            <style>
-                @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
-            </style>
-
             {/* Dark Overlay for Readability */}
             <div style={{
                 position: 'absolute',

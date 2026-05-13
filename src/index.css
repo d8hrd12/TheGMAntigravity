@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.cdnfonts.com/css/sf-transrobotics');
 
 @font-face {
   font-family: 'ESPN Ignite';
@@ -42,14 +43,14 @@
   --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
 
-  --font-main: 'Inter', sans-serif;
-  --font-title: 'Outfit', sans-serif;
+  --font-main: 'SF TransRobotics', sans-serif;
+  --font-title: 'SF TransRobotics', sans-serif;
   --bezel-width: 12px;
 }
 
 .euro-theme {
-  --font-main: 'Outfit', sans-serif;
-  --font-title: 'Outfit', sans-serif;
+  --font-main: 'SF TransRobotics', sans-serif;
+  --font-title: 'SF TransRobotics', sans-serif;
   --primary: #EAB308;
 }
 
