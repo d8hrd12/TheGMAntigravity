@@ -7,6 +7,7 @@ import { calculateStars, calculateTeamBaseline } from '../../utils/starUtils';
 import { StarRating } from '../../components/StarRating';
 import { optimizeRotation, type RotationStrategy } from '../../utils/rotationUtils';
 import { Info, Play, Users, BarChart2, Plus, Minus } from 'lucide-react';
+import { useGame } from '../../store/GameContext';
 import { PageHeader } from '../ui/PageHeader';
 
 interface RotationViewProps {
@@ -18,6 +19,9 @@ interface RotationViewProps {
 }
 
 export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBack, onSave, onSelectPlayer }) => {
+    const { leagueType } = useGame();
+    const TOTAL_TARGET  = leagueType === 'EURO' ? 200 : 240; // 5×40 min Euro, 5×48 min NBA
+    const MAX_PLAYER_MINS = leagueType === 'EURO' ? 40 : 48;
     const [roster, setRoster] = useState<Player[]>([]);
     const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
     const [selectedStrategy, setSelectedStrategy] = useState<RotationStrategy>(50);
@@ -35,7 +39,7 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
 
         // CHECK IF MINUTES ARE ALREADY ASSIGNED (Persisted State)
         const totalMinutes = teamPlayers.reduce((sum, p) => sum + (p.minutes || 0), 0);
-        const hasValidRotation = totalMinutes >= 200 && totalMinutes <= 240; // Approx check
+        const hasValidRotation = totalMinutes >= (TOTAL_TARGET - 20) && totalMinutes <= (TOTAL_TARGET + 20);
 
         if (hasValidRotation) {
             // Sort by existing rotation index if possible, otherwise by isStarter/minutes
@@ -57,7 +61,7 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
             setSelectedStrategy('Custom'); // Assuming it's already customized
         } else {
             // Apply initial optimization only if no valid state
-            const optimized = optimizeRotation(teamPlayers, 50);
+            const optimized = optimizeRotation(teamPlayers, 50, TOTAL_TARGET);
             
             // CUSTOM SORT FOR STARTERS (Top 5)
             const posOrder: Record<string, number> = { 'C': 1, 'PF': 2, 'SF': 3, 'SG': 4, 'PG': 5 };
@@ -103,12 +107,12 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
             const newMinutes = currentMinutes + delta;
 
             // 1. Bounds check
-            if (newMinutes < 0 || newMinutes > 48) return prev;
+            if (newMinutes < 0 || newMinutes > MAX_PLAYER_MINS) return prev;
 
             // 2. Cap check (only if adding)
             if (delta > 0) {
                 const currentTotal = prev.reduce((sum, p) => sum + (p.minutes || 0), 0);
-                if (currentTotal >= 240) return prev; // Hard cap
+                if (currentTotal >= TOTAL_TARGET) return prev; // Hard cap
             }
 
             newRoster[index] = { ...player, minutes: newMinutes };
@@ -208,7 +212,7 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                     </span>
                 </div>
                 <div>
-                    <strong style={{ color: 'var(--text-main)' }}>Mins:</strong> <span style={{ color: totalMinutes === 240 ? '#2ecc71' : (Math.abs(totalMinutes - 240) < 10 ? '#f1c40f' : '#e74c3c') }}>{totalMinutes}/240</span>
+                    <strong style={{ color: 'var(--text-main)' }}>Mins:</strong> <span style={{ color: totalMinutes === TOTAL_TARGET ? '#2ecc71' : (Math.abs(totalMinutes - TOTAL_TARGET) < 10 ? '#f1c40f' : '#e74c3c') }}>{totalMinutes}/{TOTAL_TARGET}</span>
                 </div>
             </div>
 

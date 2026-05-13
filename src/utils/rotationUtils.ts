@@ -29,7 +29,7 @@ const lerp = (start: number, end: number, factor: number): number => {
     return start + (end - start) * factor;
 };
 
-export const optimizeRotation = (roster: Player[], strategy: RotationStrategy = 'Standard'): Player[] => {
+export const optimizeRotation = (roster: Player[], strategy: RotationStrategy = 'Standard', targetTotal: number = 240): Player[] => {
     // Clone roster
     let players = [...roster];
 
@@ -76,18 +76,25 @@ export const optimizeRotation = (roster: Player[], strategy: RotationStrategy = 
     const factor = sliderValue / 100; // 0 to 1
 
     // Interpolate Parameters
-    // Deep Bench (0) -> Heavy Starters (100)
-    // Adjusted for 48-minute games: Top stars should play 40+ mins in "Standard/Heavy"
-    const starterMins = Math.round(lerp(30, 40, factor));
-    const starMins = Math.round(lerp(36, 46, factor)); // 41 mins at 0.5 factor, 46 at 1.0
-
-    // Bench Curves (Scaling the rest)
-    const benchDeep = [20, 18, 14, 10, 8];
-    let benchHeavy = [10, 6, 4, 2, 0];
+    // Scale minute targets based on targetTotal (240 = NBA 48-min game, 200 = Euro 40-min game)
+    const gameMinutes = targetTotal / 5; // 48 for NBA, 40 for Euro
     
+    // EuroLeague specific distribution (from user screenshot: top players 25-31 MPG)
+    const isEuro = targetTotal === 200;
+    const starterMinsRange = isEuro ? [gameMinutes * 0.55, gameMinutes * 0.70] : [gameMinutes * 0.625, gameMinutes * 0.833];
+    const starMinsRange    = isEuro ? [gameMinutes * 0.65, gameMinutes * 0.80] : [gameMinutes * 0.750, gameMinutes * 0.958];
+
+    const starterMins = Math.round(lerp(starterMinsRange[0], starterMinsRange[1], factor)); 
+    const starMins    = Math.round(lerp(starMinsRange[0], starMinsRange[1], factor)); 
+
+    // Bench Curves (Scaling the rest) — proportional to game length
+    const s = gameMinutes / 48; // scale factor: 1.0 for NBA, 0.833 for Euro
+    const benchDeep  = [20, 18, 14, 10, 8].map(v => Math.round(v * s));
+    let   benchHeavy = [10,  6,  4,  2, 0].map(v => Math.round(v * s));
+
     // Playoff Tightening (7-8 players total: 5 starters + 2-3 bench)
     if (strategy === 'Playoffs') {
-        benchHeavy = [20, 12, 8, 0, 0]; // Shorter bench, more concentrated
+        benchHeavy = [Math.round(20 * s), Math.round(12 * s), Math.round(8 * s), 0, 0];
     }
 
     const benchCurve = benchDeep.map((val, i) => Math.round(lerp(val, benchHeavy[i], factor)));
@@ -111,7 +118,7 @@ export const optimizeRotation = (roster: Player[], strategy: RotationStrategy = 
 
     // 4. Bench Allocation
     const benchPool = playersWithOvr.filter(p => !usedIds.has(p.id));
-    let minutesRemaining = 240 - totalMinutesUsed;
+    let minutesRemaining = targetTotal - totalMinutesUsed;
 
     benchPool.forEach((b, idx) => {
         const originalIndex = players.findIndex(p => p.id === b.id);
@@ -134,7 +141,7 @@ export const optimizeRotation = (roster: Player[], strategy: RotationStrategy = 
         // Distribute round-robin to starters first then top bench
         while (minutesRemaining > 0 && safety < 1000) {
             const targetIdx = players.find(p => p.rotationIndex === (i % 8));
-            if (targetIdx && targetIdx.minutes < 48) {
+            if (targetIdx && targetIdx.minutes < gameMinutes) {
                 targetIdx.minutes++;
                 minutesRemaining--;
             }
@@ -146,7 +153,7 @@ export const optimizeRotation = (roster: Player[], strategy: RotationStrategy = 
     // Safety check for over-allocation (rare with this logic but possible if math rounds up too much)
     // If total > 240, shave off from bench bottom up
     let totalCheck = players.reduce((sum, p) => sum + (p.minutes || 0), 0);
-    while (totalCheck > 240) {
+    while (totalCheck > targetTotal) {
         // Find player with minutes > 0, start from bottom of rotation
         const victim = players
             .filter(p => (p.minutes || 0) > 0)

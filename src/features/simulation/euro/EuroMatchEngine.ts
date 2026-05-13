@@ -62,12 +62,11 @@ function assignEuroMinutes(roster: Player[], isPlayoffs = false): void {
   // If minutes already assigned correctly (sum ~200), respect them
   if (totalMins >= 190 && totalMins <= 210) return;
 
-  const optimized = optimizeRotation(active, isPlayoffs ? 'Playoffs' : 'Standard');
+  const optimized = optimizeRotation(active, isPlayoffs ? 'Playoffs' : 'Standard', 200);
   optimized.forEach(opt => {
     const orig = roster.find(r => r.id === opt.id);
     if (orig) {
-      // Scale from 48-min NBA to 40-min Euro
-      orig.minutes = Math.round((opt.minutes / 48) * 40);
+      orig.minutes = opt.minutes;
       orig.isStarter = opt.isStarter;
     }
   });
@@ -80,9 +79,11 @@ function assignEuroMinutes(roster: Player[], isPlayoffs = false): void {
 class EuroRotationTracker {
   roster: Player[];
   trackers: Map<string, { target: number; played: number; isStarter: boolean; fouls: number }>;
+  totalPossessions: number;
 
-  constructor(roster: Player[], isPlayoffs = false) {
+  constructor(roster: Player[], totalPossessions: number, isPlayoffs = false) {
     assignEuroMinutes(roster, isPlayoffs);
+    this.totalPossessions = totalPossessions;
     this.roster = roster.filter(p => !p.isRetired && (p.minutes || 0) > 0);
     if (this.roster.length < 5) this.roster = roster.filter(p => !p.isRetired);
 
@@ -93,8 +94,9 @@ class EuroRotationTracker {
 
     for (const p of this.roster) {
       const adjMins = (p.minutes || 0) * factor;
-      // 200 possessions per team / 40 min × adjMins = target possessions
-      const targetPoss = adjMins * (200 / 200);
+      // Scale target possessions to the actual length of this specific game
+      // (e.g. if game is 144 total possessions, a 30-min player should play 108 possessions)
+      const targetPoss = (adjMins / 40) * (totalPossessions / 2); 
       this.trackers.set(p.id, {
         target: targetPoss,
         played: 0,
@@ -174,8 +176,9 @@ export function simulateEuroMatch(input: MatchInput): MatchResult {
     ) as any,
   }));
 
-  const homeTracker = new EuroRotationTracker(homeRoster, input.isPlayoffs);
-  const awayTracker = new EuroRotationTracker(awayRoster, input.isPlayoffs);
+  const totalGamePoss = POSS_PER_QUARTER * 4 * 2;
+  const homeTracker = new EuroRotationTracker(homeRoster, totalGamePoss, input.isPlayoffs);
+  const awayTracker = new EuroRotationTracker(awayRoster, totalGamePoss, input.isPlayoffs);
 
   // Stats maps
   const statsMap = new Map<string, PlayerStats>();
@@ -461,13 +464,18 @@ export function simulateEuroMatch(input: MatchInput): MatchResult {
   // ---------------------------------------------------------------------------
   homeRoster.forEach(p => {
     const s = statsMap.get(p.id);
-    const played = homeTracker.trackers.get(p.id)?.played || 0;
-    if (s) s.minutes = Math.round((played / 200) * 40);
+    const tracker = homeTracker.trackers.get(p.id);
+    if (s && tracker) {
+      // Correct minutes calculation: percentage of possessions played * 40
+      s.minutes = Math.round((tracker.played / (totalGamePoss / 2)) * 40);
+    }
   });
   awayRoster.forEach(p => {
     const s = statsMap.get(p.id);
-    const played = awayTracker.trackers.get(p.id)?.played || 0;
-    if (s) s.minutes = Math.round((played / 200) * 40);
+    const tracker = awayTracker.trackers.get(p.id);
+    if (s && tracker) {
+      s.minutes = Math.round((tracker.played / (totalGamePoss / 2)) * 40);
+    }
   });
 
   // ---------------------------------------------------------------------------
