@@ -636,23 +636,19 @@ function AppContent() {
       {/* SIDEBAR */}
       <div className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`} onClick={() => setIsSidebarOpen(false)} />
       <aside className={`sidebar ${isSidebarOpen ? 'expanded' : ''}`} style={{ paddingTop: '70px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px', padding: '0 8px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--team-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-            <Dribbble size={24} />
-          </div>
-          <div>
-            <h2 style={{ 
-              fontSize: '1rem', 
-              color: 'var(--text-main)', 
-              margin: 0, 
-              fontFamily: "'Orbitron', sans-serif",
-              fontWeight: 900,
-              letterSpacing: '1px'
-            }}>
-              THE GM <span style={{ color: '#FF5F1F' }}>2026™</span>
-            </h2>
-            <span style={{ fontSize: '0.6rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700 }}>Manager v5.7.0</span>
-          </div>
+        <div style={{ marginBottom: '40px', padding: '0 8px' }}>
+          <h2 style={{ 
+            fontSize: '1rem', 
+            color: 'var(--text-main)', 
+            margin: 0, 
+            fontFamily: "'Orbitron', sans-serif",
+            fontWeight: 900,
+            letterSpacing: '1px',
+            whiteSpace: 'nowrap'
+          }}>
+            THE GM <span style={{ color: '#FF5F1F' }}>2026™</span>
+          </h2>
+          <span style={{ fontSize: '0.6rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700 }}>Manager v5.7.0</span>
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px', opacity: isNavLocked ? 0.5 : 1, pointerEvents: isNavLocked ? 'none' : 'auto' }}>
