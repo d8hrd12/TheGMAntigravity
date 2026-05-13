@@ -20,7 +20,13 @@ interface LeaderEntry {
 }
 
 export const SeasonLeadersView: React.FC<SeasonLeadersViewProps> = ({ onBack, onSelectPlayer }) => {
-    const { players, teams, seasonGamesPlayed } = useGame();
+    const { players, teams, seasonGamesPlayed, leagueType } = useGame();
+    const [selectedLeague, setSelectedLeague] = React.useState<'EuroLeague' | 'EuroCup'>('EuroLeague');
+
+    // Filter teams and players for the current league
+    const leagueTeams = useMemo(() => teams.filter(t => t.conference === selectedLeague), [teams, selectedLeague]);
+    const leagueTeamIds = useMemo(() => new Set(leagueTeams.map(t => t.id)), [leagueTeams]);
+    const leaguePlayers = useMemo(() => players.filter(p => p.teamId && leagueTeamIds.has(p.teamId)), [players, leagueTeamIds]);
 
     const teamBaseline = useMemo(() => {
         // Just a fast average for display purposes
@@ -39,7 +45,7 @@ export const SeasonLeadersView: React.FC<SeasonLeadersViewProps> = ({ onBack, on
         format: (val: number) => string,
         qualifier?: (p: Player) => boolean
     ): LeaderEntry[] => {
-        let eligible = players.filter(p => p.seasonStats && p.seasonStats.gamesPlayed > 0);
+        let eligible = leaguePlayers.filter(p => p.seasonStats && p.seasonStats.gamesPlayed > 0);
         
         // Apply minimum qualifiers (e.g., minimum attempts for percentages)
         if (qualifier) {
@@ -131,6 +137,20 @@ export const SeasonLeadersView: React.FC<SeasonLeadersViewProps> = ({ onBack, on
                 )
             },
             {
+                title: "EFFICIENCY (PIR)",
+                leaders: getLeaders(
+                    p => {
+                        const s = p.seasonStats!;
+                        const missedFg = s.fgAttempted - s.fgMade;
+                        const missedFt = s.ftAttempted - s.ftMade;
+                        const pirTotal = (s.points + s.rebounds + s.assists + s.steals + s.blocks) 
+                                        - (missedFg + missedFt + s.turnovers + (s.fouls || 0));
+                        return pirTotal / s.gamesPlayed;
+                    },
+                    v => v.toFixed(1)
+                )
+            },
+            {
                 title: "MINUTES PER GAME",
                 leaders: getLeaders(
                     p => (p.seasonStats!.minutes / p.seasonStats!.gamesPlayed),
@@ -138,7 +158,7 @@ export const SeasonLeadersView: React.FC<SeasonLeadersViewProps> = ({ onBack, on
                 )
             }
         ];
-    }, [players, seasonGamesPlayed]);
+    }, [leaguePlayers, seasonGamesPlayed]);
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', fontFamily: "'Inter', sans-serif" }}>
@@ -146,8 +166,39 @@ export const SeasonLeadersView: React.FC<SeasonLeadersViewProps> = ({ onBack, on
                 title="SEASON LEADERS"
                 onBack={onBack}
             >
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                    <div style={{ background: 'var(--bg-card)', padding: '6px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 800 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    {/* League Toggle */}
+                    <div style={{ 
+                        display: 'flex', 
+                        background: 'rgba(0,0,0,0.2)', 
+                        padding: '4px', 
+                        borderRadius: '10px',
+                        border: '1px solid var(--border-color)'
+                    }}>
+                        {(['EuroLeague', 'EuroCup'] as const).map(league => (
+                            <button
+                                key={league}
+                                onClick={() => setSelectedLeague(league)}
+                                style={{
+                                    padding: '6px 16px',
+                                    borderRadius: '7px',
+                                    border: 'none',
+                                    background: selectedLeague === league ? 'var(--team-primary)' : 'transparent',
+                                    color: selectedLeague === league ? '#fff' : 'var(--text-dim)',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 800,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.05em'
+                                }}
+                            >
+                                {league}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div style={{ background: 'var(--bg-card)', padding: '6px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 800, border: '1px solid var(--border-color)' }}>
                         GAME {seasonGamesPlayed}
                     </div>
                 </div>

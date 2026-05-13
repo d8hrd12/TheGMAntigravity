@@ -9,6 +9,7 @@ type ViewMode = 'list' | 'stats' | 'history';
 
 export const PlayerLeagueListView: React.FC<{ onBack: () => void, onSelectPlayer: (id: string) => void, initialMode?: ViewMode }> = ({ onBack, onSelectPlayer, initialMode = 'list' }) => {
     const { players, teams, leagueRecords } = useGame();
+    const [selectedLeague, setSelectedLeague] = useState<'EuroLeague' | 'EuroCup'>('EuroLeague');
     const [search, setSearch] = useState('');
     const [sortKey, setSortKey] = useState<string>(initialMode === 'stats' ? 'stats.points' : 'ovr');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
@@ -16,7 +17,14 @@ export const PlayerLeagueListView: React.FC<{ onBack: () => void, onSelectPlayer
 
     const filteredPlayers = useMemo(() => {
         const searchLower = search.toLowerCase();
+        
+        // Filter teams and players for the current league
+        const leagueTeamIds = new Set(teams.filter(t => t.conference === selectedLeague).map(t => t.id));
+
         return players.filter(p => {
+            // Must belong to a team in the selected league
+            if (!p.teamId || !leagueTeamIds.has(p.teamId)) return false;
+
             const team = teams.find(t => t.id === p.teamId);
             const teamName = team?.name || 'Free Agent';
             const playerName = `${p.firstName} ${p.lastName}`;
@@ -128,7 +136,39 @@ export const PlayerLeagueListView: React.FC<{ onBack: () => void, onSelectPlayer
                     'League Players Records'
                 }
                 onBack={onBack}
-            />
+            >
+                {/* League Toggle */}
+                <div style={{ 
+                    display: 'flex', 
+                    background: 'rgba(0,0,0,0.2)', 
+                    padding: '4px', 
+                    borderRadius: '10px',
+                    border: '1px solid var(--border-color)',
+                    marginLeft: '20px'
+                }}>
+                    {(['EuroLeague', 'EuroCup'] as const).map(league => (
+                        <button
+                            key={league}
+                            onClick={() => setSelectedLeague(league)}
+                            style={{
+                                padding: '6px 16px',
+                                borderRadius: '7px',
+                                border: 'none',
+                                background: selectedLeague === league ? 'var(--team-primary)' : 'transparent',
+                                color: selectedLeague === league ? '#fff' : 'var(--text-dim)',
+                                fontSize: '0.75rem',
+                                fontWeight: 800,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.05em'
+                            }}
+                        >
+                            {league}
+                        </button>
+                    ))}
+                </div>
+            </PageHeader>
 
             {initialMode !== 'history' && (
                 <div style={{ position: 'relative', marginBottom: '20px' }}>
