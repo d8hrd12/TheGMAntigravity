@@ -20,20 +20,20 @@ export interface EuroReboundResult {
 
 // Position defensive rebound weight (EL: wings contribute more than NBA)
 const EL_DEF_WEIGHT: Record<string, number> = {
-  C:  1.05,
-  PF: 0.95,
-  SF: 0.88,  // Slightly higher than NBA (0.85) — EL wings box out better
-  SG: 0.70,
-  PG: 0.60,
+  C:  1.35,  // Boosted from 1.05
+  PF: 1.10,  // Boosted from 0.95
+  SF: 0.88,  
+  SG: 0.65,
+  PG: 0.55,
 };
 
 // Position offensive rebound weight
 const EL_OFF_WEIGHT: Record<string, number> = {
-  C:  1.00,
-  PF: 0.92,
+  C:  1.30,  // Boosted from 1.00
+  PF: 1.05,  // Boosted from 0.92
   SF: 0.84,
-  SG: 0.68,
-  PG: 0.58,
+  SG: 0.60,
+  PG: 0.50,
 };
 
 // Long rebound (missed 3) position modifier — guards crash more
@@ -78,8 +78,8 @@ export function resolveEuroRebound(
   const scores = candidates.map(p => {
     const skill = isOffensive ? p.attributes.offensiveRebound : p.attributes.defensiveRebound;
     const posW = posWeights[p.position] ?? 0.82;
-    // Slightly more random than NBA (0.6 power) → EL rebounding less predictable
-    const score = Math.pow(skill / 100, 0.55) * posW;
+    // Increased power from 0.55 to 1.8 to reward elite attributes much more
+    const score = Math.pow(skill / 100, 1.8) * posW;
     return { id: p.id, score };
   });
 

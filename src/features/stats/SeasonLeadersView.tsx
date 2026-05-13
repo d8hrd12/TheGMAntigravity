@@ -166,40 +166,38 @@ export const SeasonLeadersView: React.FC<SeasonLeadersViewProps> = ({ onBack, on
                 title="SEASON LEADERS"
                 onBack={onBack}
             >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
                     {/* League Toggle */}
                     <div style={{ 
                         display: 'flex', 
                         background: 'rgba(0,0,0,0.2)', 
                         padding: '4px', 
                         borderRadius: '10px',
-                        border: '1px solid var(--border-color)'
+                        border: '1px solid var(--border-color)',
+                        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)'
                     }}>
                         {(['EuroLeague', 'EuroCup'] as const).map(league => (
                             <button
                                 key={league}
                                 onClick={() => setSelectedLeague(league)}
                                 style={{
-                                    padding: '6px 16px',
+                                    padding: '8px 24px',
                                     borderRadius: '7px',
                                     border: 'none',
                                     background: selectedLeague === league ? 'var(--team-primary)' : 'transparent',
                                     color: selectedLeague === league ? '#fff' : 'var(--text-dim)',
-                                    fontSize: '0.75rem',
-                                    fontWeight: 800,
+                                    fontSize: '0.8rem',
+                                    fontWeight: 900,
                                     cursor: 'pointer',
-                                    transition: 'all 0.2s ease',
+                                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                                     textTransform: 'uppercase',
-                                    letterSpacing: '0.05em'
+                                    letterSpacing: '0.05em',
+                                    boxShadow: selectedLeague === league ? '0 4px 12px rgba(var(--primary-rgb), 0.3)' : 'none'
                                 }}
                             >
                                 {league}
                             </button>
                         ))}
-                    </div>
-
-                    <div style={{ background: 'var(--bg-card)', padding: '6px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 800, border: '1px solid var(--border-color)' }}>
-                        GAME {seasonGamesPlayed}
                     </div>
                 </div>
             </PageHeader>

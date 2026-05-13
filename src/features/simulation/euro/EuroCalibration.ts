@@ -16,7 +16,7 @@
  *   - AST:     ~19.2/game                   (range: 14.7–21.6)
  *   - TOV:     ~12.8/game                   (range: 10.7–13.9)
  *   - STL:     ~6.2/game
- *   - BLK:     ~1.3/game (genuine EURO stat — much lower than NBA)
+ *   - BLK:     ~1.8/game (Adjusted up to reward elite rim protectors)
  *
  * Game rules:
  *   - 4 × 10-minute quarters (not 12)
@@ -38,83 +38,76 @@ export const EURO = {
   FT_PCT:       0.785,
 
   // Rebounding
-  REBOUNDS:     34.5,   // Total (OREB + DREB)
-  OREB_PCT:     0.310,  // Offensive rebound %  — higher than NBA due to less athleticism at guard spots
+  REBOUNDS:     36.5,   // Slightly up to ensure elite centers get impact
+  OREB_PCT:     0.310,  
   DREB_PCT:     0.690,
 
   // Playmaking & defense
   ASSISTS:      19.2,
   TURNOVERS:    12.8,
   STEALS:        6.2,
-  BLOCKS:        1.3,   // Very low — EuroLeague has less rim-protecting giants
+  BLOCKS:        1.8,   
 
   // Shot zone distribution (% of FGA)
-  // EuroLeague: less rim-running, more mid-post and catch-3
-  RIM_RATE:    0.22,   // Less transition/athleticism-driven rim plays
-  MID_RATE:    0.38,   // More structured half-court mid-post actions
-  THREE_RATE:  0.40,   // High 3PA but less than NBA
+  RIM_RATE:    0.22,   
+  MID_RATE:    0.38,   
+  THREE_RATE:  0.40,   
 
-  // Make% by zone — calibrated from real FG%, 3P%, finishing data
-  RIM_PCT:     0.585,  // Lower than NBA (0.64) — less athletic finishers
-  MID_PCT:     0.455,  // Higher than NBA (0.43) — EL teams run more disciplined mid-post
-  THREE_FG_PCT: 0.356, // Spot-on to real EL 3P%
+  // Make% by zone
+  RIM_PCT:     0.585,  
+  MID_PCT:     0.455,  
+  THREE_FG_PCT: 0.356, 
 
-  // Foul rates by play type (probability of foul on that possession)
-  // EuroLeague fouls more aggressively than NBA — especially on drives
+  // Foul rates by play type
   FOUL_DRIVE:      0.28,
-  FOUL_POST:       0.22,  // Post-up game draws more contact in EL
+  FOUL_POST:       0.22,  
   FOUL_PNR_ROLL:   0.16,
   FOUL_ISO:        0.09,
   FOUL_SPOT3:      0.03,
   FOUL_CATCH3:     0.03,
   FOUL_MID:        0.06,
 
-  // And-1 rate at the rim (lower in EL — different officiating)
+  // And-1 rate at the rim
   AND_ONE_RIM:     0.04,
 
-  // Team foul bonus threshold (EuroLeague: 5th team foul → bonus free throws)
+  // Team foul bonus threshold
   TEAM_FOUL_BONUS: 5,
 
-  // Foul-out threshold (EuroLeague rules: 5 personal fouls → disqualification)
+  // Foul-out threshold
   FOUL_OUT_THRESHOLD: 5,
 
-  // Overtime: 5-minute extra period
-  OT_POSSESSIONS_PER_TEAM: 10, // ~72/4 * (5/10) scaled down
+  // Overtime
+  OT_POSSESSIONS_PER_TEAM: 10, 
 
-  // Home court advantage — EuroLeague is renowned for intense home environments
-  // (crowds, noise, travel fatigue for away teams)
-  HOME_ATTRIBUTE_BOOST: 1.05,   // +5% to home team attributes (same as current implementation)
-  HOME_SHOOT_BOOST:     0.015,  // Additional +1.5% to home shooting accuracy
-  AWAY_SHOOT_PENALTY:   0.010,  // -1.0% to away shooting accuracy (crowd noise etc.)
+  // Home court advantage
+  HOME_ATTRIBUTE_BOOST: 1.05,   
+  HOME_SHOOT_BOOST:     0.015,  
+  AWAY_SHOOT_PENALTY:   0.010,  
 };
 
 /**
  * EuroLeague base usage by position.
- * Guards handle ball more but big men (PF/C) get more post touches vs NBA.
  */
 export const EURO_BASE_USAGE: Record<string, number> = {
-  PG: 0.225,  // Less isolation-heavy than NBA PGs
+  PG: 0.225,  
   SG: 0.200,
-  SF: 0.205,  // Wings have higher usage in structured EL offense
-  PF: 0.190,  // Post play more common
+  SF: 0.205,  
+  PF: 0.190,  
   C:  0.180,
 };
 
 /**
- * Position caps — prevents any one player from monopolizing possessions.
- * EuroLeague is more team-oriented; usage is more distributed.
+ * Position caps.
  */
 export const EURO_USAGE_CAP: Record<string, number> = {
-  PG: 0.26,
-  SG: 0.24,
-  SF: 0.23,
-  PF: 0.21,
-  C:  0.21,
+  PG: 0.23,
+  SG: 0.22,
+  SF: 0.21,
+  PF: 0.20,
+  C:  0.20,
 };
 
 /**
- * Minute targets per roster rank for a 10-minute quarter game (40 total minutes).
- * 5 starters × average ~30 min + bench rotation.
- * Total = 200 minutes (5 players × 40 min).
+ * EuroLeague stars play less than NBA stars (25-31 MPG).
  */
-export const EURO_MINUTES_BY_RANK = [34, 32, 28, 26, 24, 20, 14, 10, 6, 4, 2, 0, 0];
+export const EURO_MINUTES_BY_RANK = [31, 29, 27, 25, 23, 20, 15, 12, 10, 8, 4, 0, 0];

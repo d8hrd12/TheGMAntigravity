@@ -96,9 +96,10 @@ export function resolveEuroShot(
   const bestBlocker = defenseLineup.reduce((b, p) =>
     p.attributes.blocking > b.attributes.blocking ? p : b
   );
-  // Only truly elite EL big men (blocking > 80) have meaningful block rates
+  // Block probability scaling: elite rim protectors (90+) should be ~8% per rim attempt
+  // threshold lowered to 60 to allow more players to record occasional blocks
   const blockProb = zone === 'RIM'
-    ? Math.max(0, (bestBlocker.attributes.blocking - 70) / (99 - 70) * 0.07 * rimProtMod)
+    ? Math.max(0, (bestBlocker.attributes.blocking - 60) / (99 - 60) * 0.12 * rimProtMod)
     : 0;
 
   // ----------------------------------------------------------------
