@@ -643,12 +643,13 @@ function AppContent() {
             margin: 0, 
             fontFamily: "'Orbitron', sans-serif",
             fontWeight: 900,
-            letterSpacing: '1px',
-            whiteSpace: 'nowrap'
+            letterSpacing: '1.5px',
+            whiteSpace: 'nowrap',
+            textShadow: '0 0 1px rgba(255,255,255,0.3)'
           }}>
             THE GM <span style={{ color: '#FF5F1F' }}>2026™</span>
           </h2>
-          <span style={{ fontSize: '0.6rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700 }}>Manager v5.7.0</span>
+          <span style={{ fontSize: '0.6rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 900, textShadow: '0 0 5px rgba(255, 95, 31, 0.2)' }}>Manager v5.7.0</span>
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px', opacity: isNavLocked ? 0.5 : 1, pointerEvents: isNavLocked ? 'none' : 'auto' }}>
