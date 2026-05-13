@@ -144,10 +144,10 @@ export function selectEuroPlayType(
     const ra = recipient.attributes;
     const zone = zoneForRecipient(recipient, offensiveFocus);
 
-    // Bonus accuracy on assisted shots (EL: less impact than NBA to keep FG% down)
-    const bonusAccuracy = zone === 'THREE' ? 0.045
-      : zone === 'RIM'   ? 0.040
-      : 0.035;
+    // Bonus accuracy on assisted shots (EL: very low to keep PPG realistic)
+    const bonusAccuracy = zone === 'THREE' ? 0.025
+      : zone === 'RIM'   ? 0.020
+      : 0.015;
 
     // Play type from context
     let playType: EuroPlayType;
