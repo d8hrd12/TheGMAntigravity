@@ -95,8 +95,8 @@ class EuroRotationTracker {
     for (const p of this.roster) {
       const adjMins = (p.minutes || 0) * factor;
       // Scale target possessions to the actual length of this specific game
-      // (e.g. if game is 144 total possessions, a 30-min player should play 108 possessions)
-      const targetPoss = (adjMins / 40) * (totalPossessions / 2); 
+      // (e.g. if game is 144 total possession ticks, a 40-min player should play 144 ticks)
+      const targetPoss = (adjMins / 40) * totalPossessions; 
       this.trackers.set(p.id, {
         target: targetPoss,
         played: 0,
@@ -466,15 +466,15 @@ export function simulateEuroMatch(input: MatchInput): MatchResult {
     const s = statsMap.get(p.id);
     const tracker = homeTracker.trackers.get(p.id);
     if (s && tracker) {
-      // Correct minutes calculation: percentage of possessions played * 40
-      s.minutes = Math.round((tracker.played / (totalGamePoss / 2)) * 40);
+      // Correct minutes calculation: percentage of possession ticks played * 40
+      s.minutes = Math.round((tracker.played / totalGamePoss) * 40);
     }
   });
   awayRoster.forEach(p => {
     const s = statsMap.get(p.id);
     const tracker = awayTracker.trackers.get(p.id);
     if (s && tracker) {
-      s.minutes = Math.round((tracker.played / (totalGamePoss / 2)) * 40);
+      s.minutes = Math.round((tracker.played / totalGamePoss) * 40);
     }
   });
 
