@@ -21888,6 +21888,39 @@ export const REAL_ROSTERS: Record<string, RealPlayerDef[]> = {
       }
     },
     {
+      "firstName": "Chris",
+      "lastName": "Paul",
+      "pos": "PG",
+      "age": 40,
+      "ovr": 79,
+      "archetype": "Floor General",
+      "attributes": {
+        "finishing": 62, "midRange": 85, "threePointShot": 78, "freeThrow": 86,
+        "playmaking": 92, "ballHandling": 90, "offensiveRebound": 42, "defensiveRebound": 52,
+        "interiorDefense": 42, "perimeterDefense": 76, "stealing": 88, "blocking": 42,
+        "athleticism": 64, "basketballIQ": 99, "stamina": 82, "strength": 55,
+        "vertical": 55, "agility": 68, "speed": 62, "workEthic": 90,
+        "offensiveConsistency": 88, "defensiveConsistency": 72,
+        "drivingDunk": 40, "standingDunk": 30, "layup": 78, "postControl": 70, "drawFoul": 85
+      },
+      "badges": {
+        "dimer": "hof",
+        "versatile_visionary": "gold",
+        "bail_out": "gold",
+        "break_starter": "gold",
+        "strong_handle": "gold",
+        "unpluckable": "gold",
+        "glove": "gold",
+        "interceptor": "hof",
+        "on_ball_menace": "silver",
+        "pick_dodger": "gold"
+      },
+      "contract": {
+        "amount": 11000000,
+        "years": 2
+      }
+    },
+    {
       "firstName": "Devin",
       "lastName": "Vassell",
       "pos": "SG",

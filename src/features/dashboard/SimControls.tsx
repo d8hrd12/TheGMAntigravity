@@ -55,6 +55,24 @@ export const SimControls: React.FC = () => {
     const isSeasonComplete = seasonPhase === 'regular_season' && seasonGamesPlayed >= regularSeasonLength;
 
 
+    const wrapperStyle: React.CSSProperties = {
+        position: 'fixed',
+        bottom: '20px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: 'calc(100% - 40px)',
+        maxWidth: '500px',
+        zIndex: 100,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+        padding: '12px',
+        background: 'var(--bg-card)',
+        borderRadius: '20px',
+        border: '1px solid var(--border-color)',
+        boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
+    };
+
     if (
         seasonPhase === 'scouting' || 
         seasonPhase === 'offseason' || 
@@ -69,7 +87,7 @@ export const SimControls: React.FC = () => {
         seasonPhase === 'free_agency'
     ) {
         return (
-            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+            <div style={wrapperStyle}>
                 <SimButton
                     onClick={() => setView('offseason_menu')}
                     icon={Calendar}
@@ -83,7 +101,7 @@ export const SimControls: React.FC = () => {
 
     if (isSeasonComplete) {
         return (
-            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+            <div style={wrapperStyle}>
                 <SimButton
                     onClick={startPlayoffs}
                     icon={Trophy}
@@ -96,7 +114,7 @@ export const SimControls: React.FC = () => {
 
     if (seasonPhase === 'euro_playin') {
         return (
-            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+            <div style={wrapperStyle}>
                 <SimButton
                     onClick={() => setView('euro_playin')}
                     icon={Trophy}
@@ -109,7 +127,7 @@ export const SimControls: React.FC = () => {
 
     if (seasonPhase.startsWith('playoffs')) {
         return (
-            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+            <div style={wrapperStyle}>
                 <SimButton
                     onClick={() => setView('playoffs')}
                     icon={Trophy}
@@ -121,7 +139,7 @@ export const SimControls: React.FC = () => {
     }
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', marginTop: '15px' }}>
+        <div style={wrapperStyle}>
             <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
                 <SimButton
                     onClick={advanceDay}

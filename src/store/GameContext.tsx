@@ -13,6 +13,7 @@ import { generateCoach, getTacticsForStyle } from '../features/team/coachGenerat
 import { shouldFireCoach, fireCoach, hireCoach } from '../features/team/CoachLogic';
 import { seedRealRosters } from '../features/player/rosterSeeder';
 import { generateLocalTalentPool, calculateOverall } from '../utils/playerUtils';
+import { generateNBAEuroPool, refreshNBAEuroPool, type NBAEuroProspect } from '../features/league/NBAEuroPoolModule';
 import { processGMDismissals, updateTeamStrategy } from '../features/team/GMManagement';
 import { initializeLeagueGMs } from '../features/team/gmGenerator';
 import type { SocialMediaPost } from '../models/SocialMediaPost';
@@ -223,6 +224,7 @@ export interface GameState {
         matchups: PlayInMatchup[];
         seedsLocked: Record<string, string[]>; // conf -> array of top 6 IDs
     };
+    nbaToEuroPool: NBAEuroProspect[];
     view: string;
 }
 
@@ -470,6 +472,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         isFirstSeasonPaid: false,
         activeCoachOffers: [],
         aiGms: [],
+        nbaToEuroPool: [],
         view: 'dashboard'
     });
 

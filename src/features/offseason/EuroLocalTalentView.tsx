@@ -12,11 +12,32 @@ interface Props {
 }
 
 export const EuroLocalTalentView: React.FC<Props> = ({ onBack }) => {
-    const { localTalentPool, teams, userTeamId, setGameState, setView, completeOffseasonTask, seasonPhase } = useGame();
+    const { localTalentPool, players, contracts, date, teams, userTeamId, setGameState, setView, completeOffseasonTask, seasonPhase } = useGame();
     const userTeam = teams.find(t => t.id === userTeamId);
     
-    const handleFinish = () => {
+    const handleFinish = async () => {
         if (seasonPhase === 'scouting') {
+            // Let the AI Euro GMs make their picks before closing!
+            const { simulateEuroAI_LocalTalentDraft } = await import('../team/EuroAIGMModule');
+            
+            setGameState(prev => {
+                const { updatedTeams, updatedPlayers, updatedContracts, remainingPool } = simulateEuroAI_LocalTalentDraft(
+                    prev.teams,
+                    prev.localTalentPool,
+                    prev.players,
+                    prev.contracts,
+                    prev.date.getFullYear()
+                );
+
+                return {
+                    ...prev,
+                    teams: updatedTeams,
+                    players: updatedPlayers,
+                    contracts: updatedContracts,
+                    localTalentPool: remainingPool
+                };
+            });
+
             completeOffseasonTask('localTalent');
         } else {
             if (onBack) {

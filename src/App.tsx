@@ -48,6 +48,7 @@ import { TradesSummaryView } from './features/trade/TradesSummaryView';
 import { TradeProposalModal } from './features/trade/TradeProposalModal';
 import { simulateDailyTrades, generateAiTradeProposalForUser } from './features/trade/TradeSimulation';
 import type { SimulatedTradeProposal } from './features/trade/TradeSimulation';
+import { EuroTransferMarketView } from './features/trade/EuroTransferMarketView';
 import { ResigningView } from './features/free_agency/ResigningView';
 import { SaveLoadView } from './features/ui/SaveLoadView';
 import { RetiredPlayersSummaryView } from './features/history/RetiredPlayersSummaryView';
@@ -512,7 +513,11 @@ function AppContent() {
       case 'player_history':
         return <PlayerLeagueListView onBack={() => setView('dashboard')} onSelectPlayer={setSelectedPlayerId} initialMode="history" />;
       case 'trade': 
-        return userTeam ? <TradeCenterView 
+        if (!userTeam) return null;
+        if (leagueType === 'EURO') {
+          return <EuroTransferMarketView onBack={() => setView('dashboard')} />;
+        }
+        return <TradeCenterView 
           userTeam={userTeam} 
           teams={teams} 
           players={players} 
@@ -531,7 +536,7 @@ function AppContent() {
           draftOrder={draftOrder}
           seasonPhase={seasonPhase}
           seasonGamesPlayed={seasonGamesPlayed}
-        /> : null;
+        />;
       case 'financials': 
         return <TeamFinancialsView 
           onBack={() => setView('dashboard')} 
