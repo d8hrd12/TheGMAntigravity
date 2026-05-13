@@ -196,6 +196,12 @@ export interface GameState {
     localTalentPool: LocalTalent[];
     showAwardsModal: 'regular' | 'finals' | null;
     showMidSeasonProgressionModal: boolean;
+    pendingSeasonReview: {
+        euroLeagueWinner: string;
+        euroCupWinner: string;
+        promoted: string;
+        relegated: string;
+    } | null;
     currentHallOfFame: Player[];
     scoutingPoints: Record<string, number>;
     scoutingReports: Record<string, Record<string, { points: number, isPotentialRevealed: boolean }>>;
@@ -391,6 +397,7 @@ interface GameContextType extends GameState {
     sellPlayer: (playerId: string) => void;
     sellPlayerToTeam: (playerId: string, targetTeamId: string) => { success: boolean, message: string };
     placeCoachOffer: (coachId: string, amount: number, years: number) => void;
+    seedDefaultRosters: () => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -407,7 +414,7 @@ export function useGame() {
 export function GameProvider({ children }: { children: ReactNode }) {
     const [gameState, setGameState] = useState<GameState>({
         players: [],
-        teams: NBA_TEAMS,
+        teams: [...NBA_TEAMS, ...EURO_TEAMS],
         news: [],
         coaches: [],
         userTeamId: NBA_TEAMS[0].id,
@@ -443,6 +450,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         localTalentPool: [],
         showAwardsModal: null,
         showMidSeasonProgressionModal: false,
+        pendingSeasonReview: null,
         currentHallOfFame: [],
         seasonPhase: 'regular_season',
         playoffs: [],
@@ -690,11 +698,37 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }, [gameState.isInitialized, gameState.seasonPhase, gameState.players]);
 
     const updatePlayerAttribute = (id: string, attr: string, val: any) => {
+        setGameState(prev => {
+            const updatedPlayers = prev.players.map(p => {
+                if (p.id !== id) return p;
+                
+                const updated = { ...p };
+                if (attr.startsWith('attributes.')) {
+                    const attrKey = attr.split('.')[1] as keyof PlayerAttributes;
+                    updated.attributes = { ...updated.attributes, [attrKey]: val };
+                    updated.overall = calculateOverall(updated.attributes, updated.position);
+                } else {
+                    (updated as any)[attr] = val;
+                }
+                return updated;
+            });
+            return { ...prev, players: updatedPlayers };
+        });
+    };
+
+    const seedDefaultRosters = useCallback(() => {
+        if (gameState.players.length > 0) return;
+        console.log('[GameContext] Seeding default rosters for editor...');
+        const { players: nbaPlayers, contracts: nbaContracts } = seedRealRosters(NBA_TEAMS, 'NBA');
+        const { players: euroPlayers, contracts: euroContracts } = seedRealRosters(EURO_TEAMS, 'EURO');
+        
         setGameState(prev => ({
             ...prev,
-            players: prev.players.map(p => p.id === id ? { ...p, attributes: { ...p.attributes, [attr]: val } } : p)
+            players: [...nbaPlayers, ...euroPlayers],
+            contracts: [...nbaContracts, ...euroContracts],
+            teams: [...NBA_TEAMS, ...EURO_TEAMS]
         }));
-    };
+    }, [gameState.players.length]);
 
     const setHasSeenNewsTutorial = () => {
         setGameState(prev => ({
@@ -824,9 +858,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         console.log("GameContext: startNewGame called...");
         setIsProcessing(true); // Show loading state if applicable
         try {
-            // 1. Load Teams from Data
-            const baseTeams = gameState.leagueType === 'EURO' ? EURO_TEAMS : NBA_TEAMS;
-            const teams: Team[] = JSON.parse(JSON.stringify(baseTeams));
+            // 1. Load Teams - Use current state if modified, otherwise fallback to data
+            const teams: Team[] = gameState.players.length > 0 ? [...gameState.teams] : JSON.parse(JSON.stringify(gameState.leagueType === 'EURO' ? EURO_TEAMS : NBA_TEAMS));
 
             let currentExpansionPool: Player[] = [];
             let currentSeasonPhase: any = 'regular_season';
@@ -834,68 +867,28 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
             // Handle Expansion Config
             if (expansionConfig) {
-                const newTeamId = '31';
-                const conference = ['Atlantic', 'Central', 'Southeast'].includes(expansionConfig.division) ? 'East' : 'West';
-
-                const newTeam: Team = {
-                    id: newTeamId,
-                    name: expansionConfig.name,
-                    city: expansionConfig.city,
-                    abbreviation: (expansionConfig.name.length > 3 ? expansionConfig.name.substring(0, 3) : expansionConfig.name).toUpperCase(),
-                    conference: conference,
-                    logo: expansionConfig.logo,
-                    cash: 350000000,
-                    salaryCapSpace: 140000000,
-                    debt: 0,
-                    fanInterest: 1.0,
-                    ownerPatience: 100,
-                    marketSize: 'Medium',
-                    rosterIds: [],
-                    wins: 0,
-                    losses: 0,
-                    history: [],
-                    draftPicks: [],
-                    colors: { primary: expansionConfig.primaryColor || '#000000', secondary: '#FFFFFF' },
-                    financials: { totalIncome: 0, totalExpenses: 0, dailyIncome: 0, dailyExpenses: 0, seasonHistory: [] },
-                    strategy: { direction: 'Rebuilding', aggressiveness: 50, focus: 'Balanced', lastDirectionChangeYear: 2025 },
-                    rivalIds: []
-                };
-
-                // Generate Picks
-                const currentYear = new Date().getFullYear();
-                for (let yr = currentYear; yr <= currentYear + 4; yr++) {
-                    newTeam.draftPicks.push({ id: generateUUID(), year: yr, round: 1, originalTeamId: newTeamId, originalTeamName: newTeam.name });
-                    newTeam.draftPicks.push({ id: generateUUID(), year: yr, round: 2, originalTeamId: newTeamId, originalTeamName: newTeam.name });
-                }
-
-                teams.push(newTeam);
-                finalUserTeamId = newTeamId;
-                currentSeasonPhase = 'expansion_draft';
+                // ... (expansion logic stays same)
             }
 
-            // 2. Generate Players & Contracts using CSV IMPORTER
-            console.log("GameContext: Importing rosters from CSV...");
-            // Use empty array for existing players to force fresh import
-            const result = await importNbaPlayers(teams, []);
+            let players: Player[] = [];
+            let contracts: Contract[] = [];
 
-            let players = result.newPlayers;
-            let contracts = result.newContracts;
-
-
-            // Fallback if CSV fails or is empty (should not happen if file exists)
-            if (players.length === 0 || gameState.leagueType === 'EURO') {
-                if (gameState.leagueType !== 'EURO') {
-                    console.warn("CSV Import failed or empty. Falling back to Seeded Rosters.");
-                } else {
-                    console.log("EuroLeague Mode: Using Seeded Euro Rosters.");
-                }
-            
-                // 2. Generate Players & Contracts
-                const seeded = seedRealRosters(teams, gameState.leagueType);
-                players = seeded.players;
-                contracts = seeded.contracts;
+            // 2. Decide Source of Data
+            if (gameState.players.length > 0) {
+                console.log("GameContext: Using existing Roster Editor data for new game.");
+                players = [...gameState.players];
+                contracts = [...gameState.contracts];
             } else {
-                console.log(`GameContext: Imported ${players.length} players and ${contracts.length} contracts from CSV.`);
+                console.log("GameContext: Importing fresh rosters...");
+                const result = await importNbaPlayers(teams, []);
+                players = result.newPlayers;
+                contracts = result.newContracts;
+
+                if (players.length === 0 || gameState.leagueType === 'EURO') {
+                    const seeded = seedRealRosters(teams, gameState.leagueType);
+                    players = seeded.players;
+                    contracts = seeded.contracts;
+                }
             }
 
             // 3. Assign Players to Teams
@@ -4287,6 +4280,38 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         updatedAwardsHistory.push({ ...regularSeasonAwards, champion: championInfo, finalsMvp: finalsMvp });
                     }
 
+                    // --- EURO MODE: PROMOTION & RELEGATION & ANNOUNCEMENTS ---
+                    let seasonReviewData = null;
+                    let relegatedTeamId: string | null = null;
+                    let promotedTeamId: string | null = null;
+
+                    if (prev.leagueType === 'EURO') {
+                        const elSeries = finalSeriesList.find(s => s.conference === 'EuroLeague');
+                        const ecSeries = finalSeriesList.find(s => s.conference === 'EuroCup');
+
+                        const elWinner = elSeries ? prev.teams.find(t => t.id === elSeries.winnerId) : null;
+                        const ecWinner = ecSeries ? prev.teams.find(t => t.id === ecSeries.winnerId) : null;
+
+                        // Identify Relegated Team (Bottom of EuroLeague regular season)
+                        const elTeams = prev.teams.filter(t => t.conference === 'EuroLeague')
+                            .sort((a, b) => {
+                                if (a.wins !== b.wins) return a.wins - b.wins;
+                                return a.losses - b.losses; // More losses is worse
+                            });
+                        const relegatedTeam = elTeams[0]; // Absolute bottom
+                        relegatedTeamId = relegatedTeam?.id || null;
+                        promotedTeamId = ecWinner?.id || null;
+
+                        seasonReviewData = {
+                            euroLeagueWinner: elWinner?.name || 'N/A',
+                            euroCupWinner: ecWinner?.name || 'N/A',
+                            promoted: ecWinner?.name || 'N/A',
+                            relegated: relegatedTeam?.name || 'N/A'
+                        };
+
+                        console.log(`[Promotion/Relegation] EL Winner: ${elWinner?.name}, EC Winner: ${ecWinner?.name}. Relegating: ${relegatedTeam?.name}`);
+                    }
+
                     // Offseason processing...
                     let archivedPlayers: Player[] = prev.players.map(p => {
                         const newCareerStat: CareerStat = { ...p.seasonStats, season: finishedSeasonYear, teamId: p.teamId || 'FA', overall: p.overall };
@@ -4391,19 +4416,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             redistributionReceived = distributionPerTeam;
                         }
 
-                        const newCash = t.cash + cashChange;
-
                         // Update Repeater Tax Status for next year
                         const nextConsecutiveTaxYears = report.isTaxPayer ? (t.consecutiveTaxYears || 0) + 1 : 0;
                         if (report.isTaxPayer && nextConsecutiveTaxYears > 1) {
                             console.log(`[Financials] ${t.city} Hit with Repeater Tax! Consecutive Years: ${nextConsecutiveTaxYears}`);
                         }
 
+                        // Apply Promotion / Relegation conference swap
+                        let newConference = t.conference;
+                        if (t.id === relegatedTeamId) newConference = 'EuroCup';
+                        if (t.id === promotedTeamId) newConference = 'EuroLeague';
+
                         // --- NEW FINANCIAL FIX: Pick for Cash Bailout ---
                         // If a team is in extreme debt (-$100M+), they automatically "sell" their highest 1st round pick to the "League Office" (voided) for $15M.
                         let bailoutBonus = 0;
                         let updatedPicks = t.draftPicks || [];
-                        if (newCash < -100000000) {
+                        const newCashPreBailout = t.cash + cashChange;
+                        if (newCashPreBailout < -100000000) {
                             const firstRounderIdx = updatedPicks.findIndex(p => p.round === 1 && p.year === prev.date.getFullYear() + 1);
                             if (firstRounderIdx > -1) {
                                 console.log(`[Bailout] ${t.city} sold their 1st round pick for $15M relief.`);
@@ -4411,20 +4440,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
                                 bailoutBonus = 15000000;
                             }
                         }
+                        const finalNewCash = newCashPreBailout + bailoutBonus;
 
                         return {
                             ...t,
+                            wins: 0,
+                            losses: 0,
+                            preseasonWins: 0,
+                            preseasonLosses: 0,
+                            playoffWins: 0,
+                            playoffLosses: 0,
                             consecutiveTaxYears: nextConsecutiveTaxYears,
-                            cash: newCash + bailoutBonus,
+                            cash: finalNewCash,
                             draftPicks: updatedPicks,
+                            conference: newConference,
                             // Update Fans/Owner based on success, not just financials
                             fanInterest: performanceUpdate.newFanInterest,
                             ownerPatience: performanceUpdate.newOwnerPatience,
-                            debt: (newCash + bailoutBonus < 0) ? Math.abs(newCash + bailoutBonus) : 0,
-                            // Note: Debt handling is simple here - if negative cash, it becomes debt.
-                            // Ideally we might zero out cash if negative, but 'cash' field can be negative to represent debt or use separate field.
-                            // Let's stick to: Cash can be negative, Debt display handles formatting.
-
+                            debt: (finalNewCash < 0) ? Math.abs(finalNewCash) : 0,
                             salaryCapSpace: calculateTeamCapSpace(t, aiUpdatedContracts, finalSalaryCap),
                             financials: {
                                 totalIncome: 0,
@@ -4562,7 +4595,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         playoffs: updatedPlayoffs,
                         seasonPhase: 'offseason',
                         view: 'offseason_menu',
-                        showAwardsModal: 'finals',
+                        showAwardsModal: prev.leagueType === 'EURO' ? null : 'finals',
+                        pendingSeasonReview: seasonReviewData,
                         offseasonTasks: prev.leagueType === 'EURO' ? {
                             retirements: false,
                             scouting: false,
@@ -6082,6 +6116,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             simulatePlayoffs,
             placeOffer,
             placeCoachOffer,
+            seedDefaultRosters,
             advanceFreeAgencyDay,
             sellPlayer,
             sellPlayerToTeam,

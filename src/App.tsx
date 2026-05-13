@@ -137,7 +137,9 @@ function AppContent() {
     endFreeAgency,
     aiGms,
     showAwardsModal,
-    showMidSeasonProgressionModal
+    showMidSeasonProgressionModal,
+    pendingSeasonReview,
+    setGameState
   } = gameData;
 
   // HANDLE BACK BUTTON (ANDROID)
@@ -176,7 +178,6 @@ function AppContent() {
     };
   }, [view, selectedPlayerId, selectedGame, liveGameData]);
 
-  // Trigger awards popup when simulation sets showAwardsModal
   useEffect(() => {
     if (showAwardsModal && awardsHistory.length > 0) {
       setShowingAwards(awardsHistory[awardsHistory.length - 1]);
@@ -184,6 +185,20 @@ function AppContent() {
       gameData.setGameState(prev => ({ ...prev, showAwardsModal: null }));
     }
   }, [showAwardsModal, awardsHistory]);
+
+  // Season Review Modal for Euro Mode
+  useEffect(() => {
+    if (pendingSeasonReview) {
+      const review = pendingSeasonReview;
+      setModalMessage({
+        title: 'EURO SEASON REVIEW',
+        msg: `🏆 EuroLeague Champion: ${review.euroLeagueWinner}\n🏆 EuroCup Champion: ${review.euroCupWinner}\n\n⬆️ Promoted: ${review.promoted}\n⬇️ Relegated: ${review.relegated}`,
+        type: 'success'
+      });
+      // Clear the review data
+      setGameState(prev => ({ ...prev, pendingSeasonReview: null }));
+    }
+  }, [pendingSeasonReview, setGameState, setModalMessage]);
   
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [selectedGmId, setSelectedGmId] = useState<string | null>(null);
@@ -358,9 +373,9 @@ function AppContent() {
       }).reverse();
   }, [games, userTeamId]);
 
+  if (!isInitialized) return <MainMenu />;
+
   const renderContent = () => {
-    if (!isInitialized) return <MainMenu />;
-    
     if (liveGameData) {
         const homeTeam = teams.find(t => t.id === liveGameData.home.id);
         const awayTeam = teams.find(t => t.id === liveGameData.away.id);
@@ -873,8 +888,7 @@ function AppContent() {
             overflowY: 'auto', 
             display: 'flex', 
             flexDirection: 'column', 
-            alignItems: 'center',
-            padding: '0 10px'
+            alignItems: 'center'
           }}
         >
           <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }}>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Star, ArrowRight, TrendingUp, ShieldAlert } from 'lucide-react';
+import { Trophy, Star, ArrowRight, TrendingUp, ShieldAlert, ArrowLeft } from 'lucide-react';
 
 interface CompetitionSelectionViewProps {
     onSelect: (type: 'EuroLeague' | 'EuroCup') => void;
@@ -18,43 +18,39 @@ export const CompetitionSelectionView: React.FC<CompetitionSelectionViewProps> =
             justifyContent: 'center',
             padding: '20px',
             backgroundColor: '#000',
-            backgroundImage: 'url("/assets/league_mode_bg.png")',
+            backgroundImage: 'url("/assets/start_career_bg.png")',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundAttachment: 'fixed',
             color: '#fff',
-            fontFamily: "'Outfit', 'Inter', sans-serif",
-            overflow: 'hidden',
-            position: 'relative'
+            fontFamily: "'Inter', sans-serif",
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000
         }}>
-            {/* Font Import */}
-            <style>
-                @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
-            </style>
-
             {/* Dark Overlay for Readability */}
             <div style={{
                 position: 'absolute',
                 inset: 0,
-                background: 'linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.9))',
+                background: 'linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.95))',
                 zIndex: 0
             }} />
 
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                style={{ zIndex: 1, textAlign: 'center', marginBottom: '20px' }}
+                style={{ zIndex: 1, textAlign: 'center', marginBottom: window.innerWidth < 768 ? '20px' : '40px' }}
             >
                 <h2 style={{ 
-                    fontSize: 'clamp(1.8rem, 7vw, 3.5rem)', 
-                    fontWeight: 900, 
-                    letterSpacing: '-2px', 
-                    marginBottom: '5px',
+                    fontSize: '3.5rem', 
+                    fontWeight: 950, 
+                    letterSpacing: '-3px', 
+                    marginBottom: '10px',
                     textTransform: 'uppercase'
                 }}>
                     Select <span style={{ color: '#EAB308' }}>Competition</span>
                 </h2>
-                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 'clamp(0.8rem, 3.5vw, 1.1rem)', fontWeight: 500, padding: '0 10px' }}>
+                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '1.1rem', fontWeight: 500 }}>
                     Determine your path to European glory.
                 </p>
             </motion.div>
@@ -63,11 +59,9 @@ export const CompetitionSelectionView: React.FC<CompetitionSelectionViewProps> =
                 display: 'flex', 
                 flexDirection: 'row',
                 justifyContent: 'center',
-                gap: '12px', 
-                width: '100%', 
-                maxWidth: '1200px',
-                zIndex: 1,
-                padding: '0 10px'
+                gap: '20px', 
+                padding: '0 20px',
+                marginBottom: '20px'
             }}>
                 {/* EUROLEAGUE CARD */}
                 <CompetitionCard 
@@ -100,27 +94,27 @@ export const CompetitionSelectionView: React.FC<CompetitionSelectionViewProps> =
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
                 style={{
-                    marginTop: '40px',
+                    marginTop: window.innerWidth < 768 ? '15px' : '40px',
                     background: 'rgba(255,255,255,0.03)',
                     border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: '20px',
-                    padding: '20px 30px',
+                    borderRadius: '15px',
+                    padding: '12px 20px',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '20px',
-                    maxWidth: '800px',
+                    gap: '15px',
+                    maxWidth: '600px',
                     zIndex: 1,
                     backdropFilter: 'blur(10px)'
                 }}
             >
-                <div style={{ background: 'rgba(255,59,48,0.1)', color: '#FF3B30', padding: '10px', borderRadius: '12px' }}>
-                    <ShieldAlert size={24} />
+                <div style={{ background: 'rgba(255,59,48,0.1)', color: '#FF3B30', padding: '8px', borderRadius: '10px' }}>
+                    <ShieldAlert size={18} />
                 </div>
                 <div style={{ textAlign: 'left' }}>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 900, color: '#FF3B30', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#FF3B30', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '2px' }}>
                         The Relegation Factor
                     </div>
-                    <p style={{ margin: 0, fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.4 }}>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.3 }}>
                         Unlike the NBA, performance matters at both ends of the table. Failing in the Domestic league can lead to relegation, 
                         while EuroCup finalists fight for promotion to the EuroLeague. Every game is a battle for survival.
                     </p>
@@ -132,21 +126,25 @@ export const CompetitionSelectionView: React.FC<CompetitionSelectionViewProps> =
                 whileTap={{ scale: 0.95 }}
                 onClick={onBack}
                 style={{
-                    marginTop: '40px',
-                    background: 'transparent',
-                    border: '1px solid rgba(255,255,255,0.2)',
+                    marginTop: window.innerWidth < 768 ? '20px' : '40px',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.1)',
                     color: 'rgba(255,255,255,0.6)',
-                    padding: '12px 30px',
-                    borderRadius: '100px',
+                    padding: '16px 40px',
+                    borderRadius: '20px',
                     cursor: 'pointer',
-                    fontWeight: 700,
+                    fontWeight: 800,
                     fontSize: '0.9rem',
-                    letterSpacing: '1px',
+                    letterSpacing: '2px',
                     textTransform: 'uppercase',
-                    zIndex: 1
+                    zIndex: 1,
+                    backdropFilter: 'blur(10px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px'
                 }}
             >
-                Back to Mode Selection
+                <ArrowLeft size={18} /> Back to Mode Selection
             </motion.button>
         </div>
     );
@@ -176,7 +174,7 @@ const CompetitionCard: React.FC<CompetitionCardProps> = ({ title, tagline, descr
             style={{
                 flex: 1,
                 minWidth: 0,
-                minHeight: '480px', 
+                minHeight: window.innerWidth < 768 ? '320px' : '500px', 
                 background: 'rgba(255,255,255,0.02)',
                 border: '1px solid rgba(255,255,255,0.08)',
                 borderRadius: '24px',

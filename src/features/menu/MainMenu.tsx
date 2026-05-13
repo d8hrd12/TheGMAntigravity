@@ -5,12 +5,13 @@ import { CreateTeamView } from './CreateTeamView';
 import { SaveLoadView } from '../ui/SaveLoadView';
 import { LeagueSelectionView } from './LeagueSelectionView';
 import { CompetitionSelectionView } from './CompetitionSelectionView';
+import { RosterEditorView } from './RosterEditorView';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, FolderOpen, Settings, Trophy, Users } from 'lucide-react';
 
 export const MainMenu: React.FC = () => {
     const { startNewGame, loadGame, setLeagueType, leagueType, setCompetitionType, competitionType } = useGame();
-    const [view, setView] = useState<'main' | 'mode_selection' | 'competition_selection' | 'setup' | 'selection' | 'create_team'>('main');
+    const [view, setView] = useState<'main' | 'mode_selection' | 'competition_selection' | 'setup' | 'selection' | 'create_team' | 'roster_editor' | 'settings'>('main');
     const [setupData, setSetupData] = useState<{ difficulty: 'Easy' | 'Medium' | 'Hard' }>({ difficulty: 'Medium' });
     const [showLoadMenu, setShowLoadMenu] = useState(false);
 
@@ -45,6 +46,83 @@ export const MainMenu: React.FC = () => {
         return <CreateTeamView onBack={() => setView('main')} />;
     }
 
+    if (view === 'roster_editor') {
+        return <RosterEditorView onBack={() => setView('main')} />;
+    }
+
+    if (view === 'settings') {
+        return (
+            <div style={{
+                height: '100dvh',
+                width: '100vw',
+                position: 'fixed',
+                inset: 0,
+                backgroundColor: '#000',
+                backgroundImage: 'url("/assets/start_career_bg.png")',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                color: '#fff',
+                fontFamily: "'Inter', sans-serif",
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                textAlign: 'center',
+                zIndex: 5000,
+                padding: '40px'
+            }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 0 }} />
+                
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    style={{ zIndex: 1 }}
+                >
+                    <h2 style={{ 
+                        fontSize: 'clamp(2rem, 8vw, 4rem)', 
+                        fontWeight: 950, 
+                        letterSpacing: '-2px', 
+                        lineHeight: 1,
+                        textTransform: 'uppercase',
+                        color: '#FF5F1F',
+                        marginBottom: '30px'
+                    }}>
+                        Go back you <span style={{ color: '#fff' }}>scumbag!</span>
+                    </h2>
+                    <p style={{ 
+                        fontSize: '1.2rem', 
+                        fontWeight: 700, 
+                        color: 'rgba(255,255,255,0.4)', 
+                        maxWidth: '500px',
+                        marginBottom: '60px'
+                    }}>
+                        There is no easy mode on this...
+                    </p>
+                    
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setView('main')}
+                        style={{
+                            padding: '20px 60px',
+                            background: '#fff',
+                            color: '#000',
+                            border: 'none',
+                            borderRadius: '15px',
+                            fontSize: '1rem',
+                            fontWeight: 900,
+                            textTransform: 'uppercase',
+                            letterSpacing: '2px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        I understand.
+                    </motion.button>
+                </motion.div>
+            </div>
+        );
+    }
+
     if (view === 'selection') {
         return <TeamSelectionView
             onSelectTeam={(teamId) => {
@@ -55,6 +133,13 @@ export const MainMenu: React.FC = () => {
                 }
             }}
             onCreateTeam={() => setView('create_team')}
+            onBack={() => {
+                if (leagueType === 'NBA') {
+                    setView('mode_selection');
+                } else {
+                    setView('competition_selection');
+                }
+            }}
         />;
     }
 
@@ -64,178 +149,124 @@ export const MainMenu: React.FC = () => {
 
     return (
         <div style={{
-            minHeight: '100dvh',
+            height: '100vh',
             width: '100vw',
-            position: 'relative',
+            position: 'fixed',
+            inset: 0,
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: '#000', // Deep black fallback
-            backgroundImage: 'url("/assets/landing_bg.png")',
+            backgroundColor: '#000',
+            backgroundImage: 'url("/assets/start_career_bg.png")',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            backgroundAttachment: 'fixed',
             color: '#fff',
             fontFamily: "'Inter', sans-serif"
         }}>
-            {/* Dark Overlay with Gradient */}
+            {/* Cinematic Overlay */}
             <div style={{
                 position: 'absolute',
                 inset: 0,
-                background: 'linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.8) 100%), linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 100%)',
+                background: 'linear-gradient(rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.95) 100%)',
                 zIndex: 1
             }} />
 
             {/* Content Container */}
             <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 style={{ 
                     zIndex: 2, 
                     textAlign: 'center',
                     width: '100%',
-                    maxWidth: '480px',
-                    padding: '20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center'
+                    maxWidth: '500px',
+                    padding: '0 20px'
                 }}
             >
                 {/* Logo Area */}
-                <div style={{ marginBottom: '40px', width: '100%' }}>
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.4 }}
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            background: 'rgba(255, 95, 31, 0.2)',
-                            padding: '6px 14px',
-                            borderRadius: '100px',
-                            border: '1px solid rgba(255, 95, 31, 0.5)',
-                            marginBottom: '20px',
-                            backdropFilter: 'blur(10px)'
-                        }}
-                    >
-                        <Trophy size={14} color="#FF5F1F" strokeWidth={3} />
-                        <span style={{ fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '4px', color: '#FF5F1F' }}>
-                            Pro Manager
-                        </span>
-                    </motion.div>
-                    
+                <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    style={{ marginBottom: '60px' }}
+                >
+                    <div style={{ 
+                        fontSize: '0.8rem', 
+                        fontWeight: 900, 
+                        color: '#FF5F1F', 
+                        letterSpacing: '8px', 
+                        textTransform: 'uppercase',
+                        marginBottom: '10px'
+                    }}>
+                        LevedisGames™ presents
+                    </div>
                     <h1 style={{ 
-                        fontSize: '6rem', 
+                        fontSize: '5rem', 
                         fontWeight: 950, 
-                        margin: 0, 
-                        lineHeight: 0.8,
-                        letterSpacing: '-6px',
-                        textTransform: 'uppercase',
-                        color: '#ffffff',
-                        textShadow: '0 10px 30px rgba(0,0,0,0.8), 0 0 100px rgba(255,255,255,0.1)'
+                        letterSpacing: '-5px', 
+                        lineHeight: 0.9,
+                        margin: 0,
+                        textTransform: 'uppercase'
                     }}>
-                        TheGM
+                        TheGm™<br/>
+                        <span style={{ color: '#FF5F1F' }}>2026</span>
                     </h1>
-                    <p style={{ 
-                        marginTop: '10px', 
-                        color: 'rgba(255,255,255,0.4)', 
-                        fontSize: '0.9rem', 
-                        fontWeight: 800,
-                        letterSpacing: '12px',
-                        textTransform: 'uppercase',
-                        textIndent: '12px' // Perfect centering for tracking
-                    }}>
-                        Basketball
-                    </p>
-                </div>
+                    <div style={{ 
+                        height: '4px', 
+                        width: '100px', 
+                        background: '#FF5F1F', 
+                        margin: '25px auto',
+                        borderRadius: '10px'
+                    }} />
+                </motion.div>
 
-                {/* Main Actions */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-                    <motion.button
-                        whileHover={{ scale: 1.02, x: 5 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => setView('mode_selection')}
-                        style={{
-                            padding: '24px 40px',
-                            background: 'linear-gradient(135deg, #FF5F1F 0%, #E64A19 100%)',
-                            color: 'white',
-                            border: 'none',
-                            fontSize: '1.2rem',
-                            fontWeight: 900,
-                            cursor: 'pointer',
-                            borderRadius: '20px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '15px',
-                            boxShadow: '0 15px 35px rgba(255, 95, 31, 0.3)',
-                            textTransform: 'uppercase',
-                            letterSpacing: '2px'
-                        }}
-                    >
-                        <Play size={24} fill="currentColor" />
-                        Start New Career
-                    </motion.button>
-
-                    <motion.button
-                        whileHover={{ scale: 1.02, x: 5, background: 'rgba(255,255,255,0.1)' }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => setShowLoadMenu(true)}
-                        style={{
-                            padding: '20px 40px',
-                            background: 'rgba(255,255,255,0.05)',
-                            color: '#fff',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            backdropFilter: 'blur(10px)',
-                            fontSize: '1.1rem',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            borderRadius: '20px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '15px',
-                            textTransform: 'uppercase',
-                            letterSpacing: '1px',
-                            transition: 'all 0.3s ease'
-                        }}
-                    >
-                        <FolderOpen size={20} />
-                        Load Career
-                    </motion.button>
+                {/* Navigation Buttons */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    <MenuButton 
+                        icon={<Play size={20} />} 
+                        label="New Career" 
+                        primary 
+                        onClick={() => setView('mode_selection')} 
+                        delay={0.4}
+                    />
+                    <MenuButton 
+                        icon={<FolderOpen size={20} />} 
+                        label="Load Career" 
+                        onClick={() => setShowLoadMenu(true)} 
+                        delay={0.5}
+                    />
+                    <MenuButton 
+                        icon={<Users size={20} />} 
+                        label="Roster Editor" 
+                        onClick={() => setView('roster_editor')} 
+                        delay={0.6}
+                    />
+                    <MenuButton 
+                        icon={<Settings size={20} />} 
+                        label="Settings" 
+                        onClick={() => setView('settings')} 
+                        delay={0.7}
+                    />
                 </div>
 
                 {/* Footer Info */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 1, duration: 1 }}
                     style={{ 
                         marginTop: '80px', 
-                        display: 'flex', 
-                        justifyContent: 'center', 
-                        gap: '40px',
-                        color: 'rgba(255,255,255,0.3)',
-                        fontSize: '0.8rem',
+                        fontSize: '0.7rem', 
+                        color: 'rgba(255,255,255,0.3)', 
                         fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '2px'
+                        letterSpacing: '2px',
+                        textTransform: 'uppercase'
                     }}
                 >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Users size={14} /> 1,200+ Players
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Trophy size={14} /> 31 Franchises
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Settings size={14} /> v1.0.4
-                    </div>
+                    V.5.7.0 Powered by MyMac&MyMadness
                 </motion.div>
             </motion.div>
 
@@ -243,17 +274,60 @@ export const MainMenu: React.FC = () => {
             <div style={{
                 position: 'absolute',
                 bottom: '40px',
-                right: '40px',
+                left: '40px',
                 zIndex: 2,
-                textAlign: 'right'
+                display: 'flex',
+                alignItems: 'center',
+                gap: '15px',
+                opacity: 0.6
             }}>
-                <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.2)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '4px' }}>
-                    Engineered by
-                </div>
-                <div style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.4)', fontWeight: 900, letterSpacing: '-1px' }}>
-                    DEEPMIND / ANTIGRAVITY
-                </div>
+                <Trophy size={20} color="#FF5F1F" />
+                <div style={{ height: '1px', width: '40px', background: 'rgba(255,255,255,0.2)' }} />
+                <span style={{ fontSize: '0.7rem', fontWeight: 900, letterSpacing: '2px' }}>HALL OF FAME</span>
             </div>
         </div>
+    );
+};
+
+interface MenuButtonProps {
+    icon: React.ReactNode;
+    label: string;
+    onClick: () => void;
+    primary?: boolean;
+    delay?: number;
+}
+
+const MenuButton: React.FC<MenuButtonProps> = ({ icon, label, onClick, primary, delay = 0 }) => {
+    return (
+        <motion.button
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay, duration: 0.5 }}
+            whileHover={{ scale: 1.02, x: 5 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onClick}
+            style={{
+                width: '100%',
+                padding: '22px 30px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '20px',
+                background: primary ? 'linear-gradient(135deg, #FF5F1F 0%, #E64A19 100%)' : 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '20px',
+                color: '#fff',
+                fontSize: '1.1rem',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '2px',
+                cursor: 'pointer',
+                backdropFilter: 'blur(10px)',
+                transition: 'all 0.3s ease',
+                boxShadow: primary ? '0 10px 30px rgba(255, 95, 31, 0.3)' : '0 4px 20px rgba(0,0,0,0.2)'
+            }}
+        >
+            <span style={{ color: primary ? '#fff' : '#FF5F1F' }}>{icon}</span>
+            {label}
+        </motion.button>
     );
 };
