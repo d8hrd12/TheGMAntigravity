@@ -176,6 +176,17 @@ export function simulateEuroMatch(input: MatchInput): MatchResult {
     ) as any,
   }));
 
+  // Coach tactics
+  const homeTactics = homeTeam.tactics || (input.homeCoach ? getTacticsForStyle(input.homeCoach.style) : undefined);
+  const awayTactics = awayTeam.tactics  || (input.awayCoach  ? getTacticsForStyle(input.awayCoach.style)  : undefined);
+
+  // Pace — EL base is ~72 possessions; tactical pace adjusts this
+  const homePaceMult = homeTactics ? PACE_MULTIPLIERS[homeTactics.pace as PaceType] : 1.0;
+  const awayPaceMult = awayTactics ? PACE_MULTIPLIERS[awayTactics.pace as PaceType] : 1.0;
+  const avgPaceMult  = (homePaceMult + awayPaceMult) / 2;
+  // 72 total possessions / 4 quarters = 18 per team per quarter → 36 total per quarter
+  const POSS_PER_QUARTER = Math.round(18 * avgPaceMult);
+
   const totalGamePoss = POSS_PER_QUARTER * 4 * 2;
   const homeTracker = new EuroRotationTracker(homeRoster, totalGamePoss, input.isPlayoffs);
   const awayTracker = new EuroRotationTracker(awayRoster, totalGamePoss, input.isPlayoffs);
@@ -197,17 +208,6 @@ export function simulateEuroMatch(input: MatchInput): MatchResult {
 
   // +/- tracking
   const onCourt = { home: [] as string[], away: [] as string[] };
-
-  // Coach tactics
-  const homeTactics = homeTeam.tactics || (input.homeCoach ? getTacticsForStyle(input.homeCoach.style) : undefined);
-  const awayTactics = awayTeam.tactics  || (input.awayCoach  ? getTacticsForStyle(input.awayCoach.style)  : undefined);
-
-  // Pace — EL base is ~72 possessions; tactical pace adjusts this
-  const homePaceMult = homeTactics ? PACE_MULTIPLIERS[homeTactics.pace as PaceType] : 1.0;
-  const awayPaceMult = awayTactics ? PACE_MULTIPLIERS[awayTactics.pace as PaceType] : 1.0;
-  const avgPaceMult  = (homePaceMult + awayPaceMult) / 2;
-  // 72 total possessions / 4 quarters = 18 per team per quarter → 36 total per quarter
-  const POSS_PER_QUARTER = Math.round(18 * avgPaceMult);
 
   const homeOffBonus = input.homeCoach ? (input.homeCoach.rating.offense - 70) / 100 * 0.03 : 0;
   const homeDefBonus = input.homeCoach ? (input.homeCoach.rating.defense - 70) / 100 * 0.03 : 0;
