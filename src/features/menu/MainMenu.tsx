@@ -199,7 +199,7 @@ export const MainMenu: React.FC = () => {
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    style={{ marginBottom: '40px' }}
+                    style={{ marginBottom: '40px', position: 'relative' }}
                 >
                     <div style={{ 
                         fontSize: '0.8rem', 
@@ -221,9 +221,11 @@ export const MainMenu: React.FC = () => {
                         fontFamily: "'SF TransRobotics', 'Orbitron', sans-serif",
                         fontStyle: 'italic',
                         transform: 'skewX(-8deg)',
-                        textShadow: '0 10px 30px rgba(0,0,0,0.5)'
+                        textShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                        position: 'relative',
+                        display: 'inline-block'
                     }}>
-                        TheGm™<br/>
+                        TheGm<span style={{ position: 'absolute', fontSize: '0.3em', top: '0.1em', marginLeft: '2px' }}>™</span><br/>
                         <span style={{ color: '#FF5F1F' }}>2026</span>
                     </h1>
                 </motion.div>
@@ -276,21 +278,6 @@ export const MainMenu: React.FC = () => {
                 </div>
             </motion.div>
 
-            {/* Corner Decorative Elements */}
-            <div style={{
-                position: 'absolute',
-                bottom: '40px',
-                left: '40px',
-                zIndex: 2,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '15px',
-                opacity: 0.6
-            }}>
-                <Trophy size={20} color="#FF5F1F" />
-                <div style={{ height: '1px', width: '40px', background: 'rgba(255,255,255,0.2)' }} />
-                <span style={{ fontSize: '0.7rem', fontWeight: 900, letterSpacing: '2px' }}>HALL OF FAME</span>
-            </div>
         </div>
     );
 };
