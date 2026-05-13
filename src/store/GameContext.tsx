@@ -137,6 +137,19 @@ export interface CumulativeRecord {
     teamId?: string;
 }
 
+export interface LeagueTransaction {
+    date: Date;
+    type: string;
+    description: string;
+    teamId?: string;
+    fromTeamId?: string;
+    playerId?: string;
+    playerName?: string;
+    amount?: number;
+    fee?: number;
+    years?: number;
+}
+
 export interface GameState {
     players: Player[];
     teams: Team[];
@@ -157,7 +170,7 @@ export interface GameState {
     seasonPhase: 'regular_season' | 'euro_playin' | 'playoffs_r1' | 'playoffs_r2' | 'playoffs_r3' | 'playoffs_finals' | 'offseason' | 'pre_season' | 'draft' | 'draft_summary' | 'resigning' | 'free_agency' | 'retirement_summary' | 'expansion_draft' | 'scouting' | 'coach_free_agency' | 'training';
     expansionPool: Player[];
     salaryCap: number;
-    transactions: { date: Date; type: string; description: string }[];
+    transactions: LeagueTransaction[];
     messages: Message[];
     isSimulating: boolean;
     tradeHistory: CompletedTrade[];
@@ -2792,7 +2805,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 teams: euroResult.updatedTeams,
                 players: euroResult.updatedPlayers,
                 contracts: euroResult.updatedContracts,
-                localTalentPool: euroResult.remainingLocalTalentPool
+                localTalentPool: euroResult.remainingLocalTalentPool,
+                transactions: [
+                    ...(nextState.transactions || []),
+                    ...euroResult.transactions.map(t => ({ ...t, date: nextState.date }))
+                ]
             };
             console.log('[Euro AI GM] Offseason signings:', euroResult.signingLog);
         }

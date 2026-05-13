@@ -130,14 +130,14 @@ function signPlayer(
     updatedPlayers: Player[],
     updatedContracts: Contract[],
     currentYear: number
-): boolean {
+): { success: boolean, transaction?: any } {
     const contract = determineContract(player, archetype, playerType, currentYear);
 
     // Check if team can afford it
-    if (team.cash < contract.amount) return false;
+    if (team.cash < contract.amount) return { success: false };
 
     // Check roster size
-    if (team.rosterIds.length >= 15) return false;
+    if (team.rosterIds.length >= 15) return { success: false };
 
     // Clone player with new team assignment
     const signedPlayer: Player = {
@@ -183,7 +183,18 @@ function signPlayer(
         team.rosterIds.push(player.id);
     }
 
-    return true;
+    const transaction = {
+        date: new Date(), 
+        type: playerType === 'NBA_VET' ? 'NBA SIGNING' : playerType === 'YOUNGLING' ? 'ACADEMY' : 'SIGNING',
+        description: `${team.name} signed ${player.firstName} ${player.lastName} (${playerType}).`,
+        teamId: team.id,
+        playerId: player.id,
+        playerName: `${player.firstName} ${player.lastName}`,
+        amount: contract.amount,
+        years: contract.years
+    };
+
+    return { success: true, transaction };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -235,6 +246,7 @@ export function simulateEuroAIOffseason(params: {
     updatedContracts: Contract[];
     remainingLocalTalentPool: any[];
     signingLog: string[];
+    transactions: any[];
 } {
     const { teams, userTeamId, gameYear } = params;
     const updatedPlayers = [...params.players];
@@ -242,6 +254,7 @@ export function simulateEuroAIOffseason(params: {
     const updatedTeams = teams.map(t => ({ ...t, rosterIds: [...t.rosterIds] }));
     let remainingLocalTalentPool = [...params.localTalentPool];
     const signingLog: string[] = [];
+    const transactions: any[] = [];
 
     // Build NBA veteran pool for this year (available to all AI teams)
     const nbaPool = buildNBATargetPoolForAI(gameYear);
@@ -296,11 +309,12 @@ export function simulateEuroAIOffseason(params: {
             for (const fa of freeAgents) {
                 if (faSignCount >= budget.freeAgentSlots) break;
                 if (team.rosterIds.length >= 15) break;
-                const signed = signPlayer(fa, team, archetype, 'FREE_AGENT', updatedPlayers, updatedContracts, gameYear);
-                if (signed) {
+                const result = signPlayer(fa, team, archetype, 'FREE_AGENT', updatedPlayers, updatedContracts, gameYear);
+                if (result.success) {
                     claimedFAIds.add(fa.id);
                     faSignCount++;
                     signingLog.push(`[${archetype}] ${team.name} signed FA ${fa.firstName} ${fa.lastName} (OVR ${calculateOverall(fa)})`);
+                    if (result.transaction) transactions.push(result.transaction);
                 }
             }
         }
@@ -344,11 +358,12 @@ export function simulateEuroAIOffseason(params: {
                     acquisition: { type: 'free_agency', year: gameYear, details: 'Academy Graduate' }
                 };
 
-                const signed = signPlayer(youngAsPlayer, team, archetype, 'YOUNGLING', updatedPlayers, updatedContracts, gameYear);
-                if (signed) {
+                const result = signPlayer(youngAsPlayer, team, archetype, 'YOUNGLING', updatedPlayers, updatedContracts, gameYear);
+                if (result.success) {
                     remainingLocalTalentPool = remainingLocalTalentPool.filter(t => t.id !== yt.id);
                     youngSignCount++;
                     signingLog.push(`[${archetype}] ${team.name} signed YOUNGLING ${yt.firstName} ${yt.lastName} (POT ${yt.potential})`);
+                    if (result.transaction) transactions.push(result.transaction);
                 }
             }
         }
@@ -368,11 +383,12 @@ export function simulateEuroAIOffseason(params: {
                 if (team.rosterIds.length >= 15) break;
 
                 // NBA vets are not in updatedPlayers yet — add them
-                const signed = signPlayer(vet, team, archetype, 'NBA_VET', updatedPlayers, updatedContracts, gameYear);
-                if (signed) {
+                const result = signPlayer(vet, team, archetype, 'NBA_VET', updatedPlayers, updatedContracts, gameYear);
+                if (result.success) {
                     claimedNBAIds.add(vet.id);
                     vetSignCount++;
                     signingLog.push(`[${archetype}] ${team.name} signed NBA VET ${vet.firstName} ${vet.lastName} (OVR ${calculateOverall(vet)})`);
+                    if (result.transaction) transactions.push(result.transaction);
                 }
             }
         }
@@ -383,6 +399,7 @@ export function simulateEuroAIOffseason(params: {
         updatedPlayers,
         updatedContracts,
         remainingLocalTalentPool,
-        signingLog
+        signingLog,
+        transactions
     };
 }

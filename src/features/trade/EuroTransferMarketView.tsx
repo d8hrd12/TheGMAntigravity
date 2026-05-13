@@ -486,8 +486,15 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack }) => {
             // 4. Log Transaction
             const transaction = {
                 date: prev.date,
-                type: 'Trade',
-                description: `TRANSFER: Signed ${selectedPlayer.firstName} ${selectedPlayer.lastName} for ${selectedPlayer.teamId ? `€${(cashOffer / 1000000).toFixed(1)}M fee. ` : ''}Contract: €${(contractOffer.amount / 1000000).toFixed(1)}M / ${contractOffer.years} yrs.`
+                type: 'TRANSFER',
+                description: `TRANSFER: Signed ${selectedPlayer.firstName} ${selectedPlayer.lastName} for ${selectedPlayer.teamId ? `€${(cashOffer / 1000000).toFixed(1)}M fee. ` : ''}Contract: €${(contractOffer.amount / 1000000).toFixed(1)}M / ${contractOffer.years} yrs.`,
+                teamId: prev.userTeamId,
+                fromTeamId: selectedPlayer.teamId || undefined,
+                playerId: selectedPlayer.id,
+                playerName: `${selectedPlayer.firstName} ${selectedPlayer.lastName}`,
+                fee: selectedPlayer.teamId ? cashOffer : 0,
+                amount: contractOffer.amount,
+                years: contractOffer.years
             };
 
             return {
