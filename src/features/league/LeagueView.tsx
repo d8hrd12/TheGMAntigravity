@@ -110,7 +110,9 @@ const StandingsTableOnly = ({ teams, onSelectTeam }: { teams: Team[], onSelectTe
                                 ) : (
                                     <span style={{ color: team.colors?.primary || '#fff', fontSize: '1.2rem', lineHeight: 0 }}>●</span>
                                 )}
-                                <span style={{ color: 'var(--text-main)' }}>{team.city}</span>
+                                <span style={{ color: 'var(--text-main)' }}>
+                                    {team.conference === 'EuroLeague' || team.conference === 'EuroCup' ? team.name : team.city}
+                                </span>
                             </td>
                             <td style={{ padding: '6px', color: 'var(--text-muted)', textAlign: 'center' }}>{team.wins}</td>
                             <td style={{ padding: '6px', color: 'var(--text-muted)', textAlign: 'center' }}>{team.losses}</td>
