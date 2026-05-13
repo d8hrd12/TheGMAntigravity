@@ -4,7 +4,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'pan-gr',
         city: 'Athens',
-        name: 'Panathinaikos AKTOR Athens',
+        name: 'Panathinaikos AKTOR',
         abbreviation: 'PAN',
         conference: 'EuroLeague',
         division: 'Greece',
@@ -16,7 +16,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'oly-gr',
         city: 'Piraeus',
-        name: 'Olympiacos Piraeus',
+        name: 'Olympiacos',
         abbreviation: 'OLY',
         conference: 'EuroLeague',
         division: 'Greece',
@@ -52,7 +52,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'ist-tr',
         city: 'Istanbul',
-        name: 'Anadolu Efes Istanbul',
+        name: 'Anadolu Efes',
         abbreviation: 'IST',
         conference: 'EuroLeague',
         division: 'Turkey',
@@ -64,7 +64,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'ulk-tr',
         city: 'Istanbul',
-        name: 'Fenerbahce Beko Istanbul',
+        name: 'Fenerbahce Beko',
         abbreviation: 'ULK',
         conference: 'EuroLeague',
         division: 'Turkey',
@@ -88,7 +88,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'red-rs',
         city: 'Belgrade',
-        name: 'Crvena Zvezda Meridianbet Belgrade',
+        name: 'Crvena Zvezda',
         abbreviation: 'RED',
         conference: 'EuroLeague',
         division: 'Serbia',
@@ -100,7 +100,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'par-rs',
         city: 'Belgrade',
-        name: 'Partizan Mozzart Bet Belgrade',
+        name: 'Partizan',
         abbreviation: 'PAR',
         conference: 'EuroLeague',
         division: 'Serbia',
@@ -112,7 +112,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'mun-de',
         city: 'Munich',
-        name: 'FC Bayern Munich',
+        name: 'Bayern Munich',
         abbreviation: 'MUN',
         conference: 'EuroLeague',
         division: 'Germany',
@@ -124,7 +124,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'mil-it',
         city: 'Milan',
-        name: 'EA7 Emporio Armani Milan',
+        name: 'Armani Milan',
         abbreviation: 'MIL',
         conference: 'EuroLeague',
         division: 'Italy',
@@ -136,7 +136,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'tel-il',
         city: 'Tel Aviv',
-        name: 'Maccabi Rapyd Tel Aviv',
+        name: 'Maccabi Tel Aviv',
         abbreviation: 'TEL',
         conference: 'EuroLeague',
         division: 'Israel',
@@ -148,7 +148,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'bas-es',
         city: 'Vitoria-Gasteiz',
-        name: 'Kosner Baskonia Vitoria-Gasteiz',
+        name: 'Baskonia',
         abbreviation: 'BAS',
         conference: 'EuroLeague',
         division: 'Spain',
@@ -160,7 +160,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'asv-fr',
         city: 'Villeurbanne',
-        name: 'LDLC ASVEL Villeurbanne',
+        name: 'ASVEL',
         abbreviation: 'ASV',
         conference: 'EuroLeague',
         division: 'France',
@@ -184,7 +184,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'zal-lt',
         city: 'Kaunas',
-        name: 'Zalgiris Kaunas',
+        name: 'Zalgiris',
         abbreviation: 'ZAL',
         conference: 'EuroLeague',
         division: 'Lithuania',
@@ -220,7 +220,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'hta-il',
         city: 'Tel Aviv',
-        name: 'Hapoel IBI Tel Aviv',
+        name: 'Hapoel Tel Aviv',
         abbreviation: 'HTA',
         conference: 'EuroLeague',
         division: 'Israel',
@@ -245,7 +245,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'ari-gr',
         city: 'Thessaloniki',
-        name: 'Aris Thessaloniki Betsson',
+        name: 'Aris',
         abbreviation: 'ARI',
         conference: 'EuroCup',
         division: 'Greece',
@@ -257,7 +257,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'bah-tr',
         city: 'Istanbul',
-        name: 'Bahcesehir College Istanbul',
+        name: 'Bahcesehir College',
         abbreviation: 'BAH',
         conference: 'EuroCup',
         division: 'Turkey',
@@ -281,7 +281,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'bes-tr',
         city: 'Istanbul',
-        name: 'Besiktas GAIN Istanbul',
+        name: 'Besiktas',
         abbreviation: 'BES',
         conference: 'EuroCup',
         division: 'Turkey',
@@ -293,7 +293,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'bud-me',
         city: 'Podgorica',
-        name: 'Buducnost VOLI Podgorica',
+        name: 'Buducnost',
         abbreviation: 'BUD',
         conference: 'EuroCup',
         division: 'Montenegro',
@@ -305,7 +305,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'ced-si',
         city: 'Ljubljana',
-        name: 'Cedevita Olimpija Ljubljana',
+        name: 'Cedevita Olimpija',
         abbreviation: 'CED',
         conference: 'EuroCup',
         division: 'Slovenia',
@@ -317,7 +317,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'jlb-fr',
         city: 'Bourg-en-Bresse',
-        name: 'Cosea JL Bourg-en-Bresse',
+        name: 'JL Bourg',
         abbreviation: 'JLB',
         conference: 'EuroCup',
         division: 'France',
@@ -329,7 +329,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'tre-it',
         city: 'Trento',
-        name: 'Dolomiti Energia Trento',
+        name: 'Trento',
         abbreviation: 'TRE',
         conference: 'EuroCup',
         division: 'Italy',
@@ -341,7 +341,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'jer-il',
         city: 'Jerusalem',
-        name: 'Hapoel Midtown Jerusalem',
+        name: 'Hapoel Jerusalem',
         abbreviation: 'JER',
         conference: 'EuroCup',
         division: 'Israel',
@@ -353,7 +353,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'lkt-lt',
         city: 'Panevezys',
-        name: '7Bet-Lietkabelis Panevezys',
+        name: 'Lietkabelis',
         abbreviation: 'LKT',
         conference: 'EuroCup',
         division: 'Lithuania',
@@ -377,7 +377,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'nep-lt',
         city: 'Klaipeda',
-        name: 'Neptunas Klaipeda',
+        name: 'Neptunas',
         abbreviation: 'NEP',
         conference: 'EuroCup',
         division: 'Lithuania',
@@ -401,7 +401,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'pni-gr',
         city: 'Athens',
-        name: 'Panionios Cosmorama Travel Athens',
+        name: 'Panionios',
         abbreviation: 'PNI',
         conference: 'EuroCup',
         division: 'Greece',
@@ -425,7 +425,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'sla-pl',
         city: 'Wroclaw',
-        name: 'Slask Wroclaw',
+        name: 'Slask',
         abbreviation: 'SLA',
         conference: 'EuroCup',
         division: 'Poland',
@@ -437,7 +437,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'ank-tr',
         city: 'Ankara',
-        name: 'Turk Telekom Ankara',
+        name: 'Turk Telekom',
         abbreviation: 'ANK',
         conference: 'EuroCup',
         division: 'Turkey',
@@ -449,7 +449,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'clu-ro',
         city: 'Cluj-Napoca',
-        name: 'U-BT Cluj-Napoca',
+        name: 'Cluj-Napoca',
         abbreviation: 'CLU',
         conference: 'EuroCup',
         division: 'Romania',
@@ -461,7 +461,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'ven-it',
         city: 'Venice',
-        name: 'Umana Reyer Venice',
+        name: 'Reyer Venice',
         abbreviation: 'VEN',
         conference: 'EuroCup',
         division: 'Italy',
@@ -473,7 +473,7 @@ export const EURO_TEAMS: Team[] = [
     {
         id: 'ham-de',
         city: 'Hamburg',
-        name: 'Veolia Towers Hamburg',
+        name: 'Towers Hamburg',
         abbreviation: 'HAM',
         conference: 'EuroCup',
         division: 'Germany',

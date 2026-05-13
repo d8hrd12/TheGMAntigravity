@@ -39,9 +39,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onEnterPlayoffs, onSta
         <DashboardCard title="Franchise Hub" variant="secondary">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                    <div style={{ color: 'var(--primary)', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px' }}>
-                        {userTeam.city}
-                    </div>
+                    {leagueType !== 'EURO' && (
+                        <div style={{ color: 'var(--primary)', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px' }}>
+                            {userTeam.city}
+                        </div>
+                    )}
                     <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)' }}>
                         {userTeam.name}
                     </h1>
