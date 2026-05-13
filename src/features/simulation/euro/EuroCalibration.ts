@@ -53,10 +53,10 @@ export const EURO = {
   MID_RATE:    0.38,   
   THREE_RATE:  0.40,   
 
-  // Make% by zone — EuroLeague is significantly lower efficiency due to spacing/rules
-  RIM_PCT:     0.490,  // Drastic reduction to stop 30 PPG leaders
-  MID_PCT:     0.395,  
-  THREE_FG_PCT: 0.315, // Targeting ~34-37% team averages after skill adjustments
+  // Make% by zone — VERY aggressive reduction to hit 19 PPG leaders
+  RIM_PCT:     0.420,  
+  MID_PCT:     0.345,  
+  THREE_FG_PCT: 0.275, // Targeting ~34% team averages after skill/assist boosts
 
   // Foul rates by play type
   FOUL_DRIVE:      0.28,
@@ -89,22 +89,22 @@ export const EURO = {
  * EuroLeague base usage by position.
  */
 export const EURO_BASE_USAGE: Record<string, number> = {
-  PG: 0.225,  
-  SG: 0.200,
-  SF: 0.205,  
-  PF: 0.190,  
-  C:  0.180,
+  PG: 0.190,  
+  SG: 0.180,
+  SF: 0.175,  
+  PF: 0.170,  
+  C:  0.165,
 };
 
 /**
  * Position caps.
  */
 export const EURO_USAGE_CAP: Record<string, number> = {
-  PG: 0.24, 
-  SG: 0.23,
-  SF: 0.22,
-  PF: 0.21,
-  C:  0.21,
+  PG: 0.22, 
+  SG: 0.21,
+  SF: 0.20,
+  PF: 0.19,
+  C:  0.19,
 };
 
 /**

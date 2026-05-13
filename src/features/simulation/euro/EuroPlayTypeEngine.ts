@@ -53,9 +53,9 @@ export function calculateEuroUsageWeights(lineup: Player[]): Map<string, number>
     const cap = EURO_USAGE_CAP[p.position] ?? 0.22;
     // Elite EL creators (Sloukas, Shane Larkin types) — high IQ + playmaking
     const isCreator = p.attributes.playmaking >= 88 && p.attributes.basketballIQ >= 88;
-    const base = isCreator ? 0.26 : (EURO_BASE_USAGE[p.position] ?? 0.20);
-    // Power-law slightly softer → more equal distribution
-    const w = Math.min(base * Math.pow(sk / 75, 1.3), cap);
+    const base = isCreator ? 0.22 : (EURO_BASE_USAGE[p.position] ?? 0.18);
+    // Flat power law to ensure volume doesn't concentrate on one star
+    const w = Math.min(base * Math.pow(sk / 75, 0.7), cap);
     weights.set(p.id, w);
     total += w;
   });
@@ -81,11 +81,13 @@ function pickPassRecipient(teammates: Player[]): Player {
     score: Math.pow(euroScoringSkill(p) / 100, 1.8) * 100 + Math.random() * 12,
   }));
   scores.sort((a, b) => b.score - a.score);
-  // 60% chance best option, 30% second, 10% third
+  // EuroLeague: Ball moves to the open man, not just the star.
+  // 35% chance best option, 30% second, 20% third, 15% others
   const roll = Math.random();
-  if (roll < 0.60 || scores.length === 1) return scores[0].p;
-  if (roll < 0.90 || scores.length === 2) return scores[1].p;
-  return scores[Math.min(2, scores.length - 1)].p;
+  if (roll < 0.35 || scores.length === 1) return scores[0].p;
+  if (roll < 0.65 || scores.length === 2) return scores[1].p;
+  if (roll < 0.85 || scores.length === 3) return scores[2].p;
+  return scores[Math.min(scores.length - 1, 3 + Math.floor(Math.random() * 2))].p;
 }
 
 /** Determine zone for a shot based on recipient's attributes and EL tendencies */
