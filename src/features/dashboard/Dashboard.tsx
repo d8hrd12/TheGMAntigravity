@@ -77,7 +77,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
             const isHome = g.homeTeamId === userTeamId;
             const userScore = isHome ? g.homeScore! : g.awayScore!;
             const oppScore = isHome ? g.awayScore! : g.homeScore!;
-            return userScore > oppScore ? 'W' : 'L';
+            return {
+                result: userScore > oppScore ? 'W' : 'L',
+                game: g
+            };
         }).reverse();
     }, [games, userTeamId]);
 
@@ -314,21 +317,29 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         <div style={{ flex: 1 }}>
                             <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 800, marginBottom: '6px' }}>LAST 5</div>
                             <div style={{ display: 'flex', gap: '4px' }}>
-                                {lastFive.length > 0 ? lastFive.map((res, i) => (
-                                    <div key={i} style={{ 
-                                        width: '24px', 
-                                        height: '24px', 
-                                        borderRadius: '6px', 
-                                        background: res === 'W' ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)', 
-                                        color: res === 'W' ? '#2ecc71' : '#e74c3c',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '0.75rem',
-                                        fontWeight: 800,
-                                        border: `1px solid ${res === 'W' ? '#2ecc71' : '#e74c3c'}`
-                                    }}>
-                                        {res}
+                                {lastFive.length > 0 ? lastFive.map((data, i) => (
+                                    <div 
+                                        key={i} 
+                                        onClick={() => onSelectGame(data.game)}
+                                        style={{ 
+                                            width: '24px', 
+                                            height: '24px', 
+                                            borderRadius: '6px', 
+                                            background: data.result === 'W' ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)', 
+                                            color: data.result === 'W' ? '#2ecc71' : '#e74c3c',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '0.75rem',
+                                            fontWeight: 800,
+                                            border: `1px solid ${data.result === 'W' ? '#2ecc71' : '#e74c3c'}`,
+                                            cursor: 'pointer',
+                                            transition: 'transform 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                                    >
+                                        {data.result}
                                     </div>
                                 )) : <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>No games</div>}
                             </div>

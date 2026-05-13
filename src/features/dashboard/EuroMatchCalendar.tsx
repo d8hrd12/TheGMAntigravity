@@ -23,6 +23,7 @@ export const EuroMatchCalendar: React.FC = () => {
         seasonGamesPlayed,
         leagueType,
         setGameState,
+        setSelectedGame,
     } = useGame();
 
     const [viewOffset, setViewOffset] = useState(0);
@@ -86,16 +87,15 @@ export const EuroMatchCalendar: React.FC = () => {
             const isPlayed = roundIdx < seasonGamesPlayed;
             const isPending = roundIdx === seasonGamesPlayed;
 
-            // Match day → game result: the user played game #roundIdx in the season
+            const game = isPlayed ? userTeamGames[roundIdx] : null;
             let result: { won: boolean; userScore: number; oppScore: number } | null = null;
-            if (isPlayed && userTeamGames[roundIdx]) {
-                const g = userTeamGames[roundIdx];
-                const uScore = g.homeTeamId === userTeamId ? (g.homeScore ?? 0) : (g.awayScore ?? 0);
-                const oScore = g.homeTeamId === userTeamId ? (g.awayScore ?? 0) : (g.homeScore ?? 0);
-                result = { won: g.winnerId === userTeamId, userScore: uScore, oppScore: oScore };
+            if (game) {
+                const uScore = game.homeTeamId === userTeamId ? (game.homeScore ?? 0) : (game.awayScore ?? 0);
+                const oScore = game.homeTeamId === userTeamId ? (game.awayScore ?? 0) : (game.homeScore ?? 0);
+                result = { won: game.winnerId === userTeamId, userScore: uScore, oppScore: oScore };
             }
 
-            return { roundIdx, matchDay: roundIdx + 1, isHome, opponentId, opponent, isPlayed, isPending, result };
+            return { roundIdx, matchDay: roundIdx + 1, isHome, opponentId, opponent, isPlayed, isPending, result, game };
         }).filter(Boolean);
     }, [euroSchedule, userTeamGames, teams, userTeamId, seasonGamesPlayed]);
 
@@ -198,6 +198,11 @@ export const EuroMatchCalendar: React.FC = () => {
                         return (
                             <div
                                 key={md.matchDay}
+                                onClick={() => {
+                                    if (isPlayed && md.game) {
+                                        setSelectedGame(md.game);
+                                    }
+                                }}
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',
@@ -207,7 +212,18 @@ export const EuroMatchCalendar: React.FC = () => {
                                     background: isPending
                                         ? 'linear-gradient(90deg, rgba(232,196,86,0.08) 0%, transparent 100%)'
                                         : 'transparent',
-                                    transition: 'background 0.2s',
+                                    transition: 'all 0.2s',
+                                    cursor: isPlayed ? 'pointer' : 'default',
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (isPlayed) e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (isPlayed) {
+                                        e.currentTarget.style.background = isPending 
+                                            ? 'linear-gradient(90deg, rgba(232,196,86,0.08) 0%, transparent 100%)'
+                                            : 'transparent';
+                                    }
                                 }}
                             >
                                 {/* Match Day Number */}

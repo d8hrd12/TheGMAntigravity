@@ -540,7 +540,9 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
             <div style={{ marginTop: '30px', display: 'flex', flexDirection: 'column', gap: '30px' }}>
                 {/* Home Box Score */}
                 <div style={{ background: 'var(--surface)', borderRadius: '12px', padding: '20px' }}>
-                    <h3 style={{ margin: '0 0 15px 0', borderBottom: '2px solid ' + (gameState.homeTeam.colors?.primary || '#3498db') }}>{gameState.homeTeam.city} Box Score</h3>
+                    <h3 style={{ margin: '0 0 15px 0', borderBottom: '2px solid ' + (gameState.homeTeam.colors?.primary || '#3498db') }}>
+                        {(gameState.homeTeam.conference !== 'NBA' && gameState.homeTeam.conference !== 'West' && gameState.homeTeam.conference !== 'East') ? gameState.homeTeam.name : `${gameState.homeTeam.city} ${gameState.homeTeam.name}`} Box Score
+                    </h3>
                     <div style={{ overflowX: 'auto' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', minWidth: '600px' }}>
                             <thead>
@@ -609,7 +611,9 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
 
                 {/* Away Box Score */}
                 <div style={{ background: 'var(--surface)', borderRadius: '12px', padding: '20px' }}>
-                    <h3 style={{ margin: '0 0 15px 0', borderBottom: '2px solid ' + (gameState.awayTeam.colors?.primary || '#e74c3c') }}>{gameState.awayTeam.city} Box Score</h3>
+                    <h3 style={{ margin: '0 0 15px 0', borderBottom: '2px solid ' + (gameState.awayTeam.colors?.primary || '#e74c3c') }}>
+                        {(gameState.awayTeam.conference !== 'NBA' && gameState.awayTeam.conference !== 'West' && gameState.awayTeam.conference !== 'East') ? gameState.awayTeam.name : `${gameState.awayTeam.city} ${gameState.awayTeam.name}`} Box Score
+                    </h3>
                     <div style={{ overflowX: 'auto' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', minWidth: '600px' }}>
                             <thead>

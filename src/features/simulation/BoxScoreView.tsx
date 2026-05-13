@@ -123,7 +123,7 @@ const TeamStatsTable = ({ stats, team, onSelectPlayer }: { stats: PlayerStats[],
                 zIndex: 1
             }}>
                 <div style={{ fontSize: '1.2rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                    {team?.city} {team?.name}
+                    {team?.conference !== 'NBA' && team?.conference !== 'West' && team?.conference !== 'East' ? team?.name : `${team?.city} ${team?.name}`}
                 </div>
                 <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>BOX SCORE</div>
             </div>
@@ -225,9 +225,11 @@ export const BoxScoreView: React.FC<BoxScoreViewProps> = ({ match, homeTeam, awa
                     {/* Away Team */}
                     <div style={{ textAlign: 'center', flex: 1, zIndex: 2, minWidth: 0 }}>
                         {awayTeam?.logo && <img src={awayTeam.logo} alt="" style={{ width: '50px', height: '50px', objectFit: 'contain', marginBottom: '8px' }} />}
-                        <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {awayTeam?.city}
-                        </div>
+                        {(awayTeam?.conference === 'NBA' || awayTeam?.conference === 'West' || awayTeam?.conference === 'East') && (
+                            <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {awayTeam?.city}
+                            </div>
+                        )}
                         <div style={{ fontSize: 'clamp(1.2rem, 5vw, 2.2rem)', fontWeight: 900, lineHeight: 1, marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {awayTeam?.name}
                         </div>
@@ -244,9 +246,11 @@ export const BoxScoreView: React.FC<BoxScoreViewProps> = ({ match, homeTeam, awa
                     {/* Home Team */}
                     <div style={{ textAlign: 'center', flex: 1, zIndex: 2, minWidth: 0 }}>
                         {homeTeam?.logo && <img src={homeTeam.logo} alt="" style={{ width: '50px', height: '50px', objectFit: 'contain', marginBottom: '8px' }} />}
-                        <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {homeTeam?.city}
-                        </div>
+                        {(homeTeam?.conference === 'NBA' || homeTeam?.conference === 'West' || homeTeam?.conference === 'East') && (
+                            <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {homeTeam?.city}
+                            </div>
+                        )}
                         <div style={{ fontSize: 'clamp(1.2rem, 5vw, 2.2rem)', fontWeight: 900, lineHeight: 1, marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {homeTeam?.name}
                         </div>
