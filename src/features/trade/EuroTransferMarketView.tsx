@@ -299,9 +299,10 @@ const PlayerListItem: React.FC<{
 
 interface Props {
     onBack: () => void;
+    initialPlayerId?: string | null;
 }
 
-export const EuroTransferMarketView: React.FC<Props> = ({ onBack }) => {
+export const EuroTransferMarketView: React.FC<Props> = ({ onBack, initialPlayerId }) => {
     const { players, teams, userTeamId, contracts, setGameState, salaryCap, date } = useGame();
     
     const userTeam = teams.find(t => t.id === userTeamId);
@@ -331,6 +332,16 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack }) => {
         const teamPlayers = players.filter(p => p.teamId === userTeamId);
         return calculateTeamBaseline(teamPlayers);
     }, [players, userTeamId]);
+
+    // Handle initialPlayerId
+    React.useEffect(() => {
+        if (initialPlayerId) {
+            const player = players.find(p => p.id === initialPlayerId);
+            if (player) {
+                handleSelectPlayer(player);
+            }
+        }
+    }, [initialPlayerId]);
 
     const otherPlayers = useMemo(() => {
         return players.filter(p => p.teamId && p.teamId !== userTeamId);
@@ -372,15 +383,14 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack }) => {
     const handleSelectPlayer = (p: Player) => {
         setSelectedPlayer(p);
         
-        if (searchMode === 'NBA') {
-            // NBA players are free agents for Europe (no buyout)
+        if (searchMode === 'NBA' || !p.teamId || p.teamId === 'FA') {
+            // NBA players or Free Agents are free for Europe (no buyout)
             setTransferPhase('PLAYER_NEGOTIATION');
             const market = calculateContractAmount(p, salaryCap);
             setPlayerDemand(market.amount);
             setNegotiationRound(1);
         } else {
             setTransferPhase('TEAM_NEGOTIATION');
-            setTransferFeedback({ status: 'PENDING', msg: '' });
             setNegotiationRound(1); // Reset rounds
             setPreviousBuyoutOffer(undefined);
             
@@ -388,8 +398,16 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack }) => {
             const owningTeam = teams.find(t => t.id === p.teamId);
             if (owningTeam) {
                 const owningRoster = players.filter(pl => pl.teamId === owningTeam.id);
-                const fee = calculateEuroBuyoutFee(p, owningTeam, owningRoster);
-                setCashOffer(Math.round(fee * 0.9)); // Default offer to 90% of what they might want
+                const check = isEuroPlayerUntouchable(p, owningTeam, owningRoster, userTeam);
+                
+                if (check.untouchable) {
+                    setTransferFeedback({ status: 'REJECTED', msg: check.reason || 'Player is not for sale.' });
+                    setCashOffer(0);
+                } else {
+                    const fee = calculateEuroBuyoutFee(p, owningTeam, owningRoster);
+                    setTransferFeedback({ status: 'PENDING', msg: `The club values ${p.lastName} at €${formatCash(fee)}. Make your offer.` });
+                    setCashOffer(fee); // Show them what they want
+                }
             }
         }
     };
@@ -825,31 +843,33 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack }) => {
                                     </p>
                                 </div>
 
-                                <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '16px', padding: '20px', marginBottom: '24px', border: '1px solid var(--bg-card-hover)' }}>
-                                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '16px', letterSpacing: '1px' }}>
-                                        Club-to-Club Negotiation
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                        <span style={{ fontWeight: 600, color: 'var(--text-dim)' }}>Your Budget:</span>
-                                        <span style={{ fontWeight: 900, color: '#2ecc71', fontSize: '1.1rem' }}>€{formatCash(userTeam.cash)}</span>
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <label style={{ fontSize: '0.85rem', fontWeight: 900, color: 'var(--text-dim)' }}>PROPOSED BUYOUT FEE</label>
-                                            <span style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--team-primary)' }}>€{formatCash(cashOffer)}</span>
+                                {transferFeedback.status !== 'REJECTED' && (
+                                    <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '16px', padding: '20px', marginBottom: '24px', border: '1px solid var(--bg-card-hover)' }}>
+                                        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '16px', letterSpacing: '1px' }}>
+                                            Club-to-Club Negotiation
                                         </div>
-                                        <input 
-                                            type="number"
-                                            value={cashOffer}
-                                            onChange={(e) => setCashOffer(Number(e.target.value))}
-                                            style={{
-                                                width: '100%', padding: '16px', borderRadius: '12px',
-                                                border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.3)',
-                                                color: 'var(--text-main)', fontSize: '1.4rem', fontWeight: 900, outline: 'none'
-                                            }}
-                                        />
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                            <span style={{ fontWeight: 600, color: 'var(--text-dim)' }}>Your Budget:</span>
+                                            <span style={{ fontWeight: 900, color: '#2ecc71', fontSize: '1.1rem' }}>€{formatCash(userTeam.cash)}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <label style={{ fontSize: '0.85rem', fontWeight: 900, color: 'var(--text-dim)' }}>PROPOSED BUYOUT FEE</label>
+                                                <span style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--team-primary)' }}>€{formatCash(cashOffer)}</span>
+                                            </div>
+                                            <input 
+                                                type="number"
+                                                value={cashOffer}
+                                                onChange={(e) => setCashOffer(Number(e.target.value))}
+                                                style={{
+                                                    width: '100%', padding: '16px', borderRadius: '12px',
+                                                    border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.3)',
+                                                    color: 'var(--text-main)', fontSize: '1.4rem', fontWeight: 900, outline: 'none'
+                                                }}
+                                            />
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
                                 {transferFeedback.msg && (
                                     <div style={{ 
@@ -870,7 +890,7 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack }) => {
 
                                 <button
                                     onClick={handleProposeTransfer}
-                                    disabled={transferFeedback.status === 'ACCEPTED'}
+                                    disabled={transferFeedback.status === 'ACCEPTED' || transferFeedback.status === 'REJECTED'}
                                     style={{
                                         width: '100%', padding: '20px', borderRadius: '16px',
                                         background: 'var(--team-primary)', color: '#fff', border: 'none',

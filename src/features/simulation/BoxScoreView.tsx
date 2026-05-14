@@ -5,6 +5,7 @@ import { formatDate } from '../../utils/dateUtils';
 import { BackButton } from '../ui/BackButton';
 import { Trophy, Calendar, MapPin } from 'lucide-react';
 import { PageHeader } from '../ui/PageHeader';
+import { useGame } from '../../store/GameContext';
 
 interface BoxScoreViewProps {
     match: MatchResult;

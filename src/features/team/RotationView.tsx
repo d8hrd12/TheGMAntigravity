@@ -238,7 +238,8 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                             // Selection Glow Logic
                             let rowBackground = isStarter ? 'rgba(var(--primary-rgb), 0.03)' : 'transparent';
                             let rowBoxShadow = 'none';
-                            let rowBorder = '1px solid rgba(0,0,0,0.05)';
+                            // Remove border between starters, keep for bench
+                            let rowBorder = isStarter ? 'none' : '1px solid rgba(0,0,0,0.05)';
 
                             if (isSelected) {
                                 if (isStarter) {
@@ -297,50 +298,58 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                                     >
                                         <td style={{ padding: '12px 16px', textAlign: 'left' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                <div style={{ display: 'flex', flexDirection: 'column', minHeight: '40px', justifyContent: 'center', alignItems: 'flex-start' }}>
+                                                <div style={{ 
+                                                    display: 'flex', 
+                                                    flexDirection: 'column', 
+                                                    minHeight: '44px', // Slightly taller to fit badge comfortably
+                                                    justifyContent: 'center', 
+                                                    alignItems: 'flex-start',
+                                                    gap: '2px' // Fixed gap between name and badge
+                                                }}>
                                                     <div style={{ 
                                                         fontWeight: 800, 
                                                         color: 'var(--text-main)', 
                                                         display: 'flex', 
                                                         alignItems: 'center', 
                                                         gap: '6px',
-                                                        fontSize: player.lastName.length > 12 ? '0.75rem' : (player.lastName.length > 9 ? '0.82rem' : '0.9rem'),
+                                                        // More aggressive scaling
+                                                        fontSize: player.lastName.length > 15 ? '0.7rem' : 
+                                                                  player.lastName.length > 12 ? '0.78rem' : 
+                                                                  player.lastName.length > 9 ? '0.84rem' : '0.92rem',
                                                         whiteSpace: 'nowrap',
                                                         letterSpacing: '-0.01em',
-                                                        lineHeight: 1.2
+                                                        lineHeight: 1.1
                                                     }}>
                                                         {player.firstName.charAt(0)}. {player.lastName}
+                                                        <Info 
+                                                            size={13} 
+                                                            style={{ color: 'var(--team-primary)', cursor: 'pointer', opacity: 0.6 }} 
+                                                            onClick={(e) => { e.stopPropagation(); onSelectPlayer(player.id); }}
+                                                        />
                                                     </div>
-                                                    <div style={{ marginTop: '2px' }}>
+                                                    
+                                                    {/* Badge Container with Fixed Height to prevent jumping */}
+                                                    <div style={{ height: '14px', display: 'flex', alignItems: 'center' }}>
                                                         {isStarter ? (
                                                             <span style={{ 
                                                                 fontSize: '0.55rem', 
                                                                 color: 'var(--team-primary)', 
                                                                 fontWeight: 900, 
-                                                                letterSpacing: '0.05em',
+                                                                letterSpacing: '0.08em',
                                                                 textTransform: 'uppercase',
-                                                                background: 'rgba(var(--primary-rgb), 0.1)',
-                                                                padding: '1px 4px',
+                                                                background: 'rgba(var(--primary-rgb), 0.12)',
+                                                                padding: '1px 5px',
                                                                 borderRadius: '3px',
-                                                                display: 'inline-block'
+                                                                display: 'inline-block',
+                                                                lineHeight: '1',
+                                                                boxShadow: '0 0 4px rgba(var(--primary-rgb), 0.1)'
                                                             }}>STARTER</span>
-                                                        ) : (
-                                                            <div style={{ height: '10px' }} />
-                                                        )}
+                                                        ) : null}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td style={{ padding: '8px', textAlign: 'center', color: 'var(--text-dim)' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                                                <Info 
-                                                    size={14} 
-                                                    style={{ color: 'var(--team-primary)', cursor: 'pointer', opacity: 0.6 }} 
-                                                    onClick={(e) => { e.stopPropagation(); onSelectPlayer(player.id); }}
-                                                />
-                                                {player.position}{player.secondaryPosition ? `/${player.secondaryPosition}` : ''}
-                                            </div>
-                                        </td>
+                                        <td style={{ padding: '8px', textAlign: 'center', color: 'var(--text-dim)' }}>{player.position}{player.secondaryPosition ? `/${player.secondaryPosition}` : ''}</td>
                                         <td style={{ padding: '8px', textAlign: 'center' }}>
                                             <div style={{ display: 'flex', justifyContent: 'center' }}>
                                                 <StarRating stars={calculateStars(calculateOverall(player), teamBaseline)} size={12} />

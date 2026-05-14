@@ -75,6 +75,8 @@ import { EuroResigningView } from './features/offseason/EuroResigningView';
 import { EuroFreeAgencyView } from './features/offseason/EuroFreeAgencyView';
 import { EuroFinancialsView } from './features/offseason/EuroFinancialsView';
 import { EuroLocalTalentView } from './features/offseason/EuroLocalTalentView';
+import { PlayerCompareView } from './features/player/PlayerCompareView';
+import { EuroSeasonReviewModal } from './features/ui/EuroSeasonReviewModal';
 import { App as CapApp } from '@capacitor/app';
 
 function AppContent() {
@@ -190,16 +192,11 @@ function AppContent() {
   // Season Review Modal for Euro Mode
   useEffect(() => {
     if (pendingSeasonReview) {
-      const review = pendingSeasonReview;
-      setModalMessage({
-        title: 'EURO SEASON REVIEW',
-        msg: `🏆 EuroLeague Champion: ${review.euroLeagueWinner}\n🏆 EuroCup Champion: ${review.euroCupWinner}\n\n⬆️ Promoted: ${review.promoted}\n⬇️ Relegated: ${review.relegated}`,
-        type: 'success'
-      });
-      // Clear the review data
+      setActiveSeasonReview(pendingSeasonReview);
+      // Clear the review data from global state
       setGameState(prev => ({ ...prev, pendingSeasonReview: null }));
     }
-  }, [pendingSeasonReview, setGameState, setModalMessage]);
+  }, [pendingSeasonReview, setGameState]);
   
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [selectedGmId, setSelectedGmId] = useState<string | null>(null);
@@ -259,6 +256,7 @@ function AppContent() {
   };
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [activeSeasonReview, setActiveSeasonReview] = useState<any | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollCache = useRef<Record<string, number>>({});
 
@@ -341,6 +339,7 @@ function AppContent() {
       icon: <Users size={20} />,
       items: [
         { id: 'trade', label: 'Market' },
+        { id: 'compare', label: 'Compare' },
         { id: 'player_list', label: 'Player List' },
         { id: 'player_stats', label: 'Player Stats' },
         { id: 'player_history', label: 'Players Records' },
@@ -536,10 +535,12 @@ function AppContent() {
         return <PlayerLeagueListView onBack={() => setView('dashboard')} onSelectPlayer={setSelectedPlayerId} initialMode="stats" />;
       case 'player_history':
         return <PlayerLeagueListView onBack={() => setView('dashboard')} onSelectPlayer={setSelectedPlayerId} initialMode="history" />;
+      case 'compare':
+        return <PlayerCompareView onBack={() => setView('dashboard')} />;
       case 'trade': 
         if (!userTeam) return null;
         if (leagueType === 'EURO' && !prefilledTrade) {
-          return <EuroTransferMarketView onBack={() => setView('dashboard')} />;
+          return <EuroTransferMarketView initialPlayerId={initialAiPlayerId} onBack={() => { setView('dashboard'); setInitialAiPlayerId(null); }} />;
         }
         return <TradeCenterView 
           userTeam={userTeam} 
@@ -1037,7 +1038,21 @@ function AppContent() {
           isFirstSeasonFree={isFirstSeasonPaid}
         />
       )}
-      {modalMessage && <MessageModal title={modalMessage.title} message={modalMessage.msg} type={modalMessage.type} onClose={() => setModalMessage(null)} />}
+      {modalMessage && (
+        <MessageModal 
+          title={modalMessage.title} 
+          message={modalMessage.msg} 
+          type={modalMessage.type} 
+          onClose={() => setModalMessage(null)} 
+        />
+      )}
+
+      {activeSeasonReview && (
+        <EuroSeasonReviewModal 
+            review={activeSeasonReview} 
+            onClose={() => setActiveSeasonReview(null)} 
+        />
+      )}
     </div>
   );
 }

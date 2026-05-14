@@ -29,7 +29,7 @@ interface PlayerDetailViewProps {
 }
 
 export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team, teams, contract, onBack, onTradeFor, isUserTeam, onShop, onTeamClick }) => {
-    const { settings, awardsHistory, players, seasonPhase, scoutingReports, userTeamId } = useGame();
+    const { settings, awardsHistory, players, seasonPhase, scoutingReports, userTeamId, leagueType } = useGame();
     // Default to true if settings aren't loaded yet/legacy
     const showLoveForTheGame = settings?.showLoveForTheGame ?? true;
 
@@ -177,7 +177,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                 <div style={{ display: 'flex', gap: '10px' }}>
                     {!isUserTeam && onTradeFor && (
                         <button onClick={() => onTradeFor(player.id)} style={{ padding: '8px 16px', background: 'var(--text-main)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
-                            Trade For
+                            {leagueType === 'EURO' ? 'Buy Player' : 'Trade For'}
                         </button>
                     )}
                     {isUserTeam && (

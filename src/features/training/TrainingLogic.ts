@@ -102,7 +102,30 @@ export const calculateProgression = (player: Player, focus: TrainingFocus, coach
         growthPoints *= devModifier;
     }
 
-    // 2. Distribute Points
+    // 1.5. Playing Time Multiplier (Focus on young players)
+    // If a young player (<= 24) didn't play much in the last season, their growth is slowed.
+    if (growthPoints > 0 && age <= 24) {
+        const lastSeason = player.careerStats?.[player.careerStats.length - 1];
+        if (lastSeason) {
+            const gp = lastSeason.gamesPlayed || 0;
+            const mpg = gp > 0 ? (lastSeason.minutes / gp) : 0;
+            
+            // Multiplier based on MPG:
+            // 25+ MPG: 1.2x boost
+            // 15-25 MPG: 1.0x (normal)
+            // 5-15 MPG: 0.8x penalty
+            // 0-5 MPG: 0.6x penalty
+            let playtimeMultiplier = 1.0;
+            if (mpg >= 25) playtimeMultiplier = 1.2;
+            else if (mpg < 5) playtimeMultiplier = 0.6;
+            else if (mpg < 15) playtimeMultiplier = 0.8;
+            
+            growthPoints *= playtimeMultiplier;
+        } else {
+            // No career stats (rookie who didn't play)
+            growthPoints *= 0.7;
+        }
+    }
     const weights = FOCUS_WEIGHTS[focus];
     const targetAttributes = Object.keys(weights) as Array<keyof PlayerAttributes>;
 
@@ -267,12 +290,15 @@ export const calculateInSeasonProgression = (player: Player, coachDevRating?: nu
 
     // 1. FLUID POTENTIAL (Young players only)
     if (updatedPlayer.age <= 24) {
-        if (mpg >= 15 && diff > 1.5) {
+        if (mpg >= 18 && diff > 1.0) {
             // Outperforming and playing a solid role: Outrun potential!
-            updatedPlayer.potential = Math.min(99, updatedPlayer.potential + Math.ceil(diff / 1.5));
-        } else if (mpg < 12 && updatedPlayer.potential > oldOverall + 3) {
-            // High potential but not playing: Potential drops (regression of ceiling)
-            updatedPlayer.potential = Math.max(oldOverall, updatedPlayer.potential - 2);
+            // Higher minutes = higher potential ceiling increase
+            const boost = mpg >= 25 ? Math.ceil(diff / 1.0) : Math.ceil(diff / 1.5);
+            updatedPlayer.potential = Math.min(99, updatedPlayer.potential + boost);
+        } else if (mpg < 10 && updatedPlayer.potential > oldOverall + 2) {
+            // High potential but not playing: Potential drops significantly (regression of ceiling)
+            const drop = mpg < 5 ? 3 : 1;
+            updatedPlayer.potential = Math.max(oldOverall, updatedPlayer.potential - drop);
         }
     }
 
