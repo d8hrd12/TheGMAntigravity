@@ -236,20 +236,20 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                             const isSelected = selectedPlayerId === player.id;
 
                             // Selection Glow Logic
-                            let rowBackground = isStarter ? 'rgba(var(--primary-rgb), 0.1)' : 'transparent';
+                            let rowBackground = isStarter ? 'rgba(var(--primary-rgb), 0.03)' : 'transparent';
                             let rowBoxShadow = 'none';
-                            let rowBorder = index === 4 ? '2px solid var(--team-primary)' : '1px solid rgba(0,0,0,0.05)';
+                            let rowBorder = '1px solid rgba(0,0,0,0.05)';
 
                             if (isSelected) {
                                 if (isStarter) {
                                     // Starter Selected -> Red Glow
-                                    rowBackground = 'rgba(231, 76, 60, 0.2)'; // Red tint
-                                    rowBoxShadow = '0 0 15px rgba(231, 76, 60, 0.6) inset';
+                                    rowBackground = 'rgba(231, 76, 60, 0.15)'; 
+                                    rowBoxShadow = '0 0 15px rgba(231, 76, 60, 0.4) inset';
                                     rowBorder = '1px solid #e74c3c';
                                 } else {
                                     // Bench Selected -> Green Glow
-                                    rowBackground = 'rgba(46, 204, 113, 0.2)'; // Green tint
-                                    rowBoxShadow = '0 0 15px rgba(46, 204, 113, 0.6) inset';
+                                    rowBackground = 'rgba(46, 204, 113, 0.15)'; 
+                                    rowBoxShadow = '0 0 15px rgba(46, 204, 113, 0.4) inset';
                                     rowBorder = '1px solid #2ecc71';
                                 }
                             }
@@ -261,22 +261,24 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                                         <tr>
                                             <td colSpan={4} style={{ padding: '0' }}>
                                                 <div style={{
-                                                    height: '2px',
-                                                    background: 'linear-gradient(90deg, transparent, var(--team-primary), transparent)',
-                                                    margin: '10px 0',
-                                                    opacity: 0.6,
+                                                    height: '1px',
+                                                    background: 'rgba(0,0,0,0.1)',
+                                                    margin: '20px 0 10px 0',
+                                                    position: 'relative',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center'
                                                 }}>
                                                     <span style={{
                                                         background: 'var(--bg-main)',
-                                                        padding: '0 12px',
-                                                        fontSize: '0.65rem',
+                                                        padding: '0 15px',
+                                                        fontSize: '0.7rem',
                                                         color: 'var(--text-dim)',
-                                                        fontWeight: 'bold',
+                                                        fontWeight: 800,
                                                         textTransform: 'uppercase',
-                                                        letterSpacing: '0.1em'
+                                                        letterSpacing: '0.15em',
+                                                        position: 'relative',
+                                                        zIndex: 2
                                                     }}>Bench Unit</span>
                                                 </div>
                                             </td>
@@ -293,18 +295,39 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                                             position: 'relative'
                                         }}
                                     >
-                                        <td style={{ padding: '10px 16px', textAlign: 'left' }}>
+                                        <td style={{ padding: '12px 16px', textAlign: 'left' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                    <div style={{ fontWeight: 'bold', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column', minHeight: '38px', justifyContent: 'center' }}>
+                                                    <div style={{ 
+                                                        fontWeight: 800, 
+                                                        color: 'var(--text-main)', 
+                                                        display: 'flex', 
+                                                        alignItems: 'center', 
+                                                        gap: '6px',
+                                                        fontSize: player.lastName.length > 10 ? '0.8rem' : '0.9rem',
+                                                        whiteSpace: 'nowrap',
+                                                        letterSpacing: '-0.01em'
+                                                    }}>
                                                         {player.firstName.charAt(0)}. {player.lastName}
                                                         <Info 
                                                             size={14} 
-                                                            style={{ color: 'var(--team-primary)', cursor: 'pointer', padding: '2px' }} 
+                                                            style={{ color: 'var(--team-primary)', cursor: 'pointer', opacity: 0.8 }} 
                                                             onClick={(e) => { e.stopPropagation(); onSelectPlayer(player.id); }}
                                                         />
                                                     </div>
-                                                    {isStarter && <span style={{ fontSize: '0.6rem', color: 'var(--team-primary)', fontWeight: 'bold', letterSpacing: '0.05em' }}>STARTER</span>}
+                                                    <div style={{ height: '14px' }}>
+                                                        {isStarter ? (
+                                                            <span style={{ 
+                                                                fontSize: '0.6rem', 
+                                                                color: 'var(--team-primary)', 
+                                                                fontWeight: 900, 
+                                                                letterSpacing: '0.1em',
+                                                                textTransform: 'uppercase'
+                                                            }}>STARTER</span>
+                                                        ) : (
+                                                            <div style={{ height: '100%' }} />
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
