@@ -297,35 +297,40 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                                     >
                                         <td style={{ padding: '12px 16px', textAlign: 'left' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                <div style={{ display: 'flex', flexDirection: 'column', minHeight: '38px', justifyContent: 'center' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column', minHeight: '40px', justifyContent: 'center', alignItems: 'flex-start' }}>
                                                     <div style={{ 
                                                         fontWeight: 800, 
                                                         color: 'var(--text-main)', 
                                                         display: 'flex', 
                                                         alignItems: 'center', 
                                                         gap: '6px',
-                                                        fontSize: player.lastName.length > 10 ? '0.8rem' : '0.9rem',
+                                                        fontSize: player.lastName.length > 12 ? '0.75rem' : (player.lastName.length > 9 ? '0.82rem' : '0.9rem'),
                                                         whiteSpace: 'nowrap',
-                                                        letterSpacing: '-0.01em'
+                                                        letterSpacing: '-0.01em',
+                                                        lineHeight: 1.2
                                                     }}>
                                                         {player.firstName.charAt(0)}. {player.lastName}
                                                         <Info 
                                                             size={14} 
-                                                            style={{ color: 'var(--team-primary)', cursor: 'pointer', opacity: 0.8 }} 
+                                                            style={{ color: 'var(--team-primary)', cursor: 'pointer', opacity: 0.6 }} 
                                                             onClick={(e) => { e.stopPropagation(); onSelectPlayer(player.id); }}
                                                         />
                                                     </div>
-                                                    <div style={{ height: '14px' }}>
+                                                    <div style={{ marginTop: '2px' }}>
                                                         {isStarter ? (
                                                             <span style={{ 
-                                                                fontSize: '0.6rem', 
+                                                                fontSize: '0.55rem', 
                                                                 color: 'var(--team-primary)', 
                                                                 fontWeight: 900, 
-                                                                letterSpacing: '0.1em',
-                                                                textTransform: 'uppercase'
+                                                                letterSpacing: '0.05em',
+                                                                textTransform: 'uppercase',
+                                                                background: 'rgba(var(--primary-rgb), 0.1)',
+                                                                padding: '1px 4px',
+                                                                borderRadius: '3px',
+                                                                display: 'inline-block'
                                                             }}>STARTER</span>
                                                         ) : (
-                                                            <div style={{ height: '100%' }} />
+                                                            <div style={{ height: '10px' }} />
                                                         )}
                                                     </div>
                                                 </div>
