@@ -310,11 +310,6 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                                                         lineHeight: 1.2
                                                     }}>
                                                         {player.firstName.charAt(0)}. {player.lastName}
-                                                        <Info 
-                                                            size={14} 
-                                                            style={{ color: 'var(--team-primary)', cursor: 'pointer', opacity: 0.6 }} 
-                                                            onClick={(e) => { e.stopPropagation(); onSelectPlayer(player.id); }}
-                                                        />
                                                     </div>
                                                     <div style={{ marginTop: '2px' }}>
                                                         {isStarter ? (
@@ -336,7 +331,16 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                                                 </div>
                                             </div>
                                         </td>
-                                        <td style={{ padding: '8px', textAlign: 'center', color: 'var(--text-dim)' }}>{player.position}{player.secondaryPosition ? `/${player.secondaryPosition}` : ''}</td>
+                                        <td style={{ padding: '8px', textAlign: 'center', color: 'var(--text-dim)' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                                                <Info 
+                                                    size={14} 
+                                                    style={{ color: 'var(--team-primary)', cursor: 'pointer', opacity: 0.6 }} 
+                                                    onClick={(e) => { e.stopPropagation(); onSelectPlayer(player.id); }}
+                                                />
+                                                {player.position}{player.secondaryPosition ? `/${player.secondaryPosition}` : ''}
+                                            </div>
+                                        </td>
                                         <td style={{ padding: '8px', textAlign: 'center' }}>
                                             <div style={{ display: 'flex', justifyContent: 'center' }}>
                                                 <StarRating stars={calculateStars(calculateOverall(player), teamBaseline)} size={12} />
