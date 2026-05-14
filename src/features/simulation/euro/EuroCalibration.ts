@@ -33,7 +33,7 @@ export const EURO = {
   FGA:          64.5,
   FG_PCT:       0.477,
   THREE_PA:     26.0,
-  THREE_PCT:    0.356,
+  THREE_PCT:    0.350,
   FTA:          20.2,
   FT_PCT:       0.785,
 
@@ -53,10 +53,10 @@ export const EURO = {
   MID_RATE:    0.38,   
   THREE_RATE:  0.40,   
 
-  // Make% by zone — VERY aggressive reduction to hit 19 PPG leaders
-  RIM_PCT:     0.420,  
-  MID_PCT:     0.345,  
-  THREE_FG_PCT: 0.275, // Targeting ~34% team averages after skill/assist boosts
+  // Make% by zone — Targeting ~33-35% team averages
+  RIM_PCT:     0.410,  
+  MID_PCT:     0.335,  
+  THREE_FG_PCT: 0.260, 
 
   // Foul rates by play type
   FOUL_DRIVE:      0.28,

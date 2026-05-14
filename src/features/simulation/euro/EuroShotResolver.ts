@@ -108,9 +108,9 @@ export function resolveEuroShot(
   const defenderAttr = getDefenderAttr(defender, zone);
   const base = getBasePct(zone);
 
-  // Skill edge: each 1-point attribute gap = ~0.65% shot% change
+  // Skill edge: each 1-point attribute gap = ~0.50% shot% change (Reduced from 0.65 for EuroLeague)
   // EL: defense is much more suffocating
-  const skillEdge = (shooterAttr - defenderAttr) / 100 * 0.65;
+  const skillEdge = (shooterAttr - defenderAttr) / 100 * 0.50;
 
   // Fatigue penalty (only kicks in below 50 stamina)
   const fatiguePenalty = stamina < 50 ? (50 - stamina) * 0.0010 : 0;

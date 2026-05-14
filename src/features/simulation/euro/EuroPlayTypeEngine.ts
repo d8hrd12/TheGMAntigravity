@@ -147,9 +147,9 @@ export function selectEuroPlayType(
     const zone = zoneForRecipient(recipient, offensiveFocus);
 
     // Bonus accuracy on assisted shots (EL: very low to keep PPG realistic)
-    const bonusAccuracy = zone === 'THREE' ? 0.025
+    const bonusAccuracy = zone === 'THREE' ? 0.015
       : zone === 'RIM'   ? 0.020
-      : 0.015;
+      : 0.010;
 
     // Play type from context
     let playType: EuroPlayType;
@@ -226,7 +226,7 @@ export function selectEuroPlayType(
     case 'CATCH_3':
     case 'PIN_DOWN':
       zone = 'THREE';
-      bonusAccuracy = playType === 'PIN_DOWN' ? 0.08 : 0.06;
+      bonusAccuracy = playType === 'PIN_DOWN' ? 0.04 : 0.03;
       break;
     case 'DHO':
       // DHO can generate 3 or mid
