@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useGame } from '../../store/GameContext';
 import type { Player } from '../../models/Player';
 import type { Team } from '../../models/Team';
+import type { Contract } from '../../models/Contract';
 import { calculateOverall } from '../../utils/playerUtils';
 import { StarRating } from '../../components/StarRating';
 import { calculateStars, calculateTeamBaseline } from '../../utils/starUtils';
@@ -13,6 +14,7 @@ import { calculateContractAmount, calculateAdjustedDemand } from '../../utils/co
 import { negotiateEuroBuyout, negotiateEuroContract } from './logic/EuroNegotiationAI';
 import { REAL_ROSTERS } from '../../data/realRosters';
 import { NBA_TEAMS } from '../../data/teams';
+import { PageHeader } from '../ui/PageHeader';
 
 // === DYNAMIC NBA VETERAN POOL ===
 // Real data covers 2025-2030 (6 seasons). From 2031+ we cycle the 2025-2028 waves
@@ -241,7 +243,7 @@ const PlayerListItem: React.FC<{
         >
             {/* Line 1 & 2: Basic Info */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: untouchableInfo.untouchable ? 'rgba(231, 76, 60, 0.1)' : 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: untouchableInfo.untouchable ? '#e74c3c' : 'var(--team-primary)', flexShrink: 0, fontSize: '1.1rem' }}>
+                <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: untouchableInfo.untouchable ? 'rgba(231, 76, 60, 0.1)' : 'var(--bg-card-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: untouchableInfo.untouchable ? '#e74c3c' : 'var(--team-primary)', flexShrink: 0, fontSize: '1.1rem' }}>
                     {ovr}
                 </div>
                 <div style={{ flex: 1, overflow: 'hidden' }}>
@@ -512,22 +514,17 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack }) => {
     };
 
     return (
-        <div style={{ padding: '20px', width: '100%', maxWidth: '1200px', margin: '0 auto', color: 'var(--text-main)', boxSizing: 'border-box' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
-                <button onClick={onBack} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '8px', color: 'var(--text-main)', cursor: 'pointer' }}>
-                    <ArrowLeft size={20} />
-                </button>
-                <div>
-                    <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <ArrowRightLeft color="var(--team-primary)" /> EUROPEAN MARKET
-                    </h1>
-                    <p style={{ margin: '4px 0 0 0', color: 'var(--text-dim)', fontSize: '0.9rem' }}>
-                        {marketTab === 'TRANSFERS' 
-                            ? "Buy out players from other teams using your cash reserves."
-                            : "Sign players who have been cut or didn't re-sign with their teams."}
-                    </p>
-                </div>
-            </div>
+        <div style={{ background: 'var(--bg-main)', minHeight: '100vh', color: 'var(--text-main)' }}>
+            <PageHeader
+                title="European Market"
+                subtitle={marketTab === 'TRANSFERS' 
+                    ? "Buy out players from other teams using your cash reserves."
+                    : "Sign players who have been cut or didn't re-sign with their teams."}
+                onBack={onBack}
+                teamColor={userTeam?.colors?.primary}
+            />
+
+            <div style={{ padding: '0 20px 40px', maxWidth: '1200px', margin: '0 auto' }}>
 
             {/* Main Market Tab Toggle */}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '24px' }}>
@@ -665,7 +662,7 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack }) => {
                             )}
 
                             {searchMode === 'NBA' && filteredNBAPool.length === 0 && (
-                                <div style={{ padding: '20px', textAlign: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
+                                <div style={{ padding: '20px', textAlign: 'center', background: 'var(--bg-card-hover)', borderRadius: '12px' }}>
                                     <p style={{ color: 'var(--text-dim)' }}>No NBA veterans match this filter. Try a different position.</p>
                                 </div>
                             )}
@@ -798,7 +795,7 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack }) => {
                         {/* Close Button */}
                         <button 
                             onClick={() => setSelectedPlayer(null)}
-                            style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dim)', cursor: 'pointer', zIndex: 10 }}
+                            style={{ position: 'absolute', top: '16px', right: '16px', background: 'var(--bg-card-hover)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dim)', cursor: 'pointer', zIndex: 10 }}
                         >
                             <X size={20} />
                         </button>
@@ -828,7 +825,7 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack }) => {
                                     </p>
                                 </div>
 
-                                <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '16px', padding: '20px', marginBottom: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '16px', padding: '20px', marginBottom: '24px', border: '1px solid var(--bg-card-hover)' }}>
                                     <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '16px', letterSpacing: '1px' }}>
                                         Club-to-Club Negotiation
                                     </div>
@@ -891,6 +888,7 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack }) => {
                     </div>
                 </div>
             )}
+            </div>
         </div>
     );
 };

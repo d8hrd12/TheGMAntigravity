@@ -333,7 +333,7 @@ export const EURO_TEAMS: Team[] = [
         abbreviation: 'TRE',
         conference: 'EuroCup',
         division: 'Italy',
-        logo: 'https://media-cdn.cortextech.io/418122c5-f7c8-4369-8b9d-b76d8b4185fb.png',
+        logo: 'https://www.aquilabasket.it/wp-content/uploads/2025/08/Khalif-Battle-e1772700788878.png',
         colors: { primary: '#000000', secondary: '#ffffff', accent: '#000000' },
         wins: 0, losses: 0, cash: 3500000, fanInterest: 0.9, marketSize: 'Small', ownerPatience: 75,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []

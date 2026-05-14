@@ -92,7 +92,7 @@ export const RosterPreview: React.FC<RosterPreviewProps> = ({ onSelectPlayer }) 
                                 width: '32px',
                                 height: '32px',
                                 borderRadius: '50%',
-                                background: 'rgba(255,255,255,0.1)',
+                                background: 'var(--border-color)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',

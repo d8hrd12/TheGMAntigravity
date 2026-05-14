@@ -9,7 +9,8 @@ import { PageHeader } from '../ui/PageHeader';
 import { Briefcase, TrendingUp, DollarSign, Users, Award, ArrowLeftRight } from 'lucide-react';
 
 export const GMListView: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
-    const { aiGms, teams, players } = useGame();
+    const { aiGms, teams, players, userTeamId } = useGame();
+    const userTeam = teams.find(t => t.id === userTeamId);
 
     if (!aiGms || aiGms.length === 0) {
         return (
@@ -40,16 +41,16 @@ export const GMListView: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     };
 
     return (
-        <div style={{ padding: '20px', background: 'var(--bg-main)', minHeight: '100%', maxWidth: '500px', margin: '0 auto' }}>
-            {onBack && <PageHeader title="League Executives" onBack={onBack} />}
-            {!onBack && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '24px', textAlign: 'center' }}>
-                    <h1 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 900, color: 'var(--text-main)' }}>LEAGUE EXECUTIVES</h1>
-                    <div style={{ color: 'var(--text-dim)', fontSize: '0.8rem', fontWeight: 600 }}>{aiGms.length} GMs</div>
-                </div>
-            )}
+        <div style={{ background: 'var(--bg-main)', minHeight: '100%', maxWidth: '500px', margin: '0 auto' }}>
+            <PageHeader 
+                title="League Executives" 
+                subtitle={`${aiGms.length} GMs Active`}
+                onBack={onBack || (() => {})} 
+                teamColor={userTeam?.colors?.primary}
+            />
 
             <div style={{ 
+                padding: '0 20px 20px',
                 display: 'flex', 
                 flexDirection: 'column',
                 gap: '16px'
@@ -60,7 +61,7 @@ export const GMListView: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                     const categoryColor = getCategoryColor(category);
 
                     return (
-                        <div key={gm.id} className="glass-panel" style={{
+                        <div key={gm.id} className="modern-card" style={{
                             padding: '20px',
                             borderRadius: '20px',
                             background: 'var(--bg-card)',
@@ -76,7 +77,7 @@ export const GMListView: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                                 <div style={{ display: 'flex', gap: '16px' }}>
                                     <div style={{
                                         width: '56px', height: '56px', borderRadius: '16px',
-                                        background: team?.colors?.primary || 'rgba(255,255,255,0.05)',
+                                        background: team?.colors?.primary || 'var(--bg-card-hover)',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
                                     }}>
@@ -130,7 +131,7 @@ export const GMListView: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                             {/* Philosophy */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem' }}>
                                 <span style={{ color: 'var(--text-dim)', fontWeight: 600 }}>PHILOSOPHY:</span>
-                                <span style={{ color: 'var(--primary)', fontWeight: 800, textTransform: 'uppercase' }}>{gm.philosophy}</span>
+                                <span style={{ color: 'var(--text-main)', fontWeight: 800, textTransform: 'uppercase' }}>{gm.philosophy}</span>
                             </div>
                         </div>
                     );

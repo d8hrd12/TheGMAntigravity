@@ -91,7 +91,7 @@ export const LeagueHistoryView: React.FC<{ onBack: () => void; onSelectPlayer?: 
     const AwardRow = ({ title, winner }: { title: string; winner: any }) => (
         <div style={{
             display: 'flex', justifyContent: 'space-between',
-            padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem'
+            padding: '8px 0', borderBottom: '1px solid var(--bg-card-hover)', fontSize: '0.9rem'
         }}>
             <span style={{ color: 'var(--text-secondary)' }}>{title}</span>
             <div style={{ textAlign: 'right' }}>
@@ -106,8 +106,8 @@ export const LeagueHistoryView: React.FC<{ onBack: () => void; onSelectPlayer?: 
     const tabStyle = (tab: string) => ({
         flex: 1, padding: '10px 6px',
         background: activeTab === tab
-            ? 'var(--primary)'
-            : 'rgba(255,255,255,0.05)',
+            ? 'var(--text-main)'
+            : 'var(--bg-card-hover)',
         border: activeTab === tab ? 'none' : '1px solid rgba(255,255,255,0.08)',
         borderRadius: '10px',
         color: activeTab === tab ? '#fff' : 'var(--text-secondary)',
@@ -138,17 +138,17 @@ export const LeagueHistoryView: React.FC<{ onBack: () => void; onSelectPlayer?: 
                         const isExpanded = expandedSeason === history.year;
                         const championTeam = teams.find(t => t.id === history.champion?.teamId);
                         return (
-                            <div key={history.year} className="glass-panel" style={{ padding: '0', overflow: 'hidden' }}>
+                            <div key={history.year} className="modern-card" style={{ padding: '0', overflow: 'hidden' }}>
                                 <div
                                     onClick={() => setExpandedSeason(isExpanded ? null : history.year)}
                                     style={{
                                         padding: '16px', display: 'flex', justifyContent: 'space-between',
                                         alignItems: 'center', cursor: 'pointer',
-                                        background: isExpanded ? 'rgba(255,255,255,0.05)' : 'transparent'
+                                        background: isExpanded ? 'var(--bg-card-hover)' : 'transparent'
                                     }}
                                 >
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                        <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary)' }}>{history.year}</span>
+                                        <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--text-main)' }}>{history.year}</span>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             {championTeam?.logo && <img src={championTeam.logo} alt="" style={{ width: '24px', height: '24px', objectFit: 'contain' }} />}
                                             <span style={{ fontWeight: 600 }}>{history.champion?.teamName || 'Unknown'}</span>
@@ -185,7 +185,7 @@ export const LeagueHistoryView: React.FC<{ onBack: () => void; onSelectPlayer?: 
                         <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>No retired players yet.</div>
                     ) : (
                         allRetiredPlayers.map(player => (
-                            <div key={player.id} className="glass-panel" onClick={() => onSelectPlayer?.(player.id)} style={{ padding: '16px', cursor: onSelectPlayer ? 'pointer' : 'default' }}>
+                            <div key={player.id} className="modern-card" onClick={() => onSelectPlayer?.(player.id)} style={{ padding: '16px', cursor: onSelectPlayer ? 'pointer' : 'default' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div>
                                         <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{player.firstName} {player.lastName}</div>
@@ -194,7 +194,7 @@ export const LeagueHistoryView: React.FC<{ onBack: () => void; onSelectPlayer?: 
                                         </div>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontWeight: 'bold', color: 'var(--primary)' }}>{player.isHallOfFame ? '🏆 Hall of Fame' : ''}</div>
+                                        <div style={{ fontWeight: 'bold', color: 'var(--text-main)' }}>{player.isHallOfFame ? '🏆 Hall of Fame' : ''}</div>
                                         <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Peak Stars: {getStarString(calculateStars(calculateOverall(player), 75))}</div>
                                     </div>
                                 </div>
@@ -226,7 +226,7 @@ export const LeagueHistoryView: React.FC<{ onBack: () => void; onSelectPlayer?: 
                                 style={{
                                     padding: '6px 14px', borderRadius: '20px', border: 'none',
                                     background: leaderStat === s
-                                        ? 'var(--primary)'
+                                        ? 'var(--text-main)'
                                         : 'rgba(255,255,255,0.07)',
                                     color: leaderStat === s ? '#fff' : 'var(--text-secondary)',
                                     fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer',
@@ -245,7 +245,7 @@ export const LeagueHistoryView: React.FC<{ onBack: () => void; onSelectPlayer?: 
                     </div>
 
                     {/* Leaderboard List */}
-                    <div className="glass-panel" style={{ padding: '0', overflow: 'hidden' }}>
+                    <div className="modern-card" style={{ padding: '0', overflow: 'hidden' }}>
                         {leaderboard.length === 0 ? (
                             <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
                                 No career stats recorded yet.
@@ -261,7 +261,7 @@ export const LeagueHistoryView: React.FC<{ onBack: () => void; onSelectPlayer?: 
                                         style={{
                                             display: 'flex', alignItems: 'center', gap: '14px',
                                             padding: '12px 16px',
-                                            borderBottom: '1px solid rgba(255,255,255,0.05)',
+                                            borderBottom: '1px solid var(--bg-card-hover)',
                                             background: isTop3 ? 'rgba(255,255,255,0.03)' : 'transparent',
                                             cursor: onSelectPlayer ? 'pointer' : 'default',
                                         }}
@@ -270,7 +270,7 @@ export const LeagueHistoryView: React.FC<{ onBack: () => void; onSelectPlayer?: 
                                         <div style={{
                                             width: '28px', textAlign: 'center',
                                             fontWeight: 800, fontSize: isTop3 ? '1.1rem' : '0.9rem',
-                                            color: isTop3 ? 'var(--primary)' : 'var(--text-secondary)',
+                                            color: isTop3 ? 'var(--text-main)' : 'var(--text-secondary)',
                                             flexShrink: 0,
                                         }}>
                                             {medal || `#${idx + 1}`}
@@ -308,7 +308,7 @@ export const LeagueHistoryView: React.FC<{ onBack: () => void; onSelectPlayer?: 
                                         {/* Value */}
                                         <div style={{
                                             fontWeight: 800, fontSize: '1.15rem',
-                                            color: isTop3 ? 'var(--primary)' : 'var(--text)',
+                                            color: isTop3 ? 'var(--text-main)' : 'var(--text)',
                                             flexShrink: 0,
                                         }}>
                                             {entry.value.toLocaleString()}

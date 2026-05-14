@@ -30,8 +30,8 @@ export const TradeProposalModal: React.FC<TradeProposalModalProps> = ({ offer, t
             alignItems: 'center',
             zIndex: 9999
         }}>
-            <div className="glass-panel" style={{ width: '600px', padding: '30px', border: '1px solid var(--primary)' }}>
-                <h2 style={{ textAlign: 'center', marginBottom: '20px', color: 'var(--primary)' }}>Incoming Trade Offer</h2>
+            <div className="modern-card" style={{ width: '600px', padding: '30px', border: '1px solid var(--text-main)' }}>
+                <h2 style={{ textAlign: 'center', marginBottom: '20px', color: 'var(--text-main)' }}>Incoming Trade Offer</h2>
 
                 <div style={{ textAlign: 'center', marginBottom: '30px', fontSize: '1.2rem' }}>
                     The <strong>{proposer?.name}</strong> propose a trade:
@@ -39,7 +39,7 @@ export const TradeProposalModal: React.FC<TradeProposalModalProps> = ({ offer, t
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px', gap: '20px' }}>
                     {/* YOU GET */}
-                    <div style={{ flex: 1, background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '8px' }}>
+                    <div style={{ flex: 1, background: 'var(--bg-card-hover)', padding: '15px', borderRadius: '8px' }}>
                         <h3 style={{ color: '#2ecc71', borderBottom: '1px solid #444', paddingBottom: '10px', marginTop: 0 }}>You Receive</h3>
                         <ul style={{ listStyle: 'none', padding: 0 }}>
                             {offer.proposerAssets.players.map((p: any) => (
@@ -59,7 +59,7 @@ export const TradeProposalModal: React.FC<TradeProposalModalProps> = ({ offer, t
                     </div>
 
                     {/* YOU GIVE */}
-                    <div style={{ flex: 1, background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '8px' }}>
+                    <div style={{ flex: 1, background: 'var(--bg-card-hover)', padding: '15px', borderRadius: '8px' }}>
                         <h3 style={{ color: '#e74c3c', borderBottom: '1px solid #444', paddingBottom: '10px', marginTop: 0 }}>You Give</h3>
                         <ul style={{ listStyle: 'none', padding: 0 }}>
                             {offer.targetAssets.players.map((p: any) => (

@@ -125,10 +125,12 @@ export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: 
 
             <PageHeader
                 title="Training Camp"
+                subtitle="Player development & focus"
                 onBack={onBack!}
+                teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
             />
 
-            <p style={{ marginBottom: '20px', color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.4' }}>
+            <p style={{ margin: '0 0 20px', padding: '0 20px', color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.4' }}>
                 Select up to <strong>5 players</strong> to participate in Training Camp. Only selected players will improve.
             </p>
 
@@ -141,7 +143,7 @@ export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: 
                     style={{
                         background: isTrainingCampComplete
                             ? 'var(--surface-hover)'
-                            : 'linear-gradient(135deg, var(--primary), var(--accent))',
+                            : 'linear-gradient(135deg, var(--text-main), var(--accent))',
                         padding: '12px 20px',
                         fontSize: '0.95rem',
                         width: '100%',
@@ -190,10 +192,10 @@ export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: 
                 )}
             </div>
 
-            <div className="glass-panel" style={{ padding: '0', overflowX: 'auto' }}>
+            <div className="modern-card" style={{ padding: '0', overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '100%' }}>
                     <thead>
-                        <tr style={{ background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid var(--border)' }}>
+                        <tr style={{ background: 'var(--bg-card-hover)', borderBottom: '1px solid var(--border)' }}>
                             <HeaderCell label="Player" sortKey="name" />
                             <HeaderCell label="Age" sortKey="age" align="center" />
                             <HeaderCell label="Stars" sortKey="ovr" align="center" />
@@ -223,7 +225,7 @@ export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: 
                                 <tr
                                     key={player.id}
                                     style={{
-                                        borderBottom: '1px solid rgba(255,255,255,0.05)',
+                                        borderBottom: '1px solid var(--bg-card-hover)',
                                         background: index % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)'
                                     }}
                                 >
@@ -290,7 +292,7 @@ export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: 
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         padding: '20px'
                     }}>
-                        <div className="glass-panel" style={{ background: '#222', maxWidth: '400px', width: '100%', padding: '24px' }}>
+                        <div className="modern-card" style={{ background: '#222', maxWidth: '400px', width: '100%', padding: '24px' }}>
                             <h3 style={{ margin: '0 0 16px', fontSize: '1.2rem', color: '#fff', textAlign: 'center' }}>Run Training Camp?</h3>
                             <p style={{ margin: '0 0 24px', color: '#bbb', lineHeight: '1.5', textAlign: 'center' }}>
                                 This will simulate player progression based on assigned focus. This happens once per season.
@@ -323,9 +325,9 @@ export const TrainingView: React.FC<{ onBack?: () => void, onSelectPlayer: (id: 
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     padding: '20px'
                 }} onClick={() => setShowFocusInfo(false)}>
-                    <div className="glass-panel" onClick={e => e.stopPropagation()} style={{
+                    <div className="modern-card" onClick={e => e.stopPropagation()} style={{
                         background: '#1a1a2e', maxWidth: '420px', width: '100%',
-                        padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)'
+                        padding: '24px', borderRadius: '16px', border: '1px solid var(--border-color)'
                     }}>
                         <h3 style={{ margin: '0 0 16px', fontSize: '1.15rem', color: '#fff' }}>Training Focus Guide</h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

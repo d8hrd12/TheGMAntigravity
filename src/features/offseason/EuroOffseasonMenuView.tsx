@@ -4,6 +4,8 @@ import { useGame } from '../../store/GameContext';
 import { CheckCircle, Circle, Trophy, Search, Users, FileText, BarChart2, Calendar, DollarSign, ArrowRight, Zap, TrendingUp, Home } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { SalaryPaymentModal } from '../ui/SalaryPaymentModal';
+import { PageHeader } from '../ui/PageHeader';
+
 
 export const EuroOffseasonMenuView: React.FC = () => {
     const { 
@@ -161,19 +163,11 @@ export const EuroOffseasonMenuView: React.FC = () => {
             minHeight: '100vh',
             background: 'linear-gradient(135deg, rgba(var(--team-primary-rgb), 0.05) 0%, transparent 100%)'
         }}>
-            <div style={{ marginBottom: '32px', textAlign: 'center' }}>
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-                    <div style={{ padding: '10px', background: 'rgba(var(--team-primary-rgb), 0.1)', borderRadius: '18px', border: '1px solid var(--team-primary)' }}>
-                        <Home size={32} color="var(--team-primary)" />
-                    </div>
-                </div>
-                <h1 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '6px', letterSpacing: '-1px', color: 'var(--text-main)' }}>
-                    OFFSEASON {currentYear}
-                </h1>
-                <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700 }}>
-                    Euro Management Center
-                </p>
-            </div>
+            <PageHeader
+                title={`Offseason ${currentYear}`}
+                subtitle="Euro Management Center"
+                teamColor={userTeam?.colors?.primary}
+            />
 
             <div style={{ display: 'grid', gap: '16px' }}>
                 {tasks.map((task, index) => {
@@ -189,7 +183,7 @@ export const EuroOffseasonMenuView: React.FC = () => {
                             onClick={() => handleTaskClick(task, index)}
                             style={{
                                 background: completed ? 'rgba(46, 204, 113, 0.05)' : (locked ? 'rgba(255,255,255,0.01)' : 'var(--bg-card)'),
-                                border: completed ? '1px solid #2ecc71' : (locked ? '1px solid rgba(255,255,255,0.05)' : '1px solid var(--border-color)'),
+                                border: completed ? '1px solid #2ecc71' : (locked ? '1px solid var(--bg-card-hover)' : '1px solid var(--border-color)'),
                                 borderRadius: '20px',
                                 padding: '20px 24px',
                                 cursor: locked ? 'not-allowed' : 'pointer',
@@ -260,7 +254,7 @@ export const EuroOffseasonMenuView: React.FC = () => {
                                     fontSize: '0.65rem',
                                     fontWeight: 900,
                                     color: 'var(--text-muted)',
-                                    background: 'rgba(255,255,255,0.05)',
+                                    background: 'var(--bg-card-hover)',
                                     padding: '2px 8px',
                                     borderRadius: '6px',
                                     textTransform: 'uppercase'

@@ -274,11 +274,20 @@ export const applyRealWorldTrades = (gameState: GameState): GameState => {
             return;
         }
 
+        // Normalize name function
+        const normalizeName = (name: string) => {
+            return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Strip accents
+                       .replace(/\s+(Jr\.|Sr\.|III|II|IV)\.?$/i, "") // Strip common suffixes
+                       .toLowerCase().trim();
+        };
+
+        const targetPlayerName = normalizeName(move.player);
+
         // Fuzzy match for player name
         const playerIndex = players.findIndex(p => {
-            const fullName = `${p.firstName} ${p.lastName}`;
+            const fullName = normalizeName(`${p.firstName} ${p.lastName}`);
             // Simple inclusion or exact match
-            return fullName.toLowerCase().includes(move.player.toLowerCase());
+            return fullName.includes(targetPlayerName) || targetPlayerName.includes(fullName);
         });
 
         if (playerIndex !== -1) {

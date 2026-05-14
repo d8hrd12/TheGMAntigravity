@@ -30,13 +30,13 @@ const SeasonCard = ({ season }: { season: SeasonAwards }) => {
     const [expanded, setExpanded] = useState(false);
 
     return (
-        <div className="glass-panel" style={{ padding: '15px', borderRadius: '12px' }}>
+        <div className="modern-card" style={{ padding: '15px', borderRadius: '12px' }}>
             <div
                 onClick={() => setExpanded(!expanded)}
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
             >
                 <div>
-                    <h3 style={{ margin: 0, color: 'var(--primary)', fontSize: '1.2rem' }}>{season.year} Season</h3>
+                    <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.2rem' }}>{season.year} Season</h3>
                     {season.champion && (
                         <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px', gap: '8px' }}>
                             <span style={{ fontSize: '1.2rem' }}>🏆</span>
@@ -50,7 +50,7 @@ const SeasonCard = ({ season }: { season: SeasonAwards }) => {
             </div>
 
             {expanded && (
-                <div style={{ marginTop: '15px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '15px' }}>
+                <div style={{ marginTop: '15px', borderTop: '1px solid var(--border-color)', paddingTop: '15px' }}>
                     <div style={{ display: 'grid', gap: '12px' }}>
                         <AwardRow title="Finals MVP" winner={season.finalsMvp} icon="🌟" />
                         <AwardRow title="League MVP" winner={season.mvp} icon="👑" />

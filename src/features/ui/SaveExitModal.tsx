@@ -70,12 +70,12 @@ export const SaveExitModal: React.FC<SaveExitModalProps> = ({ onClose, onSaveAnd
                                 color: 'var(--text)',
                                 transition: 'all 0.2s'
                             }}
-                            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
+                            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--text-main)'}
                             onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
                         >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                                 <div style={{
-                                    width: '30px', height: '30px', borderRadius: '50%', background: 'var(--primary)',
+                                    width: '30px', height: '30px', borderRadius: '50%', background: 'var(--text-main)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold'
                                 }}>
                                     {slot.id}

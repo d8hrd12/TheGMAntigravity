@@ -3,6 +3,7 @@ import { useGame } from '../../store/GameContext';
 import { getPotentialGrade, calculateOverall } from '../../utils/playerUtils';
 import { getFuzzyPotential, getFuzzyAttribute } from '../../utils/scoutingUtils';
 import { getPlayerTradeValue } from '../trade/TradeLogic';
+import { PageHeader } from './PageHeader';
 
 const ScoutingView: React.FC = () => {
     // Helper to check if a specific attribute should be visible
@@ -123,47 +124,15 @@ const ScoutingView: React.FC = () => {
 
     return (
         <div style={{ padding: '20px', margin: '0 auto', display: 'flex', flexDirection: 'column', color: '#333' }}>
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <div>
-                    <h1 style={{ margin: 0, color: 'white', fontSize: isMobile ? '1.5em' : '2em' }}>Scouting Phase</h1>
-                    <p style={{ margin: '5px 0', opacity: 0.8, color: '#ddd', fontSize: isMobile ? '0.8em' : '1em' }}>
-                        {isMobile ? '5% chance/pt to reveal Potential!' : 'Assign points to reveal prospect details. 5% chance per point to reveal Potential!'}
-                    </p>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                    <div style={{
-                        fontSize: isMobile ? '1.2em' : '1.5em',
-                        fontWeight: 'bold',
-                        color: '#ff6b00',
-                        background: 'rgba(255, 107, 0, 0.1)',
-                        padding: isMobile ? '5px 10px' : '10px 20px',
-                        borderRadius: '8px'
-                    }}>
-                        Pts: {userPoints}
-                    </div>
-                    {!isMobile && (
-                        <button
-                            onClick={endScoutingPhase}
-                            style={{
-                                marginTop: '10px',
-                                padding: '10px 20px',
-                                background: '#2ecc71',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '5px',
-                                fontSize: '1em',
-                                fontWeight: 'bold',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            Finish Scouting
-                        </button>
-                    )}
-                </div>
-            </header>
+            <PageHeader
+                title="Scouting Phase"
+                subtitle="Analyze draft prospects & potential"
+                onBack={endScoutingPhase}
+                backLabel="Finish"
+            />
 
             {/* User Picks & Filter Bar */}
-            <div style={{ marginBottom: '15px', padding: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '10px' }}>
+            <div style={{ marginBottom: '15px', padding: '10px', background: 'var(--border-color)', borderRadius: '8px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '10px' }}>
                 <div style={{ fontSize: '0.9em', color: '#eee' }}>
                     <span style={{ fontWeight: 'bold', marginRight: '5px' }}>Your Picks (Current Draft):</span>
                     {(() => {

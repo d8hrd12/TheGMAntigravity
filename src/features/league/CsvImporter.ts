@@ -278,9 +278,10 @@ export const importNbaPlayers = async (teams: Team[], existingPlayers: Player[])
             // So we KEEP existing roster and ADD new ones up to limit.
             // But we need to update the Team object's rosterIds list.
             const existingRoster = existingPlayers.filter(p => p.teamId === t.id).map(p => p.id);
+            const currentRosterIds = t.rosterIds || [];
             return {
                 ...t,
-                rosterIds: [...Array.from(new Set([...t.rosterIds, ...teamNewPlayers]))]
+                rosterIds: [...Array.from(new Set([...currentRosterIds, ...teamNewPlayers]))]
             };
         });
 

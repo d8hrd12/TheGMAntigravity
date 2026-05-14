@@ -97,7 +97,7 @@ export const PlayerLeagueListView: React.FC<{ onBack: () => void, onSelectPlayer
                         {record ? (
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <div>
-                                    <div style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--primary)' }}>{record.value}</div>
+                                    <div style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--text-main)' }}>{record.value}</div>
                                     <div style={{ fontWeight: 700, fontSize: '1rem' }}>{record.playerName}</div>
                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                                         {record.teamName} vs {record.opponentName}
@@ -136,38 +136,47 @@ export const PlayerLeagueListView: React.FC<{ onBack: () => void, onSelectPlayer
                     initialMode === 'stats' ? 'League Statistics Leaders' :
                     'League Players Records'
                 }
+                subtitle={
+                    initialMode === 'list' ? 'Comprehensive scouting & attributes' :
+                    initialMode === 'stats' ? 'Global performance ranking' :
+                    'Historical single-game legends'
+                }
                 onBack={onBack}
             >
                 {leagueType === 'EURO' && (
-                    <div style={{ 
-                        display: 'flex', 
-                        background: 'rgba(0,0,0,0.2)', 
-                        padding: '4px', 
-                        borderRadius: '10px',
-                        border: '1px solid var(--border-color)',
-                        marginLeft: '20px'
-                    }}>
-                        {(['EuroLeague', 'EuroCup'] as const).map(league => (
-                            <button
-                                key={league}
-                                onClick={() => setSelectedLeague(league)}
-                                style={{
-                                    padding: '6px 16px',
-                                    borderRadius: '7px',
-                                    border: 'none',
-                                    background: selectedLeague === league ? 'var(--team-primary)' : 'transparent',
-                                    color: selectedLeague === league ? '#fff' : 'var(--text-dim)',
-                                    fontSize: '0.75rem',
-                                    fontWeight: 800,
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.05em'
-                                }}
-                            >
-                                {league}
-                            </button>
-                        ))}
+                    <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: '16px' }}>
+                        <div style={{ 
+                            display: 'flex', 
+                            background: 'rgba(0,0,0,0.06)', 
+                            padding: '4px', 
+                            borderRadius: '12px',
+                            border: '1px solid var(--border-color)',
+                            width: 'fit-content'
+                        }}>
+                            {(['EuroLeague', 'EuroCup'] as const).map(league => (
+                                <button
+                                    key={league}
+                                    onClick={() => setSelectedLeague(league)}
+                                    style={{
+                                        padding: '8px 16px',
+                                        minWidth: '110px',
+                                        borderRadius: '8px',
+                                        border: 'none',
+                                        background: selectedLeague === league ? 'var(--team-primary)' : 'transparent',
+                                        color: selectedLeague === league ? '#fff' : 'var(--text-dim)',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 800,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.05em',
+                                        textAlign: 'center'
+                                    }}
+                                >
+                                    {league}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 )}
             </PageHeader>
@@ -265,7 +274,7 @@ export const PlayerLeagueListView: React.FC<{ onBack: () => void, onSelectPlayer
                                                 <>
                                                     <td style={{ padding: '10px 8px', textAlign: 'center' }}>
                                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                                            <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--primary)' }}>{getStarString(calculateStars(player.ovr, 80))}</span>
+                                                            <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-main)' }}>{getStarString(calculateStars(player.ovr, 80))}</span>
                                                         </div>
                                                     </td>
                                                     <td style={{ padding: '10px 8px', textAlign: 'center' }}>{player.position}</td>

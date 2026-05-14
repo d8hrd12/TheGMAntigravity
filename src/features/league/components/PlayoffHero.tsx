@@ -68,7 +68,7 @@ export const PlayoffHero: React.FC<PlayoffHeroProps> = ({ series, onSimGame, onP
                 {/* Header Badge */}
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
                     <span style={{
-                        background: 'var(--primary)',
+                        background: 'var(--text-main)',
                         color: 'white',
                         padding: '4px 12px',
                         borderRadius: '20px',
@@ -129,7 +129,7 @@ export const PlayoffHero: React.FC<PlayoffHeroProps> = ({ series, onSimGame, onP
                         gap: '8px',
                         marginBottom: '12px',
                         boxShadow: '0 4px 12px rgba(var(--primary-rgb), 0.4)',
-                        background: 'var(--primary)',
+                        background: 'var(--text-main)',
                         border: 'none',
                         color: 'white'
                     }}
@@ -143,7 +143,7 @@ export const PlayoffHero: React.FC<PlayoffHeroProps> = ({ series, onSimGame, onP
                     <button
                         onClick={onPlayGame}
                         style={{
-                            background: 'rgba(255, 255, 255, 0.05)',
+                            background: 'var(--bg-card-hover)',
                             border: '1px solid var(--border)',
                             color: 'var(--text)',
                             padding: '12px',
@@ -162,7 +162,7 @@ export const PlayoffHero: React.FC<PlayoffHeroProps> = ({ series, onSimGame, onP
                     <button
                         onClick={onViewRotation}
                         style={{
-                            background: 'rgba(255, 255, 255, 0.05)',
+                            background: 'var(--bg-card-hover)',
                             border: '1px solid var(--border)',
                             color: 'var(--text)',
                             padding: '12px',

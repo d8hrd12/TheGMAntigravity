@@ -20,7 +20,7 @@ interface LeaderEntry {
 }
 
 export const SeasonLeadersView: React.FC<SeasonLeadersViewProps> = ({ onBack, onSelectPlayer }) => {
-    const { players, teams, seasonGamesPlayed, leagueType } = useGame();
+    const { players, teams, seasonGamesPlayed, leagueType, userTeamId } = useGame();
     const [selectedLeague, setSelectedLeague] = React.useState<'EuroLeague' | 'EuroCup'>(leagueType === 'EURO' ? 'EuroLeague' : 'EuroLeague');
 
     // Filter teams and players for the current league
@@ -171,7 +171,9 @@ export const SeasonLeadersView: React.FC<SeasonLeadersViewProps> = ({ onBack, on
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', fontFamily: "'Inter', sans-serif" }}>
             <PageHeader
                 title="SEASON LEADERS"
+                subtitle="Individual Statistical Performances"
                 onBack={onBack}
+                teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
             >
                 {leagueType === 'EURO' && (
                     <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>

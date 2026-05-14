@@ -25,7 +25,7 @@ export const PulseFeed: React.FC<PulseFeedProps> = ({ posts, onSelectPlayer, onS
             <div style={{
                 padding: '12px 16px',
                 background: 'rgba(29, 66, 138, 0.9)', // NBA Blue-ish
-                borderBottom: '1px solid rgba(255,255,255,0.1)',
+                borderBottom: '1px solid var(--border-color)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
@@ -53,7 +53,7 @@ export const PulseFeed: React.FC<PulseFeedProps> = ({ posts, onSelectPlayer, onS
                             gap: '12px',
                             transition: 'background 0.2s',
                             cursor: 'default',
-                            borderBottom: '1px solid rgba(255,255,255,0.05)'
+                            borderBottom: '1px solid var(--bg-card-hover)'
                         }}>
                             {/* Avatar */}
                             <div style={{
@@ -83,7 +83,7 @@ export const PulseFeed: React.FC<PulseFeedProps> = ({ posts, onSelectPlayer, onS
                                             fontSize: '0.65rem',
                                             padding: '2px 6px',
                                             borderRadius: '10px',
-                                            background: 'rgba(255,255,255,0.1)',
+                                            background: 'var(--border-color)',
                                             color: 'var(--text-secondary)',
                                             marginLeft: 'auto',
                                             fontWeight: 600

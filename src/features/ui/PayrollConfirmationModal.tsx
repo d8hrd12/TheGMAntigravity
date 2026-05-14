@@ -106,7 +106,7 @@ export const PayrollConfirmationModal: React.FC<PayrollConfirmationModalProps> =
                         disabled={isDeficit}
                         style={{
                             padding: '12px 30px',
-                            background: isDeficit ? '#555' : 'var(--primary)',
+                            background: isDeficit ? '#555' : 'var(--text-main)',
                             border: 'none',
                             color: '#fff',
                             borderRadius: '8px',

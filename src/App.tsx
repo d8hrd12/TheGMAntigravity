@@ -3,6 +3,7 @@ import { formatDate } from './utils/dateUtils';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import type { Player } from './models/Player'; 
 import { LeagueView } from './features/league/LeagueView';
+import { LeagueTeamStats } from './features/league/LeagueTeamStats';
 import EuroPlayInView from './features/playoffs/EuroPlayInView';
 import { AwardsPopup } from './features/awards/AwardsPopup';
 import type { SeasonAwards } from './models/Awards';
@@ -312,6 +313,7 @@ function AppContent() {
       icon: <Globe size={20} />,
       items: [
         { id: 'standings', label: 'Standings' },
+        { id: 'league_team_stats', label: 'Team Stats' },
         { id: 'playoffs', label: 'Playoffs' },
         { id: 'league_history', label: 'History' },
         { id: 'transactions', label: 'Transactions' },
@@ -479,6 +481,13 @@ function AppContent() {
           onSelectPlayer={setSelectedPlayerId} 
           onSelectTeam={setSelectedTeamId} 
         />;
+      case 'league_team_stats':
+        return <LeagueTeamStats
+          teams={teams}
+          players={players}
+          onSelectTeam={setSelectedTeamId}
+          onBack={() => setView('dashboard')}
+        />;
       case 'league_history':
         return <LeagueHistoryView onBack={() => setView('dashboard')} />;
       case 'transactions':
@@ -636,28 +645,29 @@ function AppContent() {
       {/* SIDEBAR */}
       <div className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`} onClick={() => setIsSidebarOpen(false)} />
       <aside className={`sidebar ${isSidebarOpen ? 'expanded' : ''}`} style={{ paddingTop: '70px' }}>
-        <div style={{ marginBottom: '40px', padding: '0 12px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        <div style={{ marginBottom: '40px', padding: '0 16px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <h2 style={{ 
-            fontSize: '1.2rem', 
-            color: 'var(--text-main)', 
+            fontSize: '1.4rem', 
+            color: '#111111', 
             margin: 0, 
-            fontFamily: "'Orbitron', sans-serif",
-            fontWeight: 900,
-            letterSpacing: '-1px',
+            fontFamily: "'SF TransRobotics', sans-serif",
+            fontWeight: 800,
+            letterSpacing: '-0.04em',
             whiteSpace: 'nowrap',
-            lineHeight: 1
+            lineHeight: 1,
+            textAlign: 'left'
           }}>
-            THE GM <span style={{ color: '#FF5F1F' }}>2026™</span>
+            THE GM <span style={{ color: '#007aff' }}>2026</span>
           </h2>
           <span style={{ 
-            fontSize: '0.6rem', 
-            color: 'rgba(255,255,255,0.4)', 
+            fontSize: '0.65rem', 
+            color: '#8e8e93', 
             textTransform: 'uppercase', 
-            letterSpacing: '4px', 
-            fontWeight: 900,
-            paddingLeft: '2px'
+            letterSpacing: '2px', 
+            fontWeight: 700,
+            paddingLeft: '1px'
           }}>
-            v5.7.0
+            VERSION 5.7.0
           </span>
         </div>
 
@@ -734,12 +744,12 @@ function AppContent() {
             display: 'grid', 
             gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', 
             alignItems: 'center', 
-            padding: 'env(safe-area-inset-top, 4px) 12px 4px 12px', 
-            minHeight: '52px', 
-            gap: '8px',
-            background: 'linear-gradient(to bottom, rgba(var(--bg-body-rgb), 0.95), transparent)',
-            borderBottom: '1px solid var(--border-color)',
-            backdropFilter: 'blur(10px)',
+            padding: 'env(safe-area-inset-top, 4px) 16px 4px 16px', 
+            minHeight: '60px', 
+            gap: '12px',
+            background: 'rgba(255, 255, 255, 0.8)',
+            borderBottom: '1px solid #f0f0f0',
+            backdropFilter: 'blur(20px)',
             zIndex: 1100,
             position: 'sticky',
             top: 0
@@ -750,21 +760,22 @@ function AppContent() {
                 <button className="menu-trigger" 
                   onClick={() => { setIsSidebarOpen(true); setExpandedCategory(null); }}
                   style={{ 
-                    background: 'var(--bg-card)', 
-                    border: '1px solid var(--border-color)', 
-                    borderRadius: '8px', 
-                    padding: '8px', 
+                    background: '#ffffff', 
+                    border: '1px solid #eeeeee', 
+                    borderRadius: '50%', 
+                    width: '40px',
+                    height: '40px',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     transition: 'all 0.2s ease',
-                    boxShadow: 'var(--shadow-sm)'
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-card)'}
+                  onMouseEnter={(e) => e.currentTarget.style.background = '#f9f9f9'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = '#ffffff'}
                 >
-                  <Menu size={20} color="var(--text-main)" />
+                  <Menu size={20} color="#111111" />
                 </button>
               )}
             </div>
@@ -778,33 +789,29 @@ function AppContent() {
                     display: 'flex', 
                     alignItems: 'center', 
                     gap: '10px', 
-                    padding: '4px 12px', 
-                    background: 'var(--bg-card)', 
-                    borderRadius: '20px', 
-                    border: '1px solid var(--border-color)',
-                    boxShadow: 'var(--shadow-sm)',
+                    padding: '6px 14px', 
+                    background: '#ffffff', 
+                    borderRadius: '30px', 
+                    border: '1px solid #eeeeee',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
                     transition: 'all 0.2s ease',
                     cursor: 'pointer'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.background = 'var(--bg-card-hover)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.background = '#f9f9f9';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.background = 'var(--bg-card)';
+                    e.currentTarget.style.background = '#ffffff';
                   }}
                 >
                   <div style={{ 
-                    width: '28px', 
-                    height: '28px', 
-                    background: 'var(--bg-body)', 
-                    borderRadius: '50%', 
+                    width: '24px', 
+                    height: '24px', 
                     display: 'flex', 
                     alignItems: 'center', 
-                    justifyContent: 'center',
-                    padding: '3px',
-                    border: '1px solid var(--border-color)'
+                    justifyContent: 'center'
                   }}>
                     <img src={userTeam.logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                   </div>

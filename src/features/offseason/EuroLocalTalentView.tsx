@@ -6,6 +6,7 @@ import { calculateOverall } from '../../utils/playerUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Users, TrendingUp, BarChart2, Star, ChevronRight, ArrowLeft, Zap, Target, Flame, Info, CheckCircle2, AlertCircle } from 'lucide-react';
 import { StarRating } from '../../components/StarRating';
+import { PageHeader } from '../ui/PageHeader';
 
 interface Props {
     onBack?: () => void;
@@ -86,51 +87,37 @@ export const EuroLocalTalentView: React.FC<Props> = ({ onBack }) => {
 
     return (
         <div style={{ 
-            padding: '24px', 
-            maxWidth: '1200px', 
-            margin: '0 auto', 
-            color: 'var(--text-main)',
+            background: 'var(--bg-main)',
             minHeight: '100vh',
-            background: 'linear-gradient(180deg, var(--bg-body) 0%, rgba(var(--team-primary-rgb), 0.05) 100%)'
+            color: 'var(--text-main)'
         }}>
-            {/* Standardized Header Design */}
-            <div style={{ marginBottom: '40px' }}>
-                <h1 style={{ fontSize: '3.5rem', fontWeight: 900, margin: 0, textTransform: 'uppercase', color: '#1a2a3a', letterSpacing: '-2px', lineHeight: 1.1 }}>
-                    LOCAL<br/>ACADEMIES
-                </h1>
-                <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#8898a8', margin: '16px 0 32px 0', textTransform: 'uppercase', letterSpacing: '2px' }}>
-                    EURO DAY 1 • YOUTH SCOUTING
-                </h2>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: '20px', alignItems: 'stretch' }}>
-                    {/* Budget Section */}
-                    <div style={{ background: '#fff', padding: '16px 24px', borderRadius: '28px', border: '1px solid #eef2f6', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
-                        <div style={{ fontSize: '0.75rem', color: '#8898a8', fontWeight: 800, textTransform: 'uppercase', marginBottom: '2px', letterSpacing: '1px' }}>BUDGET</div>
-                        <div style={{ fontSize: '2.4rem', fontWeight: 900, color: '#2ecc71', lineHeight: 1.1 }}>€{((userTeam?.cash || 0) / 1000000).toFixed(1)}M</div>
+            <PageHeader
+                title="Local Academies"
+                subtitle="Euro Day 1 • Youth Scouting"
+                onBack={onBack || (() => setView('dashboard'))}
+                teamColor={userTeam?.colors?.primary}
+            >
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', alignItems: 'stretch' }}>
+                    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px 24px', borderRadius: '20px', border: '1px solid var(--bg-card-hover)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '2px', letterSpacing: '1px' }}>BUDGET</div>
+                        <div style={{ fontSize: '1.8rem', fontWeight: 900, color: '#2ecc71', lineHeight: 1.1 }}>€{((userTeam?.cash || 0) / 1000000).toFixed(1)}M</div>
                     </div>
                     
-                    {/* Finish Action */}
                     <button 
                         onClick={handleFinish}
                         style={{ 
-                            background: '#004a99', color: '#fff', border: 'none', borderRadius: '28px', 
-                            fontSize: '1.4rem', fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase',
-                            boxShadow: '0 12px 35px rgba(0, 74, 153, 0.3)', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 20px'
-                        }}
-                        onMouseEnter={e => {
-                            e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
-                            e.currentTarget.style.boxShadow = '0 15px 45px rgba(0, 74, 153, 0.4)';
-                        }}
-                        onMouseLeave={e => {
-                            e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                            e.currentTarget.style.boxShadow = '0 12px 35px rgba(0, 74, 153, 0.3)';
+                            background: 'var(--team-primary)', color: '#fff', border: 'none', borderRadius: '20px', 
+                            fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase',
+                            boxShadow: '0 8px 25px rgba(var(--team-primary-rgb), 0.25)', transition: 'all 0.3s ease',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center'
                         }}
                     >
                         FINISH
                     </button>
                 </div>
-            </div>
+            </PageHeader>
+
+            <div style={{ padding: '0 24px 40px' }}>
 
             {/* Filters */}
             <div style={{ display: 'flex', gap: '16px', marginBottom: '32px' }}>
@@ -342,6 +329,7 @@ export const EuroLocalTalentView: React.FC<Props> = ({ onBack }) => {
                     </div>
                 )}
             </AnimatePresence>
+            </div>
         </div>
     );
 };

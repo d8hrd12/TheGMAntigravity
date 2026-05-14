@@ -181,7 +181,7 @@ export const MainMenu: React.FC = () => {
                 right: 0,
                 height: '40px',
                 background: 'rgba(0,0,0,0.9)',
-                borderBottom: '1px solid rgba(255,255,255,0.05)',
+                borderBottom: '1px solid var(--bg-card-hover)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -222,16 +222,17 @@ export const MainMenu: React.FC = () => {
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    style={{ marginBottom: '60px' }}
+                    style={{ marginBottom: '40px' }}
                 >
                     <h1 style={{ 
-                        fontSize: 'clamp(3rem, 15vw, 6rem)', 
+                        fontSize: 'clamp(4.5rem, 22vw, 8rem)', 
                         fontWeight: 900, 
                         letterSpacing: '-2px', 
                         lineHeight: 0.85,
                         margin: 0,
                         textTransform: 'uppercase',
-                        fontFamily: "'Orbitron', sans-serif"
+                        fontFamily: "'SF TransRobotics', sans-serif",
+                        color: '#fff'
                     }}>
                         TheGm™<br/>
                         <span style={{ color: '#FF5F1F' }}>2026</span>

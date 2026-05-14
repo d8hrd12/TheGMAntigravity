@@ -14,40 +14,28 @@ interface DraftSummaryViewProps {
     onContinue: () => void;
 }
 
+import { PageHeader } from '../ui/PageHeader';
+
 export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlayer, onSelectTeam, onContinue }) => {
     const { draftOrder, draftClass, teams, userTeamId, draftResults, players } = useGame();
 
     return (
         <div style={{
-            padding: '20px',
             maxWidth: '900px',
             margin: '0 auto',
             display: 'flex',
             flexDirection: 'column',
-            fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+            fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+            minHeight: '100vh',
+            background: 'var(--bg-main)'
         }}>
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '25px',
-                padding: '0 10px'
-            }}>
-                <div>
-                    <h1 style={{
-                        margin: 0,
-                        fontSize: '2.2rem',
-                        fontWeight: 800,
-                        color: '#ffffff',
-                        letterSpacing: '-0.5px'
-                    }}>
-                        Draft Class {new Date().getFullYear()}
-                    </h1>
-                    <p style={{ margin: '5px 0 0 0', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-                        Draft Summary & Results
-                    </p>
-                </div>
-
+            <PageHeader 
+                title={`Draft Class ${new Date().getFullYear()}`}
+                subtitle="Draft Summary & Results"
+                onBack={onContinue}
+                backLabel="Continue"
+                teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
+            >
                 <button
                     onClick={onContinue}
                     className="btn-primary"
@@ -61,7 +49,7 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
                         gap: '6px',
                         boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
                         transition: 'transform 0.2s',
-                        background: 'var(--primary)',
+                        background: 'var(--text-main)',
                         border: 'none',
                         color: '#fff',
                         cursor: 'pointer'
@@ -69,7 +57,9 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
                 >
                     Offseason Menu <ArrowRight size={16} />
                 </button>
-            </div>
+            </PageHeader>
+
+            <div style={{ padding: '20px' }}>
 
             <div style={{
                 flex: 1,
@@ -81,7 +71,7 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
                         padding: '40px',
                         textAlign: 'center',
                         color: 'var(--text-secondary)',
-                        background: 'rgba(255,255,255,0.05)',
+                        background: 'var(--bg-card-hover)',
                         borderRadius: '16px',
                         backdropFilter: 'blur(10px)'
                     }}>
@@ -107,7 +97,7 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
                                         background: isUserPick ? 'linear-gradient(90deg, rgba(var(--primary-rgb), 0.15), rgba(var(--primary-rgb), 0.05))' : '#fff',
                                         borderRadius: '16px',
                                         padding: '10px 12px', // Reduced side padding slightly
-                                        border: isUserPick ? '1px solid var(--primary)' : '1px solid #f0f0f0',
+                                        border: isUserPick ? '1px solid var(--text-main)' : '1px solid #f0f0f0',
                                         boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
                                         transition: 'transform 0.2s',
                                         animation: 'fadeIn 0.3s ease-out',
@@ -125,7 +115,7 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
                                         <span style={{
                                             fontSize: '1.1rem',
                                             fontWeight: 700,
-                                            color: isUserPick ? 'var(--primary)' : '#333',
+                                            color: isUserPick ? 'var(--text-main)' : '#333',
                                             lineHeight: 1,
                                             fontFeatureSettings: '"tnum" on, "lnum" on'
                                         }}>
@@ -271,6 +261,7 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
                         })}
                     </div>
                 )}
+            </div>
             </div>
         </div>
     );

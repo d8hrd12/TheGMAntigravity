@@ -89,7 +89,7 @@ export const TradingBlock: React.FC<TradingBlockProps> = ({ onSelectPlayer }) =>
                         </div>
 
                         <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--text-main)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                 {playerTeam?.abbreviation} • {currentPlayer.position}
                             </div>
                             <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)' }}>
@@ -117,7 +117,7 @@ export const TradingBlock: React.FC<TradingBlockProps> = ({ onSelectPlayer }) =>
                     </button>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                         {blockPlayers.map((_, idx) => (
-                            <div key={idx} style={{ width: '5px', height: '5px', borderRadius: '50%', background: idx === currentIndex ? 'var(--primary)' : 'var(--border-color)', transition: 'background 0.3s' }} />
+                            <div key={idx} style={{ width: '5px', height: '5px', borderRadius: '50%', background: idx === currentIndex ? 'var(--text-main)' : 'var(--border-color)', transition: 'background 0.3s' }} />
                         ))}
                     </div>
                     <button 

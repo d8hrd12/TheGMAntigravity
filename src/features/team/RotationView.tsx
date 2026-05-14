@@ -147,9 +147,13 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
     const totalMinutes = roster.reduce((sum, p) => sum + (p.minutes || 0), 0);
 
     return (
-        <div style={{ width: '100%', margin: '0 auto', padding: '10px', fontFamily: "'Inter', sans-serif" }}>
-
-
+        <div style={{ width: '100%', margin: '0 auto', padding: '0', fontFamily: "'Inter', sans-serif" }}>
+            <PageHeader
+                title="Active Rotation"
+                subtitle="Manage minutes & playing time"
+                onBack={onBack}
+                teamColor={team.colors.primary}
+            />
             {/* Save Button */}
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
                 <button
@@ -171,7 +175,7 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
             </div>
 
             {/* Rotation Strategy Slider */}
-            <div className="glass-panel" style={{ marginBottom: '15px', padding: '15px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div className="modern-card" style={{ marginBottom: '15px', padding: '15px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ color: 'var(--text-main)', fontSize: '0.9rem', fontWeight: 'bold' }}>Rotation Depth</span>
                     <span style={{ color: 'var(--team-primary)', fontWeight: 'bold' }}>
@@ -205,7 +209,7 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
 
 
 
-            <div className="glass-panel" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', padding: '10px', fontSize: '0.85rem' }}>
+            <div className="modern-card" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', padding: '10px', fontSize: '0.85rem' }}>
                 <div>
                     <span style={{ color: 'var(--text-main)' }}>
                         {selectedPlayerId ? 'Tap another to swap' : 'Tap two to swap order.'}
@@ -216,9 +220,9 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                 </div>
             </div>
 
-            <div className="glass-panel" style={{ overflowX: 'auto' }}>
+            <div className="modern-card" style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                    <thead style={{ background: 'rgba(255,255,255,0.05)', borderBottom: '2px solid rgba(0,0,0,0.05)' }}>
+                    <thead style={{ background: 'var(--bg-card-hover)', borderBottom: '2px solid rgba(0,0,0,0.05)' }}>
                         <tr>
                             <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-muted)', width: '30px' }}>#</th>
                             <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-muted)' }}>Player</th>
@@ -295,12 +299,13 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                                         </td>
                                         <td style={{ padding: '8px', textAlign: 'center' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
-                                                <div
-                                                    onClick={(e) => { e.stopPropagation(); onSelectPlayer(player.id); }}
-                                                    style={{ fontWeight: 'bold', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                                >
+                                                <div style={{ fontWeight: 'bold', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                     {player.firstName.charAt(0)}. {player.lastName}
-                                                    <Info size={12} style={{ color: 'var(--team-primary)', flexShrink: 0 }} />
+                                                    <Info 
+                                                        size={14} 
+                                                        style={{ color: 'var(--team-primary)', flexShrink: 0, cursor: 'pointer', padding: '2px' }} 
+                                                        onClick={(e) => { e.stopPropagation(); onSelectPlayer(player.id); }}
+                                                    />
                                                 </div>
                                             </div>
                                             {isStarter && <span style={{ fontSize: '0.65rem', color: 'var(--team-primary)', fontWeight: 'bold' }}>START</span>}

@@ -28,9 +28,9 @@ export const CoachPreview: React.FC<CoachPreviewProps> = ({ coach }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    border: '2px solid var(--primary)'
+                    border: '2px solid var(--text-main)'
                 }}>
-                    <User size={24} color="var(--primary)" />
+                    <User size={24} color="var(--text-main)" />
                 </div>
                 <div>
                     <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{coach.firstName} {coach.lastName}</h3>

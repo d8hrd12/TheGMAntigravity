@@ -80,7 +80,13 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
             {/* Header */}
             <PageHeader
                 title="Financials"
+                subtitle={
+                    viewMode === 'my_team' ? "Organization health & payroll" :
+                    viewMode === 'league' ? "League-wide contract analysis" :
+                    "Merchandise & revenue streams"
+                }
                 onBack={onBack}
+                teamColor={team.colors.primary}
             />
 
             {/* Info Button and Tab Switcher */}

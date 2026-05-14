@@ -46,11 +46,12 @@ export const CompetitionSelectionView: React.FC<CompetitionSelectionViewProps> =
                     fontWeight: 950, 
                     letterSpacing: '-3px', 
                     marginBottom: '10px',
-                    textTransform: 'uppercase'
+                    textTransform: 'uppercase',
+                    color: '#ffffff'
                 }}>
-                    Select <span style={{ color: '#EAB308' }}>Competition</span>
+                    SELECT <span style={{ color: '#EAB308' }}>COMPETITION</span>
                 </h2>
-                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '1.1rem', fontWeight: 500 }}>
+                <p style={{ color: '#ffffff', fontSize: '1.1rem', fontWeight: 500 }}>
                     Determine your path to European glory.
                 </p>
             </motion.div>
@@ -96,7 +97,7 @@ export const CompetitionSelectionView: React.FC<CompetitionSelectionViewProps> =
                 style={{
                     marginTop: window.innerWidth < 768 ? '15px' : '40px',
                     background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    border: '1px solid var(--border-color)',
                     borderRadius: '15px',
                     padding: '12px 20px',
                     display: 'flex',
@@ -114,7 +115,7 @@ export const CompetitionSelectionView: React.FC<CompetitionSelectionViewProps> =
                     <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#FF3B30', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '2px' }}>
                         The Relegation Factor
                     </div>
-                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.3 }}>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#ffffff', lineHeight: 1.3 }}>
                         Unlike the NBA, performance matters at both ends of the table. Failing in the Domestic league can lead to relegation, 
                         while EuroCup finalists fight for promotion to the EuroLeague. Every game is a battle for survival.
                     </p>
@@ -128,7 +129,7 @@ export const CompetitionSelectionView: React.FC<CompetitionSelectionViewProps> =
                 style={{
                     marginTop: window.innerWidth < 768 ? '20px' : '40px',
                     background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    border: '1px solid var(--border-color)',
                     color: 'rgba(255,255,255,0.6)',
                     padding: '16px 40px',
                     borderRadius: '20px',
@@ -197,28 +198,28 @@ const CompetitionCard: React.FC<CompetitionCardProps> = ({ title, tagline, descr
                 {tagline}
             </div>
 
-            <h3 style={{ fontSize: 'clamp(1.2rem, 5vw, 2.5rem)', fontWeight: 950, margin: '0 0 10px 0', letterSpacing: '-1px', lineHeight: 1 }}>
+            <h3 style={{ fontSize: 'clamp(1.2rem, 5vw, 2.5rem)', fontWeight: 950, margin: '0 0 10px 0', letterSpacing: '-1px', lineHeight: 1, color: '#fff' }}>
                 {title}
             </h3>
 
             <div style={{ minHeight: '60px' }}> {/* Container to keep text start consistent */}
-                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 'clamp(0.7rem, 2.5vw, 1rem)', lineHeight: 1.4, margin: 0 }}>
+                <p style={{ color: '#ffffff', fontSize: 'clamp(0.7rem, 2.5vw, 1rem)', lineHeight: 1.4, margin: 0 }}>
                     {description}
                 </p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', marginTop: '20px', marginBottom: '30px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'clamp(0.65rem, 2vw, 0.85rem)', color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'clamp(0.65rem, 2vw, 0.85rem)', color: '#ffffff', fontWeight: 600 }}>
                     <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: color }} />
                     {feature}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'clamp(0.65rem, 2vw, 0.85rem)', color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'clamp(0.65rem, 2vw, 0.85rem)', color: '#ffffff', fontWeight: 600 }}>
                     <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: color }} />
                     {rule}
                 </div>
             </div>
 
-            <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '8px', color: color, fontWeight: 900, fontSize: 'clamp(0.6rem, 2.5vw, 0.85rem)', letterSpacing: '1px' }}>
+            <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '8px', color: '#fff', fontWeight: 900, fontSize: 'clamp(0.6rem, 2.5vw, 0.85rem)', letterSpacing: '1px' }}>
                 SELECT <ArrowRight size={14} />
             </div>
         </motion.div>

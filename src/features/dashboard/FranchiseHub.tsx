@@ -14,7 +14,7 @@ export const FranchiseHub: React.FC = () => {
     const marketVal = userTeam.marketSize || 'Medium';
 
     const getFanInterestLabel = (val: number) => {
-        if (val >= 1.5) return { text: "Sold Out", color: "var(--primary)" };
+        if (val >= 1.5) return { text: "Sold Out", color: "var(--text-main)" };
         if (val >= 1.2) return { text: "High", color: "#60a5fa" };
         if (val >= 0.8) return { text: "Stable", color: "#9ca3af" };
         return { text: "Weak", color: "#ef4444" };
@@ -57,7 +57,7 @@ export const FranchiseHub: React.FC = () => {
         }} className="no-scrollbar">
             <div style={{
                 padding: '16px 20px',
-                background: 'var(--primary)',
+                background: 'var(--text-main)',
                 color: 'black',
                 fontWeight: 900,
                 fontSize: '0.9rem',

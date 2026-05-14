@@ -4,7 +4,8 @@ import { useGame } from '../../store/GameContext';
 import { PlayoffHero } from './components/PlayoffHero';
 import { PlayoffMatchupCard } from './components/PlayoffMatchupCard';
 import { Trophy } from 'lucide-react';
-import { BackButton } from '../ui/BackButton';
+import { PageHeader } from '../ui/PageHeader';
+
 
 
 interface PlayoffViewProps {
@@ -60,20 +61,15 @@ export const PlayoffView: React.FC<PlayoffViewProps> = ({ onNavigate, onBack }) 
     const finalsSeries = currentRoundSeries.filter(s => s.conference === 'Finals');
 
     return (
-        <div style={{ padding: '0 20px 100px 20px', height: '100%', overflowY: 'auto' }}>
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', paddingTop: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    {onBack && <BackButton onClick={onBack} />}
-                    <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <Trophy size={28} color="var(--primary)" />
-                        Postseason
-                    </h2>
-                </div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>
-                    2025 Playoffs
-                </div>
-            </div>
+        <div style={{ height: '100%', overflowY: 'auto', paddingBottom: '100px' }}>
+            <PageHeader
+                title="Postseason"
+                subtitle={`${new Date().getFullYear()} Playoffs`}
+                onBack={onBack}
+                teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
+            />
+
+            <div style={{ padding: '0 20px' }}>
 
             {/* HERO SECTION: User's Series (Only show if active) */}
             {userSeries && (
@@ -112,20 +108,24 @@ export const PlayoffView: React.FC<PlayoffViewProps> = ({ onNavigate, onBack }) 
             )}
 
             {/* Round Navigation Tabs */}
-            <div style={{ display: 'flex', overflowX: 'auto', gap: '8px', marginBottom: '20px', paddingBottom: '4px', scrollbarWidth: 'none' }}>
+            <div style={{ display: 'flex', overflowX: 'auto', gap: '2px', marginBottom: '24px', padding: '4px', background: '#f2f2f7', borderRadius: '10px', scrollbarWidth: 'none' }}>
                 {tabs.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setSelectedRound(tab.id)}
                         style={{
-                            padding: '8px 14px',
-                            background: selectedRound === tab.id ? 'var(--primary)' : 'var(--surface)',
-                            color: selectedRound === tab.id ? 'white' : 'var(--text-secondary)',
-                            borderRadius: '20px',
+                            flex: 1,
+                            padding: '10px 14px',
+                            background: selectedRound === tab.id ? '#ffffff' : 'transparent',
+                            color: selectedRound === tab.id ? '#111111' : '#8e8e93',
+                            borderRadius: '8px',
                             whiteSpace: 'nowrap',
-                            border: selectedRound === tab.id ? 'none' : '1px solid var(--border)',
-                            fontWeight: selectedRound === tab.id ? 'bold' : 'normal',
-                            fontSize: '0.85rem'
+                            border: 'none',
+                            fontWeight: selectedRound === tab.id ? '700' : '500',
+                            fontSize: '0.8rem',
+                            boxShadow: selectedRound === tab.id ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
+                            transition: 'all 0.2s ease',
+                            cursor: 'pointer'
                         }}
                     >
                         {tab.label}
@@ -194,6 +194,7 @@ export const PlayoffView: React.FC<PlayoffViewProps> = ({ onNavigate, onBack }) 
 
             </div>
 
+            </div>
         </div>
     );
 };

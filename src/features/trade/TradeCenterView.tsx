@@ -83,135 +83,152 @@ export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
     };
 
     return (
-        <div style={{ minHeight: '100%', paddingBottom: '140px', background: 'var(--bg-main)' }}>
-            <div style={{ padding: '20px 20px 0 20px' }}>
+        <div style={{ minHeight: '100vh', background: '#ffffff', paddingBottom: '140px' }}>
+            <div style={{ padding: '0' }}>
                 <PageHeader
                     title={getTitle()}
+                    subtitle={
+                        activeTab === 'new' ? 'Propose player swaps & picks' :
+                        activeTab === 'block' ? 'Players available for trade' :
+                        activeTab === 'freeAgents' ? 'Sign mid-season talent' :
+                        activeTab === 'injuries' ? 'League health & recovery' :
+                        'Historical transaction logs'
+                    }
                     onBack={onBack}
+                    teamColor="#111111"
                 />
                 
-                {/* Top Toggle Bar */}
-                <div style={{
-                    display: 'flex',
-                    background: 'var(--bg-card)',
-                    padding: '6px',
-                    borderRadius: '12px',
-                    position: 'relative',
-                    border: '1px solid var(--border-color)',
-                    gap: '4px',
-                    flexWrap: 'wrap',
-                    margin: '16px auto',
-                    boxShadow: 'var(--shadow-sm)',
-                    justifyContent: 'center'
-                }}>
-                    {/* Trade Dropdown Group */}
-                    <div style={{ position: 'relative' }} ref={dropdownRef}>
-                        <button
-                            onClick={() => setShowTradeDropdown(!showTradeDropdown)}
-                            style={{
-                                padding: '8px 16px',
-                                background: (activeTab === 'new' || activeTab === 'block') ? 'var(--primary)' : 'transparent',
-                                border: 'none',
-                                borderRadius: '8px',
-                                color: (activeTab === 'new' || activeTab === 'block') ? '#ffffff' : 'var(--text-dim)',
-                                fontWeight: 700,
-                                fontSize: '0.85rem',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            Trade <ChevronDown size={14} />
-                        </button>
-
-                        {/* Dropdown Menu */}
-                        {showTradeDropdown && (
-                            <div style={{
-                                position: 'absolute',
-                                top: '120%',
-                                left: 0,
-                                minWidth: '180px',
-                                background: '#ffffff',
-                                border: '1px solid var(--border-color)',
-                                borderRadius: '12px',
-                                padding: '6px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '4px',
-                                boxShadow: 'var(--shadow-lg)',
-                                zIndex: 100
-                            }}>
-                                <button
-                                    onClick={() => { setActiveTab('new'); setShowTradeDropdown(false); }}
-                                    style={{
-                                        padding: '10px 14px',
-                                        textAlign: 'left',
-                                        background: activeTab === 'new' ? 'var(--bg-card-hover)' : 'transparent',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        color: 'var(--text-main)',
-                                        fontWeight: 600,
-                                        fontSize: '0.85rem',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    Propose Trade
-                                </button>
-                                <button
-                                    onClick={() => { setActiveTab('block'); setShowTradeDropdown(false); }}
-                                    style={{
-                                        padding: '10px 14px',
-                                        textAlign: 'left',
-                                        background: activeTab === 'block' ? 'var(--bg-card-hover)' : 'transparent',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        color: 'var(--text-main)',
-                                        fontWeight: 600,
-                                        fontSize: '0.85rem',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    Trading Block
-                                </button>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Standard Tabs */}
-                    {['freeAgents', 'injuries', 'log'].map((tab) => {
-                        const isActive = activeTab === tab;
-                        const labels: Record<string, string> = {
-                            'freeAgents': 'Free Agents',
-                            'injuries': 'Injuries',
-                            'log': 'History'
-                        };
-                        return (
+                <div style={{ padding: '0 24px' }}>
+                    <div style={{
+                        display: 'flex',
+                        background: '#f2f2f7',
+                        padding: '6px',
+                        borderRadius: '100px',
+                        position: 'relative',
+                        gap: '4px',
+                        width: 'fit-content',
+                        margin: '24px auto',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+                        justifyContent: 'center',
+                        zIndex: 100
+                    }}>
+                        {/* Trade Dropdown Group */}
+                        <div style={{ position: 'relative' }} ref={dropdownRef}>
                             <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab as any)}
+                                onClick={() => setShowTradeDropdown(!showTradeDropdown)}
                                 style={{
-                                    padding: '8px 16px',
-                                    background: isActive ? 'var(--primary)' : 'transparent',
+                                    padding: '10px 20px',
+                                    background: (activeTab === 'new' || activeTab === 'block') ? '#111111' : 'transparent',
                                     border: 'none',
-                                    borderRadius: '8px',
-                                    color: isActive ? '#ffffff' : 'var(--text-dim)',
-                                    fontWeight: 700,
+                                    borderRadius: '100px',
+                                    color: (activeTab === 'new' || activeTab === 'block') ? '#ffffff' : '#8e8e93',
+                                    fontWeight: 800,
                                     fontSize: '0.85rem',
                                     cursor: 'pointer',
-                                    transition: 'all 0.2s'
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
                                 }}
                             >
-                                {labels[tab]}
+                                Trade <ChevronDown size={14} />
                             </button>
-                        );
-                    })}
+
+                            {/* Dropdown Menu */}
+                            {showTradeDropdown && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '125%',
+                                    left: '50%',
+                                    transform: 'translateX(-50%)',
+                                    minWidth: '200px',
+                                    background: '#ffffff',
+                                    border: '1px solid #eeeeee',
+                                    borderRadius: '24px',
+                                    padding: '8px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '4px',
+                                    boxShadow: '0 15px 35px rgba(0,0,0,0.1)',
+                                    zIndex: 200,
+                                    animation: 'fadeInUp 0.2s ease-out'
+                                }}>
+                                    <button
+                                        onClick={() => { setActiveTab('new'); setShowTradeDropdown(false); }}
+                                        style={{
+                                            padding: '12px 16px',
+                                            textAlign: 'left',
+                                            background: activeTab === 'new' ? '#f2f2f7' : 'transparent',
+                                            border: 'none',
+                                            borderRadius: '16px',
+                                            color: '#111111',
+                                            fontWeight: 700,
+                                            fontSize: '0.9rem',
+                                            cursor: 'pointer',
+                                            transition: 'background 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = '#f2f2f7'}
+                                        onMouseLeave={(e) => activeTab !== 'new' && (e.currentTarget.style.background = 'transparent')}
+                                    >
+                                        Propose Trade
+                                    </button>
+                                    <button
+                                        onClick={() => { setActiveTab('block'); setShowTradeDropdown(false); }}
+                                        style={{
+                                            padding: '12px 16px',
+                                            textAlign: 'left',
+                                            background: activeTab === 'block' ? '#f2f2f7' : 'transparent',
+                                            border: 'none',
+                                            borderRadius: '16px',
+                                            color: '#111111',
+                                            fontWeight: 700,
+                                            fontSize: '0.9rem',
+                                            cursor: 'pointer',
+                                            transition: 'background 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = '#f2f2f7'}
+                                        onMouseLeave={(e) => activeTab !== 'block' && (e.currentTarget.style.background = 'transparent')}
+                                    >
+                                        Trading Block
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Standard Tabs */}
+                        {['freeAgents', 'injuries', 'log'].map((tab) => {
+                            const isActive = activeTab === tab;
+                            const labels: Record<string, string> = {
+                                'freeAgents': 'Free Agency',
+                                'injuries': 'Injuries',
+                                'log': 'History'
+                            };
+                            return (
+                                <button
+                                    key={tab}
+                                    onClick={() => setActiveTab(tab as any)}
+                                    style={{
+                                        padding: '10px 20px',
+                                        background: isActive ? '#111111' : 'transparent',
+                                        border: 'none',
+                                        borderRadius: '100px',
+                                        color: isActive ? '#ffffff' : '#8e8e93',
+                                        fontWeight: 800,
+                                        fontSize: '0.85rem',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                                    }}
+                                >
+                                    {labels[tab]}
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
 
             {/* Content Area */}
-            <div style={{ width: '100%', color: 'var(--text-main)' }}>
+            <div style={{ width: '100%', color: '#111111' }}>
                 {activeTab === 'new' && (
                     <TradeView
                         userTeam={userTeam}
@@ -274,6 +291,6 @@ export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
                     />
                 )}
             </div>
-        </div >
+        </div>
     );
 };

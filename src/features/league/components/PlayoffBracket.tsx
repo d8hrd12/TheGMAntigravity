@@ -41,20 +41,20 @@ export const PlayoffBracket: React.FC<PlayoffBracketProps> = ({ seriesList, curr
             <div style={{
                 marginBottom: '12px',
                 background: isUserSeries ? 'rgba(var(--primary-rgb), 0.1)' : 'var(--surface)',
-                border: isUserSeries ? '1px solid var(--primary)' : '1px solid var(--border)',
+                border: isUserSeries ? '1px solid var(--text-main)' : '1px solid var(--border)',
                 borderRadius: '8px',
                 padding: '8px',
                 fontSize: '0.8rem',
                 minWidth: '100px'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', opacity: awayWinner ? 0.5 : 1, fontWeight: homeWinner ? 'bold' : 'normal' }}>
-                    <span style={{ color: homeIsUser ? 'var(--primary)' : 'var(--text)' }}>
+                    <span style={{ color: homeIsUser ? 'var(--text-main)' : 'var(--text)' }}>
                         {getTeamAbbr(series.homeTeamId)}
                     </span>
                     <span>{series.homeWins}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', opacity: homeWinner ? 0.5 : 1, fontWeight: awayWinner ? 'bold' : 'normal' }}>
-                    <span style={{ color: awayIsUser ? 'var(--primary)' : 'var(--text)' }}>
+                    <span style={{ color: awayIsUser ? 'var(--text-main)' : 'var(--text)' }}>
                         {getTeamAbbr(series.awayTeamId)}
                     </span>
                     <span>{series.awayWins}</span>

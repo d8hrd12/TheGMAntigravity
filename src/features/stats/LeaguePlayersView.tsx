@@ -17,7 +17,11 @@ const ATTRIBUTE_KEYS: (keyof PlayerAttributes)[] = [
     'playmaking', 'ballHandling', 'basketballIQ'
 ];
 
+import { PageHeader } from '../ui/PageHeader';
+import { useGame } from '../../store/GameContext';
+
 export const LeaguePlayersView: React.FC<LeaguePlayersViewProps> = ({ players, teams, onBack }) => {
+    const { userTeamId } = useGame();
     const [selectedTeamId, setSelectedTeamId] = useState<string>('all');
 
     const filteredPlayers = selectedTeamId === 'all'
@@ -49,13 +53,15 @@ export const LeaguePlayersView: React.FC<LeaguePlayersViewProps> = ({ players, t
     };
 
     return (
-        <div className="glass-panel" style={{ minHeight: '100vh', padding: '20px', display: 'flex', flexDirection: 'column' }}>
-            <header style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2>League Player Stats</h2>
-                <button onClick={onBack} style={{ padding: '8px 16px', background: '#eee', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                    Back to Dashboard
-                </button>
-            </header>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '0', background: 'var(--bg-main)' }}>
+            <PageHeader 
+                title="League Player Stats"
+                subtitle="Detailed attribute breakdown"
+                onBack={onBack}
+                teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
+            />
+            
+            <div style={{ padding: '20px', flex: 1, overflowY: 'auto' }}>
 
             <div style={{ marginBottom: '20px' }}>
                 <label style={{ marginRight: '10px', fontWeight: 'bold', color: 'var(--text)' }}>Filter by Team:</label>
@@ -112,6 +118,7 @@ export const LeaguePlayersView: React.FC<LeaguePlayersViewProps> = ({ players, t
                     </tbody>
                 </table>
                 {sortedPlayers.length > 100 && <div style={{ padding: '10px', textAlign: 'center', fontStyle: 'italic', color: '#888' }}>... and {sortedPlayers.length - 100} more</div>}
+            </div>
             </div>
         </div>
     );

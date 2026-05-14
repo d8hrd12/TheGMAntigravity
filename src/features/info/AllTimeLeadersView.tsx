@@ -10,7 +10,7 @@ interface AllTimeLeadersViewProps {
 }
 
 export const AllTimeLeadersView: React.FC<AllTimeLeadersViewProps> = ({ onBack, mode, teamId }) => {
-    const { leagueAllTimeLeaders, teamAllTimeLeaders, teams } = useGame();
+    const { leagueAllTimeLeaders, teamAllTimeLeaders, teams, userTeamId } = useGame();
     const [category, setCategory] = useState<string>('Points');
 
     const categories = ['Points', 'Rebounds', 'Assists', 'Steals', 'Blocks', 'Threes'];
@@ -31,8 +31,10 @@ export const AllTimeLeadersView: React.FC<AllTimeLeadersViewProps> = ({ onBack, 
         <div className="animate-fade" style={{ padding: '20px', height: '100%', display: 'flex', flexDirection: 'column', maxWidth: '500px', margin: '0 auto' }}>
             {/* Header */}
             <PageHeader
-                title={mode === 'league' ? 'NBA All-Time Leaders' : `${team?.name} All-Time Leaders`}
+                title={mode === 'league' ? 'League All-Time Leaders' : `${team?.name} All-Time Leaders`}
+                subtitle="Historical Career Totals"
                 onBack={onBack}
+                teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
             />
 
             {/* Category Selector */}
@@ -45,7 +47,7 @@ export const AllTimeLeadersView: React.FC<AllTimeLeadersViewProps> = ({ onBack, 
                             padding: '8px 16px',
                             borderRadius: '10px',
                             border: '1px solid var(--border-color)',
-                            background: category === cat ? 'var(--primary)' : 'var(--bg-card)',
+                            background: category === cat ? 'var(--text-main)' : 'var(--bg-card)',
                             color: category === cat ? '#fff' : 'var(--text-main)',
                             fontSize: '0.8rem',
                             fontWeight: 700,
@@ -91,7 +93,7 @@ export const AllTimeLeadersView: React.FC<AllTimeLeadersViewProps> = ({ onBack, 
                                             </div>
                                         )}
                                     </td>
-                                    <td style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--primary)' }}>
+                                    <td style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text-main)' }}>
                                         {rec.total.toLocaleString()}
                                     </td>
                                 </tr>

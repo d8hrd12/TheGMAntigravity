@@ -101,13 +101,13 @@ export function SaveLoadView({ mode, onClose }: SaveLoadViewProps) {
                                 transition: 'all 0.2s',
                                 opacity: isLoading ? 0.6 : 1
                             }}
-                            onMouseEnter={e => !isLoading && (e.currentTarget.style.borderColor = 'var(--primary)')}
+                            onMouseEnter={e => !isLoading && (e.currentTarget.style.borderColor = 'var(--text-main)')}
                             onMouseLeave={e => !isLoading && (e.currentTarget.style.borderColor = 'var(--border-color)')}
                         >
                             <div style={{ textAlign: 'left', display: 'flex', gap: '15px', alignItems: 'center' }}>
                                 <div style={{
                                     width: '30px', height: '30px', borderRadius: '50%',
-                                    background: slots[id] ? 'var(--primary)' : 'var(--border-color)',
+                                    background: slots[id] ? 'var(--text-main)' : 'var(--border-color)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold',
                                     color: '#fff'
                                 }}>

@@ -52,7 +52,7 @@ export const TeamNeeds: React.FC = () => {
                 type: 'skill',
                 label: 'Need Defensive Anchor',
                 icon: Shield,
-                color: 'var(--primary)',
+                color: 'var(--text-main)',
                 desc: 'Opponents score too easily.'
             });
         }
@@ -96,7 +96,7 @@ export const TeamNeeds: React.FC = () => {
                     const Icon = need.icon;
                     return (
                         <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg-card-hover)', padding: '12px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                            <div style={{ background: `rgba(255, 255, 255, 0.05)`, padding: '8px', borderRadius: '8px', color: need.color }}>
+                            <div style={{ background: `var(--bg-card-hover)`, padding: '8px', borderRadius: '8px', color: need.color }}>
                                 <Icon size={16} />
                             </div>
                             <div>

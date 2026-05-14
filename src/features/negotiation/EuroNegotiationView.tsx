@@ -78,7 +78,7 @@ export const EuroNegotiationView: React.FC<EuroNegotiationViewProps> = ({ player
         >
             <button 
                 onClick={onCancel}
-                style={{ position: 'absolute', top: '24px', right: '24px', background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dim)', cursor: 'pointer' }}
+                style={{ position: 'absolute', top: '24px', right: '24px', background: 'var(--bg-card-hover)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dim)', cursor: 'pointer' }}
             >
                 <X size={20} />
             </button>
@@ -193,7 +193,7 @@ export const EuroNegotiationView: React.FC<EuroNegotiationViewProps> = ({ player
                             marginTop: '24px',
                             padding: '16px',
                             borderRadius: '16px',
-                            background: lastDecision === 'ACCEPTED' ? 'rgba(46, 204, 113, 0.1)' : lastDecision === 'INSULTED' ? 'rgba(231, 76, 60, 0.1)' : 'rgba(255,255,255,0.05)',
+                            background: lastDecision === 'ACCEPTED' ? 'rgba(46, 204, 113, 0.1)' : lastDecision === 'INSULTED' ? 'rgba(231, 76, 60, 0.1)' : 'var(--bg-card-hover)',
                             border: `1px solid ${lastDecision === 'ACCEPTED' ? '#2ecc71' : lastDecision === 'INSULTED' ? '#e74c3c' : 'var(--border-color)'}`,
                             color: lastDecision === 'ACCEPTED' ? '#2ecc71' : lastDecision === 'INSULTED' ? '#e74c3c' : 'var(--text-main)',
                             fontSize: '0.85rem',

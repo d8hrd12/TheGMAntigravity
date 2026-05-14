@@ -8,6 +8,7 @@ import { BackButton } from '../ui/BackButton';
 import { TeamSelect } from '../ui/TeamSelect';
 import { PageHeader } from '../ui/PageHeader';
 import { useGame } from '../../store/GameContext';
+import { Info } from 'lucide-react';
 
 interface TeamStatsViewProps {
     players: Player[];
@@ -112,7 +113,9 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
         <div style={{ minHeight: '100vh', paddingBottom: '80px', background: 'var(--bg-main)', width: '100%' }}>
             <PageHeader
                 title={activeTab === 'roster' ? "Team Roster & Stats" : "League Team Rankings"}
+                subtitle={activeTab === 'roster' ? "Full depth chart & performance" : "League-wide statistical comparison"}
                 onBack={onBack!}
+                teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
             />
 
             {/* Tab Switcher */}
@@ -120,14 +123,14 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                 <button 
                     onClick={() => setActiveTab('roster')}
                     className="btn-modern"
-                    style={{ flex: 1, background: activeTab === 'roster' ? 'var(--primary)' : 'var(--bg-card)', color: activeTab === 'roster' ? '#fff' : 'var(--text-main)' }}
+                    style={{ flex: 1, background: activeTab === 'roster' ? 'var(--text-main)' : 'var(--bg-card)', color: activeTab === 'roster' ? '#fff' : 'var(--text-main)' }}
                 >
                     Team Roster
                 </button>
                 <button 
                     onClick={() => setActiveTab('league')}
                     className="btn-modern"
-                    style={{ flex: 1, background: activeTab === 'league' ? 'var(--primary)' : 'var(--bg-card)', color: activeTab === 'league' ? '#fff' : 'var(--text-main)' }}
+                    style={{ flex: 1, background: activeTab === 'league' ? 'var(--text-main)' : 'var(--bg-card)', color: activeTab === 'league' ? '#fff' : 'var(--text-main)' }}
                 >
                     League Stats
                 </button>
@@ -167,7 +170,7 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                 background: 'rgba(255,255,255,0.03)',
                 padding: '12px',
                 borderRadius: '12px',
-                border: '1px solid rgba(255,255,255,0.1)',
+                border: '1px solid var(--border-color)',
                 alignItems: 'center'
             }}>
                 <div style={{ flex: 1 }}>
@@ -193,8 +196,8 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                             if (team?.gmId && onShowGm) onShowGm(team.gmId);
                         }}
                         style={{
-                            background: 'rgba(255,255,255,0.1)',
-                            border: '1px solid rgba(255,255,255,0.1)',
+                            background: 'var(--border-color)',
+                            border: '1px solid var(--border-color)',
                             color: 'white',
                             padding: '6px 12px',
                             borderRadius: '8px',
@@ -230,7 +233,7 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                             onClick={() => setVisibleStat(opt.key as any)}
                             style={{
                                 padding: '6px 12px',
-                                background: isActive ? (opt.key === 'all' ? 'var(--primary)' : opt.color) : 'transparent',
+                                background: isActive ? (opt.key === 'all' ? 'var(--text-main)' : opt.color) : 'transparent',
                                 color: isActive ? '#fff' : 'var(--text-muted)',
                                 border: 'none',
                                 borderRadius: '8px',
@@ -304,7 +307,6 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                                     className="list-row-hover"
                                     onClick={() => {
                                         setHighlightedRow(isHighlighted ? null : p.id);
-                                        onSelectPlayer(p.id);
                                     }}
                                 >
                                     <td className="sticky-col" style={{
@@ -316,7 +318,14 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                                         textAlign: 'center',
                                         transition: 'background 0.15s'
                                     }}>
-                                        {p.firstName} {p.lastName}
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                                            {p.firstName} {p.lastName}
+                                            <Info 
+                                                size={14} 
+                                                style={{ color: 'var(--team-primary)', flexShrink: 0, cursor: 'pointer' }} 
+                                                onClick={(e) => { e.stopPropagation(); onSelectPlayer(p.id); }}
+                                            />
+                                        </div>
                                     </td>
                                     <td style={{ padding: '12px 10px', color: 'var(--text-muted)', textAlign: 'center' }}>{p.position}</td>
                                     <td style={{ padding: '10px', textAlign: 'center', color: 'var(--text-muted)' }}>{p.age}</td>
@@ -345,7 +354,7 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                                     {visibleStat === 'all' && <td style={{ padding: '12px 10px', textAlign: 'center', color: 'var(--text-muted)' }}>{fgPct}%</td>}
                                     {visibleStat === 'all' && <td style={{ padding: '12px 10px', textAlign: 'center', color: 'var(--text-muted)' }}>{threePct}%</td>}
                                     {visibleStat === 'all' && <td style={{ padding: '12px 10px', textAlign: 'center', color: 'var(--text-muted)' }}>{ftPct}%</td>}
-                                    {(visibleStat === 'all' || visibleStat === 'ewa') && <td style={{ padding: '12px 10px', color: 'var(--primary)', textAlign: 'center', fontWeight: 'bold' }}>{calculateEWA(p)}</td>}
+                                    {(visibleStat === 'all' || visibleStat === 'ewa') && <td style={{ padding: '12px 10px', color: 'var(--text-main)', textAlign: 'center', fontWeight: 'bold' }}>{calculateEWA(p)}</td>}
                                 </tr>
                             );
                         })}
@@ -391,7 +400,7 @@ export const TeamStatsView: React.FC<TeamStatsViewProps> = ({ players, teams, us
                                             {t.abbreviation} {t.name}
                                         </td>
                                         <td style={{ fontWeight: 700 }}>{t.wins}-{t.losses}</td>
-                                        <td style={{ fontWeight: 700, color: 'var(--primary)' }}>{ppg.toFixed(1)}</td>
+                                        <td style={{ fontWeight: 700, color: 'var(--text-main)' }}>{ppg.toFixed(1)}</td>
                                         <td>-</td> {/* We'd need game results to calculate OPP PPG properly, showing dash for now */}
                                         <td>{rpg.toFixed(1)}</td>
                                         <td>{apg.toFixed(1)}</td>

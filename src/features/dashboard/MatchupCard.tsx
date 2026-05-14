@@ -55,7 +55,7 @@ export const MatchupCard: React.FC = () => {
         return won ? 'W' : 'L';
     }).reverse();
 
-    const primaryColor = userTeam.colors?.primary || 'var(--primary)';
+    const primaryColor = userTeam.colors?.primary || 'var(--text-main)';
 
     return (
         <DashboardCard

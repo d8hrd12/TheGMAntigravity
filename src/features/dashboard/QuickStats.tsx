@@ -44,7 +44,7 @@ export const QuickStats: React.FC = () => {
 }
 
 const StatBox = ({ icon, label, value, color }: any) => (
-    <div className="glass-panel" style={{
+    <div className="modern-card" style={{
         padding: '12px 8px',
         display: 'flex',
         flexDirection: 'column',

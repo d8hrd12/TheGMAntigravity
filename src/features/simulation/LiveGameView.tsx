@@ -209,7 +209,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
             </div>
 
             {/* Scoreboard */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '15px 10px', borderRadius: '12px', marginBottom: '20px', borderBottom: '4px solid var(--primary)', gap: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '15px 10px', borderRadius: '12px', marginBottom: '20px', borderBottom: '4px solid var(--text-main)', gap: '10px' }}>
                 <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
                         {gameState.homeTeam.logo && <img src={gameState.homeTeam.logo} alt="" style={{ width: 'clamp(20px, 8vw, 40px)', height: 'clamp(20px, 8vw, 40px)', objectFit: 'contain' }} />}
@@ -245,7 +245,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
                                     }
                                 }}
                                 style={{
-                                    background: gameState.gameSpeed === s ? 'var(--primary)' : 'var(--surface-light)',
+                                    background: gameState.gameSpeed === s ? 'var(--text-main)' : 'var(--surface-light)',
                                     color: gameState.gameSpeed === s ? 'white' : 'var(--text-secondary)',
                                     border: '1px solid var(--border)',
                                     borderRadius: '8px',
@@ -371,7 +371,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
                                             fontSize: '0.8rem',
                                             padding: '6px 12px',
                                             cursor: 'pointer',
-                                            background: 'var(--primary)',
+                                            background: 'var(--text-main)',
                                             color: 'white',
                                             border: 'none',
                                             borderRadius: '6px',
@@ -422,7 +422,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
                             const fatigueColor = fatigue > 80 ? '#2ecc71' : fatigue > 60 ? '#f1c40f' : '#e74c3c';
 
                             return (
-                                <div key={p.id} style={{ display: 'flex', flexDirection: 'column', padding: '8px 5px', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem' }}>
+                                <div key={p.id} style={{ display: 'flex', flexDirection: 'column', padding: '8px 5px', borderBottom: '1px solid var(--bg-card-hover)', fontSize: '0.9rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center' }}>
                                         <span style={{ flex: 1, fontWeight: 'bold' }}>{p.lastName} <small style={{ fontWeight: 'normal', color: '#aaa' }}>{p.position}</small></span>
                                         <span style={{ width: '30px', textAlign: 'center' }}>{stats.points || 0}</span>
@@ -430,7 +430,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
                                         <span style={{ width: '30px', textAlign: 'center' }}>{stats.assists || 0}</span>
                                     </div>
                                     {/* Stamina Bar */}
-                                    <div style={{ width: '100%', height: '3px', background: 'rgba(255,255,255,0.1)', marginTop: '4px', borderRadius: '2px', overflow: 'hidden' }}>
+                                    <div style={{ width: '100%', height: '3px', background: 'var(--border-color)', marginTop: '4px', borderRadius: '2px', overflow: 'hidden' }}>
                                         <div style={{ width: `${fatigue}%`, height: '100%', background: fatigueColor, transition: 'width 0.5s' }} />
                                     </div>
                                 </div>
@@ -467,7 +467,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
                                             fontSize: '0.8rem',
                                             padding: '6px 12px',
                                             cursor: 'pointer',
-                                            background: 'var(--primary)',
+                                            background: 'var(--text-main)',
                                             color: 'white',
                                             border: 'none',
                                             borderRadius: '6px',
@@ -518,7 +518,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
                             const fatigueColor = fatigue > 80 ? '#2ecc71' : fatigue > 60 ? '#f1c40f' : '#e74c3c';
 
                             return (
-                                <div key={p.id} style={{ display: 'flex', flexDirection: 'column', padding: '8px 5px', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem' }}>
+                                <div key={p.id} style={{ display: 'flex', flexDirection: 'column', padding: '8px 5px', borderBottom: '1px solid var(--bg-card-hover)', fontSize: '0.9rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center' }}>
                                         <span style={{ flex: 1, fontWeight: 'bold' }}>{p.lastName} <small style={{ fontWeight: 'normal', color: '#aaa' }}>{p.position}</small></span>
                                         <span style={{ width: '30px', textAlign: 'center' }}>{stats.points || 0}</span>
@@ -526,7 +526,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
                                         <span style={{ width: '30px', textAlign: 'center' }}>{stats.assists || 0}</span>
                                     </div>
                                     {/* Stamina Bar */}
-                                    <div style={{ width: '100%', height: '3px', background: 'rgba(255,255,255,0.1)', marginTop: '4px', borderRadius: '2px', overflow: 'hidden' }}>
+                                    <div style={{ width: '100%', height: '3px', background: 'var(--border-color)', marginTop: '4px', borderRadius: '2px', overflow: 'hidden' }}>
                                         <div style={{ width: `${fatigue}%`, height: '100%', background: fatigueColor, transition: 'width 0.5s' }} />
                                     </div>
                                 </div>
@@ -698,7 +698,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
                             <div>
                                 <h4 style={{ borderBottom: '1px solid var(--border)', paddingBottom: '5px' }}>On Court (Strategy & Sub Out)</h4>
                                 {(showSubs === 'HOME' ? gameState.homeLineup : gameState.awayLineup).map(p => (
-                                    <div key={p.id} style={{ padding: '10px', border: selectedBench ? '2px dashed var(--primary)' : '1px solid var(--border)', marginBottom: '8px', borderRadius: '8px', background: 'var(--surface-light)', cursor: selectedBench ? 'pointer' : 'default' }}
+                                    <div key={p.id} style={{ padding: '10px', border: selectedBench ? '2px dashed var(--text-main)' : '1px solid var(--border)', marginBottom: '8px', borderRadius: '8px', background: 'var(--surface-light)', cursor: selectedBench ? 'pointer' : 'default' }}
                                         onClick={() => {
                                             if (selectedBench) {
                                                 handleSub(showSubs === 'HOME' ? gameState.homeTeam.id : gameState.awayTeam.id, selectedBench, p.id);
@@ -719,7 +719,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
                             <div>
                                 <h4 style={{ borderBottom: '1px solid var(--border)', paddingBottom: '5px' }}>Bench (Click to Sub In)</h4>
                                 {(showSubs === 'HOME' ? gameState.homeBench : gameState.awayBench).map(p => (
-                                    <div key={p.id} style={{ padding: '10px', border: selectedBench === p.id ? '2px solid var(--primary)' : '1px solid var(--border)', marginBottom: '8px', borderRadius: '8px', opacity: 0.8, cursor: 'pointer', background: selectedBench === p.id ? 'rgba(52, 152, 219, 0.1)' : 'transparent' }}
+                                    <div key={p.id} style={{ padding: '10px', border: selectedBench === p.id ? '2px solid var(--text-main)' : '1px solid var(--border)', marginBottom: '8px', borderRadius: '8px', opacity: 0.8, cursor: 'pointer', background: selectedBench === p.id ? 'rgba(52, 152, 219, 0.1)' : 'transparent' }}
                                         onClick={() => setSelectedBench(p.id === selectedBench ? null : p.id)}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <span style={{ fontWeight: 'bold' }}>{p.lastName} <small>({p.position})</small></span>
@@ -739,7 +739,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
 
             {gameState.isFinished && (
                 <div style={{ position: 'fixed', bottom: '120px', left: '50%', transform: 'translateX(-50%)', zIndex: 100 }}>
-                    <button onClick={() => onGameEnd(engineRef.current?.getResults())} style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '15px 30px', borderRadius: '30px', fontSize: '1.2rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(0,0,0,0.3)' }}>
+                    <button onClick={() => onGameEnd(engineRef.current?.getResults())} style={{ background: 'var(--text-main)', color: 'white', border: 'none', padding: '15px 30px', borderRadius: '30px', fontSize: '1.2rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(0,0,0,0.3)' }}>
                         Finish Game
                     </button>
                 </div>
@@ -756,7 +756,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             <button
                                 onClick={handleSimAndExit}
-                                style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}
+                                style={{ background: 'var(--text-main)', color: 'white', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}
                             >
                                 Simulate to End & Exit
                             </button>
@@ -773,7 +773,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
 
             {gameState?.isSimulating && (
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 20000, backdropFilter: 'blur(3px)' }}>
-                    <div className="loader" style={{ width: '40px', height: '40px', border: '4px solid rgba(255,255,255,0.3)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                    <div className="loader" style={{ width: '40px', height: '40px', border: '4px solid rgba(255,255,255,0.3)', borderTopColor: 'var(--text-main)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
                     <h2 style={{ color: 'white', marginTop: '20px' }}>Simulating match...</h2>
                     <p style={{ color: 'rgba(255,255,255,0.8)', marginBottom: '20px' }}>Calculating final scores and stats</p>
                     <button

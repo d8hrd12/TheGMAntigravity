@@ -20,8 +20,14 @@ export const TeamHistoryView: React.FC<TeamHistoryViewProps> = ({ team, onBack, 
     const rings = awardsHistory.filter(h => h.champion?.teamId === team.id).length;
 
     return (
-        <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', color: 'var(--text-main)' }}>
-            <PageHeader title={`${team.name} History`} onBack={onBack} />
+        <div style={{ padding: '0', maxWidth: '800px', margin: '0 auto', color: 'var(--text-main)' }}>
+            <PageHeader 
+                title={`${team.name} History`} 
+                subtitle="Historical Career Records"
+                onBack={onBack} 
+                teamColor={team.colors.primary}
+            />
+            <div style={{ padding: '20px' }}>
 
             {/* Team Summary Banner */}
             <div style={{
@@ -81,7 +87,7 @@ export const TeamHistoryView: React.FC<TeamHistoryViewProps> = ({ team, onBack, 
                                             <span style={{ color: 'var(--danger)', fontWeight: 'bold' }}>{h.losses}</span>
                                         </td>
                                         <td style={{ padding: '12px 20px', color: 'var(--text-muted)' }}>{winPct}%</td>
-                                        <td style={{ padding: '12px 20px', textAlign: 'right', color: h.playoffResult ? 'var(--primary)' : 'var(--text-muted)', fontWeight: h.playoffResult ? 700 : 400 }}>
+                                        <td style={{ padding: '12px 20px', textAlign: 'right', color: h.playoffResult ? 'var(--text-main)' : 'var(--text-muted)', fontWeight: h.playoffResult ? 700 : 400 }}>
                                             {h.playoffResult || 'Missed Playoffs'}
                                         </td>
                                     </tr>
@@ -90,6 +96,8 @@ export const TeamHistoryView: React.FC<TeamHistoryViewProps> = ({ team, onBack, 
                         )}
                     </tbody>
                 </table>
+            </div>
+
             </div>
         </div>
     );

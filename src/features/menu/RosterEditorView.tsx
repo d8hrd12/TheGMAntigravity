@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Save, ArrowLeft, Users, Trophy, Edit2, ChevronRight, Check, X, Filter, Globe, Star } from 'lucide-react';
 import { useGame } from '../../store/GameContext';
+import { PageHeader } from '../ui/PageHeader';
 import type { Player, PlayerAttributes, Position } from '../../models/Player';
 import { calculateOverall } from '../../utils/playerUtils';
 
@@ -104,51 +105,11 @@ export const RosterEditorView: React.FC<RosterEditorViewProps> = ({ onBack }) =>
         }}>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.85) 50%, rgba(0,0,0,0.98) 100%)', zIndex: 0 }} />
 
-            {/* Cinematic Header */}
-            <header style={{
-                position: 'relative',
-                zIndex: 10,
-                padding: isMobile ? '20px' : '40px 60px',
-                background: 'rgba(0,0,0,0.6)',
-                backdropFilter: 'blur(20px)',
-                borderBottom: '1px solid rgba(255,255,255,0.05)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: isMobile ? '15px' : '30px'
-            }}>
-                <motion.button
-                    whileTap={{ scale: 0.9 }}
-                    onClick={handleBack}
-                    style={{
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: '12px',
-                        width: isMobile ? '40px' : '50px',
-                        height: isMobile ? '40px' : '50px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#fff',
-                        cursor: 'pointer'
-                    }}
-                >
-                    <ArrowLeft size={isMobile ? 20 : 24} />
-                </motion.button>
-                <div>
-                    <h1 style={{ fontSize: isMobile ? '1.2rem' : '2rem', fontWeight: 950, letterSpacing: '-1px', margin: 0, textTransform: 'uppercase' }}>
-                        {step === 'league' ? 'Select League' : step === 'team' ? (selectedLeague === 'NBA' ? 'NBA Teams' : 'Euro Teams') : currentTeam?.name}
-                    </h1>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
-                        <span style={{ color: '#FF5F1F', fontSize: '0.6rem', fontWeight: 900, letterSpacing: '1.5px', textTransform: 'uppercase' }}>ROSTER EDITOR</span>
-                        {step !== 'league' && (
-                            <>
-                                <ChevronRight size={10} color="rgba(255,255,255,0.2)" />
-                                <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.6rem', fontWeight: 800, textTransform: 'uppercase' }}>{selectedLeague}</span>
-                            </>
-                        )}
-                    </div>
-                </div>
-            </header>
+            <PageHeader
+                title={step === 'league' ? 'Select League' : step === 'team' ? (selectedLeague === 'NBA' ? 'NBA Teams' : 'Euro Teams') : (currentTeam?.name || 'Roster')}
+                subtitle={step === 'league' ? 'Choose your ecosystem' : step === 'team' ? 'Browse all franchises' : 'Manage your depth chart'}
+                onBack={handleBack}
+            />
 
             {/* Main Content Area */}
             <main style={{ position: 'relative', zIndex: 1, flex: 1, overflowY: 'auto', padding: isMobile ? '20px' : '40px 60px' }}>
@@ -204,8 +165,8 @@ export const RosterEditorView: React.FC<RosterEditorViewProps> = ({ onBack }) =>
                             style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}
                         >
                             <div style={{
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(255,255,255,0.1)',
+                                background: 'var(--bg-card-hover)',
+                                border: '1px solid var(--border-color)',
                                 borderRadius: '15px',
                                 padding: '12px 20px',
                                 display: 'flex',
@@ -252,13 +213,13 @@ export const RosterEditorView: React.FC<RosterEditorViewProps> = ({ onBack }) =>
                             style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
                         >
                             {/* Modal Header */}
-                            <div style={{ padding: '30px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ padding: '30px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div>
-                                    <h2 style={{ fontSize: '1.5rem', fontWeight: 950, margin: 0 }}>{editValues.firstName} {editValues.lastName}</h2>
-                                    <span style={{ fontSize: '0.7rem', color: '#FF5F1F', fontWeight: 900 }}>OVR {calculateOverall(editValues as Player)} • {editValues.position}</span>
+                                    <h2 style={{ fontSize: '1.8rem', fontWeight: 950, margin: 0, color: '#ffffff' }}>{editValues.firstName} {editValues.lastName}</h2>
+                                    <span style={{ fontSize: '0.8rem', color: '#FF5F1F', fontWeight: 900 }}>OVR {calculateOverall(editValues as Player)} • {editValues.position}</span>
                                 </div>
                                 <div style={{ display: 'flex', gap: '10px' }}>
-                                    <button onClick={() => { setEditingPlayerId(null); setEditValues(null); }} style={{ padding: '10px 20px', background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '10px', color: '#fff', fontWeight: 700 }}>Cancel</button>
+                                    <button onClick={() => { setEditingPlayerId(null); setEditValues(null); }} style={{ padding: '10px 20px', background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '10px', color: '#000', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
                                     <button onClick={handleSaveEdit} style={{ padding: '10px 25px', background: '#FF5F1F', border: 'none', borderRadius: '10px', color: '#fff', fontWeight: 900 }}>Save</button>
                                 </div>
                             </div>
@@ -277,9 +238,9 @@ export const RosterEditorView: React.FC<RosterEditorViewProps> = ({ onBack }) =>
                                             <select 
                                                 value={editValues.position} 
                                                 onChange={(e) => setEditValues({ ...editValues, position: e.target.value as Position })}
-                                                style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '12px', color: '#fff', fontWeight: 700 }}
+                                                style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '12px', color: '#fff', fontWeight: 700, outline: 'none' }}
                                             >
-                                                {['PG', 'SG', 'SF', 'PF', 'C'].map(pos => <option key={pos} value={pos}>{pos}</option>)}
+                                                {['PG', 'SG', 'SF', 'PF', 'C'].map(pos => <option key={pos} value={pos} style={{ background: '#1c1c1e' }}>{pos}</option>)}
                                             </select>
                                         </div>
                                     </div>
@@ -288,12 +249,12 @@ export const RosterEditorView: React.FC<RosterEditorViewProps> = ({ onBack }) =>
                                         <select 
                                             value={editValues.teamId} 
                                             onChange={(e) => setEditValues({ ...editValues, teamId: e.target.value })}
-                                            style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '12px', color: '#fff', fontWeight: 700 }}
+                                            style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '12px', color: '#fff', fontWeight: 700, outline: 'none' }}
                                         >
                                             {teams.sort((a,b) => a.name.localeCompare(b.name)).map(t => (
-                                                <option key={t.id} value={t.id}>{t.city} {t.name} ({t.conference})</option>
+                                                <option key={t.id} value={t.id} style={{ background: '#1c1c1e' }}>{t.city} {t.name} ({t.conference})</option>
                                             ))}
-                                            <option value="">Free Agent</option>
+                                            <option value="" style={{ background: '#1c1c1e' }}>Free Agent</option>
                                         </select>
                                     </div>
                                 </Section>
@@ -353,7 +314,7 @@ const LeagueCard = ({ title, subtitle, icon, onClick, color = '#FF5F1F' }: any) 
         <div style={{ color }}>{icon}</div>
         <div>
             <h2 style={{ fontSize: '2.5rem', fontWeight: 950, margin: 0, color }}>{title}</h2>
-            <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '2px', marginTop: '5px' }}>{subtitle}</p>
+            <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '2px', marginTop: '5px' }}>{subtitle}</p>
         </div>
     </motion.div>
 );
@@ -361,24 +322,40 @@ const LeagueCard = ({ title, subtitle, icon, onClick, color = '#FF5F1F' }: any) 
 const TeamCard = ({ team, onClick }: any) => (
     <motion.div
         whileTap={{ scale: 0.97 }}
+        whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.06)' }}
         onClick={onClick}
         style={{
             background: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: '20px',
             padding: '20px',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '15px'
+            gap: '15px',
+            transition: 'all 0.2s ease'
         }}
     >
-        <div style={{ width: '40px', height: '40px', background: team.colors?.primary, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.7rem' }}>
-            {team.abbreviation}
+        <div style={{ 
+            width: '48px', 
+            height: '48px', 
+            background: team.colors?.primary + '22', 
+            borderRadius: '12px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            overflow: 'hidden',
+            border: `1px solid ${team.colors?.primary}44`
+        }}>
+            {team.logo ? (
+                <img src={team.logo} alt={team.name} style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
+            ) : (
+                <div style={{ fontWeight: 900, fontSize: '0.7rem', color: team.colors?.primary }}>{team.abbreviation}</div>
+            )}
         </div>
         <div>
-            <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, textTransform: 'uppercase' }}>{team.city}</h4>
-            <p style={{ margin: 0, fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', fontWeight: 700 }}>{team.name}</p>
+            <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, textTransform: 'uppercase', color: '#ffffff' }}>{team.city}</h4>
+            <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', fontWeight: 700 }}>{team.name}</p>
         </div>
     </motion.div>
 );
@@ -386,43 +363,55 @@ const TeamCard = ({ team, onClick }: any) => (
 const PlayerItem = ({ player, onClick, isMobile }: any) => (
     <motion.div
         whileTap={{ scale: 0.98 }}
+        whileHover={{ scale: 1.01, backgroundColor: 'rgba(255,255,255,0.06)' }}
         onClick={onClick}
         style={{
             background: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: '20px',
             padding: '20px',
             cursor: 'pointer',
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center'
+            alignItems: 'center',
+            transition: 'all 0.2s ease'
         }}
     >
         <div>
-            <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 900, textTransform: 'uppercase' }}>{player.firstName} {player.lastName}</h4>
-            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', fontWeight: 800, marginTop: '2px' }}>
+            <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 900, textTransform: 'uppercase', color: '#fff' }}>{player.firstName} {player.lastName}</h4>
+            <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', fontWeight: 800, marginTop: '4px' }}>
                 {player.position} • AGE {player.age} • OVR {calculateOverall(player)}
             </div>
         </div>
-        <Edit2 size={16} color="#FF5F1F" />
+        <Edit2 size={18} color="#FF5F1F" />
     </motion.div>
 );
 
 const Section = ({ title, children }: any) => (
-    <div>
-        <h3 style={{ fontSize: '0.7rem', fontWeight: 900, color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '15px' }}>{title}</h3>
+    <div style={{ marginBottom: '10px' }}>
+        <h3 style={{ fontSize: '0.75rem', fontWeight: 900, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '15px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>{title}</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>{children}</div>
     </div>
 );
 
 const EditField = ({ label, value, onChange, type = "text" }: any) => (
     <div style={{ flex: 1 }}>
-        <label style={{ display: 'block', fontSize: '0.6rem', fontWeight: 900, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginBottom: '5px' }}>{label}</label>
+        <label style={{ display: 'block', fontSize: '0.65rem', fontWeight: 900, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', marginBottom: '6px' }}>{label}</label>
         <input
             type={type}
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '12px', color: '#fff', fontWeight: 700, outline: 'none' }}
+            style={{ 
+                width: '100%', 
+                background: 'rgba(255,255,255,0.05)', 
+                border: '1px solid rgba(255,255,255,0.1)', 
+                borderRadius: '10px', 
+                padding: '12px', 
+                color: '#fff', 
+                fontWeight: 700, 
+                outline: 'none',
+                fontSize: '1rem'
+            }}
         />
     </div>
 );

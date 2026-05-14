@@ -10,8 +10,14 @@ export const TeamRecordsView: React.FC<{ onBack: () => void }> = ({ onBack }) =>
     const records = teamRecords && userTeamId ? (teamRecords[userTeamId] || []) : [];
 
     return (
-        <div className="animate-fade" style={{ padding: '20px', maxWidth: '500px', margin: '0 auto' }}>
-            <PageHeader title="Team Legends & Records" onBack={onBack} />
+        <div className="animate-fade" style={{ padding: '0', maxWidth: '500px', margin: '0 auto' }}>
+            <PageHeader 
+                title="Team Legends & Records" 
+                subtitle="All-Time Franchise Milestones"
+                onBack={onBack} 
+                teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
+            />
+            <div style={{ padding: '20px' }}>
 
             <div className="modern-card" style={{ background: 'linear-gradient(135deg, var(--bg-card) 0%, #fff 100%)', marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '20px' }}>
@@ -35,13 +41,13 @@ export const TeamRecordsView: React.FC<{ onBack: () => void }> = ({ onBack }) =>
                 ) : (
                     records.map((rec, idx) => (
                         <div key={idx} className="modern-card" style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', transition: 'transform 0.2s' }}>
-                            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--primary-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', flexShrink: 0 }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--primary-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-main)', flexShrink: 0 }}>
                                 <Star size={24} />
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                     <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{rec.category}</div>
-                                    <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--primary)' }}>{rec.year}</div>
+                                    <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-main)' }}>{rec.year}</div>
                                 </div>
                                 <div style={{ fontSize: '1.5rem', fontWeight: 800, margin: '2px 0' }}>{rec.value}</div>
                                 <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{rec.playerName}</div>
@@ -66,7 +72,7 @@ export const TeamRecordsView: React.FC<{ onBack: () => void }> = ({ onBack }) =>
                             <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: 'var(--bg-main)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
                                 <div style={{ fontWeight: 800 }}>{h.year}</div>
                                 <div style={{ fontSize: '0.85rem' }}>{h.wins}-{h.losses}</div>
-                                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: h.playoffResult ? 'var(--primary)' : 'var(--text-muted)' }}>
+                                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: h.playoffResult ? 'var(--text-main)' : 'var(--text-muted)' }}>
                                     {h.playoffResult || 'Missed Playoffs'}
                                 </div>
                             </div>
@@ -75,6 +81,8 @@ export const TeamRecordsView: React.FC<{ onBack: () => void }> = ({ onBack }) =>
                         <p style={{ textAlign: 'center', padding: '20px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>No franchise history yet.</p>
                     )}
                 </div>
+            </div>
+
             </div>
         </div>
     );

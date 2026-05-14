@@ -1199,8 +1199,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 view: "dashboard"
             });
 
-            // Apply Real-World Trades (Post-Init Patch)
-            setGameState(prev => applyRealWorldTrades(prev));
+            // Apply Real-World Trades (Post-Init Patch) - NBA Only
+            if (gameState.leagueType === 'NBA') {
+                setGameState(prev => applyRealWorldTrades(prev));
+            } else {
+                console.log("Skipping Real-World Trades for non-NBA league.");
+            }
 
             // Initial Save if slot assigned
             if (assignedSlot) {

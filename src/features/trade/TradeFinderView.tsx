@@ -16,6 +16,8 @@ interface TradeFinderViewProps {
     onSelectPlayer?: (playerId: string) => void;
 }
 
+import { PageHeader } from '../ui/PageHeader';
+
 export const TradeFinderView: React.FC<TradeFinderViewProps> = ({ shopPlayerId, onClose, onAccept, onSelectPlayer }) => {
     const { teams, players, contracts, salaryCap, date, draftClass, userTeamId, leagueType } = useGame(); 
 
@@ -26,46 +28,38 @@ export const TradeFinderView: React.FC<TradeFinderViewProps> = ({ shopPlayerId, 
     const userTeam = teams.find(t => t.id === userTeamId);
 
     useEffect(() => {
-        if (userTeam && shopPlayer) {
-            // Simulate network delay for "Finding Trades..." effect
-            setTimeout(() => {
-                try {
-                    // Gather all picks from all teams
-                    const allPicks = teams.flatMap(t => t.draftPicks);
+        if (!shopPlayer || !userTeam) return;
 
-                    if (leagueType === 'EURO') {
-                        const generated = generateTransferOffers(
-                            userTeam,
-                            shopPlayerId,
-                            teams,
-                            players,
-                            contracts,
-                            date.getFullYear()
-                        );
-                        setOffers(generated);
-                    } else {
-                        const generated = generateTradeOffers(
-                            userTeam,
-                            shopPlayerId,
-                            teams,
-                            players,
-                            contracts,
-                            allPicks,
-                            salaryCap,
-                            date.getFullYear()
-                        );
-                        setOffers(generated);
-                    }
-                } catch (err) {
-                    console.error("Trade Finder Error:", err);
-                } finally {
-                    setLoading(false);
-                }
-            }, 800);
-        }
-    }, [shopPlayerId]);
+        const timer = setTimeout(() => {
+            let generatedOffers: TradeProposal[] = [];
+            if (leagueType === 'EURO') {
+                generatedOffers = generateTransferOffers(
+                    userTeam,
+                    shopPlayerId,
+                    teams,
+                    players,
+                    contracts,
+                    date.getFullYear()
+                );
+            } else {
+                generatedOffers = generateTradeOffers(
+                    userTeam,
+                    shopPlayerId,
+                    teams,
+                    players,
+                    contracts,
+                    [], // picks - though we could pass them if needed
+                    salaryCap,
+                    date.getFullYear()
+                );
+            }
+            setOffers(generatedOffers);
+            setLoading(false);
+        }, 1500);
 
-    const getPlayer = (id: string) => players.find(p => p.id === id);
+        return () => clearTimeout(timer);
+    }, [shopPlayerId, leagueType]);
+
     const getTeam = (id: string) => teams.find(t => t.id === id);
 
     if (!shopPlayer || !userTeam) return null;
@@ -73,32 +67,27 @@ export const TradeFinderView: React.FC<TradeFinderViewProps> = ({ shopPlayerId, 
     return (
         <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'rgba(255,255,255,0.85)', zIndex: 3000,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            padding: '20px'
+            background: 'var(--bg-main)', zIndex: 3000,
+            display: 'flex', flexDirection: 'column',
+            padding: '0'
         }}>
+            <PageHeader 
+                title={leagueType === 'EURO' ? 'Transfer Finder' : 'Trade Finder'}
+                subtitle={`Shopping ${shopPlayer.firstName} ${shopPlayer.lastName}`}
+                onBack={onClose}
+                teamColor={userTeam?.colors?.primary}
+            />
+
             <div style={{
-                background: 'var(--bg-main)',
-                width: '100%', maxWidth: '650px',
-                height: '85%', maxHeight: '800px',
-                borderRadius: '24px',
-                display: 'flex', flexDirection: 'column',
-                boxShadow: 'var(--shadow-lg)',
-                border: '1px solid var(--border-color)',
-                overflow: 'hidden'
+                flex: 1,
+                width: '100%',
+                maxWidth: '800px',
+                margin: '0 auto',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+                padding: '20px'
             }}>
-                {/* Header */}
-                <div style={{ padding: '20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-card)' }}>
-                    <div>
-                        <h2 style={{ margin: 0, fontSize: '1.4rem' }}>{leagueType === 'EURO' ? 'Transfer Finder' : 'Trade Finder'}</h2>
-                        <p style={{ margin: '5px 0 0', color: 'var(--text-muted)' }}>
-                            Shopping <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{shopPlayer.firstName} {shopPlayer.lastName}</span>
-                        </p>
-                    </div>
-                    <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', cursor: 'pointer' }}>
-                        <X size={24} />
-                    </button>
-                </div>
 
                 {/* Content */}
                 <div style={{ flex: 1, overflowY: 'auto', padding: '15px' }}>

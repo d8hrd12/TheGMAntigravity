@@ -75,7 +75,7 @@ const StarCellDisplay = ({ player, delta, baseline }: { player: any, delta: numb
 };
 
 const SummaryCard = ({ icon: Icon, title, value, subtitle, color }: { icon: any, title: string, value: string | number, subtitle?: string, color: string }) => (
-    <div className="glass-panel" style={{ flex: 1, minWidth: '160px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', borderLeft: `4px solid ${color}` }}>
+    <div className="modern-card" style={{ flex: 1, minWidth: '160px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', borderLeft: `4px solid ${color}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.5px' }}>
             <Icon size={14} style={{ color }} />
             {title}
@@ -126,7 +126,11 @@ export const TrainingReportView: React.FC<{ onBack: () => void }> = ({ onBack })
 
     return (
         <div style={{ padding: '16px', height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--background)', overflowY: 'auto', paddingBottom: '90px' }}>
-            <PageHeader title={`Training Report ${date.getFullYear()}`} onBack={onBack} />
+            <PageHeader 
+                title={`Training Report ${date.getFullYear()}`} 
+                onBack={onBack} 
+                teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
+            />
 
             {/* Top Dashboard Summary */}
             <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
@@ -142,7 +146,7 @@ export const TrainingReportView: React.FC<{ onBack: () => void }> = ({ onBack })
                     title="Top Prospect" 
                     value={stats?.top ? stats.top.name.split(' ').pop()! : 'N/A'} 
                     subtitle={stats?.top ? `+${(stats.top.overallChange / 8).toFixed(1)} Stars gain` : 'No gains'}
-                    color="var(--primary)" 
+                    color="var(--text-main)" 
                 />
                 <SummaryCard 
                     icon={Users} 
@@ -155,16 +159,16 @@ export const TrainingReportView: React.FC<{ onBack: () => void }> = ({ onBack })
 
             {/* Filters Row */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '16px', alignItems: 'center' }}>
-                <div className="glass-panel" style={{ display: 'flex', padding: '4px', borderRadius: '12px' }}>
+                <div className="modern-card" style={{ display: 'flex', padding: '4px', borderRadius: '12px' }}>
                     <button
                         onClick={() => setTeamFilter('MyTeam')}
-                        style={{ padding: '6px 16px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 600, background: teamFilter === 'MyTeam' ? 'var(--primary)' : 'transparent', color: teamFilter === 'MyTeam' ? '#fff' : 'var(--text-secondary)' }}
+                        style={{ padding: '6px 16px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 600, background: teamFilter === 'MyTeam' ? 'var(--text-main)' : 'transparent', color: teamFilter === 'MyTeam' ? '#fff' : 'var(--text-secondary)' }}
                     >
                         My Team
                     </button>
                     <button
                         onClick={() => setTeamFilter('AllTeams')}
-                        style={{ padding: '6px 16px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 600, background: teamFilter === 'AllTeams' ? 'var(--primary)' : 'transparent', color: teamFilter === 'AllTeams' ? '#fff' : 'var(--text-secondary)' }}
+                        style={{ padding: '6px 16px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 600, background: teamFilter === 'AllTeams' ? 'var(--text-main)' : 'transparent', color: teamFilter === 'AllTeams' ? '#fff' : 'var(--text-secondary)' }}
                     >
                         League
                     </button>
@@ -177,8 +181,8 @@ export const TrainingReportView: React.FC<{ onBack: () => void }> = ({ onBack })
                             onClick={() => setSelectedFocus(opt)}
                             style={{ 
                                 padding: '6px 14px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 600, border: '1px solid var(--border)', whiteSpace: 'nowrap',
-                                background: selectedFocus === opt ? 'var(--surface)' : 'rgba(255,255,255,0.05)', 
-                                color: selectedFocus === opt ? 'var(--primary)' : 'var(--text-secondary)' 
+                                background: selectedFocus === opt ? 'var(--surface)' : 'var(--bg-card-hover)', 
+                                color: selectedFocus === opt ? 'var(--text-main)' : 'var(--text-secondary)' 
                             }}
                         >
                             {opt}
@@ -188,14 +192,14 @@ export const TrainingReportView: React.FC<{ onBack: () => void }> = ({ onBack })
             </div>
 
             {/* Main Table */}
-            <div className="glass-panel" style={{ padding: '0', overflowX: 'auto', borderRadius: '16px', flex: 1 }}>
+            <div className="modern-card" style={{ padding: '0', overflowX: 'auto', borderRadius: '16px', flex: 1 }}>
                 <table style={{ width: '100%', minWidth: '950px', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead>
                         <tr style={{ borderBottom: '1px solid var(--border)', background: 'rgba(0,0,0,0.2)' }}>
                             <th style={{ padding: '14px 16px', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-secondary)' }}>Player</th>
                             <th style={{ padding: '14px 4px', fontSize: '0.7rem', textTransform: 'uppercase', textAlign: 'center', color: 'var(--text-secondary)' }}>Pos</th>
                             <th style={{ padding: '14px 4px', fontSize: '0.7rem', textTransform: 'uppercase', textAlign: 'center', color: 'var(--text-secondary)' }}>Age</th>
-                            <th style={{ padding: '14px 4px', fontSize: '0.7rem', textTransform: 'uppercase', textAlign: 'center', color: 'var(--primary)' }}>Stars</th>
+                            <th style={{ padding: '14px 4px', fontSize: '0.7rem', textTransform: 'uppercase', textAlign: 'center', color: 'var(--text-main)' }}>Stars</th>
                             {columns.map(col => (
                                 <th key={col} style={{ padding: '14px 4px', fontSize: '0.65rem', textTransform: 'uppercase', textAlign: 'center', color: 'var(--text-secondary)', minWidth: '40px' }}>{col}</th>
                             ))}
@@ -215,7 +219,7 @@ export const TrainingReportView: React.FC<{ onBack: () => void }> = ({ onBack })
                                                 {player.firstName} {player.lastName}
                                             </div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                                                <Target size={10} style={{ color: 'var(--primary)', opacity: 0.7 }} />
+                                                <Target size={10} style={{ color: 'var(--text-main)', opacity: 0.7 }} />
                                                 <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', opacity: 0.6 }}>{entry.focus}</span>
                                             </div>
                                         </div>

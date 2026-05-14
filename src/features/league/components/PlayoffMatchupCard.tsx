@@ -28,7 +28,7 @@ export const PlayoffMatchupCard: React.FC<PlayoffMatchupCardProps> = ({ series }
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{
                     fontWeight: isWinner ? 'bold' : 'normal',
-                    color: isUser ? 'var(--primary)' : 'var(--text)',
+                    color: isUser ? 'var(--text-main)' : 'var(--text)',
                     fontSize: '1rem'
                 }}>
                     {team.city} {team.name}

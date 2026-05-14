@@ -4,6 +4,8 @@ import { useGame } from '../../store/GameContext';
 import { CheckCircle, Circle, Trophy, Search, Users, FileText, BarChart2, Calendar, DollarSign, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { SalaryPaymentModal } from '../ui/SalaryPaymentModal';
+import { PageHeader } from '../ui/PageHeader';
+
 
 export const OffseasonMenuView: React.FC = () => {
     const { 
@@ -174,14 +176,11 @@ export const OffseasonMenuView: React.FC = () => {
             minHeight: '100vh',
             background: 'radial-gradient(circle at top right, rgba(var(--team-primary-rgb), 0.1), transparent 60%)'
         }}>
-            <div style={{ marginBottom: '40px', textAlign: 'center' }}>
-                <h1 style={{ fontSize: '3rem', fontWeight: 900, marginBottom: '10px', letterSpacing: '-1.5px' }}>
-                    {currentYear} OFFSEASON
-                </h1>
-                <p style={{ color: 'var(--text-dim)', fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '2px' }}>
-                    Franchise Operations Center
-                </p>
-            </div>
+            <PageHeader
+                title={`Offseason ${currentYear}`}
+                subtitle="Franchise Operations Center"
+                teamColor={userTeam?.colors?.primary}
+            />
 
             <div style={{ display: 'grid', gap: '16px' }}>
                 {tasks.map((task, index) => {
@@ -197,7 +196,7 @@ export const OffseasonMenuView: React.FC = () => {
                             onClick={() => handleTaskClick(task, index)}
                             style={{
                                 background: completed ? 'rgba(46, 204, 113, 0.05)' : (locked ? 'rgba(255,255,255,0.02)' : 'var(--bg-card)'),
-                                border: completed ? '1px solid #2ecc71' : (locked ? '1px solid rgba(255,255,255,0.05)' : '1px solid var(--border-color)'),
+                                border: completed ? '1px solid #2ecc71' : (locked ? '1px solid var(--bg-card-hover)' : '1px solid var(--border-color)'),
                                 borderRadius: '20px',
                                 padding: '24px',
                                 cursor: locked ? 'not-allowed' : 'pointer',
@@ -220,7 +219,7 @@ export const OffseasonMenuView: React.FC = () => {
                                 width: '56px',
                                 height: '56px',
                                 borderRadius: '16px',
-                                background: locked ? 'rgba(255,255,255,0.05)' : 'rgba(var(--team-primary-rgb), 0.1)',
+                                background: locked ? 'var(--bg-card-hover)' : 'rgba(var(--team-primary-rgb), 0.1)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -263,7 +262,7 @@ export const OffseasonMenuView: React.FC = () => {
                                     fontSize: '0.7rem',
                                     fontWeight: 800,
                                     color: 'var(--text-dim)',
-                                    background: 'rgba(255,255,255,0.05)',
+                                    background: 'var(--bg-card-hover)',
                                     padding: '4px 8px',
                                     borderRadius: '6px',
                                     textTransform: 'uppercase'

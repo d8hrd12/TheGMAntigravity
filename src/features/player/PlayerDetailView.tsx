@@ -169,13 +169,14 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
             <PageHeader
                 title="Player Details"
                 onBack={onBack}
+                teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
             />
 
             {/* Action Buttons */}
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', gap: '10px' }}>
                     {!isUserTeam && onTradeFor && (
-                        <button onClick={() => onTradeFor(player.id)} style={{ padding: '8px 16px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
+                        <button onClick={() => onTradeFor(player.id)} style={{ padding: '8px 16px', background: 'var(--text-main)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
                             Trade For
                         </button>
                     )}
@@ -314,7 +315,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                         flexDirection: 'column',
                         alignItems: 'center', 
                         marginBottom: '15px', 
-                        borderBottom: '2px solid var(--primary)', 
+                        borderBottom: '2px solid var(--text-main)', 
                         paddingBottom: '10px',
                         gap: '10px'
                     }}>
@@ -323,7 +324,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                             <button
                                 onClick={() => setViewMode('Average')}
                                 style={{
-                                    background: viewMode === 'Average' ? 'var(--primary)' : 'transparent',
+                                    background: viewMode === 'Average' ? 'var(--text-main)' : 'transparent',
                                     color: viewMode === 'Average' ? '#fff' : 'var(--text-muted)',
                                     border: 'none',
                                     borderRadius: '18px',
@@ -338,7 +339,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                             <button
                                 onClick={() => setViewMode('Total')}
                                 style={{
-                                    background: viewMode === 'Total' ? 'var(--primary)' : 'transparent',
+                                    background: viewMode === 'Total' ? 'var(--text-main)' : 'transparent',
                                     color: viewMode === 'Total' ? '#fff' : 'var(--text-muted)',
                                     border: 'none',
                                     borderRadius: '18px',
@@ -376,7 +377,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                             <button
                                 onClick={() => setStatsView('Skills')}
                                 style={{
-                                    background: statsView === 'Skills' ? 'var(--primary)' : 'transparent',
+                                    background: statsView === 'Skills' ? 'var(--text-main)' : 'transparent',
                                     color: statsView === 'Skills' ? '#fff' : 'var(--text-muted)',
                                     border: 'none',
                                     borderRadius: '18px',
@@ -391,7 +392,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                             <button
                                 onClick={() => setStatsView('Development')}
                                 style={{
-                                    background: statsView === 'Development' ? 'var(--primary)' : 'transparent',
+                                    background: statsView === 'Development' ? 'var(--text-main)' : 'transparent',
                                     color: statsView === 'Development' ? '#fff' : 'var(--text-muted)',
                                     border: 'none',
                                     borderRadius: '18px',
@@ -491,7 +492,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                                         <span>{label}</span>
                                         <span style={{ fontWeight: 'bold' }}>{rounded}</span>
                                     </div>
-                                    <div style={{ height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
+                                    <div style={{ height: '8px', background: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}>
                                         <div style={{
                                             width: `${rounded}%`,
                                             height: '100%',
@@ -525,7 +526,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                 {/* Badges Section */}
                 {player.badges && Object.keys(player.badges).length > 0 && (
                     <div style={{ marginBottom: '30px' }}>
-                        <h3 style={{ borderBottom: '2px solid var(--primary)', display: 'inline-block', paddingBottom: '5px', marginBottom: '15px', color: 'var(--text-main)' }}>Player Badges</h3>
+                        <h3 style={{ borderBottom: '2px solid var(--text-main)', display: 'inline-block', paddingBottom: '5px', marginBottom: '15px', color: 'var(--text-main)' }}>Player Badges</h3>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                             {Object.entries(player.badges).map(([name, rank]) => {
                                 const rankStr = rank as string;
@@ -561,14 +562,14 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
 
                 {/* Career History Section */}
                 <div style={{ marginBottom: '30px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', borderBottom: '2px solid var(--primary)', paddingBottom: '5px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', borderBottom: '2px solid var(--text-main)', paddingBottom: '5px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                             <h3 style={{ margin: 0, color: 'var(--text-main)' }}>Career History</h3>
                             <div style={{ display: 'flex', background: 'var(--bg-card-hover)', borderRadius: '20px', padding: '2px', border: '1px solid var(--border-color)' }}>
                                 <button
                                     onClick={() => setCareerMode('Regular')}
                                     style={{
-                                        background: careerMode === 'Regular' ? 'var(--primary)' : 'transparent',
+                                        background: careerMode === 'Regular' ? 'var(--text-main)' : 'transparent',
                                         color: careerMode === 'Regular' ? '#fff' : 'var(--text-muted)',
                                         border: 'none',
                                         borderRadius: '18px',
@@ -583,7 +584,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
                                 <button
                                     onClick={() => setCareerMode('Playoff')}
                                     style={{
-                                        background: careerMode === 'Playoff' ? 'var(--primary)' : 'transparent',
+                                        background: careerMode === 'Playoff' ? 'var(--text-main)' : 'transparent',
                                         color: careerMode === 'Playoff' ? '#fff' : 'var(--text-muted)',
                                         border: 'none',
                                         borderRadius: '18px',
@@ -697,7 +698,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
 
                 {/* Awards Section */}
                 <div>
-                    <h3 style={{ borderBottom: '2px solid var(--primary)', display: 'inline-block', paddingBottom: '5px', marginBottom: '15px', color: 'var(--text-main)' }}>Awards</h3>
+                    <h3 style={{ borderBottom: '2px solid var(--text-main)', display: 'inline-block', paddingBottom: '5px', marginBottom: '15px', color: 'var(--text-main)' }}>Awards</h3>
                     {playerAwards.length > 0 ? (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                             {playerAwards.map((award, index) => (

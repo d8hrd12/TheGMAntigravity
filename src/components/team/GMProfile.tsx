@@ -146,7 +146,7 @@ export const GMProfile: React.FC<GMProfileProps> = ({ gm, onClose }) => {
                     color: rgba(255,255,255,0.6);
                     margin-bottom: 24px;
                     padding-bottom: 12px;
-                    border-bottom: 1px solid rgba(255,255,255,0.1);
+                    border-bottom: 1px solid var(--border-color);
                 }
                 .gm-skills-section h3, .gm-history h3 {
                     font-size: 0.9rem;
@@ -169,7 +169,7 @@ export const GMProfile: React.FC<GMProfileProps> = ({ gm, onClose }) => {
                 .gm-skill-bar-bg {
                     flex: 1;
                     height: 6px;
-                    background: rgba(255,255,255,0.1);
+                    background: var(--border-color);
                     border-radius: 3px;
                     overflow: hidden;
                 }
@@ -187,7 +187,7 @@ export const GMProfile: React.FC<GMProfileProps> = ({ gm, onClose }) => {
                 .gm-history {
                     margin-top: 24px;
                     padding-top: 20px;
-                    border-top: 1px solid rgba(255,255,255,0.1);
+                    border-top: 1px solid var(--border-color);
                 }
                 .gm-stat-grid {
                     display: grid;

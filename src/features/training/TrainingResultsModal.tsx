@@ -26,16 +26,16 @@ export const TrainingResultsModal: React.FC<TrainingResultsModalProps> = ({ resu
             zIndex: 5000,
             padding: '20px'
         }}>
-            <div className="glass-panel" style={{
+            <div className="modern-card" style={{
                 width: '100%',
                 maxWidth: '500px',
                 maxHeight: '75vh',
                 display: 'flex',
                 flexDirection: 'column',
                 background: '#1a1a1a', // Darker background for contrast
-                border: '1px solid rgba(255,255,255,0.1)'
+                border: '1px solid var(--border-color)'
             }}>
-                <div style={{ padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ padding: '20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h2 style={{ margin: 0, fontSize: '1.5rem', color: '#fff' }}>Training Camp Results</h2>
                     <button
                         onClick={onClose}
@@ -49,7 +49,7 @@ export const TrainingResultsModal: React.FC<TrainingResultsModalProps> = ({ resu
                     {results.map((result, index) => (
                         <div key={result.playerId} style={{
                             padding: '16px',
-                            borderBottom: '1px solid rgba(255,255,255,0.05)',
+                            borderBottom: '1px solid var(--bg-card-hover)',
                             background: index % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent'
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -94,7 +94,7 @@ export const TrainingResultsModal: React.FC<TrainingResultsModalProps> = ({ resu
                     )}
                 </div>
 
-                <div style={{ padding: '20px', borderTop: '1px solid rgba(255,255,255,0.1)', textAlign: 'right' }}>
+                <div style={{ padding: '20px', borderTop: '1px solid var(--border-color)', textAlign: 'right' }}>
                     <button
                         onClick={onClose}
                         className="btn-primary"

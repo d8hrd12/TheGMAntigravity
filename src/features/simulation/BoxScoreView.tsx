@@ -18,11 +18,11 @@ const StatRow = ({ player, onSelectPlayer, isBest }: { player: PlayerStats, onSe
     <tr
         key={player.playerId}
         style={{
-            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            borderBottom: '1px solid var(--bg-card-hover)',
             transition: 'background 0.2s',
             background: isBest ? 'rgba(255,215,0,0.05)' : 'transparent'
         }}
-        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'}
         onMouseLeave={(e) => e.currentTarget.style.background = isBest ? 'rgba(255,215,0,0.05)' : 'transparent'}
     >
         <td
@@ -83,7 +83,7 @@ const TeamStatsTable = ({ stats, team, onSelectPlayer }: { stats: PlayerStats[],
                 width: width,
                 cursor: sk ? 'pointer' : 'default',
                 userSelect: 'none',
-                color: sortKey === sk ? 'var(--primary)' : 'inherit',
+                color: sortKey === sk ? 'var(--text-main)' : 'inherit',
                 transition: 'color 0.2s'
             }}
         >
@@ -92,7 +92,7 @@ const TeamStatsTable = ({ stats, team, onSelectPlayer }: { stats: PlayerStats[],
     );
 
     return (
-        <div className="glass-panel" style={{ overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', position: 'relative' }}>
+        <div className="modern-card" style={{ overflow: 'hidden', border: '1px solid var(--border-color)', position: 'relative' }}>
             {/* Watermark Logo */}
             {team?.logo && (
                 <div style={{
@@ -114,8 +114,8 @@ const TeamStatsTable = ({ stats, team, onSelectPlayer }: { stats: PlayerStats[],
 
             <div style={{
                 padding: '16px',
-                background: `linear-gradient(90deg, ${team?.colors?.primary || 'var(--primary)'}40, transparent)`,
-                borderBottom: '1px solid rgba(255,255,255,0.1)',
+                background: `linear-gradient(90deg, ${team?.colors?.primary || 'var(--text-main)'}40, transparent)`,
+                borderBottom: '1px solid var(--border-color)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
@@ -179,6 +179,8 @@ const TeamStatsTable = ({ stats, team, onSelectPlayer }: { stats: PlayerStats[],
 };
 
 export const BoxScoreView: React.FC<BoxScoreViewProps> = ({ match, homeTeam, awayTeam, onBack, onSelectPlayer }) => {
+    const { userTeamId, teams } = useGame();
+    const userTeam = teams.find(t => t.id === userTeamId);
     const homeStats = Object.values(match.boxScore.homeStats);
     const awayStats = Object.values(match.boxScore.awayStats);
 
@@ -199,6 +201,7 @@ export const BoxScoreView: React.FC<BoxScoreViewProps> = ({ match, homeTeam, awa
                 <PageHeader
                     title="Box Score"
                     onBack={onBack}
+                    teamColor={userTeam?.colors?.primary}
                 />
                 <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '10px' }}>
                     <Calendar size={14} />
@@ -240,7 +243,7 @@ export const BoxScoreView: React.FC<BoxScoreViewProps> = ({ match, homeTeam, awa
 
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', zIndex: 2, padding: '0 5px' }}>
                         <div style={{ fontSize: '1.5rem', fontWeight: 200, opacity: 0.3 }}>VS</div>
-                        <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '4px' }}>FINAL</div>
+                        <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)', background: 'var(--bg-card-hover)', padding: '4px 8px', borderRadius: '4px' }}>FINAL</div>
                     </div>
 
                     {/* Home Team */}

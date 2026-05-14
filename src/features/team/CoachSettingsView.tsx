@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import type { Team } from '../../models/Team';
 import type { TeamStrategy, PaceType, OffensiveFocus, DefensiveStrategy } from '../simulation/TacticsTypes';
-import { BackButton } from '../ui/BackButton';
 import { PageHeader } from '../ui/PageHeader';
 import { Activity, Target, Shield } from 'lucide-react';
 
@@ -32,7 +31,7 @@ export const CoachSettingsView: React.FC<CoachSettingsViewProps> = ({ team, onBa
         onChange: (val: any) => void,
         icon: any
     }) => (
-        <div className="glass-panel" style={{ padding: '20px', marginBottom: '15px' }}>
+        <div className="modern-card" style={{ padding: '20px', marginBottom: '15px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
                 <div style={{ padding: '8px', background: 'rgba(52, 152, 219, 0.2)', borderRadius: '8px' }}>
                     <Icon size={20} color="#3498db" />
@@ -52,7 +51,7 @@ export const CoachSettingsView: React.FC<CoachSettingsViewProps> = ({ team, onBa
                             onClick={() => onChange(opt)}
                             style={{
                                 padding: '12px',
-                                background: isActive ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                                background: isActive ? 'var(--text-main)' : 'var(--bg-card-hover)',
                                 color: isActive ? 'white' : '#aaa',
                                 border: isActive ? '1px solid var(--primary-light)' : '1px solid transparent',
                                 borderRadius: '10px',
@@ -71,26 +70,27 @@ export const CoachSettingsView: React.FC<CoachSettingsViewProps> = ({ team, onBa
     );
 
     return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--background)' }}>
-            <div style={{ padding: '20px' }}>
-
-
-                {/* Save Changes Button */}
-                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px', gap: '12px' }}>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg-main)' }}>
+            <PageHeader 
+                title="Coach Settings"
+                subtitle="Tactical schemes & strategy"
+                onBack={onBack}
+                teamColor={team.colors.primary}
+            >
+                <div style={{ display: 'flex', gap: '12px' }}>
                     {onFire && (
                         <button
                             onClick={onFire}
                             style={{ 
-                                padding: '10px 24px', 
-                                borderRadius: '12px', 
+                                padding: '8px 16px', 
+                                borderRadius: '10px', 
                                 background: 'rgba(231, 76, 60, 0.1)', 
                                 color: '#e74c3c', 
                                 border: '1px solid rgba(231, 76, 60, 0.3)',
                                 fontWeight: 700,
-                                cursor: 'pointer'
+                                cursor: 'pointer',
+                                fontSize: '0.85rem'
                             }}
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(231, 76, 60, 0.2)'}
-                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(231, 76, 60, 0.1)'}
                         >
                             Fire Coach
                         </button>
@@ -98,39 +98,39 @@ export const CoachSettingsView: React.FC<CoachSettingsViewProps> = ({ team, onBa
                     <button
                         onClick={handleSave}
                         className="btn-primary"
-                        style={{ padding: '10px 32px', borderRadius: '12px', fontWeight: 800 }}
+                        style={{ padding: '8px 20px', borderRadius: '10px', fontWeight: 800, fontSize: '0.85rem' }}
                     >
-                        Save Changes
+                        Save Strategy
                     </button>
                 </div>
-            </div>
+            </PageHeader>
 
-            <div style={{ padding: '0 20px 40px 20px', overflowY: 'auto' }}>
+            <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
+                <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+                    <SelectOption
+                        label="Pace of Play"
+                        value={strategy.pace}
+                        options={['Very Slow', 'Slow', 'Normal', 'Fast', 'Seven Seconds']}
+                        icon={Activity}
+                        onChange={(val: PaceType) => setStrategy({ ...strategy, pace: val })}
+                    />
 
-                <SelectOption
-                    label="Pace of Play"
-                    value={strategy.pace}
-                    options={['Very Slow', 'Slow', 'Normal', 'Fast', 'Seven Seconds']}
-                    icon={Activity}
-                    onChange={(val: PaceType) => setStrategy({ ...strategy, pace: val })}
-                />
+                    <SelectOption
+                        label="Offensive Focus"
+                        value={strategy.offensiveFocus}
+                        options={['Balanced', 'Inside', 'Perimeter', 'PickAndRoll']}
+                        icon={Target}
+                        onChange={(val: OffensiveFocus) => setStrategy({ ...strategy, offensiveFocus: val })}
+                    />
 
-                <SelectOption
-                    label="Offensive Focus"
-                    value={strategy.offensiveFocus}
-                    options={['Balanced', 'Inside', 'Perimeter', 'PickAndRoll']}
-                    icon={Target}
-                    onChange={(val: OffensiveFocus) => setStrategy({ ...strategy, offensiveFocus: val })}
-                />
-
-                <SelectOption
-                    label="Defensive Scheme"
-                    value={strategy.defense}
-                    options={['Man-to-Man', 'Zone 2-3', 'Zone 3-2', 'Full Court Press']}
-                    icon={Shield}
-                    onChange={(val: DefensiveStrategy) => setStrategy({ ...strategy, defense: val })}
-                />
-
+                    <SelectOption
+                        label="Defensive Scheme"
+                        value={strategy.defense}
+                        options={['Man-to-Man', 'Zone 2-3', 'Zone 3-2', 'Full Court Press']}
+                        icon={Shield}
+                        onChange={(val: DefensiveStrategy) => setStrategy({ ...strategy, defense: val })}
+                    />
+                </div>
             </div>
         </div>
     );

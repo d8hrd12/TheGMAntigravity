@@ -140,8 +140,8 @@ export const CreateTeamView: React.FC<CreateTeamViewProps> = ({ onBack }) => {
                     whileTap={{ scale: 0.95 }}
                     onClick={onBack}
                     style={{
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        background: 'var(--bg-card-hover)',
+                        border: '1px solid var(--border-color)',
                         padding: '12px 20px',
                         borderRadius: '12px',
                         color: '#fff',
@@ -182,7 +182,7 @@ export const CreateTeamView: React.FC<CreateTeamViewProps> = ({ onBack }) => {
                         backdropFilter: 'blur(20px)',
                         padding: '40px',
                         borderRadius: '30px',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        border: '1px solid var(--border-color)',
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '25px',
@@ -195,7 +195,7 @@ export const CreateTeamView: React.FC<CreateTeamViewProps> = ({ onBack }) => {
                             onClick={() => fileInputRef.current?.click()}
                             style={{
                                 width: '120px', height: '120px', 
-                                background: 'rgba(255,255,255,0.05)',
+                                background: 'var(--bg-card-hover)',
                                 borderRadius: '30px', margin: '0 auto 15px',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 border: '2px dashed rgba(255,255,255,0.2)',
@@ -225,11 +225,11 @@ export const CreateTeamView: React.FC<CreateTeamViewProps> = ({ onBack }) => {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                         <div>
                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 800, fontSize: '0.7rem', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', letterSpacing: '1px' }}>City</label>
-                            <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Athens" style={{ width: '100%', padding: '14px 18px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', color: 'white', fontSize: '1rem', outline: 'none' }} />
+                            <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Athens" style={{ width: '100%', padding: '14px 18px', background: 'var(--bg-card-hover)', border: '1px solid var(--border-color)', borderRadius: '14px', color: 'white', fontSize: '1rem', outline: 'none' }} />
                         </div>
                         <div>
                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 800, fontSize: '0.7rem', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', letterSpacing: '1px' }}>Team Name</label>
-                            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Spartans" style={{ width: '100%', padding: '14px 18px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', color: 'white', fontSize: '1rem', outline: 'none' }} />
+                            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Spartans" style={{ width: '100%', padding: '14px 18px', background: 'var(--bg-card-hover)', border: '1px solid var(--border-color)', borderRadius: '14px', color: 'white', fontSize: '1rem', outline: 'none' }} />
                         </div>
                     </div>
 
@@ -245,7 +245,7 @@ export const CreateTeamView: React.FC<CreateTeamViewProps> = ({ onBack }) => {
                                         padding: '12px 5px',
                                         borderRadius: '12px',
                                         border: '1px solid',
-                                        borderColor: division === div ? (extractedColor || '#FF5F1F') : 'rgba(255,255,255,0.1)',
+                                        borderColor: division === div ? (extractedColor || '#FF5F1F') : 'var(--border-color)',
                                         background: division === div ? (extractedColor || '#FF5F1F') : 'rgba(255,255,255,0.03)',
                                         color: division === div ? 'white' : 'rgba(255,255,255,0.4)',
                                         cursor: 'pointer',
@@ -269,7 +269,7 @@ export const CreateTeamView: React.FC<CreateTeamViewProps> = ({ onBack }) => {
                         style={{
                             marginTop: '20px',
                             padding: '18px',
-                            background: (!name || !city || isSubmitting) ? 'rgba(255,255,255,0.05)' : `linear-gradient(135deg, ${extractedColor || '#FF5F1F'} 0%, #E64A19 100%)`,
+                            background: (!name || !city || isSubmitting) ? 'var(--bg-card-hover)' : `linear-gradient(135deg, ${extractedColor || '#FF5F1F'} 0%, #E64A19 100%)`,
                             color: (!name || !city) ? 'rgba(255,255,255,0.2)' : 'white',
                             border: 'none',
                             borderRadius: '16px',

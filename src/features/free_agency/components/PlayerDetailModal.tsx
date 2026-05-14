@@ -25,7 +25,7 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({ player, on
     );
 
     const StatBox: React.FC<{ label: string; value: string | number }> = ({ label, value }) => (
-        <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '10px', textAlign: 'center', minWidth: '70px' }}>
+        <div style={{ background: 'var(--bg-card-hover)', borderRadius: '8px', padding: '10px', textAlign: 'center', minWidth: '70px' }}>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>{label}</div>
             <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>{value}</div>
         </div>

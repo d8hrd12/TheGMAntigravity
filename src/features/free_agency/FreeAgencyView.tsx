@@ -13,6 +13,7 @@ import { DailyRecapModal } from './components/DailyRecapModal';
 import { FreeAgencySummaryModal } from './components/FreeAgencySummaryModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Trash2 } from 'lucide-react';
+import { PageHeader } from '../ui/PageHeader';
 
 const StatItem = ({ label, value }: { label: string; value: string | number }) => (
     <div style={{ textAlign: 'center' }}>
@@ -141,70 +142,68 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
     const userCoach = (coaches || []).find(c => c.id === team.coachId && c.teamId === userTeamId);
 
     return (
-        <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', color: 'var(--text)', fontFamily: 'Inter, sans-serif' }}>
-
-            {/* Hero Section */}
-            <div style={{
-                background: '#121212', borderRadius: '24px', padding: '20px', marginBottom: '30px',
-                border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden'
-            }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
-                    <div style={{ textAlign: 'center', width: '100%', marginBottom: '15px' }}>
-                        <h1 style={{ fontSize: '2.2rem', fontWeight: 800, margin: 0, color: 'white', letterSpacing: '-1px', textAlign: 'center' }}>Free Agency</h1>
-                        <p style={{ fontSize: '1rem', color: '#888', margin: '5px 0 0 0', textAlign: 'center' }}>Fill your roster.</p>
-                    </div>
-                    <div style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '30px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '15px' }}>
+        <div style={{ background: 'var(--bg-main)', minHeight: '100vh', color: 'var(--text)', fontFamily: 'Inter, sans-serif' }}>
+            <PageHeader 
+                title="Free Agency Market"
+                subtitle={`Phase: Day ${freeAgencyDay} of 7`}
+                onBack={onBack}
+                teamColor={team.colors?.primary}
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '40px' }}>
                         <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '0.7rem', color: '#888', fontWeight: 600, textTransform: 'uppercase' }}>Cap Space</div>
-                            <div style={{ fontSize: '1.1rem', color: '#2ecc71', fontWeight: 800 }}>{formatMoney(team.salaryCapSpace)}</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>Available Cap</div>
+                            <div style={{ fontSize: '1.4rem', color: '#2ecc71', fontWeight: 900 }}>{formatMoney(team.salaryCapSpace)}</div>
                         </div>
                         <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '0.7rem', color: '#888', fontWeight: 600, textTransform: 'uppercase' }}>Cash</div>
-                            <div style={{ fontSize: '1.1rem', color: '#f39c12', fontWeight: 800 }}>{formatMoney(team.cash)}</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>Team Funds</div>
+                            <div style={{ fontSize: '1.4rem', color: '#f39c12', fontWeight: 900 }}>{formatMoney(team.cash)}</div>
                         </div>
                     </div>
-                </div>
 
-                <div style={{ marginBottom: '25px' }}>
-                    {freeAgencyDay < 7 ? (
-                        <button onClick={advanceFreeAgencyDay} style={{
-                            width: '100%', padding: '16px', background: 'linear-gradient(90deg, #f39c12, #d35400)',
-                            color: 'white', border: 'none', borderRadius: '12px', fontSize: '1.2rem', fontWeight: 800,
-                            cursor: 'pointer', boxShadow: '0 4px 20px rgba(243,156,18,0.3)',
-                            display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px'
-                        }}>
-                            To The Next Day &gt;
-                        </button>
-                    ) : (
-                        <button onClick={handleEndFreeAgency} style={{
-                            width: '100%', padding: '16px', background: 'linear-gradient(90deg, #2ecc71, #27ae60)',
-                            color: 'white', border: 'none', borderRadius: '12px', fontSize: '1.2rem', fontWeight: 800,
-                            cursor: 'pointer', boxShadow: '0 4px 20px rgba(46,204,113,0.3)'
-                        }}>
-                            Finish Free Agency &gt;
-                        </button>
-                    )}
-                </div>
-
-                <div style={{ background: '#2c2c2e', borderRadius: '16px', padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-                    <div style={{ fontSize: '1rem', fontWeight: 700, color: '#ccc', width: '100%', marginBottom: '10px' }}>Needs:</div>
-                    {['PG', 'SG', 'SF', 'PF', 'C'].map(pos => {
-                        const count = counts[pos as keyof typeof counts];
-                        const target = targets[pos as keyof typeof targets];
-                        const isMet = count >= target;
-                        return (
-                            <div key={pos} style={{
-                                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                                background: '#1c1c1e', borderRadius: '10px', padding: '10px',
-                                border: isMet ? '1px solid #333' : '1px solid #e74c3c', flex: 1, minWidth: '50px'
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        {freeAgencyDay < 7 ? (
+                            <button onClick={advanceFreeAgencyDay} style={{
+                                flex: 1, padding: '16px', background: 'linear-gradient(90deg, #f39c12, #d35400)',
+                                color: 'white', border: 'none', borderRadius: '16px', fontSize: '1.1rem', fontWeight: 900,
+                                cursor: 'pointer', boxShadow: '0 8px 25px rgba(243,156,18,0.25)',
+                                display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px',
+                                transition: 'all 0.3s ease'
                             }}>
-                                <div style={{ fontSize: '0.75rem', color: '#888', fontWeight: 600, marginBottom: '2px' }}>{pos}</div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: isMet ? 'white' : '#e74c3c' }}>{count}/{target}</div>
-                            </div>
-                        );
-                    })}
+                                ADVANCE TO DAY {freeAgencyDay + 1} &gt;
+                            </button>
+                        ) : (
+                            <button onClick={handleEndFreeAgency} style={{
+                                flex: 1, padding: '16px', background: 'linear-gradient(90deg, #2ecc71, #27ae60)',
+                                color: 'white', border: 'none', borderRadius: '16px', fontSize: '1.1rem', fontWeight: 900,
+                                cursor: 'pointer', boxShadow: '0 8px 25px rgba(46,204,113,0.25)'
+                            }}>
+                                FINISH FREE AGENCY &gt;
+                            </button>
+                        )}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '10px' }}>
+                        {['PG', 'SG', 'SF', 'PF', 'C'].map(pos => {
+                            const count = counts[pos as keyof typeof counts];
+                            const target = targets[pos as keyof typeof targets];
+                            const isMet = count >= target;
+                            return (
+                                <div key={pos} style={{
+                                    flex: 1, minWidth: '60px', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px',
+                                    border: isMet ? '1px solid var(--border-color)' : `1px solid ${team.colors?.primary}80`,
+                                    textAlign: 'center'
+                                }}>
+                                    <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)', fontWeight: 800 }}>{pos}</div>
+                                    <div style={{ fontSize: '1rem', fontWeight: 900, color: isMet ? 'white' : team.colors?.primary }}>{count}/{target}</div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
-            </div>
+            </PageHeader>
+
+            <div style={{ padding: '0 20px 40px' }}>
 
             {/* See Offers */}
             <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
@@ -415,7 +414,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                                         </div>
                                     ))}
                                 </div>
-                                <div style={{ width: '1px', height: '30px', background: 'rgba(255,255,255,0.1)' }} />
+                                <div style={{ width: '1px', height: '30px', background: 'var(--border-color)' }} />
                                 <button
                                     onClick={() => userFireCoach(userTeamId)}
                                     style={{
@@ -526,8 +525,8 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); setSelectedCoachForBids(coach); }}
                                                 style={{
-                                                    padding: '4px 10px', background: 'rgba(255,255,255,0.05)', color: '#aaa',
-                                                    border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', fontSize: '0.7rem',
+                                                    padding: '4px 10px', background: 'var(--bg-card-hover)', color: '#aaa',
+                                                    border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '0.7rem',
                                                     fontWeight: 600, cursor: 'pointer'
                                                 }}
                                             >
@@ -685,7 +684,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                                 background: '#121214', 
                                 borderRadius: '24px', 
                                 padding: '32px', 
-                                border: '1px solid rgba(255,255,255,0.1)',
+                                border: '1px solid var(--border-color)',
                                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
                             }}>
                             <div style={{ textAlign: 'center', marginBottom: '24px' }}>
@@ -797,6 +796,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                     </div>
                 )}
             </AnimatePresence>
+            </div>
         </div>
     );
 };

@@ -217,7 +217,7 @@ const EuroPlayInView: React.FC = () => {
                             marginTop: '16px',
                             padding: '10px',
                             borderRadius: '10px',
-                            background: isUserMatch ? 'var(--team-primary)' : 'rgba(255,255,255,0.05)',
+                            background: isUserMatch ? 'var(--team-primary)' : 'var(--bg-card-hover)',
                             color: isUserMatch ? '#fff' : 'var(--text-main)',
                             border: '1px solid var(--border-color)',
                             fontSize: '0.7rem',
@@ -259,6 +259,7 @@ const EuroPlayInView: React.FC = () => {
             <PageHeader 
                 title="EURO PLAY-IN TOURNAMENT" 
                 onBack={() => setGameState(prev => ({ ...prev, view: 'dashboard' }))}
+                teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
             />
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '24px' }}>

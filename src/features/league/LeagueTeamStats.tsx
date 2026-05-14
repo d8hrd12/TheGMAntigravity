@@ -1,11 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import type { Team } from '../../models/Team';
 import type { Player } from '../../models/Player';
+import { PageHeader } from '../ui/PageHeader';
+import { useGame } from '../../store/GameContext';
 
 interface LeagueTeamStatsProps {
     teams: Team[];
     players: Player[];
     onSelectTeam: (teamId: string) => void;
+    onBack?: () => void;
 }
 
 interface TeamStatRow {
@@ -25,23 +28,16 @@ interface TeamStatRow {
     ftPct: number;
 }
 
-export const LeagueTeamStats: React.FC<LeagueTeamStatsProps> = ({ teams, players, onSelectTeam }) => {
+export const LeagueTeamStats: React.FC<LeagueTeamStatsProps> = ({ teams, players, onSelectTeam, onBack }) => {
+    const { userTeamId } = useGame();
+    const userTeam = teams.find(t => t.id === userTeamId);
     const [sortConfig, setSortConfig] = useState<{ key: keyof TeamStatRow, direction: 'asc' | 'desc' }>({ key: 'ppg', direction: 'desc' });
 
     // Calculate aggregated stats
     const teamStats: TeamStatRow[] = useMemo(() => {
         return teams.map(team => {
             const teamPlayers = players.filter(p => p.teamId === team.id);
-            const teamGames = team.wins + team.losses || 1; // Avoid div by zero, though stats are usually per player game sum / 5? 
-            // Actually, team PPG is usually sum of all player points / team games played.
-            // But here we have player season totals.
-            // Team Total Points = Sum(Player.SeasonPoints)
-            // Team PPG = Team Total Points / Team Games
-            // BUT wait, if players were traded, their stats follow them. 
-            // In a simple sim, this might be approximate. 
-            // Ideal: Team has its own stats history. 
-            // Current model: We don't track team stats separately.
-            // Approximation: Sum current roster stats. (Note: this is inaccurate if roster changed, but best we have now).
+            const games = Math.max(1, team.wins + team.losses);
 
             const totalPoints = teamPlayers.reduce((sum, p) => sum + (p.seasonStats?.points || 0), 0);
             const totalRebounds = teamPlayers.reduce((sum, p) => sum + (p.seasonStats?.rebounds || 0), 0);
@@ -56,11 +52,6 @@ export const LeagueTeamStats: React.FC<LeagueTeamStatsProps> = ({ teams, players
             const total3PA = teamPlayers.reduce((sum, p) => sum + (p.seasonStats?.threeAttempted || 0), 0);
             const totalFTM = teamPlayers.reduce((sum, p) => sum + (p.seasonStats?.ftMade || 0), 0);
             const totalFTA = teamPlayers.reduce((sum, p) => sum + (p.seasonStats?.ftAttempted || 0), 0);
-
-            // Games played... varies by player. 
-            // We should use the Team's games played (wins + losses).
-            // If team hasn't played, 1 to avoid NaN.
-            const games = Math.max(1, team.wins + team.losses);
 
             return {
                 teamId: team.id,
@@ -107,69 +98,78 @@ export const LeagueTeamStats: React.FC<LeagueTeamStatsProps> = ({ teams, players
     );
 
     return (
-        <div style={{ paddingBottom: '40px' }}>
-            <div className="modern-card" style={{ padding: '0', overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', fontSize: '0.85rem' }}>
-                    <thead>
-                        <tr style={{ borderBottom: '1px solid var(--border-color)', background: 'var(--bg-card)' }}>
-                            <HeaderCell label="Team" sortKey="city" align="center" />
-                            <HeaderCell label="GP" sortKey="gp" align="center" />
-                            <HeaderCell label="PPG" sortKey="ppg" />
-                            <HeaderCell label="RPG" sortKey="rpg" />
-                            <HeaderCell label="APG" sortKey="apg" />
-                            <HeaderCell label="SPG" sortKey="spg" />
-                            <HeaderCell label="BPG" sortKey="bpg" />
-                            <HeaderCell label="TPG" sortKey="tpg" />
-                            <HeaderCell label="FG%" sortKey="fgPct" />
-                            <HeaderCell label="3P%" sortKey="threePct" />
-                            <HeaderCell label="FT%" sortKey="ftPct" />
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {sortedStats.map((stat, index) => {
-                            const team = teams.find(t => t.id === stat.teamId);
-                            return (
-                                <tr
-                                    key={stat.teamId}
-                                    style={{
-                                        borderBottom: '1px solid var(--border-color)',
-                                        background: index % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.01)',
-                                        cursor: 'pointer',
-                                        transition: 'background 0.2s'
-                                    }}
-                                    onClick={() => onSelectTeam(stat.teamId)}
-                                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'}
-                                    onMouseLeave={(e) => e.currentTarget.style.background = index % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.01)'}
-                                >
-                                    <td style={{ padding: '12px 10px', textAlign: 'center', fontWeight: 'bold' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                                            {team?.logo ? (
-                                                <img src={team.logo} alt="" style={{ width: '24px', height: '24px', objectFit: 'contain' }} />
-                                            ) : (
-                                                <span style={{ color: stat.primaryColor, marginRight: '8px' }}>●</span>
-                                            )}
-                                            <span style={{ color: 'var(--text-main)' }}>{stat.city}</span>
-                                        </div>
-                                    </td>
-                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)', textAlign: 'center' }}>{stat.gp}</td>
-                                    <td style={{ padding: '12px 10px', color: 'var(--text-main)', fontWeight: '800' }}>{stat.ppg.toFixed(1)}</td>
-                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.rpg.toFixed(1)}</td>
-                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.apg.toFixed(1)}</td>
-                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.spg.toFixed(1)}</td>
-                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.bpg.toFixed(1)}</td>
-                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.tpg.toFixed(1)}</td>
-                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.fgPct.toFixed(1)}%</td>
-                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.threePct.toFixed(1)}%</td>
-                                    <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.ftPct.toFixed(1)}%</td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
+        <div style={{ background: 'var(--bg-main)', minHeight: '100vh', padding: '0 0 40px 0' }}>
+            <PageHeader
+                title="League Team Stats"
+                subtitle="Season performance by roster"
+                onBack={onBack}
+                teamColor={userTeam?.colors?.primary}
+            />
 
-            <div style={{ marginTop: '15px', fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
-                * Stats are aggregated from current roster totals.
+            <div style={{ padding: '0 20px' }}>
+                <div className="modern-card" style={{ padding: '0', overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', fontSize: '0.85rem' }}>
+                        <thead>
+                            <tr style={{ borderBottom: '1px solid var(--border-color)', background: 'var(--bg-card)' }}>
+                                <HeaderCell label="Team" sortKey="city" align="center" />
+                                <HeaderCell label="GP" sortKey="gp" align="center" />
+                                <HeaderCell label="PPG" sortKey="ppg" />
+                                <HeaderCell label="RPG" sortKey="rpg" />
+                                <HeaderCell label="APG" sortKey="apg" />
+                                <HeaderCell label="SPG" sortKey="spg" />
+                                <HeaderCell label="BPG" sortKey="bpg" />
+                                <HeaderCell label="TPG" sortKey="tpg" />
+                                <HeaderCell label="FG%" sortKey="fgPct" />
+                                <HeaderCell label="3P%" sortKey="threePct" />
+                                <HeaderCell label="FT%" sortKey="ftPct" />
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {sortedStats.map((stat, index) => {
+                                const team = teams.find(t => t.id === stat.teamId);
+                                return (
+                                    <tr
+                                        key={stat.teamId}
+                                        style={{
+                                            borderBottom: '1px solid var(--border-color)',
+                                            background: index % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.01)',
+                                            cursor: 'pointer',
+                                            transition: 'background 0.2s'
+                                        }}
+                                        onClick={() => onSelectTeam(stat.teamId)}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = index % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.01)'}
+                                    >
+                                        <td style={{ padding: '12px 10px', textAlign: 'center', fontWeight: 'bold' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                                {team?.logo ? (
+                                                    <img src={team.logo} alt="" style={{ width: '24px', height: '24px', objectFit: 'contain' }} />
+                                                ) : (
+                                                    <span style={{ color: stat.primaryColor, marginRight: '8px' }}>●</span>
+                                                )}
+                                                <span style={{ color: 'var(--text-main)' }}>{stat.city}</span>
+                                            </div>
+                                        </td>
+                                        <td style={{ padding: '12px 10px', color: 'var(--text-muted)', textAlign: 'center' }}>{stat.gp}</td>
+                                        <td style={{ padding: '12px 10px', color: 'var(--text-main)', fontWeight: '800' }}>{stat.ppg.toFixed(1)}</td>
+                                        <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.rpg.toFixed(1)}</td>
+                                        <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.apg.toFixed(1)}</td>
+                                        <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.spg.toFixed(1)}</td>
+                                        <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.bpg.toFixed(1)}</td>
+                                        <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.tpg.toFixed(1)}</td>
+                                        <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.fgPct.toFixed(1)}%</td>
+                                        <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.threePct.toFixed(1)}%</td>
+                                        <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{stat.ftPct.toFixed(1)}%</td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style={{ marginTop: '15px', fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                    * Stats are aggregated from current roster totals.
+                </div>
             </div>
         </div>
     );

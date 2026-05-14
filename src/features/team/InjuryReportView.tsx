@@ -3,7 +3,9 @@ import { useGame } from '../../store/GameContext';
 import { calculateDaysBetween } from '../../utils/dateUtils';
 import { Activity, ShieldAlert, HeartPulse } from 'lucide-react';
 
-export const InjuryReportView: React.FC = () => {
+import { PageHeader } from '../ui/PageHeader';
+
+export const InjuryReportView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const { players, teams, userTeamId, date } = useGame();
     const [filter, setFilter] = useState<'all' | 'my_team'>('all');
 
@@ -23,7 +25,15 @@ export const InjuryReportView: React.FC = () => {
     };
 
     return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '20px', padding: '20px' }}>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '0', padding: '0' }}>
+            <PageHeader 
+                title="Injury Report"
+                subtitle="League-wide health tracking"
+                onBack={onBack}
+                teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
+            />
+            
+            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', flex: 1, overflow: 'hidden' }}>
             {/* Filter */}
             <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <div style={{ display: 'flex', background: 'var(--bg-card)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
@@ -31,7 +41,7 @@ export const InjuryReportView: React.FC = () => {
                         onClick={() => setFilter('all')}
                         style={{
                             padding: '6px 12px',
-                            background: filter === 'all' ? 'var(--primary)' : 'transparent',
+                            background: filter === 'all' ? 'var(--text-main)' : 'transparent',
                             color: filter === 'all' ? '#fff' : 'var(--text-dim)',
                             border: 'none',
                             borderRadius: '6px',
@@ -46,7 +56,7 @@ export const InjuryReportView: React.FC = () => {
                         onClick={() => setFilter('my_team')}
                         style={{
                             padding: '6px 12px',
-                            background: filter === 'my_team' ? 'var(--primary)' : 'transparent',
+                            background: filter === 'my_team' ? 'var(--text-main)' : 'transparent',
                             color: filter === 'my_team' ? '#fff' : 'var(--text-dim)',
                             border: 'none',
                             borderRadius: '6px',
@@ -115,6 +125,7 @@ export const InjuryReportView: React.FC = () => {
                         })}
                     </div>
                 )}
+            </div>
             </div>
         </div>
     );

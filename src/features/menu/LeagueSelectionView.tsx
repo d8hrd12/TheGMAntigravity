@@ -46,7 +46,9 @@ export const LeagueSelectionView: React.FC<LeagueSelectionViewProps> = ({ onSele
                     fontWeight: 950, 
                     letterSpacing: '-3px', 
                     marginBottom: '10px',
-                    textTransform: 'uppercase'
+                    textTransform: 'uppercase',
+                    color: '#fff',
+                    fontFamily: 'var(--font-title)'
                 }}>
                     Select League <span style={{ color: '#FF5F1F' }}>Type</span>
                 </h2>
@@ -91,7 +93,7 @@ export const LeagueSelectionView: React.FC<LeagueSelectionViewProps> = ({ onSele
                 style={{
                     marginTop: window.innerWidth < 768 ? '20px' : '60px',
                     background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    border: '1px solid var(--border-color)',
                     color: 'rgba(255,255,255,0.6)',
                     padding: '16px 40px',
                     borderRadius: '20px',
@@ -158,7 +160,14 @@ const LeagueCard: React.FC<LeagueCardProps> = ({ title, subtitle, description, i
                 {subtitle}
             </div>
 
-            <h3 style={{ fontSize: 'clamp(1.2rem, 5vw, 3rem)', fontWeight: 950, margin: '0 0 10px 0', letterSpacing: '-1px' }}>
+            <h3 style={{ 
+                fontSize: 'clamp(1.2rem, 5vw, 3rem)', 
+                fontWeight: 950, 
+                margin: '0 0 10px 0', 
+                letterSpacing: '-1px',
+                color: '#fff',
+                fontFamily: 'var(--font-title)'
+            }}>
                 {title}
             </h3>
 

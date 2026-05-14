@@ -12,7 +12,11 @@ interface NewsFeedViewProps {
     onSelectTeam: (teamId: string) => void;
 }
 
+import { PageHeader } from '../ui/PageHeader';
+import { useGame } from '../../store/GameContext';
+
 export const NewsFeedView: React.FC<NewsFeedViewProps> = ({ news, teams, onClose, onSelectPlayer, onSelectTeam }) => {
+    const { userTeamId } = useGame();
     const [filter, setFilter] = useState<'ALL' | 'PLAYER_TALK' | 'RIVALRY' | 'DRAFT' | 'TRANSACTIONS' | 'INJURY' | 'RUMOR'>('ALL');
 
     const filteredNews = news.filter(s => {
@@ -23,9 +27,9 @@ export const NewsFeedView: React.FC<NewsFeedViewProps> = ({ news, teams, onClose
     });
 
     const getTeamColor = (teamId?: string) => {
-        if (!teamId) return 'var(--primary)';
+        if (!teamId) return 'var(--text-main)';
         const team = teams.find(t => t.id === teamId);
-        return team?.colors?.primary || 'var(--primary)';
+        return team?.colors?.primary || 'var(--text-main)';
     };
 
     return (
@@ -38,37 +42,12 @@ export const NewsFeedView: React.FC<NewsFeedViewProps> = ({ news, teams, onClose
             display: 'flex',
             flexDirection: 'column',
         }}>
-            {/* Header */}
-            <div style={{
-                padding: 'calc(env(safe-area-inset-top, 20px) + 10px) 20px 20px 20px',
-                borderBottom: '1px solid var(--border-color)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                background: '#ffffff',
-            }}>
-                <div>
-                    <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '800', color: 'var(--text-main)' }}>
-                        League News
-                    </h2>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>
-                        {news.length} updates logged
-                    </div>
-                </div>
-                <button onClick={onClose} style={{
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border-color)',
-                    padding: '10px',
-                    borderRadius: '10px',
-                    cursor: 'pointer',
-                    color: 'var(--text-main)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}>
-                    <X size={20} />
-                </button>
-            </div >
+            <PageHeader 
+                title="League News"
+                subtitle={`${news.length} updates logged`}
+                onBack={onClose}
+                teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
+            />
 
             {/* Filters */}
             <div style={{
@@ -115,7 +94,7 @@ export const NewsFeedView: React.FC<NewsFeedViewProps> = ({ news, teams, onClose
                     ) : (
                         filteredNews.map(story => {
                             const team = teams.find(t => t.id === story.relatedTeamId);
-                            const teamColor = team?.colors?.primary || 'var(--primary)';
+                            const teamColor = team?.colors?.primary || 'var(--text-main)';
                             return (
                                 <div key={story.id} style={{
                                     background: '#ffffff',
@@ -153,7 +132,7 @@ export const NewsFeedView: React.FC<NewsFeedViewProps> = ({ news, teams, onClose
                                             <button
                                                 onClick={() => onSelectPlayer(story.relatedPlayerId!)}
                                                 className="btn-modern"
-                                                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', borderColor: 'var(--primary)', color: 'var(--primary)' }}
+                                                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', borderColor: 'var(--text-main)', color: 'var(--text-main)' }}
                                             >
                                                 View Player
                                                 <ChevronRight size={14} />

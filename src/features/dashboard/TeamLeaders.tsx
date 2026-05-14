@@ -55,7 +55,7 @@ export const TeamLeaders: React.FC<TeamLeadersProps> = ({ onSelectPlayer }) => {
                 </div>
             </div>
             <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--primary)' }}>{statValue}</div>
+                <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>{statValue}</div>
                 <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{statType}</div>
             </div>
         </motion.div>

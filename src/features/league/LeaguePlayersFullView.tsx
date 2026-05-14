@@ -5,15 +5,20 @@ import { calculateOverall } from '../../utils/playerUtils';
 import { calculateStars } from '../../utils/starUtils';
 import { StarRating } from '../../components/StarRating';
 import { Search } from 'lucide-react';
+import { PageHeader } from '../ui/PageHeader';
+import { useGame } from '../../store/GameContext';
 
 interface LeaguePlayersFullViewProps {
     players: Player[];
     teams: Team[];
     onSelectPlayer: (playerId: string) => void;
     onSelectTeam: (teamId: string) => void;
+    onBack?: () => void;
 }
 
-export const LeaguePlayersFullView: React.FC<LeaguePlayersFullViewProps> = ({ players, teams, onSelectPlayer, onSelectTeam }) => {
+export const LeaguePlayersFullView: React.FC<LeaguePlayersFullViewProps> = ({ players, teams, onSelectPlayer, onSelectTeam, onBack }) => {
+    const { userTeamId } = useGame();
+    const userTeam = teams.find(t => t.id === userTeamId);
     const [searchQuery, setSearchQuery] = useState('');
     const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'ovr', direction: 'desc' });
 
@@ -105,13 +110,21 @@ export const LeaguePlayersFullView: React.FC<LeaguePlayersFullViewProps> = ({ pl
 
     const getArchetypeColor = (value: number) => {
         if (value >= 85) return 'var(--accent)'; // Specialist
-        if (value >= 75) return 'var(--primary)'; // Good
+        if (value >= 75) return 'var(--text-main)'; // Good
         if (value >= 60) return 'var(--text-dim)'; // Average
         return 'var(--text-muted)'; // Bad
     };
 
     return (
-        <div style={{ padding: '0 0 20px 0' }}>
+        <div style={{ padding: '0 0 20px 0', background: 'var(--bg-main)', minHeight: '100%' }}>
+            <PageHeader
+                title="Player Database"
+                subtitle="Full scouting & attributes"
+                onBack={onBack}
+                teamColor={userTeam?.colors?.primary}
+            />
+
+            <div style={{ padding: '0 20px' }}>
             {/* Search Bar */}
             <div style={{ marginBottom: '20px', position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg-main)', padding: '10px 0', display: 'flex', gap: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '8px 12px', flex: 1 }}>
@@ -236,6 +249,7 @@ export const LeaguePlayersFullView: React.FC<LeaguePlayersFullViewProps> = ({ pl
                         Showing top 100 of {filteredPlayers.length} matches. Use search to find specific players.
                     </div>
                 )}
+            </div>
             </div>
         </div>
     );

@@ -42,7 +42,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({ title, message, onCl
                     onClick={onClose}
                     style={{
                         padding: '12px 30px',
-                        background: isError ? '#e74c3c' : 'var(--primary)',
+                        background: isError ? '#e74c3c' : 'var(--text-main)',
                         border: 'none',
                         color: '#fff',
                         borderRadius: '8px',

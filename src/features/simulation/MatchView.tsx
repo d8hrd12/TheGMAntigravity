@@ -279,7 +279,7 @@ export const MatchView: React.FC<MatchViewProps> = ({ matchResult, homeTeam, awa
         const LINE = '#ffffff';
 
         ctx.fillStyle = 'rgba(200, 50, 50, 0.2)';
-        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.fillStyle = 'var(--border-color)';
         ctx.fillRect(isRight ? X(100 - 19) : X(0), Y(17), X(19), Y(16));
         ctx.strokeRect(isRight ? X(100 - 19) : X(0), Y(17), X(19), Y(16));
 
@@ -330,7 +330,7 @@ export const MatchView: React.FC<MatchViewProps> = ({ matchResult, homeTeam, awa
             zIndex: 100, color: '#fff', display: 'flex', flexDirection: 'column'
         }}>
             {/* Header */}
-            <div style={{ padding: '0 40px', height: '100px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ padding: '0 40px', height: '100px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-card-hover)', borderBottom: '1px solid var(--border-color)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
                     {/* Home Team */}
                     <div style={{ textAlign: 'center', opacity: homeScore > awayScore ? 1 : 0.7 }}>
@@ -384,7 +384,7 @@ export const MatchView: React.FC<MatchViewProps> = ({ matchResult, homeTeam, awa
                         max={fullGameDuration}
                         value={currentTime}
                         onChange={(e) => setCurrentTime(Number(e.target.value))}
-                        style={{ width: '100%', accentColor: 'var(--primary)' }}
+                        style={{ width: '100%', accentColor: 'var(--text-main)' }}
                     />
                 </div>
 

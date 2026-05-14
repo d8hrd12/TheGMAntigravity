@@ -41,7 +41,7 @@ export const MidSeasonProgressionModal: React.FC<MidSeasonProgressionModalProps>
                 color: 'var(--text-main)',
                 position: 'relative'
             }}>
-                <div style={{ textAlign: 'center', marginBottom: '25px', borderBottom: '2px solid var(--primary)', paddingBottom: '15px' }}>
+                <div style={{ textAlign: 'center', marginBottom: '25px', borderBottom: '2px solid var(--text-main)', paddingBottom: '15px' }}>
                     <h2 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 900, color: 'var(--text-main)' }}>Mid-Season Breakouts</h2>
                     <p style={{ margin: '8px 0 0 0', color: 'var(--text-dim)', fontSize: '0.9rem' }}>
                         The trade deadline has passed. Here are the top 10 players who have had breakout performances this season!
@@ -64,14 +64,14 @@ export const MidSeasonProgressionModal: React.FC<MidSeasonProgressionModalProps>
                                     padding: '12px 16px',
                                     background: 'var(--bg-card-hover)',
                                     borderRadius: '12px',
-                                    border: '1px solid rgba(255,255,255,0.05)'
+                                    border: '1px solid var(--bg-card-hover)'
                                 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                                         <div style={{ 
                                             width: '28px', 
                                             height: '28px', 
                                             borderRadius: '14px', 
-                                            background: 'var(--primary)', 
+                                            background: 'var(--text-main)', 
                                             display: 'flex', 
                                             alignItems: 'center', 
                                             justifyContent: 'center',
@@ -112,7 +112,7 @@ export const MidSeasonProgressionModal: React.FC<MidSeasonProgressionModalProps>
                     style={{
                         width: '100%',
                         padding: '16px',
-                        background: 'var(--primary)',
+                        background: 'var(--text-main)',
                         color: 'white',
                         border: 'none',
                         borderRadius: '12px',

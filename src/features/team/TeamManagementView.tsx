@@ -47,7 +47,7 @@ export const TeamManagementView: React.FC<TeamManagementViewProps> = ({
         alignItems: 'center',
         justifyContent: 'center',
         gap: '8px',
-        background: isActive ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+        background: isActive ? 'var(--text-main)' : 'var(--bg-card-hover)',
         color: isActive ? 'white' : 'var(--text-secondary)',
         border: 'none',
         cursor: 'pointer',
@@ -72,13 +72,15 @@ export const TeamManagementView: React.FC<TeamManagementViewProps> = ({
 
     return (
         <div style={{ minHeight: '100%', paddingBottom: '140px', background: '#2A2A2A' }}>
-            <div style={{ padding: '20px 20px 0 20px' }}>
+            <div style={{ padding: '0' }}>
                 <PageHeader
                     title={getTitle()}
+                    subtitle={activeTab === 'rotation' ? "Manage minutes & playing time" : "Tactics & coaching staff"}
                     onBack={onBack}
+                    teamColor={team.colors.primary}
                 />
 
-                <div style={{ marginBottom: '20px' }}>
+                <div style={{ padding: '0 20px', marginBottom: '20px' }}>
                     <SegmentedControl
                         value={activeTab} // 'rotation' | 'strategy'
                         onChange={(val) => setActiveTab(val as 'rotation' | 'strategy')}

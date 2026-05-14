@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.cdnfonts.com/css/sf-transrobotics');
 
 @font-face {
   font-family: 'ESPN Ignite';
@@ -15,50 +16,50 @@
 }
 
 :root {
-  /* Light Theme Palette */
+  /* Minimalist Palette */
   --bg-main: #ffffff;
-  --bg-card: #f8fafc;
-  --bg-card-hover: #f1f5f9;
-  --border-color: #e2e8f0;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f9f9f9;
+  --border-color: #f0f0f0;
   
-  --primary: #2563eb; 
-  --team-primary: var(--primary);
-  --primary-glow: rgba(37, 99, 235, 0.1);
-  --secondary: #db2777;
-  --accent: #059669; 
-  --accent-glow: rgba(5, 150, 105, 0.1);
-  --warning: #d97706;
-  --danger: #dc2626;
+  --primary: #007aff; /* Apple Blue */
+  --team-primary: var(--text-main);
+  --primary-glow: rgba(0, 122, 255, 0.05);
+  --secondary: #ff2d55; /* Apple Red */
+  --accent: #34c759; /* Apple Green */
+  --accent-glow: rgba(52, 199, 89, 0.1);
+  --warning: #ff9500;
+  --danger: #ff3b30;
 
-  --text-main: #1e293b;
-  --text-dim: #94a3b8;
-  --text-muted: #64748b;
+  --text-main: #111111;
+  --text-dim: #8e8e93;
+  --text-muted: #c7c7cc;
 
-  --radius-sm: 6px;
+  --radius-sm: 8px;
   --radius-md: 12px;
-  --radius-lg: 14px;
+  --radius-lg: 16px;
   
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
 
-  --font-main: 'Inter', sans-serif;
-  --font-title: 'Outfit', sans-serif;
+  --font-main: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  --font-title: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Icons", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
   --bezel-width: 12px;
 }
 
 .euro-theme {
-  --font-main: 'Outfit', sans-serif;
-  --font-title: 'Outfit', sans-serif;
-  --primary: #EAB308;
+  --font-main: var(--font-main);
+  --font-title: var(--font-title);
+  --primary: #007aff;
 }
 
 .euro-theme h1, 
 .euro-theme h2, 
 .euro-theme h3, 
 .euro-theme h4 {
-  font-weight: 900;
-  text-transform: uppercase;
+  font-weight: 700;
+  text-transform: none;
   letter-spacing: -0.02em;
 }
 
@@ -111,9 +112,10 @@ body {
 h1, h2, h3, h4 {
   font-family: var(--font-title);
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   text-align: center;
   width: 100%;
+  color: var(--text-main);
 }
 
 /* Layout Containers */
@@ -234,27 +236,26 @@ h1, h2, h3, h4 {
   height: 44px;
   width: 100%;
   padding: 0 16px;
-  border-radius: var(--radius-md);
-  color: var(--text-dim);
+  border-radius: 12px;
+  color: #1c1c1e;
   text-decoration: none;
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-weight: 500;
+  font-size: 0.95rem;
   transition: all 0.2s ease;
   margin-bottom: 4px;
-  border: 1px solid transparent;
+  border: none;
   background: transparent;
   cursor: pointer;
 }
 
 .nav-link:hover {
-  background: var(--bg-card-hover);
-  color: var(--text-main);
+  background: #f2f2f7;
 }
 
 .nav-link.active {
-  background: var(--primary-glow);
-  color: var(--primary);
-  font-weight: 700;
+  background: #007aff;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 .nav-link.expanded {
@@ -286,7 +287,7 @@ h1, h2, h3, h4 {
 }
 
 .nav-sub-link.active {
-  color: var(--primary);
+  color: var(--text-main);
   font-weight: 700;
   background: var(--primary-glow);
 }
@@ -322,16 +323,16 @@ h1, h2, h3, h4 {
   justify-content: center;
 }
 
-/* Modern Card (Light) */
+/* Modern Card (Minimalist) */
 .modern-card {
   background: var(--bg-card);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
-  padding: 12px;
+  padding: 20px;
   margin: 0 auto;
   width: 100%;
-  max-width: 400px;
+  max-width: 450px;
 }
 
 .card-header {
@@ -342,9 +343,9 @@ h1, h2, h3, h4 {
 }
 
 .card-title {
-  font-size: 0.6rem;
-  font-weight: 800;
-  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #111111;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -367,21 +368,21 @@ h1, h2, h3, h4 {
 
 /* Buttons */
 .btn-modern {
-  background: #ffffff;
-  border: 1px solid var(--border-color);
-  color: var(--text-dim);
-  padding: 10px 16px;
-  border-radius: var(--radius-md);
-  font-weight: 700;
-  font-size: 0.75rem;
+  background: #f2f2f7;
+  border: none;
+  color: #007aff;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .btn-modern:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--text-muted);
+  background: #e5e5ea;
+  transform: scale(1.02);
 }
 
 /* Gauge (Light) */

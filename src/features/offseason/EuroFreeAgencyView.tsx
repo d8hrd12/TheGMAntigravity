@@ -9,6 +9,8 @@ import { StarRating } from '../../components/StarRating';
 import { EuroNegotiationView } from '../negotiation/EuroNegotiationView';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, DollarSign, Users, TrendingUp, BarChart2, Star, ChevronRight, X, ArrowLeft, Zap } from 'lucide-react';
+import { PageHeader } from '../ui/PageHeader';
+
 
 export const EuroFreeAgencyView: React.FC<any> = ({ onBack, onComplete }) => {
     const { 
@@ -61,44 +63,43 @@ export const EuroFreeAgencyView: React.FC<any> = ({ onBack, onComplete }) => {
             minHeight: '100vh',
             background: 'linear-gradient(180deg, var(--bg-body) 0%, rgba(var(--team-primary-rgb), 0.05) 100%)'
         }}>
-            {/* Standardized Header Design */}
-            <div style={{ marginBottom: '40px' }}>
-                <h1 style={{ fontSize: '3.5rem', fontWeight: 900, margin: 0, textTransform: 'uppercase', color: '#1a2a3a', letterSpacing: '-2px', lineHeight: 1.1 }}>
-                    GLOBAL<br/>MARKET
-                </h1>
-                <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#8898a8', margin: '16px 0 32px 0', textTransform: 'uppercase', letterSpacing: '2px' }}>
-                    EURO DAY {freeAgencyDay} • RECRUITING
-                </h2>
-
+            <PageHeader
+                title="Global Market"
+                subtitle={`Euro Day ${freeAgencyDay} • Recruiting`}
+                onBack={onBack || (() => setView('dashboard'))}
+                teamColor={team?.colors?.primary}
+            >
                 <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: '20px', alignItems: 'stretch' }}>
                     {/* Budget Section */}
-                    <div style={{ background: '#fff', padding: '16px 24px', borderRadius: '28px', border: '1px solid #eef2f6', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
-                        <div style={{ fontSize: '0.75rem', color: '#8898a8', fontWeight: 800, textTransform: 'uppercase', marginBottom: '2px', letterSpacing: '1px' }}>BUDGET</div>
-                        <div style={{ fontSize: '2.4rem', fontWeight: 900, color: '#2ecc71', lineHeight: 1.1 }}>{formatMoney(team.salaryCapSpace)}</div>
+                    <div style={{ background: 'var(--bg-card-hover)', padding: '12px 20px', borderRadius: '16px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '2px', letterSpacing: '1px' }}>BUDGET</div>
+                        <div style={{ fontSize: '1.8rem', fontWeight: 900, color: '#2ecc71', lineHeight: 1.1 }}>{formatMoney(team.salaryCapSpace)}</div>
                     </div>
                     
                     {/* Finish Action */}
                     <button 
                         onClick={() => completeOffseasonTask('freeAgency')}
                         style={{ 
-                            background: '#004a99', color: '#fff', border: 'none', borderRadius: '28px', 
-                            fontSize: '1.4rem', fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase',
-                            boxShadow: '0 12px 35px rgba(0, 74, 153, 0.3)', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 20px'
-                        }}
-                        onMouseEnter={e => {
-                            e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
-                            e.currentTarget.style.boxShadow = '0 15px 45px rgba(0, 74, 153, 0.4)';
-                        }}
-                        onMouseLeave={e => {
-                            e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                            e.currentTarget.style.boxShadow = '0 12px 35px rgba(0, 74, 153, 0.3)';
+                            background: 'var(--team-primary)', 
+                            color: '#fff', 
+                            border: 'none', 
+                            borderRadius: '16px', 
+                            fontSize: '1.1rem', 
+                            fontWeight: 900, 
+                            cursor: 'pointer', 
+                            textTransform: 'uppercase',
+                            boxShadow: '0 8px 25px rgba(var(--team-primary-rgb), 0.25)', 
+                            transition: 'all 0.3s ease',
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            padding: '0 20px'
                         }}
                     >
                         FINISH
                     </button>
                 </div>
-            </div>
+            </PageHeader>
 
             {/* Search and Filters */}
             <div style={{ display: 'flex', gap: '16px', marginBottom: '32px' }}>

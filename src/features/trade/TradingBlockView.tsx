@@ -54,51 +54,55 @@ export const TradingBlockView: React.FC<TradingBlockViewProps> = ({
         const teamBaseline = calculateTeamBaseline(players.filter(p => p.teamId === team.id));
 
         return (
-            <div key={team.id} className="glass-panel" style={{
+            <div key={team.id} style={{
                 width: '100%',
-                padding: '16px',
-                borderRadius: '16px',
-                border: '1px solid var(--border-color)',
-                background: 'var(--bg-card)',
+                padding: '24px',
+                borderRadius: '24px',
+                border: '1px solid #eeeeee',
+                background: '#ffffff',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '12px',
-                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                gap: '20px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease'
             }}>
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <div style={{
-                        width: '48px', height: '48px', borderRadius: '50%',
-                        background: team.colors?.primary || '#333',
+                        width: '56px', height: '56px', borderRadius: '50%',
+                        background: '#f2f2f7',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: '#fff', fontWeight: 'bold', fontSize: '1.1rem',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                        overflow: 'hidden'
+                        color: team.colors?.primary || '#111111', 
+                        fontWeight: 'bold', fontSize: '1.2rem',
+                        overflow: 'hidden',
+                        border: '1px solid #eeeeee'
                     }}>
                         {team.logo ? (
-                            <img src={team.logo} alt={team.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src={team.logo} alt={team.name} style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
                         ) : (
                             team.abbreviation.substring(0, 2)
                         )}
                     </div>
                     <div>
-                        <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{team.city} {team.name}</div>
-                        <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>
+                        <div style={{ fontWeight: 900, fontSize: '1.25rem', color: '#111111', letterSpacing: '-0.02em' }}>{team.city} {team.name}</div>
+                        <div style={{ fontSize: '0.85rem', color: '#8e8e93', fontWeight: 600 }}>
                             {team.wins}-{team.losses} • {state}
                         </div>
                     </div>
                 </div>
 
                 {/* Needs Tag */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                     {needs.slice(0, 3).map((need, i) => (
                         <span key={i} style={{
-                            fontSize: '0.75rem',
-                            padding: '4px 10px',
-                            borderRadius: '12px',
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            border: '1px solid var(--border-color)',
-                            color: 'var(--text-dim)'
+                            fontSize: '0.7rem',
+                            padding: '6px 12px',
+                            borderRadius: '100px',
+                            background: '#f2f2f7',
+                            color: '#111111',
+                            fontWeight: 800,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.02em'
                         }}>
                             {need}
                         </span>
@@ -106,54 +110,58 @@ export const TradingBlockView: React.FC<TradingBlockViewProps> = ({
                 </div>
 
                 {/* Trading Block Assets - Interactive List */}
-                <div style={{ flex: 1, background: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '10px' }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-dim)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <div style={{ flex: 1, background: '#f9f9f9', borderRadius: '20px', padding: '16px', border: '1px solid #f2f2f7' }}>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#8e8e93', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                         On The Block
                     </div>
                     {assets.length > 0 ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             {assets.map(p => (
                                 <div key={p.id} style={{
                                     display: 'flex',
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
                                     fontSize: '0.9rem',
-                                    padding: '6px',
-                                    borderRadius: '6px',
-                                    background: 'rgba(255,255,255,0.03)',
-                                    transition: 'background 0.2s'
+                                    padding: '10px 12px',
+                                    borderRadius: '14px',
+                                    background: '#ffffff',
+                                    border: '1px solid #eeeeee',
+                                    transition: 'transform 0.2s'
                                 }}>
                                     <div
                                         onClick={() => onSelectPlayer(p.id)}
-                                        style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', flex: 1 }}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', flex: 1 }}
                                     >
                                         <div style={{
                                             minWidth: '24px',
-                                            textAlign: 'center',
-                                            marginRight: '8px'
+                                            textAlign: 'center'
                                         }}>
-                                            <StarRating stars={calculateStars(calculateOverall(p), teamBaseline)} size={12} />
+                                            <StarRating stars={calculateStars(calculateOverall(p), teamBaseline)} size={10} />
                                         </div>
                                         <div>
-                                            <div style={{ fontWeight: 600 }}>{p.firstName.charAt(0)}. {p.lastName}</div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{p.position} • {p.age}yo</div>
+                                            <div style={{ fontWeight: 800, color: '#111111' }}>{p.firstName.charAt(0)}. {p.lastName}</div>
+                                            <div style={{ fontSize: '0.75rem', color: '#8e8e93', fontWeight: 600 }}>{p.position} • {p.age}yo</div>
                                         </div>
                                     </div>
 
                                     <button
                                         onClick={() => onTradeForPlayer(p.id)}
                                         style={{
-                                            background: 'var(--primary)',
-                                            color: 'var(--text-main)',
+                                            background: '#111111',
+                                            color: '#ffffff',
                                             border: 'none',
-                                            borderRadius: '4px',
-                                            padding: '4px 8px',
+                                            borderRadius: '100px',
+                                            padding: '6px 12px',
                                             fontSize: '0.75rem',
+                                            fontWeight: 800,
                                             cursor: 'pointer',
                                             display: 'flex',
                                             alignItems: 'center',
-                                            gap: '4px'
+                                            gap: '6px',
+                                            transition: 'transform 0.2s'
                                         }}
+                                        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                                     >
                                         <ShoppingBag size={12} />
                                         Trade
@@ -162,7 +170,7 @@ export const TradingBlockView: React.FC<TradingBlockViewProps> = ({
                             ))}
                         </div>
                     ) : (
-                        <div style={{ fontSize: '0.8rem', fontStyle: 'italic', color: '#666', textAlign: 'center', padding: '10px' }}>No specific players listed.</div>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#8e8e93', textAlign: 'center', padding: '20px' }}>No specific players listed.</div>
                     )}
                 </div>
 
@@ -172,16 +180,24 @@ export const TradingBlockView: React.FC<TradingBlockViewProps> = ({
                     style={{
                         marginTop: 'auto',
                         width: '100%',
-                        padding: '10px',
-                        background: 'transparent',
-                        color: 'var(--primary)',
-                        border: '1px solid var(--primary)',
-                        borderRadius: '12px',
+                        padding: '14px',
+                        background: '#ffffff',
+                        color: '#111111',
+                        border: '1px solid #eeeeee',
+                        borderRadius: '100px',
                         cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                        fontWeight: 600,
+                        fontWeight: 800,
                         fontSize: '0.9rem',
-                        transition: 'background 0.2s'
+                        transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#f2f2f7';
+                        e.currentTarget.style.borderColor = '#111111';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = '#ffffff';
+                        e.currentTarget.style.borderColor = '#eeeeee';
                     }}
                 >
                     View Full Roster <ArrowRight size={14} />
@@ -195,19 +211,27 @@ export const TradingBlockView: React.FC<TradingBlockViewProps> = ({
         if (categoryTeams.length === 0) return null;
 
         return (
-            <div style={{ marginBottom: '40px' }}>
+            <div style={{ marginBottom: '64px' }}>
                 <div style={{
-                    display: 'flex', alignItems: 'center', gap: '10px',
-                    marginBottom: '15px',
-                    paddingBottom: '10px',
-                    borderBottom: '1px solid var(--border-color)'
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '16px',
+                    marginBottom: '32px',
+                    padding: '0 8px'
                 }}>
-                    <div style={{ padding: '8px', borderRadius: '8px', background: `${color}20` }}>
-                        <Icon size={24} color={color} />
+                    <div style={{ 
+                        padding: '12px', 
+                        borderRadius: '16px', 
+                        background: `${color}15`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        <Icon size={28} color={color} />
                     </div>
                     <div>
-                        <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{title}</h3>
-                        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-dim)' }}>
+                        <h3 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 900, letterSpacing: '-0.04em', color: '#111111' }}>{title}</h3>
+                        <p style={{ margin: '2px 0 0 0', fontSize: '1rem', color: '#8e8e93', fontWeight: 500 }}>
                             {dataKey === 'Contender' ? 'Looking to buy veterans for a championship push.' :
                                 dataKey === 'Rebuilding' ? 'Looking to sell veterans for draft capital.' :
                                     'Looking for opportunistic upgrades.'}
@@ -217,10 +241,10 @@ export const TradingBlockView: React.FC<TradingBlockViewProps> = ({
 
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                    gap: '20px',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
+                    gap: '32px',
                 }}>
-                    {categoryTeams.length > 0 ? categoryTeams.map(renderTeamCard) : <div style={{ padding: '20px', color: '#666' }}>No teams in this category.</div>}
+                    {categoryTeams.length > 0 ? categoryTeams.map(renderTeamCard) : <div style={{ padding: '20px', color: '#8e8e93' }}>No teams in this category.</div>}
                 </div>
             </div>
         );
@@ -228,38 +252,38 @@ export const TradingBlockView: React.FC<TradingBlockViewProps> = ({
 
     return (
         <div style={{
-            padding: '20px',
+            padding: '40px',
             height: '100%',
             overflowY: 'auto',
-            background: 'linear-gradient(180deg, var(--background) 0%, rgba(0,0,0,0.2) 100%)'
+            background: '#ffffff'
         }}>
 
             <CategorySection
                 title="Championship Contenders"
                 dataKey="Contender"
                 icon={Trophy}
-                color="#f1c40f" // Gold
+                color="#ff9500" // iOS Orange
             />
 
             <CategorySection
                 title="Playoff Hopefuls"
                 dataKey="PlayoffTeam"
                 icon={TrendingUp}
-                color="#2ecc71" // Green
+                color="#34c759" // iOS Green
             />
 
             <CategorySection
                 title="Retooling / Stuck in Middle"
                 dataKey="Retooling"
                 icon={Minus}
-                color="#3498db" // Blue
+                color="#007aff" // iOS Blue
             />
 
             <CategorySection
                 title="Rebuilders (Fire Sale)"
                 dataKey="Rebuilding"
                 icon={TrendingDown}
-                color="#e74c3c" // Red
+                color="#ff3b30" // iOS Red
             />
         </div>
     );

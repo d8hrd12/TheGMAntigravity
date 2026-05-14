@@ -24,15 +24,22 @@ interface LeagueViewProps {
 import { PageHeader } from '../ui/PageHeader';
 
 export const LeagueView: React.FC<LeagueViewProps> = ({ teams, players, awardsHistory, onBack, onSelectPlayer, onSelectTeam }) => {
+    const { userTeamId } = useGame();
+    const userTeam = teams.find(t => t.id === userTeamId);
+
     return (
-        <div style={{ minHeight: '100vh', padding: '20px' }}>
+        <div style={{ minHeight: '100vh', padding: '0' }}>
             <PageHeader
                 title="League Standings"
+                subtitle="Season 2025/26 Performance"
                 onBack={onBack}
+                teamColor={userTeam?.colors?.primary}
             />
 
-            <StandingsTableOnly teams={teams} onSelectTeam={onSelectTeam} />
-        </div >
+            <div style={{ padding: '20px' }}>
+                <StandingsTableOnly teams={teams} onSelectTeam={onSelectTeam} />
+            </div>
+        </div>
     );
 };
 

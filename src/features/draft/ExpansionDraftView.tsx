@@ -7,13 +7,17 @@ import type { Player } from '../../models/Player';
 import type { Team } from '../../models/Team';
 import { AlertCircle, Check, Users } from 'lucide-react';
 
+import { PageHeader } from '../ui/PageHeader';
+
 export const ExpansionDraftView: React.FC = () => {
-    const { expansionPool, finishExpansionDraft, teams, contracts } = useGame();
+    const { expansionPool, finishExpansionDraft, teams, contracts, userTeamId } = useGame();
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [sortBy, setSortBy] = useState<'overall' | 'age' | 'salary'>('overall');
 
     const MAX_PICKS = 14;
     const MIN_PICKS = 8;
+
+    const userTeam = teams.find(t => t.id === userTeamId);
 
     const togglePlayer = (playerId: string) => {
         if (selectedIds.includes(playerId)) {
@@ -53,35 +57,34 @@ export const ExpansionDraftView: React.FC = () => {
     });
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--background)' }}>
-            <div style={{ padding: '20px', borderBottom: '1px solid var(--border)', background: 'var(--surface)' }}>
-                <h1 style={{ margin: 0, fontSize: '1.8rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Users size={32} color="var(--primary)" />
-                    Expansion Draft
-                </h1>
-                <p style={{ color: 'var(--text-secondary)', marginTop: '5px' }}>
-                    Select up to 14 players to join your new franchise.
-                    Unselected players will return to their original teams.
-                </p>
+        <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-main)', minHeight: '100vh' }}>
+            <PageHeader 
+                title="Expansion Draft"
+                subtitle={`Select up to ${MAX_PICKS} players to join your new franchise.`}
+                onBack={handleFinish}
+                backLabel="Finish Draft"
+                teamColor={userTeam?.colors?.primary}
+            />
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px' }}>
+            <div style={{ padding: '20px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', gap: '10px' }}>
                         <button
                             onClick={() => setSortBy('overall')}
-                            style={{ padding: '6px 12px', borderRadius: '12px', border: '1px solid var(--border)', background: sortBy === 'overall' ? 'var(--primary)' : 'transparent', color: sortBy === 'overall' ? 'white' : 'var(--text)' }}
+                            style={{ padding: '8px 16px', borderRadius: '12px', border: '1px solid var(--border-color)', background: sortBy === 'overall' ? 'var(--text-main)' : 'transparent', color: sortBy === 'overall' ? 'white' : 'var(--text-main)', cursor: 'pointer', fontWeight: 600 }}
                         >Overall</button>
                         <button
                             onClick={() => setSortBy('age')}
-                            style={{ padding: '6px 12px', borderRadius: '12px', border: '1px solid var(--border)', background: sortBy === 'age' ? 'var(--primary)' : 'transparent', color: sortBy === 'age' ? 'white' : 'var(--text)' }}
+                            style={{ padding: '8px 16px', borderRadius: '12px', border: '1px solid var(--border-color)', background: sortBy === 'age' ? 'var(--text-main)' : 'transparent', color: sortBy === 'age' ? 'white' : 'var(--text-main)', cursor: 'pointer', fontWeight: 600 }}
                         >Age</button>
                         <button
                             onClick={() => setSortBy('salary')}
-                            style={{ padding: '6px 12px', borderRadius: '12px', border: '1px solid var(--border)', background: sortBy === 'salary' ? 'var(--primary)' : 'transparent', color: sortBy === 'salary' ? 'white' : 'var(--text)' }}
+                            style={{ padding: '8px 16px', borderRadius: '12px', border: '1px solid var(--border-color)', background: sortBy === 'salary' ? 'var(--text-main)' : 'transparent', color: sortBy === 'salary' ? 'white' : 'var(--text-main)', cursor: 'pointer', fontWeight: 600 }}
                         >Salary</button>
                     </div>
 
                     <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                        <span style={{ fontWeight: 700, color: selectedIds.length === MAX_PICKS ? 'var(--accent)' : 'var(--text)' }}>
+                        <span style={{ fontWeight: 800, color: selectedIds.length === MAX_PICKS ? 'var(--accent)' : 'var(--text-main)' }}>
                             Selected: {selectedIds.length} / {MAX_PICKS}
                         </span>
 
@@ -89,14 +92,15 @@ export const ExpansionDraftView: React.FC = () => {
                             onClick={handleFinish}
                             className="btn-primary"
                             style={{
-                                padding: '10px 20px',
+                                padding: '10px 24px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '8px',
-                                background: 'var(--primary)', // Always active, can stop early
+                                background: 'var(--text-main)',
+                                fontWeight: 800
                             }}
                         >
-                            <Check size={18} /> Finish Draft
+                            <Check size={18} /> FINISH DRAFT
                         </button>
                     </div>
                 </div>
@@ -113,7 +117,7 @@ export const ExpansionDraftView: React.FC = () => {
                                 onClick={() => togglePlayer(player.id)}
                                 style={{
                                     background: isSelected ? 'var(--primary-dark)' : 'var(--surface-active)',
-                                    border: isSelected ? '2px solid var(--primary)' : '1px solid var(--border)',
+                                    border: isSelected ? '2px solid var(--text-main)' : '1px solid var(--border)',
                                     borderRadius: '12px',
                                     padding: '12px',
                                     cursor: 'pointer',
@@ -125,7 +129,7 @@ export const ExpansionDraftView: React.FC = () => {
                             >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700 }}>
+                                        <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700 }}>
                                             {player.position}
                                         </div>
                                         <div>

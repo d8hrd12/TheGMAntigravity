@@ -38,9 +38,9 @@ export const NewsTicker: React.FC<NewsTickerProps> = ({ players, news, teams, on
     const displayNewsItems = finalNewsList.length > 0 ? finalNewsList : news.slice(0, 5);
 
     const getTeamColor = (teamId?: string | null) => {
-        if (!teamId) return 'var(--primary)';
+        if (!teamId) return 'var(--text-main)';
         const team = teams.find(t => t.id === teamId);
-        return team?.colors?.primary || 'var(--primary)';
+        return team?.colors?.primary || 'var(--text-main)';
     };
 
     const formatHeadline = (s: NewsStory) => {
@@ -86,7 +86,7 @@ export const NewsTicker: React.FC<NewsTickerProps> = ({ players, news, teams, on
     }
 
     if (tickerSegments.length === 0) {
-        tickerSegments.push({ text: "Welcome to TheGM! Season Tip-Off approaches...", color: 'var(--primary)' });
+        tickerSegments.push({ text: "Welcome to TheGM! Season Tip-Off approaches...", color: 'var(--text-main)' });
     }
 
     // Add Live Badge to the front
@@ -106,7 +106,7 @@ export const NewsTicker: React.FC<NewsTickerProps> = ({ players, news, teams, on
                     background: 'rgba(25, 25, 25, 0.8)',
                     backdropFilter: 'blur(20px) saturate(180%)',
                     WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                    backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px)', // Subtle texture
+                    backgroundImage: 'linear-gradient(var(--bg-card-hover) 1px, transparent 1px)', // Subtle texture
                     color: 'var(--text)',
                     padding: '12px 0',
                     overflow: 'hidden',
@@ -114,7 +114,7 @@ export const NewsTicker: React.FC<NewsTickerProps> = ({ players, news, teams, on
                     fontSize: '0.85rem',
                     fontWeight: '800',
                     borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.05)', // Sheen
+                    borderTop: '1px solid var(--bg-card-hover)', // Sheen
                     position: 'fixed',
                     top: 'var(--safe-top)',
                     left: 0,
@@ -174,8 +174,8 @@ export const NewsTicker: React.FC<NewsTickerProps> = ({ players, news, teams, on
                         100% { transform: translateX(-33.33%); }
                     }
                     @keyframes glow {
-                        from { background: rgba(25, 25, 25, 0.8); border-bottom-color: rgba(255,255,255,0.1); }
-                        to { background: rgba(var(--primary-rgb, 255, 95, 31), 0.3); border-bottom-color: var(--primary); }
+                        from { background: rgba(25, 25, 25, 0.8); border-bottom-color: var(--border-color); }
+                        to { background: rgba(var(--primary-rgb, 255, 95, 31), 0.3); border-bottom-color: var(--text-main); }
                     }
                     @keyframes bounce {
                         0%, 100% { transform: translateY(0); }
@@ -201,7 +201,7 @@ export const NewsTicker: React.FC<NewsTickerProps> = ({ players, news, teams, on
                 >
                     <div style={{
                         fontSize: '2rem',
-                        color: 'var(--primary)',
+                        color: 'var(--text-main)',
                         animation: 'bounce 1s infinite',
                         marginBottom: '10px',
                         textShadow: '0 0 10px var(--primary-glow)'
@@ -214,7 +214,7 @@ export const NewsTicker: React.FC<NewsTickerProps> = ({ players, news, teams, on
                         color: 'white',
                         padding: '16px 24px',
                         borderRadius: '16px',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        border: '1px solid var(--border-color)',
                         boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
                         textAlign: 'center',
                         maxWidth: '85vw'

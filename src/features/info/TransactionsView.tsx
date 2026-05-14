@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { ChevronLeft, Calendar, ArrowRightLeft, UserPlus, GraduationCap, DollarSign } from 'lucide-react';
 import { useGame } from '../../store/GameContext';
-import { TradesSummaryView } from '../trade/TradesSummaryView';
+import { Calendar, UserPlus, GraduationCap, DollarSign, ArrowRightLeft } from 'lucide-react';
 import { formatDate } from '../../utils/dateUtils';
+import { TradesSummaryView } from '../trade/TradesSummaryView';
+import { PageHeader } from '../ui/PageHeader';
 
 export const TransactionsView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
-    const { tradeHistory, transactions, teams, date, setSelectedPlayerId, setSelectedTeamId, leagueType } = useGame();
+    const { tradeHistory, transactions, teams, date, setSelectedPlayerId, setSelectedTeamId, leagueType, userTeamId } = useGame();
     const [selectedYear, setSelectedYear] = useState<number>(date.getFullYear());
     const [activeTab, setActiveTab] = useState<'all' | 'trades' | 'signings'>('all');
 
@@ -33,13 +34,33 @@ export const TransactionsView: React.FC<{ onBack: () => void }> = ({ onBack }) =
 
     return (
         <div className="animate-fade" style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg-main)' }}>
-            <div style={{ padding: '20px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-card)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <button onClick={onBack} className="btn-modern" style={{ padding: '8px' }}>
-                            <ChevronLeft size={20} />
-                        </button>
-                        <h1 style={{ fontSize: '1.5rem', margin: 0, fontWeight: 800 }}>League Transactions</h1>
+            <PageHeader 
+                title="Transactions"
+                subtitle="Roster movements & trade logs"
+                onBack={onBack}
+                teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
+            >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        {(['all', 'trades', 'signings'] as const).map(tab => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                style={{
+                                    padding: '8px 16px',
+                                    borderRadius: '20px',
+                                    border: '1px solid var(--border-color)',
+                                    background: activeTab === tab ? 'var(--text-main)' : 'var(--bg-body)',
+                                    color: activeTab === tab ? '#fff' : 'var(--text-muted)',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    textTransform: 'capitalize'
+                                }}
+                            >
+                                {tab}
+                            </button>
+                        ))}
                     </div>
                     
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-body)', padding: '6px 12px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
@@ -53,29 +74,7 @@ export const TransactionsView: React.FC<{ onBack: () => void }> = ({ onBack }) =
                         </select>
                     </div>
                 </div>
-
-                <div style={{ display: 'flex', gap: '8px' }}>
-                    {(['all', 'trades', 'signings'] as const).map(tab => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            style={{
-                                padding: '8px 16px',
-                                borderRadius: '20px',
-                                border: '1px solid var(--border-color)',
-                                background: activeTab === tab ? 'var(--primary)' : 'var(--bg-body)',
-                                color: activeTab === tab ? '#fff' : 'var(--text-muted)',
-                                fontSize: '0.8rem',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                textTransform: 'capitalize'
-                            }}
-                        >
-                            {tab}
-                        </button>
-                    ))}
-                </div>
-            </div>
+            </PageHeader>
 
             <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
                 <div style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -117,7 +116,7 @@ export const TransactionsView: React.FC<{ onBack: () => void }> = ({ onBack }) =
                         }
 
                         return (
-                            <div key={idx} className="glass-panel" style={{ padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', gap: '16px', alignItems: 'center' }}>
+                            <div key={idx} className="modern-card" style={{ padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', gap: '16px', alignItems: 'center' }}>
                                 <div style={{ 
                                     width: '44px', 
                                     height: '44px', 

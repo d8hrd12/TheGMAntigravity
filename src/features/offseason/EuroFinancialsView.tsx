@@ -3,6 +3,8 @@ import React, { useState, useMemo } from 'react';
 import { useGame } from '../../store/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, Ticket, ShoppingBag, DollarSign, ArrowLeft, Zap, Info, ChevronRight, Check } from 'lucide-react';
+import { PageHeader } from '../ui/PageHeader';
+
 
 export const EuroFinancialsView: React.FC = () => {
     const { teams, userTeamId, games, setGameState, completeOffseasonTask, setView } = useGame();
@@ -84,20 +86,17 @@ export const EuroFinancialsView: React.FC = () => {
             minHeight: '100vh',
             background: 'linear-gradient(135deg, var(--bg-body) 0%, rgba(var(--team-primary-rgb), 0.05) 100%)'
         }}>
-            {/* Standardized Header Design */}
-            <div style={{ marginBottom: '40px' }}>
-                <h1 style={{ fontSize: '3.5rem', fontWeight: 900, margin: 0, textTransform: 'uppercase', color: '#1a2a3a', letterSpacing: '-2px', lineHeight: 1.1 }}>
-                    TICKETS<br/>& REVENUE
-                </h1>
-                <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#8898a8', margin: '16px 0 32px 0', textTransform: 'uppercase', letterSpacing: '2px' }}>
-                    EURO DAY 3 • REVENUE PLANNING
-                </h2>
-
+            <PageHeader
+                title="Tickets & Revenue"
+                subtitle="Euro Day 3 • Revenue Planning"
+                onBack={() => setView('dashboard')}
+                teamColor={userTeam?.colors?.primary}
+            >
                 <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: '20px', alignItems: 'stretch' }}>
                     {/* Budget Section */}
-                    <div style={{ background: '#fff', padding: '16px 24px', borderRadius: '28px', border: '1px solid #eef2f6', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
-                        <div style={{ fontSize: '0.75rem', color: '#8898a8', fontWeight: 800, textTransform: 'uppercase', marginBottom: '2px', letterSpacing: '1px' }}>CURRENT CASH</div>
-                        <div style={{ fontSize: '2.4rem', fontWeight: 900, color: '#2ecc71', lineHeight: 1.1 }}>€{((userTeam?.cash || 0) / 1000000).toFixed(1)}M</div>
+                    <div style={{ background: 'var(--bg-card-hover)', padding: '12px 20px', borderRadius: '16px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '2px', letterSpacing: '1px' }}>CURRENT CASH</div>
+                        <div style={{ fontSize: '1.8rem', fontWeight: 900, color: '#2ecc71', lineHeight: 1.1 }}>€{((userTeam?.cash || 0) / 1000000).toFixed(1)}M</div>
                     </div>
                     
                     {/* Finish Action */}
@@ -105,16 +104,26 @@ export const EuroFinancialsView: React.FC = () => {
                         onClick={handleContinue}
                         disabled={!isSold}
                         style={{ 
-                            background: isSold ? '#004a99' : '#8898a8', color: '#fff', border: 'none', borderRadius: '28px', 
-                            fontSize: '1.4rem', fontWeight: 900, cursor: isSold ? 'pointer' : 'not-allowed', textTransform: 'uppercase',
-                            boxShadow: isSold ? '0 12px 35px rgba(0, 74, 153, 0.3)' : 'none', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 20px'
+                            background: isSold ? 'var(--team-primary)' : 'var(--bg-card)', 
+                            color: isSold ? '#fff' : 'var(--text-dim)', 
+                            border: '1px solid var(--border-color)', 
+                            borderRadius: '16px', 
+                            fontSize: '1.1rem', 
+                            fontWeight: 900, 
+                            cursor: isSold ? 'pointer' : 'not-allowed', 
+                            textTransform: 'uppercase',
+                            boxShadow: isSold ? '0 8px 25px rgba(var(--team-primary-rgb), 0.25)' : 'none', 
+                            transition: 'all 0.3s ease',
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            padding: '0 20px'
                         }}
                     >
                         FINISH
                     </button>
                 </div>
-            </div>
+            </PageHeader>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {/* Enhanced Hype Meter */}
@@ -228,7 +237,7 @@ export const EuroFinancialsView: React.FC = () => {
                             <span style={{ color: 'rgba(255,255,255,0.6)', fontWeight: 700, fontSize: '1.1rem' }}>Merch Profits</span>
                             <span style={{ fontWeight: 900, fontSize: '1.4rem' }}>€{(merchRevenue / 1000000).toFixed(2)}M</span>
                         </div>
-                        <div style={{ height: '2px', background: 'rgba(255,255,255,0.1)' }} />
+                        <div style={{ height: '2px', background: 'var(--border-color)' }} />
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{ fontSize: '1.3rem', fontWeight: 900, letterSpacing: '1px' }}>TOTAL INJECTION</span>
                             <span style={{ fontSize: '2.5rem', fontWeight: 900, color: '#2ecc71' }}>€{((seasonTicketRevenue + merchRevenue) / 1000000).toFixed(2)}M</span>
@@ -243,7 +252,7 @@ export const EuroFinancialsView: React.FC = () => {
                             <DollarSign size={24} /> Start Ticket Sales
                         </button>
                     ) : (
-                        <div style={{ marginTop: '40px', background: 'rgba(255,255,255,0.1)', color: '#2ecc71', padding: '24px', borderRadius: '24px', textAlign: 'center', fontWeight: 900, fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                        <div style={{ marginTop: '40px', background: 'var(--border-color)', color: '#2ecc71', padding: '24px', borderRadius: '24px', textAlign: 'center', fontWeight: 900, fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
                             <Check size={24} /> SALES COMPLETED
                         </div>
                     )}

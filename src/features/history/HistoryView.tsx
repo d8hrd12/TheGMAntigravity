@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useGame } from '../../store/GameContext';
-import { BackButton } from '../ui/BackButton';
 import { Trophy } from 'lucide-react';
+import { PageHeader } from '../ui/PageHeader';
+
 
 interface HistoryViewProps {
     onBack: () => void;
@@ -26,10 +27,11 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ onBack, onSelectPlayer
 
     return (
         <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto', color: 'var(--text)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '20px' }}>
-                <BackButton onClick={onBack} />
-                <h1 style={{ margin: 0 }}>League History</h1>
-            </div>
+            <PageHeader
+                title="League History"
+                onBack={onBack}
+                teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
+            />
 
             {/* Tabs */}
             <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '1px solid var(--border)', paddingBottom: '10px' }}>
@@ -37,7 +39,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ onBack, onSelectPlayer
                     onClick={() => setActiveTab('retired')}
                     style={{
                         padding: '10px 20px',
-                        background: activeTab === 'retired' ? 'var(--primary)' : 'transparent',
+                        background: activeTab === 'retired' ? 'var(--text-main)' : 'transparent',
                         color: activeTab === 'retired' ? 'white' : 'var(--text)',
                         border: 'none',
                         borderRadius: '8px',

@@ -5,6 +5,7 @@ import { EURO_TEAMS } from '../../data/euro/teams';
 import { useGame } from '../../store/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Trophy, Plus, ArrowLeft } from 'lucide-react';
+import { PageHeader } from './PageHeader';
 
 interface TeamSelectionViewProps {
     onSelectTeam: (teamId: string) => void;
@@ -39,7 +40,7 @@ export const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onSelectTe
                 style={{
                     position: 'relative',
                     padding: '16px',
-                    border: isSelected ? '2px solid #FF5F1F' : '1px solid rgba(255,255,255,0.1)',
+                    border: 'none',
                     borderRadius: '16px',
                     cursor: 'pointer',
                     background: isSelected ? 'rgba(255, 95, 31, 0.15)' : 'rgba(255,255,255,0.03)',
@@ -118,26 +119,12 @@ export const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onSelectTe
                 zIndex: 0
             }} />
 
-            <div style={{ position: 'relative', zIndex: 1, maxWidth: '1200px', margin: '0 auto', padding: '60px 20px' }}>
-                
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    style={{ textAlign: 'center', marginBottom: '60px' }}
-                >
-                    <h1 style={{ 
-                        fontSize: window.innerWidth < 768 ? '2rem' : '3.5rem', 
-                        fontWeight: 950, 
-                        letterSpacing: '-2px', 
-                        textTransform: 'uppercase',
-                        marginBottom: '10px'
-                    }}>
-                        Select Your <span style={{ color: '#FF5F1F' }}>Franchise</span>
-                    </h1>
-                    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '1.1rem', fontWeight: 500 }}>
-                        Choose your destiny or create a new legacy from scratch.
-                    </p>
-                </motion.div>
+            <PageHeader
+                title="Select Franchise"
+                subtitle="Choose your destiny or create a legacy"
+                onBack={onBack}
+            />
+            <div style={{ position: 'relative', zIndex: 1, padding: '0 25px' }}>
 
                 <div style={{ 
                     display: 'grid', 
@@ -164,7 +151,7 @@ export const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onSelectTe
                             <div style={{ height: '2px', width: '20px', background: '#FF5F1F' }} />
                             {leagueType === 'NBA' ? 'Western Conference' : 'All Teams'}
                         </h2>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '15px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '15px' }}>
                             {westernTeams.map(team => <TeamCard key={team.id} team={team} />)}
                         </div>
                     </motion.div>
@@ -189,7 +176,7 @@ export const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onSelectTe
                                 <div style={{ height: '2px', width: '20px', background: '#3498db' }} />
                                 Eastern Conference
                             </h2>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '15px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '15px' }}>
                                 {easternTeams.map(team => <TeamCard key={team.id} team={team} />)}
                             </div>
                         </motion.div>
@@ -208,7 +195,7 @@ export const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onSelectTe
                         style={{
                             padding: '30px 50px',
                             background: 'rgba(255,255,255,0.03)',
-                            border: '1px solid rgba(255,255,255,0.1)',
+                            border: '1px solid var(--border-color)',
                             borderRadius: '30px',
                             cursor: 'pointer',
                             display: 'flex',
@@ -228,7 +215,7 @@ export const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onSelectTe
                         }}
                         onMouseLeave={(e) => {
                             e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                            e.currentTarget.style.borderColor = 'var(--border-color)';
                             e.currentTarget.style.transform = 'translateY(0)';
                         }}
                     >
@@ -266,7 +253,7 @@ export const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onSelectTe
                     right: 0,
                     background: 'rgba(0,0,0,0.9)',
                     backdropFilter: 'blur(30px)',
-                    borderTop: '1px solid rgba(255,255,255,0.05)',
+                    borderTop: '1px solid var(--bg-card-hover)',
                     padding: window.innerWidth < 768 ? '15px' : '20px 40px',
                     display: 'flex',
                     flexDirection: window.innerWidth < 768 ? 'column' : 'row',
@@ -282,9 +269,9 @@ export const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onSelectTe
                     onClick={onBack}
                     style={{
                         padding: '18px 40px',
-                        background: 'rgba(255,255,255,0.05)',
-                        color: 'rgba(255,255,255,0.6)',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        background: 'var(--bg-card-hover)',
+                        color: '#000',
+                        border: '1px solid var(--border-color)',
                         borderRadius: '20px',
                         fontSize: '1.2rem',
                         fontWeight: 800,
@@ -306,7 +293,7 @@ export const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onSelectTe
                     style={{
                         width: window.innerWidth < 768 ? '100%' : 'auto',
                         padding: window.innerWidth < 768 ? '16px' : '18px 80px',
-                        background: selectedId ? 'linear-gradient(135deg, #FF5F1F 0%, #E64A19 100%)' : 'rgba(255,255,255,0.05)',
+                        background: selectedId ? 'linear-gradient(135deg, #FF5F1F 0%, #E64A19 100%)' : 'var(--bg-card-hover)',
                         color: selectedId ? 'white' : 'rgba(255,255,255,0.2)',
                         border: 'none',
                         borderRadius: '15px',

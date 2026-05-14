@@ -15,6 +15,8 @@ interface ResigningViewProps {
     onShowMessage?: (title: string, msg: string, type: 'error' | 'info' | 'success') => void;
 }
 
+import { PageHeader } from '../ui/PageHeader';
+
 export const ResigningView: React.FC<ResigningViewProps> = ({ onSelectPlayer, onShowMessage }) => {
     const { players, userTeamId, endResigning, signPlayerWithContract, teams, salaryCap } = useGame();
 
@@ -88,17 +90,14 @@ export const ResigningView: React.FC<ResigningViewProps> = ({ onSelectPlayer, on
     const visiblePlayers = expiringPlayers.filter(p => !actionedPlayers.includes(p.id));
 
     return (
-        <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', color: 'var(--text)' }}>
-
-            {/* Header */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', gap: '20px' }}>
-                <div>
-                    <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-1px' }}>Re-sign Players</h1>
-                    <p style={{ margin: '5px 0 0 0', color: 'var(--text-secondary)', fontSize: '1.1rem' }}>
-                        Negotiate extensions before Free Agency begins.
-                    </p>
-                </div>
-
+        <div style={{ color: 'var(--text-main)', minHeight: '100vh', background: 'var(--bg-main)' }}>
+            <PageHeader 
+                title="Re-sign Players"
+                subtitle="Negotiate extensions before Free Agency begins."
+                onBack={endResigning}
+                backLabel="Finish"
+                teamColor={userTeam?.colors?.primary}
+            >
                 <div style={{ display: 'flex', gap: '15px' }}>
                     <button
                         onClick={() => setShowFAModal(true)}
@@ -117,7 +116,9 @@ export const ResigningView: React.FC<ResigningViewProps> = ({ onSelectPlayer, on
                         Finish & Advance
                     </button>
                 </div>
-            </div>
+            </PageHeader>
+
+            <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
 
             {/* Financial Status Bar */}
             <div style={{
@@ -306,6 +307,7 @@ export const ResigningView: React.FC<ResigningViewProps> = ({ onSelectPlayer, on
                 onClose={() => setShowFAModal(false)}
             />
 
+            </div>
         </div>
     );
 };

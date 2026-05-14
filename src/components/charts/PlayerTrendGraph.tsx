@@ -84,7 +84,7 @@ export const PlayerTrendGraph: React.FC<PlayerTrendGraphProps> = ({
                 {/* The Line */}
                 <polyline
                     fill="none"
-                    stroke="var(--primary)"
+                    stroke="var(--text-main)"
                     strokeWidth="3"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -99,7 +99,7 @@ export const PlayerTrendGraph: React.FC<PlayerTrendGraphProps> = ({
                             cy={getY(d.ovr)}
                             r="5"
                             fill="var(--surface-active)"
-                            stroke="var(--primary)"
+                            stroke="var(--text-main)"
                             strokeWidth="2"
                         />
                         <text

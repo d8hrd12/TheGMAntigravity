@@ -64,7 +64,7 @@ export const SeriesList: React.FC<SeriesListProps> = ({ series, title }) => {
                             </div>
 
                             <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+                                <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-main)' }}>
                                     {s.homeWins} - {s.awayWins}
                                 </div>
                                 {isElimination && !isFinished && (

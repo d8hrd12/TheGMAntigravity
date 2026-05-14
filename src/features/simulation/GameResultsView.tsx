@@ -51,7 +51,7 @@ export const GameResultsView: React.FC<GameResultsViewProps> = ({ games, teams, 
                         <div
                             key={game.id}
                             onClick={() => onSelectGame(game)}
-                            className="glass-panel"
+                            className="modern-card"
                             style={{
                                 padding: '15px',
                                 cursor: 'pointer',

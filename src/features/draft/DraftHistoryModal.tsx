@@ -111,7 +111,7 @@ export const DraftHistoryModal: React.FC<DraftHistoryModalProps> = ({ year, onCl
                                             </div>
                                         </div>
 
-                                        {onPlayerClick && <div style={{ color: 'var(--primary)' }}><User size={20} /></div>}
+                                        {onPlayerClick && <div style={{ color: 'var(--text-main)' }}><User size={20} /></div>}
                                     </div>
                                 );
                             })}

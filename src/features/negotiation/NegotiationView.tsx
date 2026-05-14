@@ -83,7 +83,7 @@ export const NegotiationView: React.FC<NegotiationViewProps> = ({ player, team, 
                     style={{
                         fontSize: '1.2rem',
                         fontWeight: 'bold',
-                        color: 'var(--primary)',
+                        color: 'var(--text-main)',
                         marginTop: '10px',
                         cursor: onSelectPlayer ? 'pointer' : 'default',
                         textDecoration: onSelectPlayer ? 'underline' : 'none'
@@ -140,9 +140,9 @@ export const NegotiationView: React.FC<NegotiationViewProps> = ({ player, team, 
                                     flex: 1,
                                     padding: '10px',
                                     borderRadius: '8px',
-                                    border: years === y ? '1px solid var(--primary)' : '1px solid var(--border)',
+                                    border: years === y ? '1px solid var(--text-main)' : '1px solid var(--border)',
                                     background: years === y ? 'var(--primary-glow)' : 'var(--surface-glass)',
-                                    color: years === y ? 'var(--primary)' : 'var(--text)',
+                                    color: years === y ? 'var(--text-main)' : 'var(--text)',
                                     fontWeight: years === y ? 'bold' : 'normal',
                                     cursor: 'pointer'
                                 }}
@@ -164,8 +164,8 @@ export const NegotiationView: React.FC<NegotiationViewProps> = ({ player, team, 
                                 style={{
                                     padding: '8px 16px',
                                     borderRadius: '20px',
-                                    border: role === r ? '1px solid var(--primary)' : '1px solid var(--border)',
-                                    background: role === r ? 'var(--primary)' : 'var(--surface-glass)',
+                                    border: role === r ? '1px solid var(--text-main)' : '1px solid var(--border)',
+                                    background: role === r ? 'var(--text-main)' : 'var(--surface-glass)',
                                     color: role === r ? 'white' : 'var(--text)',
                                     cursor: 'pointer',
                                     fontSize: '0.9rem'

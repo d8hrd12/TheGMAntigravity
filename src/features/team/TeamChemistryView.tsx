@@ -136,15 +136,17 @@ export const TeamChemistryView: React.FC<TeamChemistryViewProps> = ({ team, play
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', fontFamily: "'Inter', sans-serif" }}>
             <PageHeader
-                title="TEAM CHEMISTRY HIERARCHY"
+                title="Team Chemistry"
+                subtitle="Social Dynamic & Hierarchy"
                 onBack={onBack}
+                teamColor={team.colors.primary}
             />
 
             <div style={{ padding: '0 20px', flex: 1, overflowY: 'auto' }}>
                 <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     
                     {/* Header Controls */}
-                    <div className="glass-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px' }}>
+                    <div className="modern-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                             <div style={{ background: 'rgba(var(--primary-rgb), 0.1)', padding: '12px', borderRadius: '50%' }}>
                                 <Network size={24} color="var(--team-primary)" />

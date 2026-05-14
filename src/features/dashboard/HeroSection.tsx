@@ -40,7 +40,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onEnterPlayoffs, onSta
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                     {leagueType !== 'EURO' && (
-                        <div style={{ color: 'var(--primary)', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px' }}>
+                        <div style={{ color: 'var(--text-main)', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px' }}>
                             {userTeam.city}
                         </div>
                     )}
@@ -61,7 +61,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onEnterPlayoffs, onSta
                 whileTap={{ scale: 0.95 }}
                 onClick={() => mainAction?.()}
                 className="btn-modern"
-                style={{ width: '100%', marginTop: '20px', background: 'var(--primary)', color: '#fff', border: 'none', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                style={{ width: '100%', marginTop: '20px', background: 'var(--text-main)', color: '#fff', border: 'none', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
             >
                 {getPhaseIcon()}
                 {mainLabel}

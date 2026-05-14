@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
-import { Trophy, Award, ChevronLeft } from 'lucide-react';
+import { Trophy, Award } from 'lucide-react';
 import { useGame } from '../../store/GameContext';
+import { PageHeader } from '../ui/PageHeader';
 
 export const LeagueHistoryView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
-    const { awardsHistory, teams } = useGame();
+    const { awardsHistory, teams, userTeamId } = useGame();
     const [mode, setMode] = useState<'champions' | 'awards'>('champions');
 
     return (
-        <div className="animate-fade" style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                <button onClick={onBack} className="btn-modern" style={{ padding: '8px' }}>
-                    <ChevronLeft size={20} />
-                </button>
-                <h1 style={{ fontSize: '1.5rem', margin: 0 }}>League History</h1>
-            </div>
+        <div className="animate-fade" style={{ padding: '0' }}>
+            <PageHeader 
+                title="League History"
+                subtitle="Champions & Awards Registry"
+                onBack={onBack}
+                teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
+            />
+            <div style={{ padding: '20px' }}>
 
             {/* Toggle Buttons */}
             <div style={{ display: 'flex', gap: '10px', marginBottom: '24px', background: 'var(--bg-card)', padding: '6px', borderRadius: '14px', border: '1px solid var(--border-color)' }}>
@@ -24,7 +26,7 @@ export const LeagueHistoryView: React.FC<{ onBack: () => void }> = ({ onBack }) 
                         padding: '12px',
                         borderRadius: '10px',
                         border: 'none',
-                        background: mode === 'champions' ? 'var(--primary)' : 'transparent',
+                        background: mode === 'champions' ? 'var(--text-main)' : 'transparent',
                         color: mode === 'champions' ? '#fff' : 'var(--text-dim)',
                         display: 'flex',
                         alignItems: 'center',
@@ -45,7 +47,7 @@ export const LeagueHistoryView: React.FC<{ onBack: () => void }> = ({ onBack }) 
                         padding: '12px',
                         borderRadius: '10px',
                         border: 'none',
-                        background: mode === 'awards' ? 'var(--primary)' : 'transparent',
+                        background: mode === 'awards' ? 'var(--text-main)' : 'transparent',
                         color: mode === 'awards' ? '#fff' : 'var(--text-dim)',
                         display: 'flex',
                         alignItems: 'center',
@@ -75,7 +77,7 @@ export const LeagueHistoryView: React.FC<{ onBack: () => void }> = ({ onBack }) 
                                 return (
                                     <div key={award.year} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: 'var(--bg-main)', borderRadius: '12px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                            <span style={{ fontWeight: 900, color: 'var(--primary)', fontSize: '1.2rem', width: '60px' }}>{award.year}</span>
+                                            <span style={{ fontWeight: 900, color: 'var(--text-main)', fontSize: '1.2rem', width: '60px' }}>{award.year}</span>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                                 {team?.logo ? (
                                                     <img src={team.logo} alt={team.name} style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
@@ -109,7 +111,7 @@ export const LeagueHistoryView: React.FC<{ onBack: () => void }> = ({ onBack }) 
                         ) : (
                             awardsHistory.slice().reverse().map(award => (
                                 <div key={award.year} style={{ padding: '20px', background: 'var(--bg-main)', borderRadius: '16px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
-                                    <div style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--primary)', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
+                                    <div style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--text-main)', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
                                         <span>SEASON {award.year}</span>
                                         <Award size={20} />
                                     </div>
@@ -125,6 +127,7 @@ export const LeagueHistoryView: React.FC<{ onBack: () => void }> = ({ onBack }) 
                         )}
                     </div>
                 )}
+            </div>
             </div>
         </div>
     );
