@@ -224,8 +224,7 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                     <thead style={{ background: 'var(--bg-card-hover)', borderBottom: '2px solid rgba(0,0,0,0.05)' }}>
                         <tr>
-                            <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-muted)', width: '30px' }}>#</th>
-                            <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-muted)' }}>Player</th>
+                            <th style={{ padding: '12px 16px', textAlign: 'left', color: 'var(--text-muted)' }}>Player</th>
                             <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-muted)' }}>Pos</th>
                             <th style={{ padding: '8px', textAlign: 'center', color: '#888' }}>Stars</th>
                             <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-muted)' }}>Min</th>
@@ -260,7 +259,7 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                                     {/* Bench Divider Line */}
                                     {index === 5 && (
                                         <tr>
-                                            <td colSpan={5} style={{ padding: '0' }}>
+                                            <td colSpan={4} style={{ padding: '0' }}>
                                                 <div style={{
                                                     height: '2px',
                                                     background: 'linear-gradient(90deg, transparent, var(--team-primary), transparent)',
@@ -291,24 +290,23 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                                             boxShadow: rowBoxShadow,
                                             cursor: 'pointer',
                                             transition: 'all 0.2s',
-                                            position: 'relative' // Needed for z-index if shadow overlaps?
+                                            position: 'relative'
                                         }}
                                     >
-                                        <td style={{ padding: '8px', textAlign: 'center', color: '#888', fontWeight: 'bold' }}>
-                                            {index + 1}
-                                        </td>
-                                        <td style={{ padding: '8px', textAlign: 'center' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
-                                                <div style={{ fontWeight: 'bold', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                    {player.firstName.charAt(0)}. {player.lastName}
-                                                    <Info 
-                                                        size={14} 
-                                                        style={{ color: 'var(--team-primary)', flexShrink: 0, cursor: 'pointer', padding: '2px' }} 
-                                                        onClick={(e) => { e.stopPropagation(); onSelectPlayer(player.id); }}
-                                                    />
+                                        <td style={{ padding: '10px 16px', textAlign: 'left' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <div style={{ fontWeight: 'bold', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        {player.firstName.charAt(0)}. {player.lastName}
+                                                        <Info 
+                                                            size={14} 
+                                                            style={{ color: 'var(--team-primary)', cursor: 'pointer', padding: '2px' }} 
+                                                            onClick={(e) => { e.stopPropagation(); onSelectPlayer(player.id); }}
+                                                        />
+                                                    </div>
+                                                    {isStarter && <span style={{ fontSize: '0.6rem', color: 'var(--team-primary)', fontWeight: 'bold', letterSpacing: '0.05em' }}>STARTER</span>}
                                                 </div>
                                             </div>
-                                            {isStarter && <span style={{ fontSize: '0.65rem', color: 'var(--team-primary)', fontWeight: 'bold' }}>START</span>}
                                         </td>
                                         <td style={{ padding: '8px', textAlign: 'center', color: 'var(--text-dim)' }}>{player.position}{player.secondaryPosition ? `/${player.secondaryPosition}` : ''}</td>
                                         <td style={{ padding: '8px', textAlign: 'center' }}>

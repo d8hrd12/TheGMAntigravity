@@ -644,7 +644,7 @@ function AppContent() {
     <div className={`app-layout ${leagueType === 'EURO' ? 'euro-theme' : ''}`} style={{ '--team-primary': userTeam?.colors?.primary || 'var(--primary)' } as any}>
       {/* SIDEBAR */}
       <div className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`} onClick={() => setIsSidebarOpen(false)} />
-      <aside className={`sidebar ${isSidebarOpen ? 'expanded' : ''}`} style={{ paddingTop: '70px' }}>
+      <aside className={`sidebar ${isSidebarOpen ? 'expanded' : ''}`}>
         <div style={{ marginBottom: '40px', padding: '0 16px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <h2 style={{ 
             fontSize: '1.4rem', 
@@ -744,8 +744,7 @@ function AppContent() {
             display: 'grid', 
             gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', 
             alignItems: 'center', 
-            padding: 'env(safe-area-inset-top, 4px) 16px 4px 16px', 
-            minHeight: '60px', 
+            minHeight: '64px', 
             gap: '12px',
             background: 'rgba(255, 255, 255, 0.8)',
             borderBottom: '1px solid #f0f0f0',
