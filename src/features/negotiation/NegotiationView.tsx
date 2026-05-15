@@ -66,7 +66,7 @@ export const NegotiationView: React.FC<NegotiationViewProps> = ({ player, team, 
 
     return (
         <div style={{ 
-            padding: '24px', 
+            padding: `24px 24px calc(24px + env(safe-area-inset-bottom)) 24px`, 
             maxWidth: '550px', 
             margin: '0 auto', 
             color: 'white',

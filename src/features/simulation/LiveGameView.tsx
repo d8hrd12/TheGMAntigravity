@@ -181,7 +181,12 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
     };
 
     return (
-        <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto', color: 'var(--text)' }}>
+        <div style={{ 
+            padding: `calc(20px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom)) 20px`, 
+            maxWidth: '1000px', 
+            margin: '0 auto', 
+            color: 'var(--text)' 
+        }}>
 
             {/* Header with Back Button */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '20px' }}>

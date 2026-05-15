@@ -13,7 +13,7 @@ interface PageHeaderProps {
 export const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, onBack, children, teamColor, backLabel }) => {
     return (
         <div style={{ 
-            padding: '32px 20px', 
+            padding: 'calc(24px + env(safe-area-inset-top)) 20px 24px 20px', 
             marginBottom: '10px',
             borderBottom: '1px solid #f0f0f0',
             background: '#ffffff',

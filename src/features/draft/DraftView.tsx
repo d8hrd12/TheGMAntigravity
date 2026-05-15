@@ -222,12 +222,12 @@ export const DraftView: React.FC<DraftViewProps> = ({ draftClass, draftOrder, te
                 </div>
 
                 {/* Prospects Grid */}
-                <div style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                    gap: '20px',
-                    paddingBottom: '60px'
-                }}>
+                    <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                        gap: '20px',
+                        paddingBottom: 'calc(60px + env(safe-area-inset-bottom))'
+                    }}>
                     {rankedProspects.map((p, idx) => {
                         const ovr = calculateOverall(p);
                         const report = scoutingReports[userTeamId]?.[p.id];

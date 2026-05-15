@@ -70,7 +70,7 @@ export const CoachSettingsView: React.FC<CoachSettingsViewProps> = ({ team, onBa
     );
 
     return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg-main)' }}>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg-main)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
             <PageHeader 
                 title="Coach Settings"
                 subtitle="Tactical schemes & strategy"

@@ -134,7 +134,7 @@ export const TeamChemistryView: React.FC<TeamChemistryViewProps> = ({ team, play
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', fontFamily: "'Inter', sans-serif" }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', fontFamily: "'Inter', sans-serif", paddingBottom: 'env(safe-area-inset-bottom)' }}>
             <PageHeader
                 title="Team Chemistry"
                 subtitle="Social Dynamic & Hierarchy"

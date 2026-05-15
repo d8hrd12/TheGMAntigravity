@@ -173,13 +173,13 @@ export const MainMenu: React.FC = () => {
                 zIndex: 1
             }} />
 
-            {/* Top Black Bar */}
             <div style={{
                 position: 'fixed',
                 top: 0,
                 left: 0,
                 right: 0,
-                height: '40px',
+                height: 'calc(40px + env(safe-area-inset-top))',
+                paddingTop: 'env(safe-area-inset-top)',
                 background: 'rgba(0,0,0,0.9)',
                 borderBottom: '1px solid var(--bg-card-hover)',
                 display: 'flex',

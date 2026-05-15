@@ -254,7 +254,9 @@ export const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onSelectTe
                     background: 'rgba(0,0,0,0.9)',
                     backdropFilter: 'blur(30px)',
                     borderTop: '1px solid var(--bg-card-hover)',
-                    padding: window.innerWidth < 768 ? '15px' : '20px 40px',
+                    padding: window.innerWidth < 768 
+                        ? `15px 15px calc(15px + env(safe-area-inset-bottom)) 15px` 
+                        : `20px 40px calc(20px + env(safe-area-inset-bottom)) 40px`,
                     display: 'flex',
                     flexDirection: window.innerWidth < 768 ? 'column' : 'row',
                     justifyContent: 'center',

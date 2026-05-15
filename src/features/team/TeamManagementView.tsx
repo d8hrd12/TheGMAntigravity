@@ -71,7 +71,7 @@ export const TeamManagementView: React.FC<TeamManagementViewProps> = ({
     };
 
     return (
-        <div style={{ minHeight: '100%', paddingBottom: '140px', background: '#2A2A2A' }}>
+        <div style={{ minHeight: '100%', paddingBottom: 'calc(140px + env(safe-area-inset-bottom))', background: '#2A2A2A' }}>
             <div style={{ padding: '0' }}>
                 <PageHeader
                     title={getTitle()}

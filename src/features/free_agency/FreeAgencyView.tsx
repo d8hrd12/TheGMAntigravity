@@ -203,7 +203,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                 </div>
             </PageHeader>
 
-            <div style={{ padding: '0 20px 40px' }}>
+            <div style={{ padding: `0 20px calc(40px + env(safe-area-inset-bottom))` }}>
 
             {/* See Offers */}
             <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>

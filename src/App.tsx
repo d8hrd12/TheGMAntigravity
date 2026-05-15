@@ -646,32 +646,44 @@ function AppContent() {
     <div className={`app-layout ${leagueType === 'EURO' ? 'euro-theme' : ''}`} style={{ '--team-primary': userTeam?.colors?.primary || 'var(--primary)' } as any}>
       {/* SIDEBAR */}
       <div className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`} onClick={() => setIsSidebarOpen(false)} />
-      <aside className={`sidebar ${isSidebarOpen ? 'expanded' : ''}`}>
-        <div style={{ marginBottom: '40px', padding: '0 16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <aside className={`sidebar ${isSidebarOpen ? 'expanded' : ''}`} style={{ 
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        <div style={{ marginBottom: '40px', padding: '24px 16px 0 20px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <h2 style={{ 
-            fontSize: '1.6rem', 
-            color: '#1c1c1e', 
+            fontSize: '1.8rem', 
+            color: '#111111', 
             margin: 0, 
             fontWeight: 900,
-            letterSpacing: '-0.05em',
+            fontFamily: "'SF Transrobotics', 'Inter', sans-serif",
+            letterSpacing: '0.02em',
             whiteSpace: 'nowrap',
-            lineHeight: 1,
+            lineHeight: 1.1,
             textAlign: 'left'
           }}>
-            THE <span style={{ color: 'var(--team-primary)' }}>GM</span>
+            The<span style={{ color: 'var(--team-primary)' }}>GM</span>_2026<span style={{ fontSize: '0.8rem', verticalAlign: 'super', marginLeft: '2px', opacity: 0.8 }}>®</span>
           </h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ 
-              fontSize: '0.6rem', 
+              fontSize: '0.65rem', 
               color: '#8e8e93', 
               textTransform: 'uppercase', 
-              letterSpacing: '0.15em', 
-              fontWeight: 800,
+              letterSpacing: '0.2em', 
+              fontWeight: 900,
+              fontFamily: "'SF Transrobotics', 'Inter', sans-serif",
             }}>
               BASKETBALL OS
             </span>
-            <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#d1d1d6' }}></div>
-            <span style={{ fontSize: '0.6rem', color: '#c7c7cc', fontWeight: 700 }}>v5.8</span>
+            <div style={{ width: '4px', height: '4px', borderRadius: '1px', background: '#d1d1d6', transform: 'rotate(45deg)' }}></div>
+            <span style={{ 
+              fontSize: '0.6rem', 
+              color: '#c7c7cc', 
+              fontWeight: 800,
+              fontFamily: "'SF Pro Display', sans-serif" 
+            }}>v5.8</span>
           </div>
         </div>
 
@@ -729,13 +741,53 @@ function AppContent() {
           ))}
         </nav>
 
-        <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
-          <button className="nav-link" onClick={() => { setShowSaveLoad('save'); setIsSidebarOpen(false); }}>
-            <Save size={20} />
+        <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border-color)', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <button 
+            onClick={() => { setShowSaveLoad('save'); setIsSidebarOpen(false); }}
+            style={{
+              background: 'var(--bg-card-hover)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '2px',
+              padding: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              color: 'var(--text-main)',
+              fontWeight: 900,
+              fontSize: '0.8rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              cursor: 'pointer',
+              width: '100%',
+              fontFamily: "'SF Transrobotics', 'Inter', sans-serif"
+            }}
+          >
+            <Save size={16} />
             <span>Save Game</span>
           </button>
-          <button className="nav-link" style={{ color: 'var(--danger)' }} onClick={() => { setShowExitModal(true); setIsSidebarOpen(false); }}>
-            <LogOut size={20} />
+          <button 
+            onClick={() => { setShowExitModal(true); setIsSidebarOpen(false); }}
+            style={{
+              background: 'rgba(255, 59, 48, 0.08)',
+              border: '1px solid rgba(255, 59, 48, 0.2)',
+              borderRadius: '2px',
+              padding: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              color: '#ff3b30',
+              fontWeight: 900,
+              fontSize: '0.8rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              cursor: 'pointer',
+              width: '100%',
+              fontFamily: "'SF Transrobotics', 'Inter', sans-serif"
+            }}
+          >
+            <LogOut size={16} />
             <span>Exit Game</span>
           </button>
         </div>
@@ -756,7 +808,7 @@ function AppContent() {
             zIndex: 1100,
             position: 'sticky',
             top: 0,
-            padding: '0 20px'
+            padding: 'calc(12px + env(safe-area-inset-top)) 20px 12px 20px'
           }}>
             {/* Left: Menu */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -902,10 +954,11 @@ function AppContent() {
             overflowY: 'auto', 
             display: 'flex', 
             flexDirection: 'column', 
-            alignItems: 'center'
+            alignItems: 'center',
+            paddingBottom: 'env(safe-area-inset-bottom)'
           }}
         >
-          <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }}>
+          <div style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
             {renderContent()}
           </div>
         </main>

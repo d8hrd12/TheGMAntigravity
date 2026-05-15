@@ -25,7 +25,7 @@ export const InjuryReportView: React.FC<{ onBack: () => void }> = ({ onBack }) =
     };
 
     return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '0', padding: '0' }}>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '0', padding: '0 0 env(safe-area-inset-bottom) 0' }}>
             <PageHeader 
                 title="Injury Report"
                 subtitle="League-wide health tracking"

@@ -158,7 +158,12 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
     const totalMinutes = roster.reduce((sum, p) => sum + (p.minutes || 0), 0);
 
     return (
-        <div style={{ width: '100%', margin: '0 auto', padding: '0', fontFamily: "'Inter', sans-serif" }}>
+        <div style={{ 
+            width: '100%', 
+            margin: '0 auto', 
+            padding: `0 0 calc(40px + env(safe-area-inset-bottom)) 0`, 
+            fontFamily: "'Inter', sans-serif" 
+        }}>
             <PageHeader
                 title="Active Rotation"
                 subtitle="Manage minutes & playing time"

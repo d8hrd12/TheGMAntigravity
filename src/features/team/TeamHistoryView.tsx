@@ -20,7 +20,7 @@ export const TeamHistoryView: React.FC<TeamHistoryViewProps> = ({ team, onBack, 
     const rings = awardsHistory.filter(h => h.champion?.teamId === team.id).length;
 
     return (
-        <div style={{ padding: '0', maxWidth: '800px', margin: '0 auto', color: 'var(--text-main)' }}>
+        <div style={{ padding: '0 0 calc(40px + env(safe-area-inset-bottom)) 0', maxWidth: '800px', margin: '0 auto', color: 'var(--text-main)' }}>
             <PageHeader 
                 title={`${team.name} History`} 
                 subtitle="Historical Career Records"

@@ -69,7 +69,7 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
     return (
         <div style={{
             minHeight: '100%',
-            paddingBottom: '140px',
+            paddingBottom: 'calc(140px + env(safe-area-inset-bottom))',
             color: 'var(--text-main)',
             width: '100%',
             display: 'flex',

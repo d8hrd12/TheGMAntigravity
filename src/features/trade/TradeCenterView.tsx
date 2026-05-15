@@ -83,7 +83,7 @@ export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
     };
 
     return (
-        <div style={{ minHeight: '100vh', background: '#ffffff', paddingBottom: '140px' }}>
+        <div style={{ minHeight: '100vh', background: '#ffffff', paddingBottom: 'calc(140px + env(safe-area-inset-bottom))' }}>
             <div style={{ padding: '0' }}>
                 <PageHeader
                     title={getTitle()}
