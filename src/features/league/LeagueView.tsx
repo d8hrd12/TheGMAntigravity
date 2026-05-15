@@ -78,7 +78,7 @@ const StandingsTableOnly = ({ teams, onSelectTeam }: { teams: Team[], onSelectTe
 
     const HeaderCell = ({ label, sortKey, align = 'left' }: { label: string, sortKey: string, align?: 'left' | 'right' | 'center' }) => (
         <th
-            style={{ padding: '10px 8px', cursor: 'pointer', userSelect: 'none', textAlign: align, whiteSpace: 'nowrap', color: '#aaa' }}
+            style={{ padding: '10px 8px', cursor: 'pointer', userSelect: 'none', textAlign: align, whiteSpace: 'nowrap', color: 'var(--text-secondary)' }}
             onClick={() => requestSort(sortKey)}
         >
             {label} {sortConfig.key === sortKey ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
@@ -93,7 +93,7 @@ const StandingsTableOnly = ({ teams, onSelectTeam }: { teams: Team[], onSelectTe
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', marginTop: '10px', fontSize: '0.85rem' }}>
                 <thead>
                     <tr style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-                        <th style={{ padding: '6px', color: '#aaa', textAlign: 'center' }}>#</th>
+                        <th style={{ padding: '6px', color: 'var(--text-secondary)', textAlign: 'center' }}>#</th>
                         <HeaderCell label="Team" sortKey="name" align="center" />
                         <HeaderCell label="W" sortKey="wins" align="center" />
                         <HeaderCell label="L" sortKey="losses" align="center" />

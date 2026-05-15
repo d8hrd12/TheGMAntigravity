@@ -3,6 +3,8 @@ import type { Team } from '../../../models/Team';
 import { calculateOverall } from '../../../utils/playerUtils';
 import { calculateEuroBuyoutFee, isEuroPlayerUntouchable } from '../../team/EuroAIGMModule';
 
+import type { Contract } from '../../../models/Contract';
+
 export interface NegotiationResult {
     decision: 'ACCEPTED' | 'REJECTED' | 'COUNTER' | 'INSULTED';
     msg: string;
@@ -17,6 +19,7 @@ export function negotiateEuroBuyout(
     buyerTeam: Team, 
     sellerTeam: Team, 
     sellerRoster: Player[], 
+    allContracts: Contract[],
     offerAmount: number,
     previousOffer?: number
 ): NegotiationResult {
@@ -29,7 +32,17 @@ export function negotiateEuroBuyout(
         };
     }
 
-    const value = calculateEuroBuyoutFee(player, sellerTeam, sellerRoster);
+    const value = calculateEuroBuyoutFee(player, sellerTeam, sellerRoster, allContracts);
+    
+    // 0.1 Buyout Clause Logic: If they pay the clause, it's an automatic YES.
+    const contract = allContracts.find(c => c.playerId === player.id);
+    if (contract?.buyoutClause && offerAmount >= contract.buyoutClause) {
+        return {
+            decision: 'ACCEPTED',
+            msg: "The release clause has been met. We have no choice but to accept your offer."
+        };
+    }
+
     const ratio = offerAmount / value;
 
     // 1. Offload Mode (If team is broke or player is a surplus)

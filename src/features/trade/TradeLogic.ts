@@ -504,7 +504,7 @@ export function generateTransferOffers(
         if (aiGm?.philosophy === 'Win Now' && ovr >= 82) interestScore += 10;
 
         // 3. CASH CHECK & OFFER CALCULATION
-        const marketFee = calculateEuroBuyoutFee(shopPlayer, userTeam, userRoster);
+        const marketFee = calculateEuroBuyoutFee(shopPlayer, userTeam, userRoster, contracts);
         
         // Teams only offer if interest is high enough
         if (interestScore >= 15) {

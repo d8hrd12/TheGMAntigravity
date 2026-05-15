@@ -253,7 +253,7 @@ export const DraftSummaryView: React.FC<DraftSummaryViewProps> = ({ onSelectPlay
                                     </div>
 
                                     {/* Action Arrow */}
-                                    <div style={{ color: '#ccc', display: 'flex', justifyContent: 'flex-end' }}>
+                                    <div style={{ color: 'var(--text-muted)', display: 'flex', justifyContent: 'flex-end' }}>
                                         <ArrowRight size={14} />
                                     </div>
                                 </div>

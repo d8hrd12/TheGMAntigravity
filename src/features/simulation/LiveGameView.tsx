@@ -344,7 +344,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
             <div className="responsive-grid">
 
                 {/* Home Lineup Box */}
-                <div style={{ background: 'var(--surface)', padding: '15px', borderRadius: '12px', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', minHeight: '350px', borderTop: `4px solid ${gameState.homeTeam.colors?.primary || '#ccc'}` }}>
+                <div style={{ background: 'var(--surface)', padding: '15px', borderRadius: '12px', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', minHeight: '350px', borderTop: `4px solid ${gameState.homeTeam.colors?.primary || 'var(--text-muted)'}` }}>
                     {/* Watermark Logo */}
                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.1, pointerEvents: 'none', zIndex: 0 }}>
                         {gameState.homeTeam.logo ? (
@@ -424,7 +424,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
                             return (
                                 <div key={p.id} style={{ display: 'flex', flexDirection: 'column', padding: '8px 5px', borderBottom: '1px solid var(--bg-card-hover)', fontSize: '0.9rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center' }}>
-                                        <span style={{ flex: 1, fontWeight: 'bold' }}>{p.lastName} <small style={{ fontWeight: 'normal', color: '#aaa' }}>{p.position}</small></span>
+                                        <span style={{ flex: 1, fontWeight: 'bold' }}>{p.lastName} <small style={{ fontWeight: 'normal', color: 'var(--text-secondary)' }}>{p.position}</small></span>
                                         <span style={{ width: '30px', textAlign: 'center' }}>{stats.points || 0}</span>
                                         <span style={{ width: '30px', textAlign: 'center' }}>{stats.rebounds || 0}</span>
                                         <span style={{ width: '30px', textAlign: 'center' }}>{stats.assists || 0}</span>
@@ -440,7 +440,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
                 </div>
 
                 {/* Away Lineup Box */}
-                <div style={{ background: 'var(--surface)', padding: '15px', borderRadius: '12px', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', minHeight: '350px', borderTop: `4px solid ${gameState.awayTeam.colors?.primary || '#ccc'}` }}>
+                <div style={{ background: 'var(--surface)', padding: '15px', borderRadius: '12px', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', minHeight: '350px', borderTop: `4px solid ${gameState.awayTeam.colors?.primary || 'var(--text-muted)'}` }}>
                     {/* Watermark Logo */}
                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.1, pointerEvents: 'none', zIndex: 0 }}>
                         {gameState.awayTeam.logo ? (
@@ -520,7 +520,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
                             return (
                                 <div key={p.id} style={{ display: 'flex', flexDirection: 'column', padding: '8px 5px', borderBottom: '1px solid var(--bg-card-hover)', fontSize: '0.9rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center' }}>
-                                        <span style={{ flex: 1, fontWeight: 'bold' }}>{p.lastName} <small style={{ fontWeight: 'normal', color: '#aaa' }}>{p.position}</small></span>
+                                        <span style={{ flex: 1, fontWeight: 'bold' }}>{p.lastName} <small style={{ fontWeight: 'normal', color: 'var(--text-secondary)' }}>{p.position}</small></span>
                                         <span style={{ width: '30px', textAlign: 'center' }}>{stats.points || 0}</span>
                                         <span style={{ width: '30px', textAlign: 'center' }}>{stats.rebounds || 0}</span>
                                         <span style={{ width: '30px', textAlign: 'center' }}>{stats.assists || 0}</span>
@@ -541,7 +541,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
                 {/* Home Box Score */}
                 <div style={{ background: 'var(--surface)', borderRadius: '12px', padding: '20px' }}>
                     <h3 style={{ margin: '0 0 15px 0', borderBottom: '2px solid ' + (gameState.homeTeam.colors?.primary || '#3498db') }}>
-                        {(gameState.homeTeam.conference !== 'NBA' && gameState.homeTeam.conference !== 'West' && gameState.homeTeam.conference !== 'East') ? gameState.homeTeam.name : `${gameState.homeTeam.city} ${gameState.homeTeam.name}`} Box Score
+                        {(gameState.homeTeam.conference === 'EuroLeague' || gameState.homeTeam.conference === 'EuroCup') ? gameState.homeTeam.name : `${gameState.homeTeam.city} ${gameState.homeTeam.name}`} Box Score
                     </h3>
                     <div style={{ overflowX: 'auto' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', minWidth: '600px' }}>
@@ -612,7 +612,7 @@ export const LiveGameView: React.FC<LiveGameViewProps> = ({ homeTeam, awayTeam, 
                 {/* Away Box Score */}
                 <div style={{ background: 'var(--surface)', borderRadius: '12px', padding: '20px' }}>
                     <h3 style={{ margin: '0 0 15px 0', borderBottom: '2px solid ' + (gameState.awayTeam.colors?.primary || '#e74c3c') }}>
-                        {(gameState.awayTeam.conference !== 'NBA' && gameState.awayTeam.conference !== 'West' && gameState.awayTeam.conference !== 'East') ? gameState.awayTeam.name : `${gameState.awayTeam.city} ${gameState.awayTeam.name}`} Box Score
+                        {(gameState.awayTeam.conference === 'EuroLeague' || gameState.awayTeam.conference === 'EuroCup') ? gameState.awayTeam.name : `${gameState.awayTeam.city} ${gameState.awayTeam.name}`} Box Score
                     </h3>
                     <div style={{ overflowX: 'auto' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', minWidth: '600px' }}>

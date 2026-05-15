@@ -39,7 +39,7 @@ export const TrainingResultsModal: React.FC<TrainingResultsModalProps> = ({ resu
                     <h2 style={{ margin: 0, fontSize: '1.5rem', color: '#fff' }}>Training Camp Results</h2>
                     <button
                         onClick={onClose}
-                        style={{ background: 'none', border: 'none', color: '#aaa', fontSize: '1.5rem', cursor: 'pointer' }}
+                        style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '1.5rem', cursor: 'pointer' }}
                     >
                         &times;
                     </button>
@@ -55,7 +55,7 @@ export const TrainingResultsModal: React.FC<TrainingResultsModalProps> = ({ resu
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                                 <div>
                                     <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#fff' }}>{result.name}</h3>
-                                    <span style={{ fontSize: '0.8rem', color: '#888' }}>Focus: {result.focus}</span>
+                                    <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>Focus: {result.focus}</span>
                                 </div>
                                 <div style={{
                                     fontSize: '1.2rem',
@@ -88,7 +88,7 @@ export const TrainingResultsModal: React.FC<TrainingResultsModalProps> = ({ resu
                     ))}
 
                     {results.length === 0 && (
-                        <div style={{ padding: '40px', textAlign: 'center', color: '#888' }}>
+                        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-dim)' }}>
                             No progression data available.
                         </div>
                     )}

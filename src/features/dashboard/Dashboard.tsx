@@ -18,6 +18,7 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
+    onSelectGame,
     onSelectPlayer,
     onSelectTeam,
     onNavigate
@@ -166,137 +167,99 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }, [players, contracts, userTeamId, teamBaseline]);
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', paddingBottom: '100px', paddingTop: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px', paddingTop: '20px' }}>
             <SimControls />
 
             {/* EURO MATCH CALENDAR — only visible in Euro mode */}
             {(leagueType === 'EURO' || userTeam?.conference === 'EuroLeague' || userTeam?.conference === 'EuroCup') && (
-                <div className="col-10">
+                <div style={{ padding: '0 4px' }}>
                     <EuroMatchCalendar />
                 </div>
             )}
 
             <div className="dashboard-grid">
                 {/* 1. STARTING 5 WIDGET */}
-                {/* ... (Starting 5 content) ... */}
                 <DashboardCard title="STARTING LINEUP" className="col-10" icon={<Users size={16} />}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         {startingFive.map((player) => (
                             <div 
                                 key={player.id} 
                                 onClick={() => onSelectPlayer(player.id)}
                                 style={{ 
                                     display: 'flex', 
-                                    alignItems: 'flex-start', 
-                                    gap: '12px', 
-                                    padding: '12px', 
-                                    background: 'var(--bg-card)', 
-                                    borderRadius: '12px', 
-                                    border: '1px solid var(--border-color)',
+                                    alignItems: 'center', 
+                                    gap: '16px', 
+                                    padding: '14px', 
+                                    background: '#f9f9fb', 
+                                    borderRadius: '16px', 
+                                    border: '1px solid #f2f2f7',
                                     cursor: 'pointer',
-                                    transition: 'transform 0.2s ease',
-                                    boxShadow: 'var(--shadow-sm)'
+                                    transition: 'all 0.2s ease',
                                 }}
-                                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateX(4px)'}
-                                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateX(0)'}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'scale(1.01)';
+                                    e.currentTarget.style.background = '#ffffff';
+                                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'scale(1)';
+                                    e.currentTarget.style.background = '#f9f9fb';
+                                    e.currentTarget.style.boxShadow = 'none';
+                                }}
                             >
-                                {/* Left Column: Position & Label */}
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                                    <div style={{ 
-                                        width: '38px', 
-                                        height: '38px', 
-                                        borderRadius: '10px', 
-                                        background: 'var(--team-primary)', 
-                                        color: '#fff', 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        justifyContent: 'center', 
-                                        fontWeight: 900, 
-                                        fontSize: '0.8rem', 
-                                        flexShrink: 0,
-                                        boxShadow: '0 4px 10px rgba(var(--primary-rgb), 0.3)'
-                                    }}>
-                                        {player.position}
-                                    </div>
-                                    <div style={{ 
-                                        writingMode: 'vertical-lr', 
-                                        textTransform: 'uppercase', 
-                                        fontSize: '0.5rem', 
-                                        fontWeight: 900, 
-                                        color: 'var(--text-dim)', 
-                                        letterSpacing: '0.2em',
-                                        opacity: 0.5,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '4px'
-                                    }}>
-                                        <BarChart3 size={8} /> STATS
-                                    </div>
+                                <div style={{ 
+                                    width: '44px', 
+                                    height: '44px', 
+                                    borderRadius: '12px', 
+                                    background: 'var(--team-primary)', 
+                                    color: '#fff', 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center', 
+                                    fontWeight: 900, 
+                                    fontSize: '0.85rem', 
+                                    flexShrink: 0,
+                                }}>
+                                    {player.position}
                                 </div>
 
-                                {/* Right Column: 3-Layer Info */}
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0 }}>
-                                    {/* Line 1: Name */}
+                                <div style={{ flex: 1, minWidth: 0 }}>
                                     <div style={{ 
-                                        fontSize: '0.95rem', 
+                                        fontSize: '1rem', 
                                         fontWeight: 900, 
-                                        color: 'var(--text-main)',
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        letterSpacing: '-0.02em'
+                                        color: '#1c1c1e',
+                                        letterSpacing: '-0.02em',
+                                        marginBottom: '2px'
                                     }}>
                                         {player.firstName} {player.lastName.toUpperCase()}
                                     </div>
-
-                                    {/* Line 2: Stars */}
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <StarRating stars={player.stars} size={14} />
-                                        <div style={{ width: '1px', height: '10px', background: 'var(--border-color)' }}></div>
-                                        <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-dim)' }}>
-                                            OVERALL: {calculateOverall(player)}
-                                        </div>
+                                        <StarRating stars={player.stars} size={12} />
+                                        <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#8e8e93' }}>
+                                            OVR {calculateOverall(player)}
+                                        </span>
                                     </div>
+                                </div>
 
-                                    {/* Line 3: Stats Grid */}
-                                    <div style={{ 
-                                        display: 'grid', 
-                                        gridTemplateColumns: 'repeat(7, 1fr)', 
-                                        gap: '4px', 
-                                        textAlign: 'center', 
-                                        background: 'rgba(var(--text-main-rgb), 0.03)', 
-                                        padding: '8px 4px', 
-                                        borderRadius: '8px',
-                                        marginTop: '4px'
-                                    }}>
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span style={{ fontSize: '0.5rem', color: 'var(--text-dim)', fontWeight: 800 }}>PTS</span>
-                                            <span style={{ fontSize: '0.75rem', fontWeight: 900 }}>{player.ppg}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span style={{ fontSize: '0.5rem', color: 'var(--text-dim)', fontWeight: 800 }}>REB</span>
-                                            <span style={{ fontSize: '0.75rem', fontWeight: 900 }}>{player.rpg}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span style={{ fontSize: '0.5rem', color: 'var(--text-dim)', fontWeight: 800 }}>AST</span>
-                                            <span style={{ fontSize: '0.75rem', fontWeight: 900 }}>{player.apg}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span style={{ fontSize: '0.5rem', color: 'var(--text-dim)', fontWeight: 800 }}>STL</span>
-                                            <span style={{ fontSize: '0.75rem', fontWeight: 900 }}>{player.spg}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span style={{ fontSize: '0.5rem', color: 'var(--text-dim)', fontWeight: 800 }}>BLK</span>
-                                            <span style={{ fontSize: '0.75rem', fontWeight: 900 }}>{player.bpg}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span style={{ fontSize: '0.5rem', color: 'var(--text-dim)', fontWeight: 800 }}>FG%</span>
-                                            <span style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--team-primary)' }}>{player.fgp}%</span>
-                                        </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span style={{ fontSize: '0.5rem', color: 'var(--text-dim)', fontWeight: 800 }}>3P%</span>
-                                            <span style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--team-primary)' }}>{player.tpp}%</span>
-                                        </div>
+                                <div style={{ 
+                                    display: 'flex', 
+                                    gap: '12px', 
+                                    background: '#ffffff', 
+                                    padding: '8px 12px', 
+                                    borderRadius: '12px',
+                                    border: '1px solid #f2f2f7'
+                                }}>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '0.5rem', color: '#8e8e93', fontWeight: 800 }}>PPG</div>
+                                        <div style={{ fontSize: '0.8rem', fontWeight: 900 }}>{player.ppg}</div>
+                                    </div>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '0.5rem', color: '#8e8e93', fontWeight: 800 }}>RPG</div>
+                                        <div style={{ fontSize: '0.8rem', fontWeight: 900 }}>{player.rpg}</div>
+                                    </div>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '0.5rem', color: '#8e8e93', fontWeight: 800 }}>APG</div>
+                                        <div style={{ fontSize: '0.8rem', fontWeight: 900 }}>{player.apg}</div>
                                     </div>
                                 </div>
                             </div>
@@ -312,146 +275,92 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
 
                 {/* 2. RECENT FORM & RANK */}
-                <DashboardCard title="SEASON STATUS" className="col-10" icon={<TrendingUp size={16} />}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px' }}>
-                        <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 800, marginBottom: '6px' }}>LAST 5</div>
-                            <div style={{ display: 'flex', gap: '4px' }}>
-                                {lastFive.length > 0 ? lastFive.map((data, i) => (
+                <DashboardCard title="SEASON STATUS" className="col-5" icon={<TrendingUp size={16} />}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div>
+                            <div style={{ fontSize: '0.6rem', color: '#8e8e93', fontWeight: 800, marginBottom: '8px' }}>RECENT FORM</div>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                                {lastFive.map((data, i) => (
                                     <div 
                                         key={i} 
-                                        onClick={() => onSelectGame(data.game)}
                                         style={{ 
-                                            width: '24px', 
-                                            height: '24px', 
-                                            borderRadius: '6px', 
-                                            background: data.result === 'W' ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)', 
-                                            color: data.result === 'W' ? '#2ecc71' : '#e74c3c',
+                                            width: '28px', 
+                                            height: '28px', 
+                                            borderRadius: '8px', 
+                                            background: data.result === 'W' ? '#2ecc71' : '#e74c3c', 
+                                            color: '#fff',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            fontSize: '0.75rem',
-                                            fontWeight: 800,
-                                            border: `1px solid ${data.result === 'W' ? '#2ecc71' : '#e74c3c'}`,
-                                            cursor: 'pointer',
-                                            transition: 'transform 0.2s'
+                                            fontSize: '0.8rem',
+                                            fontWeight: 900,
+                                            boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
                                         }}
-                                        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                                        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                                     >
                                         {data.result}
                                     </div>
-                                )) : <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>No games</div>}
+                                ))}
                             </div>
                         </div>
-                        <div 
-                            onClick={() => onSelectTeam(userTeamId!)}
-                            style={{ textAlign: 'right', cursor: 'pointer' }}
-                        >
-                            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 800, marginBottom: '2px' }}>RANK</div>
-                            <div style={{ fontSize: '1.0rem', fontWeight: 900, color: 'var(--team-primary)' }}>
-                                {confRank}
-                            </div>
-                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{userTeam?.wins}W - {userTeam?.losses}L</div>
+                        <div style={{ paddingTop: '12px', borderTop: '1px solid #f2f2f7' }}>
+                            <div style={{ fontSize: '0.6rem', color: '#8e8e93', fontWeight: 800, marginBottom: '4px' }}>CONFERENCE</div>
+                            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#1c1c1e' }}>{confRank}</div>
+                            <div style={{ fontSize: '0.7rem', color: '#8e8e93', fontWeight: 600 }}>Record: {userTeam?.wins}W - {userTeam?.losses}L</div>
                         </div>
                     </div>
                 </DashboardCard>
 
                 {/* 3. ROSTER EVALUATION */}
-                <DashboardCard title="ROSTER EVALUATION" className="col-10" icon={<BarChart3 size={16} />}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', padding: '4px' }}>
-                        <div style={{ background: 'rgba(46, 204, 113, 0.03)', padding: '10px', borderRadius: '10px', border: '1px solid rgba(46, 204, 113, 0.1)' }}>
+                <DashboardCard title="ROSTER EVALUATION" className="col-5" icon={<BarChart3 size={16} />}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div style={{ background: 'rgba(46, 204, 113, 0.05)', padding: '12px', borderRadius: '12px' }}>
                             <div style={{ fontSize: '0.55rem', color: '#2ecc71', fontWeight: 800, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <Zap size={10} /> STRENGTHS
                             </div>
-                            <ul style={{ margin: 0, padding: '0 0 0 12px', fontSize: '0.7rem', color: 'var(--text-main)', fontWeight: 600 }}>
-                                {evaluation.strengths.map((s, i) => <li key={i} style={{ marginBottom: '2px' }}>{s}</li>)}
-                            </ul>
-                        </div>
-                        <div style={{ background: 'rgba(231, 76, 60, 0.03)', padding: '10px', borderRadius: '10px', border: '1px solid rgba(231, 76, 60, 0.1)' }}>
-                            <div style={{ fontSize: '0.55rem', color: '#e74c3c', fontWeight: 800, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <AlertCircle size={10} /> NEEDS
+                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#1c1c1e' }}>
+                                {evaluation.strengths[0]}
                             </div>
-                            <ul style={{ margin: 0, padding: '0 0 0 12px', fontSize: '0.7rem', color: 'var(--text-main)', fontWeight: 600 }}>
-                                {evaluation.weaknesses.map((w, i) => <li key={i} style={{ marginBottom: '2px' }}>{w}</li>)}
-                            </ul>
+                        </div>
+                        <div style={{ background: 'rgba(231, 76, 60, 0.05)', padding: '12px', borderRadius: '12px' }}>
+                            <div style={{ fontSize: '0.55rem', color: '#e74c3c', fontWeight: 800, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <AlertCircle size={10} /> KEY NEED
+                            </div>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#1c1c1e' }}>
+                                {evaluation.weaknesses[0]}
+                            </div>
                         </div>
                     </div>
                 </DashboardCard>
 
                 {/* 4. EXPIRING CONTRACTS */}
                 <DashboardCard title="EXPIRING CONTRACTS" className="col-10" icon={<BarChart3 size={16} />}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        {expiringContracts.length > 0 ? expiringContracts.map((contract) => (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+                        {expiringContracts.slice(0, 4).map((contract) => (
                             <div 
                                 key={contract.id} 
-                                onClick={() => contract.playerId && onSelectPlayer(contract.playerId)}
                                 style={{ 
                                     display: 'flex', 
                                     alignItems: 'center', 
-                                    gap: '10px', 
-                                    padding: '8px', 
-                                    background: 'var(--bg-card)', 
-                                    borderRadius: '10px', 
-                                    border: '1px solid var(--border-color)',
-                                    cursor: 'pointer'
+                                    gap: '12px', 
+                                    padding: '12px', 
+                                    background: '#f9f9fb', 
+                                    borderRadius: '14px', 
+                                    border: '1px solid #f2f2f7'
                                 }}
                             >
                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{ 
-                                        fontSize: contract.playerName.length > 15 ? '0.65rem' : '0.75rem', 
-                                        fontWeight: 800, 
-                                        color: 'var(--text-main)',
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis'
-                                    }}>
-                                        {contract.playerName}
-                                    </div>
+                                    <div style={{ fontSize: '0.8rem', fontWeight: 900, color: '#1c1c1e' }}>{contract.playerName}</div>
                                     <StarRating stars={contract.stars} size={10} />
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
-                                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--team-primary)' }}>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: 900, color: 'var(--team-primary)' }}>
                                         ${(contract.amount / 1000000).toFixed(1)}M
                                     </div>
-                                    <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', fontWeight: 800 }}>LAST YEAR</div>
                                 </div>
                             </div>
-                        )) : (
-                            <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.7rem' }}>
-                                No contracts expiring this year.
-                            </div>
-                        )}
+                        ))}
                     </div>
                 </DashboardCard>
-            </div>
-
-            {/* Bottom Left Stats Decoration */}
-            <div style={{
-                position: 'fixed',
-                bottom: '90px',
-                left: '24px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '2px',
-                opacity: 0.2,
-                pointerEvents: 'none',
-                zIndex: 0
-            }}>
-                <BarChart3 size={40} color="var(--text-dim)" />
-                <span style={{ 
-                    fontSize: '0.65rem', 
-                    fontWeight: 900, 
-                    letterSpacing: '0.5em', 
-                    color: 'var(--text-dim)',
-                    marginLeft: '2px',
-                    transform: 'rotate(-90deg)',
-                    transformOrigin: 'left bottom',
-                    position: 'absolute',
-                    left: '48px',
-                    bottom: '12px',
-                    whiteSpace: 'nowrap'
-                }}>STATS</span>
             </div>
         </div>
     );

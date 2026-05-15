@@ -6,4 +6,5 @@ export interface Contract {
     yearsLeft: number;
     startYear: number;
     role: 'Star' | 'Starter' | 'Rotation' | 'Bench' | 'Prospect';
+    buyoutClause?: number; // European release clause amount
 }

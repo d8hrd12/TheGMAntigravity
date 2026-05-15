@@ -120,7 +120,7 @@ export const LeaguePlayersFullView: React.FC<LeaguePlayersFullViewProps> = ({ pl
             <PageHeader
                 title="Player Database"
                 subtitle="Full scouting & attributes"
-                onBack={onBack}
+                onBack={onBack || (() => {})}
                 teamColor={userTeam?.colors?.primary}
             />
 

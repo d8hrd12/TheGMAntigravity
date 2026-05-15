@@ -64,7 +64,7 @@ interface TradeViewProps {
     salaryCap: number;
     initialAiPlayerId?: string;
     initialProposal?: TradeProposal | SimulatedTradeProposal | null;
-    onExecuteTrade: (userPlayerIds: string[], userPickIds: string[], aiPlayerIds: string[], aiPickIds: string[], aiTeamId: string) => boolean;
+    onExecuteTrade: (userPlayerIds: string[], userPickIds: string[], aiPlayerIds: string[], aiPickIds: string[], aiTeamId: string, transferFee?: number) => boolean;
     onBack: () => void;
     onSelectPlayer: (playerId: string) => void;
     gmProfile?: any;

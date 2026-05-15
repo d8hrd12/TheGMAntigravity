@@ -65,7 +65,7 @@ export const PlayoffView: React.FC<PlayoffViewProps> = ({ onNavigate, onBack }) 
             <PageHeader
                 title="Postseason"
                 subtitle={`${new Date().getFullYear()} Playoffs`}
-                onBack={onBack}
+                onBack={onBack || (() => {})}
                 teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
             />
 

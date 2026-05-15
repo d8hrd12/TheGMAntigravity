@@ -101,9 +101,9 @@ export const UpcomingFreeAgentsModal: React.FC<UpcomingFreeAgentsModalProps> = (
                     <div style={{ padding: '20px 25px', borderBottom: '1px solid #333', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#2c2c2e' }}>
                         <div>
                             <h2 style={{ margin: 0, color: 'white', fontSize: '1.5rem', fontWeight: 700 }}>Upcoming Free Agents</h2>
-                            <p style={{ margin: '5px 0 0', color: '#aaa', fontSize: '0.9rem' }}>All players from other teams with expiring contracts.</p>
+                            <p style={{ margin: '5px 0 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>All players from other teams with expiring contracts.</p>
                         </div>
-                        <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#888', cursor: 'pointer', padding: '5px' }}>
+                        <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', padding: '5px' }}>
                             <X size={24} />
                         </button>
                     </div>
@@ -155,7 +155,7 @@ export const UpcomingFreeAgentsModal: React.FC<UpcomingFreeAgentsModalProps> = (
 
                                         {/* Team & Intent */}
                                         <div style={{ textAlign: 'right', minWidth: '150px' }}>
-                                            <div style={{ fontSize: '0.85rem', color: '#888' }}>Current: {p.team?.abbreviation}</div>
+                                            <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>Current: {p.team?.abbreviation}</div>
                                             <div style={{
                                                 marginTop: '6px', display: 'inline-block', padding: '4px 10px', borderRadius: '6px',
                                                 background: `${p.intentColor}22`, color: p.intentColor, fontWeight: 700, fontSize: '0.85rem'

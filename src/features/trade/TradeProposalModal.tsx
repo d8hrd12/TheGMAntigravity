@@ -43,7 +43,7 @@ export const TradeProposalModal: React.FC<TradeProposalModalProps> = ({ offer, t
                         <h3 style={{ color: '#2ecc71', borderBottom: '1px solid #444', paddingBottom: '10px', marginTop: 0 }}>You Receive</h3>
                         <ul style={{ listStyle: 'none', padding: 0 }}>
                             {offer.proposerAssets.players.map((p: any) => (
-                                <li key={p.id} style={{ marginBottom: '5px' }}>{p.firstName} {p.lastName} <span style={{ fontSize: '0.8em', color: '#888' }}>({p.position})</span></li>
+                                <li key={p.id} style={{ marginBottom: '5px' }}>{p.firstName} {p.lastName} <span style={{ fontSize: '0.8em', color: 'var(--text-dim)' }}>({p.position})</span></li>
                             ))}
                             {offer.proposerAssets.picks.map((p: any) => (
                                 <li key={p.id} style={{ marginBottom: '5px', fontSize: '0.85rem' }}>
@@ -54,7 +54,7 @@ export const TradeProposalModal: React.FC<TradeProposalModalProps> = ({ offer, t
                     </div>
 
                     {/* ARROW */}
-                    <div style={{ display: 'flex', alignItems: 'center', color: '#888' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-dim)' }}>
                         &#8644;
                     </div>
 
@@ -63,7 +63,7 @@ export const TradeProposalModal: React.FC<TradeProposalModalProps> = ({ offer, t
                         <h3 style={{ color: '#e74c3c', borderBottom: '1px solid #444', paddingBottom: '10px', marginTop: 0 }}>You Give</h3>
                         <ul style={{ listStyle: 'none', padding: 0 }}>
                             {offer.targetAssets.players.map((p: any) => (
-                                <li key={p.id} style={{ marginBottom: '5px' }}>{p.firstName} {p.lastName} <span style={{ fontSize: '0.8em', color: '#888' }}>({p.position})</span></li>
+                                <li key={p.id} style={{ marginBottom: '5px' }}>{p.firstName} {p.lastName} <span style={{ fontSize: '0.8em', color: 'var(--text-dim)' }}>({p.position})</span></li>
                             ))}
                             {offer.targetAssets.picks.map((p: any) => (
                                 <li key={p.id} style={{ marginBottom: '5px', fontSize: '0.85rem' }}>

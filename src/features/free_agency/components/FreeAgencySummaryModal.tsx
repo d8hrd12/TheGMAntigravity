@@ -110,7 +110,7 @@ export const FreeAgencySummaryModal: React.FC<FreeAgencySummaryModalProps> = ({ 
                                     <tr key={p.id} style={{ borderBottom: '1px solid #2c2c2e' }}>
                                         <td style={{ padding: '15px 10px' }}>
                                             <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{p.firstName} {p.lastName}</div>
-                                            <div style={{ fontSize: '0.85rem', color: '#888' }}>{p.position} • {p.age}yo</div>
+                                            <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>{p.position} • {p.age}yo</div>
                                         </td>
                                         <td style={{ textAlign: 'center', padding: '10px' }}>
                                             <div style={{ display: 'flex', justifyContent: 'center' }}>

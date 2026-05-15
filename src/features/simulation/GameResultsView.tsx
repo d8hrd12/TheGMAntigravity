@@ -73,7 +73,7 @@ export const GameResultsView: React.FC<GameResultsViewProps> = ({ games, teams, 
                         </div>
                     );
                 })}
-                {sortedGames.length === 0 && <p style={{ textAlign: 'center', color: '#888' }}>No games found.</p>}
+                {sortedGames.length === 0 && <p style={{ textAlign: 'center', color: 'var(--text-dim)' }}>No games found.</p>}
             </div>
         </div>
     );

@@ -35,7 +35,7 @@ export const DailyRecapModal: React.FC<DailyRecapModalProps> = ({ day, offersUpd
                 {/* Header */}
                 <div style={{ padding: '25px', background: '#2c2c2e', borderBottom: '1px solid #3a3a3c' }}>
                     <h2 style={{ margin: 0, fontSize: '1.8rem', color: 'white' }}>Day {day - 1} Recap</h2>
-                    <p style={{ margin: '5px 0 0 0', color: '#888' }}>Simulation results for the previous day.</p>
+                    <p style={{ margin: '5px 0 0 0', color: 'var(--text-dim)' }}>Simulation results for the previous day.</p>
                 </div>
 
                 <div style={{ padding: '25px', maxHeight: '60vh', overflowY: 'auto' }}>

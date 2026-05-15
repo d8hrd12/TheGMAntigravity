@@ -90,7 +90,7 @@ export const LeagueTeamStats: React.FC<LeagueTeamStatsProps> = ({ teams, players
 
     const HeaderCell = ({ label, sortKey, align = 'center' }: { label: string, sortKey: keyof TeamStatRow, align?: 'left' | 'right' | 'center' }) => (
         <th
-            style={{ padding: '12px 10px', cursor: 'pointer', userSelect: 'none', textAlign: align, whiteSpace: 'nowrap', color: '#aaa', fontSize: '0.9rem' }}
+            style={{ padding: '12px 10px', cursor: 'pointer', userSelect: 'none', textAlign: align, whiteSpace: 'nowrap', color: 'var(--text-secondary)', fontSize: '0.9rem' }}
             onClick={() => requestSort(sortKey)}
         >
             {label} {sortConfig.key === sortKey ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
@@ -102,7 +102,7 @@ export const LeagueTeamStats: React.FC<LeagueTeamStatsProps> = ({ teams, players
             <PageHeader
                 title="League Team Stats"
                 subtitle="Season performance by roster"
-                onBack={onBack}
+                onBack={onBack || (() => {})}
                 teamColor={userTeam?.colors?.primary}
             />
 

@@ -26,24 +26,24 @@ export const StandingsView: React.FC<StandingsViewProps> = ({ teams, onBack }) =
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', marginTop: '10px' }}>
                 <thead>
                     <tr style={{ background: 'var(--bg-card-hover)' }}>
-                        <th style={{ padding: '8px', color: '#aaa' }}>Rank</th>
-                        <th style={{ padding: '8px', color: '#aaa' }}>Team</th>
-                        <th style={{ padding: '8px', color: '#aaa' }}>W</th>
-                        <th style={{ padding: '8px', color: '#aaa' }}>L</th>
-                        <th style={{ padding: '8px', color: '#aaa' }}>Pct</th>
+                        <th style={{ padding: '8px', color: 'var(--text-secondary)' }}>Rank</th>
+                        <th style={{ padding: '8px', color: 'var(--text-secondary)' }}>Team</th>
+                        <th style={{ padding: '8px', color: 'var(--text-secondary)' }}>W</th>
+                        <th style={{ padding: '8px', color: 'var(--text-secondary)' }}>L</th>
+                        <th style={{ padding: '8px', color: 'var(--text-secondary)' }}>Pct</th>
                     </tr>
                 </thead>
                 <tbody>
                     {teams.map((team, index) => (
                         <tr key={team.id} style={{ borderBottom: '1px solid var(--border-color)', background: index % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.03)' }}>
-                            <td style={{ padding: '8px', color: '#ccc' }}>{index + 1}</td>
+                            <td style={{ padding: '8px', color: 'var(--text-muted)' }}>{index + 1}</td>
                             <td style={{ padding: '8px', fontWeight: 'bold' }}>
                                 <span style={{ color: team.colors?.primary || '#fff', marginRight: '5px' }}>●</span>
                                 <span style={{ color: '#fff' }}>{team.city} {team.name}</span>
                             </td>
-                            <td style={{ padding: '8px', color: '#ccc' }}>{team.wins}</td>
-                            <td style={{ padding: '8px', color: '#ccc' }}>{team.losses}</td>
-                            <td style={{ padding: '8px', color: '#ccc' }}>
+                            <td style={{ padding: '8px', color: 'var(--text-muted)' }}>{team.wins}</td>
+                            <td style={{ padding: '8px', color: 'var(--text-muted)' }}>{team.losses}</td>
+                            <td style={{ padding: '8px', color: 'var(--text-muted)' }}>
                                 {(team.wins + team.losses) > 0
                                     ? (team.wins / (team.wins + team.losses)).toFixed(3)
                                     : '.000'}

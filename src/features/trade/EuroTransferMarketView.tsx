@@ -46,9 +46,9 @@ const RAND_LAST = [
  */
 function applyAgingDecay(attrs: any, baseOvr: number, currentAge: number) {
     const yearsOverPrime = Math.max(0, currentAge - 30);
-    const athleticScale = Math.max(0.60, 1 - yearsOverPrime * 0.025); // hard physical drop
-    const skillScale    = Math.max(0.82, 1 - yearsOverPrime * 0.010); // slower skill drop
-    const iqBonus       = Math.min(8, Math.floor(yearsOverPrime * 0.5)); // vets get smarter
+    const athleticScale = Math.max(0.70, 1 - yearsOverPrime * 0.020); // softer physical drop
+    const skillScale    = Math.max(0.88, 1 - yearsOverPrime * 0.008); // slower skill drop
+    const iqBonus       = Math.min(10, Math.floor(yearsOverPrime * 0.6)); // vets get smarter
 
     const s = (v: number, scale: number) => Math.max(30, Math.round((v || baseOvr) * scale));
 
@@ -83,7 +83,7 @@ function applyAgingDecay(attrs: any, baseOvr: number, currentAge: number) {
         defensiveConsistency: s(attrs.defensiveConsistency, skillScale),
         // Physical — largely fixed
         strength:         attrs.strength || 70,
-        stamina:          Math.max(65, (attrs.stamina || 85) - yearsOverPrime * 1.5),
+        stamina:          Math.max(70, (attrs.stamina || 85) - yearsOverPrime * 1.2),
     };
 }
 
@@ -109,10 +109,14 @@ function makeNBAVeteranPlayer(
         potential: currentOvr,
         attributes: attrs,
         tendencies: {
-            shootsThrees: 50, drivesToBasket: 50, postUp: 50, passFirst: 50,
-            foulDrawer: 50, helperDefender: 50, highPressurePlayer: 50, clutchFactor: 50
+            shooting: 50,
+            passing: 50,
+            inside: 50,
+            outside: 50,
+            defensiveAggression: 50,
+            foulTendency: 50
         },
-        personality: 'Veteran Leader',
+        personality: 'Silent Leader',
         archetype: def.archetype || 'Veteran',
         morale: 80,
         fatigue: 0,
@@ -148,8 +152,10 @@ function extractPoolForYear(gameYear: number, nameSuffix?: string): Player[] {
             const contractYearsLeft = (def.contract?.years || 0) - yearsElapsed;
             if (contractYearsLeft !== 1) continue;
             if (currentAge <= 31) continue;
-            const ageDrop = Math.max(0, currentAge - 33);
-            const currentOvr = Math.max(65, (def.ovr || 75) - ageDrop);
+            
+            // Softer age drop: starts at 34 and slower slope
+            const ageDrop = Math.max(0, (currentAge - 34) * 0.4);
+            const currentOvr = Math.max(70, (def.ovr || 75) - ageDrop);
             if (currentOvr <= 76) continue;
             pool.push(makeNBAVeteranPlayer(def, abbr, team, currentAge, currentOvr, gameYear));
         }
@@ -193,10 +199,11 @@ const PlayerListItem: React.FC<{
     player: Player, 
     owningTeam?: Team, 
     allPlayers: Player[],
+    allContracts: Contract[],
     userTeam: Team,
     isSelected: boolean, 
     onClick: () => void 
-}> = ({ player, owningTeam, allPlayers, userTeam, isSelected, onClick }) => {
+}> = ({ player, owningTeam, allPlayers, allContracts, userTeam, isSelected, onClick }) => {
     const ovr = calculateOverall(player);
     const stats = player.seasonStats;
     const gp = stats?.gamesPlayed || 0;
@@ -210,10 +217,15 @@ const PlayerListItem: React.FC<{
 
     // Calculate Dynamic Fee
     const estimatedFee = useMemo(() => {
-        if (!owningTeam) return 0;
+        // NBA players or Free Agents have no buyout fee in this context
+        if (!owningTeam || player.id.startsWith('nba_')) return 0;
         const owningRoster = allPlayers.filter(p => p.teamId === owningTeam.id);
-        return calculateEuroBuyoutFee(player, owningTeam, owningRoster);
-    }, [player, owningTeam, allPlayers]);
+        return calculateEuroBuyoutFee(player, owningTeam, owningRoster, allContracts);
+    }, [player, owningTeam, allPlayers, allContracts]);
+    
+    const isFree = !owningTeam || player.id.startsWith('nba_');
+    const contract = allContracts.find(c => c.playerId === player.id);
+    const hasReleaseClause = !!contract?.buyoutClause;
     
     const ppg = gp > 0 ? ((stats?.points || 0) / gp).toFixed(1) : '0.0';
     const rpg = gp > 0 ? ((stats?.rebounds || 0) / gp).toFixed(1) : '0.0';
@@ -252,8 +264,11 @@ const PlayerListItem: React.FC<{
                             {player.firstName} {player.lastName.toUpperCase()}
                             {untouchableInfo.untouchable && <ShieldAlert size={14} color="#e74c3c" />}
                         </div>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 900, color: untouchableInfo.untouchable ? 'var(--text-dim)' : '#2ecc71' }}>
-                            {untouchableInfo.untouchable ? 'NOT FOR SALE' : `€${(estimatedFee / 1000000).toFixed(1)}M`}
+                        <div style={{ fontSize: '0.9rem', fontWeight: 900, color: untouchableInfo.untouchable ? 'var(--text-dim)' : (isFree ? 'var(--text-muted)' : (hasReleaseClause ? '#eab308' : '#2ecc71')), textAlign: 'right' }}>
+                            {untouchableInfo.untouchable ? 'NOT FOR SALE' : (isFree ? 'NO FEE' : `€${(estimatedFee / 1000000).toFixed(1)}M`)}
+                            {hasReleaseClause && !untouchableInfo.untouchable && (
+                                <div style={{ fontSize: '0.6rem', opacity: 0.8, color: '#eab308', marginTop: '-2px' }}>RELEASE CLAUSE</div>
+                            )}
                         </div>
                     </div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', fontWeight: 700 }}>
@@ -404,8 +419,16 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack, initialPlayerI
                     setTransferFeedback({ status: 'REJECTED', msg: check.reason || 'Player is not for sale.' });
                     setCashOffer(0);
                 } else {
-                    const fee = calculateEuroBuyoutFee(p, owningTeam, owningRoster);
-                    setTransferFeedback({ status: 'PENDING', msg: `The club values ${p.lastName} at €${formatCash(fee)}. Make your offer.` });
+                    const fee = calculateEuroBuyoutFee(p, owningTeam, owningRoster, contracts);
+                    const contract = contracts.find(c => c.playerId === p.id);
+                    const hasClause = !!contract?.buyoutClause;
+
+                    setTransferFeedback({ 
+                        status: 'PENDING', 
+                        msg: hasClause 
+                            ? `This player has a fixed release clause of €${formatCash(fee)}. Pay it to skip negotiations.`
+                            : `The club values ${p.lastName} at €${formatCash(fee)}. Make your offer.` 
+                    });
                     setCashOffer(fee); // Show them what they want
                 }
             }
@@ -422,7 +445,7 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack, initialPlayerI
         if (!owningTeam) return;
 
         const owningRoster = players.filter(p => p.teamId === owningTeam.id);
-        const result = negotiateEuroBuyout(selectedPlayer, userTeam, owningTeam, owningRoster, cashOffer, previousBuyoutOffer);
+        const result = negotiateEuroBuyout(selectedPlayer, userTeam, owningTeam, owningRoster, contracts, cashOffer, previousBuyoutOffer);
 
         if (result.decision === 'ACCEPTED') {
             setTransferFeedback({ status: 'ACCEPTED', msg: result.msg });
@@ -730,6 +753,7 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack, initialPlayerI
                                         key={player.id}
                                         player={player}
                                         allPlayers={players}
+                                        allContracts={contracts}
                                         userTeam={userTeam}
                                         isSelected={selectedPlayer?.id === player.id}
                                         onClick={() => handleSelectPlayer(player)}
@@ -742,6 +766,7 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack, initialPlayerI
                                         player={player}
                                         owningTeam={teams.find(t => t.id === player.teamId)}
                                         allPlayers={players}
+                                        allContracts={contracts}
                                         userTeam={userTeam}
                                         isSelected={selectedPlayer?.id === player.id}
                                         onClick={() => handleSelectPlayer(player)}
@@ -754,6 +779,7 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack, initialPlayerI
                                         player={player}
                                         owningTeam={NBA_TEAMS.find(t => t.id === player.teamId)}
                                         allPlayers={players}
+                                        allContracts={contracts}
                                         userTeam={userTeam}
                                         isSelected={selectedPlayer?.id === player.id}
                                         onClick={() => handleSelectPlayer(player)}
@@ -785,6 +811,7 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack, initialPlayerI
                                         player={player}
                                         owningTeam={teams.find(t => t.id === player.teamId)}
                                         allPlayers={players}
+                                        allContracts={contracts}
                                         userTeam={userTeam}
                                         isSelected={selectedPlayer?.id === player.id}
                                         onClick={() => handleSelectPlayer(player)}

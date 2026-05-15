@@ -38,7 +38,7 @@ export const CoachSettingsView: React.FC<CoachSettingsViewProps> = ({ team, onBa
                 </div>
                 <div>
                     <div style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>{label}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#888' }}>Adjust your team's tactical approach</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>Adjust your team's tactical approach</div>
                 </div>
             </div>
 
@@ -52,7 +52,7 @@ export const CoachSettingsView: React.FC<CoachSettingsViewProps> = ({ team, onBa
                             style={{
                                 padding: '12px',
                                 background: isActive ? 'var(--text-main)' : 'var(--bg-card-hover)',
-                                color: isActive ? 'white' : '#aaa',
+                                color: isActive ? 'white' : 'var(--text-secondary)',
                                 border: isActive ? '1px solid var(--primary-light)' : '1px solid transparent',
                                 borderRadius: '10px',
                                 cursor: 'pointer',
@@ -75,7 +75,7 @@ export const CoachSettingsView: React.FC<CoachSettingsViewProps> = ({ team, onBa
                 title="Coach Settings"
                 subtitle="Tactical schemes & strategy"
                 onBack={onBack}
-                teamColor={team.colors.primary}
+                teamColor={team.colors?.primary}
             >
                 <div style={{ display: 'flex', gap: '12px' }}>
                     {onFire && (

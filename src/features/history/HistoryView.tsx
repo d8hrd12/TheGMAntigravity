@@ -10,7 +10,7 @@ interface HistoryViewProps {
 }
 
 export const HistoryView: React.FC<HistoryViewProps> = ({ onBack, onSelectPlayer }) => {
-    const { retiredPlayersHistory = [], awardsHistory } = useGame();
+    const { retiredPlayersHistory = [], awardsHistory, userTeamId, teams } = useGame();
     const [activeTab, setActiveTab] = useState<'retired' | 'awards'>('retired');
     const [viewMode, setViewMode] = useState<'year' | 'hof'>('year');
     const [selectedYear, setSelectedYear] = useState<number>(retiredPlayersHistory.length > 0 ? retiredPlayersHistory[retiredPlayersHistory.length - 1].year : new Date().getFullYear());

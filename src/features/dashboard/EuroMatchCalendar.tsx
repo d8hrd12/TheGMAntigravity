@@ -118,75 +118,98 @@ export const EuroMatchCalendar: React.FC = () => {
 
     return (
         <div style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '14px',
+            background: '#ffffff',
+            border: '1px solid #f2f2f7',
+            borderRadius: '20px',
             overflow: 'hidden',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.04)',
+            transition: 'all 0.3s ease'
         }}>
             {/* Header */}
             <div style={{
-                background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-                padding: '12px 16px',
+                padding: '16px 20px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderBottom: '1px solid #f2f2f7',
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Calendar size={15} color="#e8c456" />
-                    <span style={{ fontSize: '0.72rem', fontWeight: 900, color: '#e8c456', letterSpacing: '0.08em' }}>
-                        {leagueLabel.toUpperCase()} SCHEDULE
-                    </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ 
+                        width: '32px', 
+                        height: '32px', 
+                        borderRadius: '10px', 
+                        background: 'rgba(var(--primary-rgb), 0.1)', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center' 
+                    }}>
+                        <Calendar size={16} color="var(--team-primary)" />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#8e8e93', letterSpacing: '0.05em' }}>
+                            {leagueLabel.toUpperCase()}
+                        </span>
+                        <span style={{ fontSize: '0.9rem', fontWeight: 900, color: '#1c1c1e', letterSpacing: '-0.01em' }}>
+                            Schedule & Results
+                        </span>
+                    </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>
-                        MD {seasonGamesPlayed}/{totalMatchDays} &nbsp;
-                        <span style={{ color: '#2ecc71' }}>{wins}W</span>
-                        {' '}-{' '}
-                        <span style={{ color: '#e74c3c' }}>{losses}L</span>
-                    </span>
-                    <button
-                        onClick={() => setViewOffset(v => Math.max(0, v - 4))}
-                        disabled={clampedOffset === 0}
-                        style={{
-                            background: 'rgba(255,255,255,0.08)',
-                            border: 'none',
-                            borderRadius: '6px',
-                            color: '#fff',
-                            cursor: clampedOffset === 0 ? 'not-allowed' : 'pointer',
-                            opacity: clampedOffset === 0 ? 0.3 : 1,
-                            padding: '3px 5px',
-                            display: 'flex',
-                            alignItems: 'center',
-                        }}
-                    >
-                        <ChevronLeft size={12} />
-                    </button>
-                    <button
-                        onClick={() => setViewOffset(v => Math.min(maxOffset, v + 4))}
-                        disabled={clampedOffset >= maxOffset}
-                        style={{
-                            background: 'rgba(255,255,255,0.08)',
-                            border: 'none',
-                            borderRadius: '6px',
-                            color: '#fff',
-                            cursor: clampedOffset >= maxOffset ? 'not-allowed' : 'pointer',
-                            opacity: clampedOffset >= maxOffset ? 0.3 : 1,
-                            padding: '3px 5px',
-                            display: 'flex',
-                            alignItems: 'center',
-                        }}
-                    >
-                        <ChevronRight size={12} />
-                    </button>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ textAlign: 'right', marginRight: '8px' }}>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 900, color: '#1c1c1e' }}>
+                            <span style={{ color: '#2ecc71' }}>{wins}W</span> - <span style={{ color: '#e74c3c' }}>{losses}L</span>
+                        </div>
+                        <div style={{ fontSize: '0.55rem', color: '#8e8e93', fontWeight: 700 }}>
+                            MD {seasonGamesPlayed}/{totalMatchDays}
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                        <button
+                            onClick={() => setViewOffset(v => Math.max(0, v - 4))}
+                            disabled={clampedOffset === 0}
+                            style={{
+                                background: '#f2f2f7',
+                                border: 'none',
+                                borderRadius: '10px',
+                                color: '#1c1c1e',
+                                cursor: clampedOffset === 0 ? 'not-allowed' : 'pointer',
+                                opacity: clampedOffset === 0 ? 0.3 : 1,
+                                padding: '6px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                transition: 'all 0.2s ease'
+                            }}
+                        >
+                            <ChevronLeft size={16} />
+                        </button>
+                        <button
+                            onClick={() => setViewOffset(v => Math.min(maxOffset, v + 4))}
+                            disabled={clampedOffset >= maxOffset}
+                            style={{
+                                background: '#f2f2f7',
+                                border: 'none',
+                                borderRadius: '10px',
+                                color: '#1c1c1e',
+                                cursor: clampedOffset >= maxOffset ? 'not-allowed' : 'pointer',
+                                opacity: clampedOffset >= maxOffset ? 0.3 : 1,
+                                padding: '6px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                transition: 'all 0.2s ease'
+                            }}
+                        >
+                            <ChevronRight size={16} />
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {/* Match Day List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
                 {visible.length === 0 ? (
-                    <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.72rem' }}>
-                        Schedule not yet generated. Start a new season to see your fixtures.
+                    <div style={{ padding: '40px 20px', textAlign: 'center', color: '#8e8e93', fontSize: '0.8rem' }}>
+                        Schedule not yet generated.
                     </div>
                 ) : (
                     visible.map((md) => {
@@ -206,141 +229,131 @@ export const EuroMatchCalendar: React.FC = () => {
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '10px',
-                                    padding: '9px 14px',
-                                    borderBottom: '1px solid var(--border-color)',
-                                    background: isPending
-                                        ? 'linear-gradient(90deg, rgba(232,196,86,0.08) 0%, transparent 100%)'
-                                        : 'transparent',
-                                    transition: 'all 0.2s',
+                                    gap: '12px',
+                                    padding: '12px 20px',
+                                    borderBottom: '1px solid #f2f2f7',
+                                    background: isPending ? 'rgba(var(--primary-rgb), 0.03)' : '#ffffff',
+                                    transition: 'all 0.2s ease',
                                     cursor: isPlayed ? 'pointer' : 'default',
                                 }}
                                 onMouseEnter={(e) => {
-                                    if (isPlayed) e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                                    if (isPlayed) e.currentTarget.style.background = '#f9f9fb';
                                 }}
                                 onMouseLeave={(e) => {
                                     if (isPlayed) {
-                                        e.currentTarget.style.background = isPending 
-                                            ? 'linear-gradient(90deg, rgba(232,196,86,0.08) 0%, transparent 100%)'
-                                            : 'transparent';
+                                        e.currentTarget.style.background = isPending ? 'rgba(var(--primary-rgb), 0.03)' : '#ffffff';
                                     }
                                 }}
                             >
                                 {/* Match Day Number */}
                                 <div style={{
-                                    width: '32px',
-                                    height: '32px',
-                                    borderRadius: '8px',
-                                    background: isPending
-                                        ? 'rgba(232,196,86,0.15)'
-                                        : isPlayed
-                                        ? 'rgba(255,255,255,0.04)'
-                                        : 'rgba(255,255,255,0.02)',
-                                    border: isPending ? '1px solid rgba(232,196,86,0.4)' : '1px solid var(--border-color)',
+                                    width: '36px',
+                                    height: '36px',
+                                    borderRadius: '10px',
+                                    background: isPending ? 'var(--team-primary)' : '#f2f2f7',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     flexShrink: 0,
                                 }}>
                                     <span style={{
-                                        fontSize: '0.6rem',
+                                        fontSize: '0.65rem',
                                         fontWeight: 900,
-                                        color: isPending ? '#e8c456' : 'var(--text-muted)',
+                                        color: isPending ? '#ffffff' : '#8e8e93',
                                     }}>
-                                        MD{md.matchDay}
+                                        {md.matchDay}
                                     </span>
                                 </div>
 
-                                {/* H/A Badge */}
+                                {/* H/A */}
                                 <div style={{
-                                    width: '20px',
-                                    height: '20px',
-                                    borderRadius: '4px',
-                                    background: md.isHome ? 'rgba(46,204,113,0.12)' : 'rgba(231,76,60,0.1)',
-                                    border: `1px solid ${md.isHome ? 'rgba(46,204,113,0.3)' : 'rgba(231,76,60,0.25)'}`,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    flexShrink: 0,
+                                    fontSize: '0.65rem',
+                                    fontWeight: 800,
+                                    color: '#8e8e93',
+                                    width: '12px',
+                                    textAlign: 'center'
                                 }}>
-                                    <span style={{
-                                        fontSize: '0.5rem',
-                                        fontWeight: 900,
-                                        color: md.isHome ? '#2ecc71' : '#e74c3c',
-                                    }}>
-                                        {md.isHome ? 'H' : 'A'}
-                                    </span>
+                                    {md.isHome ? 'H' : 'A'}
                                 </div>
 
                                 {/* Opponent */}
-                                <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
                                     {opp?.logo && (
-                                        <img 
-                                            src={opp.logo} 
-                                            alt={opp.name} 
-                                            style={{ width: '22px', height: '22px', objectFit: 'contain' }} 
-                                        />
+                                        <div style={{ 
+                                            width: '28px', 
+                                            height: '28px', 
+                                            padding: '4px', 
+                                            background: '#f9f9fb', 
+                                            borderRadius: '6px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}>
+                                            <img 
+                                                src={opp.logo} 
+                                                alt={opp.name} 
+                                                style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+                                            />
+                                        </div>
                                     )}
                                     <div style={{
-                                        fontSize: '0.72rem',
+                                        fontSize: '0.85rem',
                                         fontWeight: 800,
-                                        color: isPlayed ? 'var(--text-muted)' : 'var(--text-main)',
+                                        color: '#1c1c1e',
                                         whiteSpace: 'nowrap',
                                         overflow: 'hidden',
                                         textOverflow: 'ellipsis',
+                                        letterSpacing: '-0.01em'
                                     }}>
-                                        {md.isHome ? 'vs' : '@'}{' '}
-                                        <span style={{ color: isPending ? '#e8c456' : undefined }}>
-                                            {opp?.name ?? 'TBD'}
+                                        <span style={{ color: '#8e8e93', fontWeight: 600, marginRight: '4px' }}>
+                                            {md.isHome ? 'vs' : '@'}
                                         </span>
+                                        {opp?.name ?? 'TBD'}
                                     </div>
                                 </div>
 
-                                {/* Result / Status */}
-                                <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                                {/* Result */}
+                                <div style={{ flexShrink: 0 }}>
                                     {isPlayed && md && md.result ? (
-                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-                                            <div style={{
-                                                padding: '2px 8px',
-                                                borderRadius: '5px',
-                                                fontSize: '0.65rem',
-                                                fontWeight: 900,
-                                                background: md.result.won
-                                                    ? 'rgba(46,204,113,0.15)'
-                                                    : 'rgba(231,76,60,0.12)',
-                                                color: md.result.won ? '#2ecc71' : '#e74c3c',
-                                                border: `1px solid ${md.result.won ? 'rgba(46,204,113,0.3)' : 'rgba(231,76,60,0.25)'}`,
-                                            }}>
-                                                {md.result.won ? 'W' : 'L'}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <div style={{ textAlign: 'right' }}>
+                                                <div style={{ fontSize: '0.75rem', fontWeight: 900, color: '#1c1c1e' }}>
+                                                    {md.result.userScore}–{md.result.oppScore}
+                                                </div>
                                             </div>
                                             <div style={{
-                                                fontSize: '0.6rem',
-                                                fontWeight: 700,
-                                                color: 'var(--text-muted)',
+                                                width: '24px',
+                                                height: '24px',
+                                                borderRadius: '6px',
+                                                fontSize: '0.7rem',
+                                                fontWeight: 900,
+                                                background: md.result.won ? '#2ecc71' : '#e74c3c',
+                                                color: '#ffffff',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
                                             }}>
-                                                {md.result.userScore} – {md.result.oppScore}
+                                                {md.result.won ? 'W' : 'L'}
                                             </div>
                                         </div>
                                     ) : isPending ? (
                                         <div style={{
-                                            padding: '2px 8px',
-                                            borderRadius: '5px',
-                                            fontSize: '0.55rem',
+                                            padding: '4px 10px',
+                                            borderRadius: '20px',
+                                            fontSize: '0.6rem',
                                             fontWeight: 900,
-                                            background: 'rgba(232,196,86,0.12)',
-                                            color: '#e8c456',
-                                            border: '1px solid rgba(232,196,86,0.3)',
+                                            background: 'rgba(var(--primary-rgb), 0.1)',
+                                            color: 'var(--team-primary)',
+                                            letterSpacing: '0.05em'
                                         }}>
-                                            NEXT
+                                            NEXT UP
                                         </div>
                                     ) : (
                                         <div style={{
-                                            padding: '2px 8px',
-                                            borderRadius: '5px',
-                                            fontSize: '0.55rem',
+                                            fontSize: '0.6rem',
                                             fontWeight: 700,
-                                            background: 'rgba(255,255,255,0.03)',
-                                            color: 'var(--text-muted)',
+                                            color: '#c7c7cc',
                                         }}>
                                             UPCOMING
                                         </div>
@@ -353,26 +366,30 @@ export const EuroMatchCalendar: React.FC = () => {
             </div>
 
             {/* Progress bar */}
-            <div style={{ padding: '8px 14px 10px', background: 'rgba(0,0,0,0.2)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '0.55rem', color: 'var(--text-muted)', fontWeight: 600 }}>SEASON PROGRESS</span>
-                    <span style={{ fontSize: '0.55rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+            <div style={{ padding: '16px 20px', background: '#f9f9fb' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '0.6rem', color: '#8e8e93', fontWeight: 800, letterSpacing: '0.05em' }}>SEASON PROGRESS</span>
+                    <span style={{ fontSize: '0.6rem', color: '#1c1c1e', fontWeight: 900 }}>
                         {totalMatchDays > 0 ? Math.round((seasonGamesPlayed / totalMatchDays) * 100) : 0}%
                     </span>
                 </div>
                 <div style={{
-                    height: '4px',
-                    background: 'rgba(255,255,255,0.08)',
-                    borderRadius: '2px',
+                    height: '10px',
+                    background: '#e5e5ea',
+                    borderRadius: '5px',
                     overflow: 'hidden',
                 }}>
-                    <div style={{
-                        width: `${totalMatchDays > 0 ? (seasonGamesPlayed / totalMatchDays) * 100 : 0}%`,
-                        height: '100%',
-                        background: 'linear-gradient(90deg, #e8c456, #f39c12)',
-                        borderRadius: '2px',
-                        transition: 'width 0.4s ease',
-                    }} />
+                    <div 
+                        className="progress-shine"
+                        style={{
+                            width: `${totalMatchDays > 0 ? (seasonGamesPlayed / totalMatchDays) * 100 : 0}%`,
+                            height: '100%',
+                            background: 'var(--team-primary)',
+                            borderRadius: '5px',
+                            transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)',
+                            position: 'relative'
+                        }} 
+                    />
                 </div>
             </div>
         </div>

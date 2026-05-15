@@ -11,6 +11,37 @@ export type EuroTeamTarget =
     | 'EuroCup Promotion Chaser'
     | 'EuroCup Talent Farm';
 
+export interface TeamNeeds {
+    scoring: number;    // 0-10 (Importance)
+    defense: number;
+    playmaking: number;
+    rebounding: number;
+}
+
+/**
+ * Evaluates the team's statistical deficiencies to prioritize transfer targets.
+ */
+export function calculateEuroTeamNeeds(team: Team, roster: Player[]): TeamNeeds {
+    if (roster.length === 0) return { scoring: 5, defense: 5, playmaking: 5, rebounding: 5 };
+
+    const totalGames = team.wins + team.losses;
+    // Base needs on team ratings or recent performance if available
+    // For now, we look at the average attributes of the top 8 players (the main rotation)
+    const rotation = [...roster].sort((a, b) => calculateOverall(b) - calculateOverall(a)).slice(0, 8);
+    
+    const avgFinishing = rotation.reduce((sum, p) => sum + p.attributes.finishing + p.attributes.midRange + p.attributes.threePointShot, 0) / (rotation.length * 3);
+    const avgDefense = rotation.reduce((sum, p) => sum + p.attributes.interiorDefense + p.attributes.perimeterDefense, 0) / (rotation.length * 2);
+    const avgPlaymaking = rotation.reduce((sum, p) => sum + p.attributes.playmaking + p.attributes.ballHandling, 0) / (rotation.length * 2);
+    const avgRebounding = rotation.reduce((sum, p) => sum + p.attributes.offensiveRebound + p.attributes.defensiveRebound, 0) / (rotation.length * 2);
+
+    return {
+        scoring: Math.max(0, 85 - avgFinishing) / 5,
+        defense: Math.max(0, 85 - avgDefense) / 5,
+        playmaking: Math.max(0, 85 - avgPlaymaking) / 5,
+        rebounding: Math.max(0, 85 - avgRebounding) / 5
+    };
+}
+
 /**
  * Dynamically evaluates a team's roster and financial standing to set their goal for the season.
  */
@@ -117,23 +148,53 @@ export function simulateEuroAI_LocalTalentDraft(
                 position: pick.position,
                 height: pick.height,
                 weight: pick.weight,
-                nationality: pick.nationality,
+                personality: 'Professional',
                 overall: pick.attributes.overall,
                 potential: pick.attributes.potential,
                 attributes: {
-                    insideScoring: pick.attributes.insideScoring,
-                    outsideScoring: pick.attributes.outsideScoring,
-                    playmaking: pick.attributes.playmaking,
-                    athletic: pick.attributes.athletic,
-                    interiorDefense: pick.attributes.interiorDefense,
-                    perimeterDefense: pick.attributes.perimeterDefense,
-                    rebounding: pick.attributes.rebounding,
-                    basketballIq: pick.attributes.basketballIq
+                    finishing: pick.attributes.insideScoring || 60,
+                    midRange: pick.attributes.outsideScoring || 60,
+                    threePointShot: pick.attributes.outsideScoring || 60,
+                    freeThrow: 75,
+                    playmaking: pick.attributes.playmaking || 60,
+                    ballHandling: pick.attributes.playmaking || 60,
+                    offensiveRebound: pick.attributes.rebounding || 50,
+                    defensiveRebound: pick.attributes.rebounding || 50,
+                    interiorDefense: pick.attributes.interiorDefense || 60,
+                    perimeterDefense: pick.attributes.perimeterDefense || 60,
+                    stealing: pick.attributes.perimeterDefense || 60,
+                    blocking: pick.attributes.interiorDefense || 60,
+                    athleticism: pick.attributes.athletic || 60,
+                    basketballIQ: pick.attributes.basketballIq || 60
+                },
+                tendencies: {
+                    shooting: 50,
+                    passing: 50,
+                    inside: 50,
+                    outside: 50,
+                    defensiveAggression: 50,
+                    foulTendency: 50
                 },
                 teamId: team.id,
+                morale: 80,
+                fatigue: 0,
+                stamina: 100,
+                seasonStats: {
+                    gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0,
+                    steals: 0, blocks: 0, turnovers: 0, fouls: 0, offensiveRebounds: 0,
+                    defensiveRebounds: 0, fgMade: 0, fgAttempted: 0, threeMade: 0,
+                    threeAttempted: 0, ftMade: 0, ftAttempted: 0, rimMade: 0,
+                    rimAttempted: 0, rimAssisted: 0, midRangeMade: 0, midRangeAttempted: 0,
+                    midRangeAssisted: 0, threePointAssisted: 0, plusMinus: 0
+                },
                 careerStats: [],
+                jerseyNumber: Math.floor(Math.random() * 50),
+                minutes: 0,
+                isStarter: false,
+                loveForTheGame: 10,
+                yearsOfService: 0,
                 acquisition: {
-                    type: 'free_agency',
+                    type: 'free_agent',
                     year: currentYear,
                     details: 'Academy Graduate'
                 }
@@ -248,7 +309,16 @@ export function isEuroPlayerUntouchable(
  * [STUB] Calculates the required cash buyout fee to poach a player from a Euro team.
  * Follows European soccer/basketball transfer logic instead of NBA player-for-player trades.
  */
-export function calculateEuroBuyoutFee(player: Player, sellingTeam: Team, sellingTeamRoster: Player[]): number {
+export function calculateEuroBuyoutFee(player: Player, sellingTeam: Team, sellingTeamRoster: Player[], allContracts: Contract[]): number {
+    // 0. NBA Players are free agents for the purpose of the European market
+    if (player.id.startsWith('nba_')) return 0;
+
+    // 0.1 Check for explicit Release Clause in contract
+    const contract = allContracts.find(c => c.playerId === player.id);
+    if (contract?.buyoutClause) {
+        return contract.buyoutClause;
+    }
+
     // 1. Base Value based on OVR and Potential (Scaled for €5M-€7M peak)
     let baseFee = (player.overall * 30000) + (player.potential * 15000);
     if (player.age < 24) baseFee *= 1.3;
@@ -280,4 +350,52 @@ export function calculateEuroBuyoutFee(player: Player, sellingTeam: Team, sellin
     }
 
     return Math.round(baseFee);
+}
+
+/**
+ * Scores how well a player fits the team's specific needs.
+ * Returns a multiplier (e.g., 1.5 if perfect fit, 0.8 if poor fit).
+ */
+export function calculatePlayerFitScore(player: Player, needs: TeamNeeds): number {
+    let score = 0;
+    
+    // Evaluate how well the player's best skills match the team's top needs
+    const playerScoring = (player.attributes.finishing + player.attributes.midRange + player.attributes.threePointShot) / 3;
+    const playerDefense = (player.attributes.interiorDefense + player.attributes.perimeterDefense) / 2;
+    const playerPlaymaking = (player.attributes.playmaking + player.attributes.ballHandling) / 2;
+    const playerRebounding = (player.attributes.offensiveRebound + player.attributes.defensiveRebound) / 2;
+
+    score += (playerScoring / 100) * needs.scoring;
+    score += (playerDefense / 100) * needs.defense;
+    score += (playerPlaymaking / 100) * needs.playmaking;
+    score += (playerRebounding / 100) * needs.rebounding;
+
+    // Normalize: Avg need is 5, avg skill is 70. 
+    // Max theoretical raw score: (100/100 * 10) * 4 = 40. 
+    // Expected good fit score: ~15-20.
+    return 0.7 + (score / 20); 
+}
+
+/**
+ * Triggers a 'Panic Buy' state if a key player is injured for a long duration.
+ */
+export function calculatePanicTrigger(team: Team, roster: Player[]): { panic: boolean; position?: string } {
+    // Check for players injured for 4+ weeks
+    const longTermInjuries = roster.filter(p => p.injury && p.injury.returnDate && (
+        (new Date(p.injury.returnDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24) >= 25
+    ));
+    
+    if (longTermInjuries.length === 0) return { panic: false };
+
+    // If any of the top 5 players are out long-term, it's a panic trigger
+    const sortedRoster = [...roster].sort((a, b) => calculateOverall(b) - calculateOverall(a));
+    const top5 = sortedRoster.slice(0, 5);
+    
+    const injuredKeyPlayer = longTermInjuries.find(p => top5.some(s => s.id === p.id));
+    
+    if (injuredKeyPlayer) {
+        return { panic: true, position: injuredKeyPlayer.position };
+    }
+    
+    return { panic: false };
 }

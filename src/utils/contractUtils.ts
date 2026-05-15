@@ -18,11 +18,10 @@ export const calculatePlayerValuation = (player: Player): number => {
 export const calculateContractAmount = (player: Player, salaryCap: number = 155000000): { amount: number; years: number; type?: 'standard' | 'prove_it' | 'breakout'; explanation: string } => {
     const overall = calculateOverall(player);
     const performanceVal = calculatePlayerValuation(player);
+    
+    // Detect if we are in European League (smaller salary scale)
+    const isEuro = salaryCap < 100_000_000;
 
-    // NBA MAX CONTRACT RULES
-    // 0-6 Years: 25% of cap
-    // 7-9 Years: 30% of cap
-    // 10+ Years: 35% of cap
     const getMaxPercentage = (years: number) => {
         if (years >= 10) return 0.35;
         if (years >= 7) return 0.30;
@@ -31,24 +30,39 @@ export const calculateContractAmount = (player: Player, salaryCap: number = 1550
 
     const maxPct = getMaxPercentage(player.yearsOfService || 0);
     const maxSalary = salaryCap * maxPct;
-    const minSalary = salaryCap * 0.008;
+    const minSalary = salaryCap * (isEuro ? 0.015 : 0.008);
 
     const getBaseValue = (ovr: number) => {
-        if (ovr >= 95) return maxSalary;
-        if (ovr >= 90) return maxSalary * 0.90;
-        if (ovr >= 86) return maxSalary * 0.75;
-        if (ovr >= 82) return salaryCap * 0.20; // ~28M
-        if (ovr >= 78) return salaryCap * 0.12; // ~16.8M
-        if (ovr >= 74) return salaryCap * 0.06; // ~8.4M
-        if (ovr >= 70) return salaryCap * 0.025; // ~3.5M
-        return minSalary;
+        if (isEuro) {
+            // EURO SCALE (1M - 5M range)
+            if (ovr >= 90) return 4_500_000;
+            if (ovr >= 86) return 3_200_000;
+            if (ovr >= 82) return 2_400_000;
+            if (ovr >= 78) return 1_600_000;
+            if (ovr >= 74) return 1_000_000;
+            if (ovr >= 70) return 600_000;
+            return 400_000;
+        } else {
+            // NBA SCALE (Standard)
+            if (ovr >= 95) return maxSalary;
+            if (ovr >= 90) return maxSalary * 0.90;
+            if (ovr >= 86) return maxSalary * 0.75;
+            if (ovr >= 82) return salaryCap * 0.20; // ~28M
+            if (ovr >= 78) return salaryCap * 0.12; // ~16.8M
+            if (ovr >= 74) return salaryCap * 0.06; // ~8.4M
+            if (ovr >= 70) return salaryCap * 0.025; // ~3.5M
+            return minSalary;
+        }
     };
 
     const ovrValue = getBaseValue(overall);
     const perfValue = getBaseValue(performanceVal);
 
     let amount = (ovrValue * 0.7 + perfValue * 0.3);
-    let years = overall > 80 ? 4 : (overall > 74 ? 3 : 2);
+    let years = isEuro 
+        ? (overall > 82 ? 2 : 1) // Euro deals are typically shorter
+        : (overall > 80 ? 4 : (overall > 74 ? 3 : 2));
+        
     let explanation = "Standard Market Value.";
     let type: 'standard' | 'prove_it' | 'breakout' = 'standard';
 
@@ -60,17 +74,17 @@ export const calculateContractAmount = (player: Player, salaryCap: number = 1550
         explanation = `Underperformed (${performanceVal.toFixed(0)} rating). Prove-it deal.`;
     } else if (diff > 3) {
         amount = (ovrValue * 0.3 + perfValue * 0.7);
-        years = Math.min(4, player.age > 30 ? 2 : 4);
+        years = Math.min(isEuro ? 2 : 4, player.age > 30 ? (isEuro ? 1 : 2) : (isEuro ? 2 : 4));
         type = 'breakout';
         explanation = `Breakout Season! Cashing in.`;
     }
 
     // Age Decline
     if (player.age >= 32) {
-        const agePenalty = (player.age - 31) * 0.08;
+        const agePenalty = (player.age - 31) * (isEuro ? 0.05 : 0.08); // Slightly less severe in Euro
         const successMod = performanceVal > 85 ? 0.4 : 1.0;
         amount *= (1 - (agePenalty * successMod));
-        years = Math.min(years, (player.age > 35 ? 1 : 2));
+        years = Math.min(years, (player.age > 35 ? 1 : (isEuro ? 1 : 2)));
     }
 
     // Clamp

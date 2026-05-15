@@ -6,7 +6,17 @@ import { evaluateTrade, getPlayerTradeValue, getDraftPickValue, getTeamDirection
 import { calculateOverall } from '../../utils/playerUtils';
 import { generateUUID } from '../../utils/uuid';
 import type { TradeProposal } from '../../models/TradeProposal';
+import { 
+    calculateEuroBuyoutFee, 
+    isEuroPlayerUntouchable, 
+    calculateEuroTeamNeeds, 
+    calculatePlayerFitScore, 
+    determineEuroTeamTarget,
+    calculatePanicTrigger
+} from '../team/EuroAIGMModule';
+import { negotiateEuroBuyout } from './logic/EuroNegotiationAI';
 import type { AI_GM } from '../../models/AI_GM';
+import type { NBAEuroProspect } from '../league/NBAEuroPoolModule';
 
 export type { TradeProposal };
 
@@ -15,6 +25,10 @@ export interface SimulatedTradeProposal {
     targetTeamId: string;
     proposerAssets: { players: Player[], picks: DraftPick[] };
     targetAssets: { players: Player[], picks: DraftPick[] };
+    transferFee?: number;
+    isSigning?: boolean;
+    reason?: string;
+    metadata?: any;
 }
 
 export const simulateDailyTrades = (
@@ -178,3 +192,184 @@ export const generateAiTradeProposalForUser = (
     if (result.accepted) return proposal;
     return null;
 };
+
+export const simulateEuroDailyTransfers = (
+    teams: Team[],
+    players: Player[],
+    contracts: Contract[],
+    currentDate: Date,
+    seasonStartDate: Date,
+    userTeamId: string,
+    aiGms?: AI_GM[],
+    freeAgents: Player[] = [],
+    nbaEuroPool: NBAEuroProspect[] = []
+): SimulatedTradeProposal | null => {
+    // 1. WINDOW CONTROL
+    const msPerDay = 86400000;
+    const daysPassed = Math.floor((currentDate.getTime() - seasonStartDate.getTime()) / msPerDay);
+    if (daysPassed < 15 || daysPassed > 100) return null;
+
+    // 15% daily probability
+    if (Math.random() > 0.15) return null;
+
+    const aiTeams = teams.filter(t => t.id !== userTeamId);
+    if (aiTeams.length < 1) return null;
+
+    // Pick a random proposer (Buyer)
+    const buyer = aiTeams[Math.floor(Math.random() * aiTeams.length)];
+    if (!buyer) return null;
+
+    const buyerRoster = players.filter(p => p.teamId === buyer.id);
+    const buyerTarget = determineEuroTeamTarget(buyer, buyerRoster);
+    const buyerNeeds = calculateEuroTeamNeeds(buyer, buyerRoster);
+    const panic = calculatePanicTrigger(buyer, buyerRoster);
+    
+    // --- PHASE 1: CHECK FREE AGENCY & NBA VETERANS FIRST ---
+    const marketCandidates: { player: Player, score: number, type: 'FA' | 'NBA' }[] = [];
+
+    // NBA Pool
+    nbaEuroPool.forEach(p => {
+        let fit = calculatePlayerFitScore(p, buyerNeeds);
+        if (panic.panic && p.position === panic.position) fit *= 1.5;
+        if (fit > 1.35) marketCandidates.push({ player: p, score: fit, type: 'NBA' });
+    });
+
+    // General FAs
+    freeAgents.forEach(p => {
+        let fit = calculatePlayerFitScore(p, buyerNeeds);
+        if (panic.panic && p.position === panic.position) fit *= 1.5;
+        if (fit > 1.45) marketCandidates.push({ player: p, score: fit, type: 'FA' });
+    });
+
+    if (marketCandidates.length > 0) {
+        const best = marketCandidates.sort((a, b) => b.score - a.score)[0];
+        if (buyer.cash > 2000000) {
+            let reason = `to strengthen their roster at ${best.player.position}`;
+            if (panic.panic && best.player.position === panic.position) {
+                reason = `as an emergency replacement for an injured key player`;
+            }
+
+            return {
+                proposerId: buyer.id,
+                targetTeamId: 'FREE_AGENCY',
+                proposerAssets: { players: [], picks: [] },
+                targetAssets: { players: [best.player], picks: [] },
+                isSigning: true,
+                reason
+            };
+        }
+    }
+
+    // --- PHASE 2: SCAN OTHER TEAMS (TRANSFERS) ---
+    const potentialTargets: { player: Player, seller: Team, score: number }[] = [];
+
+    teams.forEach(seller => {
+        if (seller.id === buyer.id) return;
+        
+        const sellerRoster = players.filter(p => p.teamId === seller.id);
+        const sellerBlock = getTradingBlock(seller, sellerRoster, getTeamDirection(seller, sellerRoster));
+        
+        let candidates = sellerBlock.assets;
+        if (seller.id === userTeamId) {
+            const sortedUserRoster = [...sellerRoster].sort((a, b) => calculateOverall(b) - calculateOverall(a));
+            candidates = sortedUserRoster.slice(3); 
+        }
+
+        candidates.forEach(player => {
+            if (isEuroPlayerUntouchable(player, seller, sellerRoster, buyer).untouchable) return;
+
+            let fitScore = calculatePlayerFitScore(player, buyerNeeds);
+            
+            // Panic bonus
+            if (panic.panic && player.position === panic.position) fitScore *= 1.4;
+
+            const isMidLow = buyerTarget.includes('Avoid Relegation') || buyerTarget.includes('Talent Farm') || buyerTarget.includes('Promotion');
+            if (isMidLow && player.age <= 23) fitScore *= 1.3;
+            else if (buyerTarget.includes('Contender') && player.age > 30) fitScore *= 1.1;
+
+            if (buyer.conference !== seller.conference) fitScore *= 1.1; 
+
+            potentialTargets.push({ player, seller, score: fitScore });
+        });
+    });
+
+    potentialTargets.sort((a, b) => b.score - a.score);
+
+    for (const target of potentialTargets) {
+        const { player, seller, score } = target;
+        if (score < 1.1) continue; 
+
+        const sellerRoster = players.filter(p => p.teamId === seller.id);
+        
+        // Position Crowding Check
+        const samePosPlayers = buyerRoster.filter(p => p.position === player.position);
+        if (samePosPlayers.length >= 3) {
+            const worstSamePosOvr = Math.min(...samePosPlayers.map(p => calculateOverall(p)));
+            if (calculateOverall(player) < worstSamePosOvr + 5) continue;
+        }
+
+        const fee = calculateEuroBuyoutFee(player, seller, sellerRoster, contracts);
+        
+        // Budget Guardrail: Don't spend more than 50% of total cash on one player 
+        // unless it's a Promotion/Title push and it's a Panic Buy.
+        const isPushing = buyerTarget.includes('Contender') || buyerTarget.includes('Promotion');
+        const maxSpendPct = (isPushing && panic.panic) ? 0.75 : 0.5;
+        if (fee > buyer.cash * maxSpendPct) continue;
+        
+        if (buyer.cash < fee * 1.1) continue;
+
+        const result = negotiateEuroBuyout(player, buyer, seller, sellerRoster, contracts, fee);
+        
+        if (result.decision === 'ACCEPTED') {
+            const primaryDeficit = Object.entries(buyerNeeds).sort(([,a], [,b]) => b - a)[0][0];
+            let reason = `to address a ${primaryDeficit} deficit at ${player.position}`;
+            if (panic.panic && player.position === panic.position) {
+                reason = `as an emergency replacement for an injured starter`;
+            }
+
+            return {
+                proposerId: buyer.id,
+                targetTeamId: seller.id,
+                proposerAssets: { players: [], picks: [] },
+                targetAssets: { players: [player], picks: [] },
+                transferFee: fee,
+                reason
+            };
+        }
+    }
+
+    // --- PHASE 3: SELLING (REDUNDANCY MANAGEMENT) ---
+    // If we have 4+ players at a position, try to sell the worst one
+    const crowdedPos = ['PG', 'SG', 'SF', 'PF', 'C'].find(pos => buyerRoster.filter(p => p.position === pos).length >= 4);
+    if (crowdedPos && Math.random() < 0.3) {
+        const playerToSell = buyerRoster
+            .filter(p => p.position === crowdedPos)
+            .sort((a, b) => calculateOverall(a) - calculateOverall(b))[0];
+        
+        if (playerToSell) {
+            // Find a team that NEEDS this position
+            const potentialBuyer = aiTeams.find(t => {
+                if (t.id === buyer.id) return false;
+                const tRoster = players.filter(p => p.teamId === t.id);
+                const tNeeds = calculateEuroTeamNeeds(t, tRoster);
+                // Check if this position is a need (Simplified check)
+                const posSkill = tRoster.filter(p => p.position === crowdedPos).length;
+                return posSkill <= 1 && t.cash > 1000000;
+            });
+
+            if (potentialBuyer) {
+                return {
+                    proposerId: potentialBuyer.id,
+                    targetTeamId: buyer.id,
+                    proposerAssets: { players: [], picks: [] },
+                    targetAssets: { players: [playerToSell], picks: [] },
+                    transferFee: 800000,
+                    reason: `to reduce roster congestion at ${crowdedPos}`
+                };
+            }
+        }
+    }
+
+    return null;
+};
+

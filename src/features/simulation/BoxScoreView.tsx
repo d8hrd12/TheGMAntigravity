@@ -41,7 +41,7 @@ const StatRow = ({ player, onSelectPlayer, isBest }: { player: PlayerStats, onSe
         <td style={{ padding: '12px', textAlign: 'center', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{player.ftMade}-{player.ftAttempted}</td>
         <td style={{ padding: '12px', textAlign: 'center', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{player.fgMade}-{player.fgAttempted}</td>
         <td style={{ padding: '12px', textAlign: 'center', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{player.threeMade}-{player.threeAttempted}</td>
-        <td style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', color: player.plusMinus > 0 ? '#2ecc71' : player.plusMinus < 0 ? '#e74c3c' : '#888' }}>
+        <td style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', color: player.plusMinus > 0 ? '#2ecc71' : player.plusMinus < 0 ? '#e74c3c' : 'var(--text-dim)' }}>
             {player.plusMinus > 0 ? '+' : ''}{player.plusMinus}
         </td>
     </tr>
@@ -124,7 +124,7 @@ const TeamStatsTable = ({ stats, team, onSelectPlayer }: { stats: PlayerStats[],
                 zIndex: 1
             }}>
                 <div style={{ fontSize: '1.2rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                    {team?.conference !== 'NBA' && team?.conference !== 'West' && team?.conference !== 'East' ? team?.name : `${team?.city} ${team?.name}`}
+                    { (team?.conference === 'EuroLeague' || team?.conference === 'EuroCup') ? team?.name : `${team?.city} ${team?.name}`}
                 </div>
                 <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>BOX SCORE</div>
             </div>
@@ -229,7 +229,7 @@ export const BoxScoreView: React.FC<BoxScoreViewProps> = ({ match, homeTeam, awa
                     {/* Away Team */}
                     <div style={{ textAlign: 'center', flex: 1, zIndex: 2, minWidth: 0 }}>
                         {awayTeam?.logo && <img src={awayTeam.logo} alt="" style={{ width: '50px', height: '50px', objectFit: 'contain', marginBottom: '8px' }} />}
-                        {(awayTeam?.conference === 'NBA' || awayTeam?.conference === 'West' || awayTeam?.conference === 'East') && (
+                        {(awayTeam?.conference === 'West' || awayTeam?.conference === 'East') && (
                             <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                 {awayTeam?.city}
                             </div>
@@ -250,7 +250,7 @@ export const BoxScoreView: React.FC<BoxScoreViewProps> = ({ match, homeTeam, awa
                     {/* Home Team */}
                     <div style={{ textAlign: 'center', flex: 1, zIndex: 2, minWidth: 0 }}>
                         {homeTeam?.logo && <img src={homeTeam.logo} alt="" style={{ width: '50px', height: '50px', objectFit: 'contain', marginBottom: '8px' }} />}
-                        {(homeTeam?.conference === 'NBA' || homeTeam?.conference === 'West' || homeTeam?.conference === 'East') && (
+                        {(homeTeam?.conference === 'West' || homeTeam?.conference === 'East') && (
                             <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                 {homeTeam?.city}
                             </div>

@@ -106,7 +106,7 @@ class EuroRotationTracker {
     }
 
     // Ensure 5 starters
-    const startersCount = [...this.trackers.values()].filter(t => t.isStarter).length;
+    const startersCount = Array.from(this.trackers.values()).filter(t => t.isStarter).length;
     if (startersCount < 5) {
       const byMins = [...this.roster].sort((a, b) => (b.minutes || 0) - (a.minutes || 0));
       for (let i = 0; i < 5 && i < byMins.length; i++) {

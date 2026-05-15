@@ -28,7 +28,7 @@ import type { TeamStrategy } from '../features/simulation/TacticsTypes';
 // import { runProgression } from '../features/simulation/progressionSystem'; // Removed
 import { generateUUID } from '../utils/uuid';
 import { generateContract, calculateContractAmount, calculateTeamCapSpace, calculateAdjustedDemand } from '../utils/contractUtils';
-import { simulateDailyTrades, generateAiTradeProposalForUser, type TradeProposal } from '../features/trade/TradeSimulation';
+import { simulateDailyTrades, simulateEuroDailyTransfers, generateAiTradeProposalForUser, type TradeProposal } from '../features/trade/TradeSimulation';
 import { getTeamDirection } from '../features/trade/TradeLogic';
 import { updatePlayerMorale, applyTeamDynamics, checkTradeRequests, checkProveItDemands } from '../features/simulation/MoraleSystem';
 // TradeProposalModal import removed (unused and caused potential cycle)
@@ -55,6 +55,7 @@ import { TrainingFocus, type ProgressionResult } from '../models/Training';
 import { calculateProgression, calculateInSeasonProgression } from '../features/training/TrainingLogic';
 import { importNbaPlayers } from '../features/league/CsvImporter';
 import { applyRealWorldTrades } from '../data/tradeUpdates';
+import { calculateEuroTeamNeeds, calculatePlayerFitScore, determineEuroTeamTarget } from '../features/team/EuroAIGMModule';
 
 
 
@@ -1194,6 +1195,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 showAwardsModal: null,
                 showMidSeasonProgressionModal: false,
                 currentHallOfFame: [],
+                pendingSeasonReview: null,
+                nbaToEuroPool: [],
                 leagueType: gameState.leagueType,
                 competitionType: gameState.competitionType,
                 view: "dashboard"
@@ -1355,6 +1358,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 showAwardsModal: null,
                 showMidSeasonProgressionModal: false,
                 currentHallOfFame: [],
+                pendingSeasonReview: null,
+                nbaToEuroPool: [],
                 leagueType: gameState.leagueType,
                 competitionType: gameState.competitionType,
                 view: "dashboard"
@@ -1629,7 +1634,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
             console.log("GameContext: Starting Post-Season...");
             const currentYear = prev.date.getFullYear();
-            const awards = calculateRegularSeasonAwards(prev.players, prev.teams, currentYear);
+            const awards = calculateRegularSeasonAwards(prev.players, prev.teams, currentYear, prev.leagueType);
 
             if (prev.leagueType === 'EURO') {
                 // --- EURO PLAY-IN INITIALIZATION ---
@@ -1769,11 +1774,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
         aiTeamId: string,
         transferFee: number = 0
     ): boolean => {
-        // --- TRADE WINDOW CHECK ---
+        // --- EURO LEAGUE: TRADES ARE FORBIDDEN. ONLY TRANSFERS EXIST. ---
         const { seasonPhase, seasonGamesPlayed, leagueType } = gameState;
+        if (leagueType === 'EURO' && transferFee === 0 && userPlayerIds.length > 0 && aiPlayerIds.length > 0) {
+            console.warn('[executeTrade] Multi-player swap attempted in EURO league — BLOCKED. European teams use transfers only.');
+            return false;
+        }
 
+        // --- TRADE WINDOW CHECK ---
         const isOffseason = ['scouting', 'draft', 'resigning', 'free_agency', 'retirement_summary', 'expansion_draft'].includes(seasonPhase);
-        const isRegularSeasonBeforeDeadline = (seasonPhase === 'regular_season' && seasonGamesPlayed <= 40);
+        const deadlineThreshold = (leagueType as any) === 'EURO' ? 19 : 40;
+        const isRegularSeasonBeforeDeadline = (seasonPhase === 'regular_season' && seasonGamesPlayed <= deadlineThreshold);
 
         if (!isOffseason && !isRegularSeasonBeforeDeadline) {
             // Already handled by UI now, but keeping for safety
@@ -1831,11 +1842,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
             };
 
             if (!validateFinancials(userTeam, aiOutgoingSalary, userOutgoingSalary)) {
-                alert(leagueType === 'EURO' ? "Transfer rejected: Insufficient funds." : "Trade rejected: Team over salary cap must match incoming and outgoing salaries.");
+                alert((leagueType as any) === 'EURO' ? "Transfer rejected: Insufficient funds." : "Trade rejected: Team over salary cap must match incoming and outgoing salaries.");
                 return prev;
             }
             if (!validateFinancials(aiTeam, userOutgoingSalary, aiOutgoingSalary)) {
-                alert(leagueType === 'EURO' ? "Transfer rejected: AI team has insufficient funds." : "Trade rejected: AI team over salary cap must match incoming and outgoing salaries.");
+                alert((leagueType as any) === 'EURO' ? "Transfer rejected: AI team has insufficient funds." : "Trade rejected: AI team over salary cap must match incoming and outgoing salaries.");
                 return prev;
             }
 
@@ -2063,7 +2074,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     };
 
     // AWARDS CALCULATION HELPERS
-    const calculateRegularSeasonAwards = (players: Player[], teams: Team[], year: number): SeasonAwards => {
+    const calculateRegularSeasonAwards = (players: Player[], teams: Team[], year: number, leagueType: 'NBA' | 'EURO'): SeasonAwards => {
         const getTeam = (id: string) => teams.find(t => t.id === id);
 
         const createWinner = (p: Player): AwardWinner => {
@@ -2122,7 +2133,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 if (!s) return 0;
                 const gp = s.gamesPlayed || 1;
 
-                if (gp < 45) return 0; // Increased eligibility threshold
+                const minGames = (leagueType as any) === 'EURO' ? 22 : 45;
+                if (gp < minGames) return 0; // Increased eligibility threshold
 
                 const ppg = (s.points || 0) / gp;
                 const rpg = (s.rebounds || 0) / gp;
@@ -2188,7 +2200,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
             const getDpoyScore = (p: Player) => {
                 const s = p.seasonStats;
                 const gp = s.gamesPlayed || 1;
-                if (gp < 40) return 0;
+                const minGames = (leagueType as any) === 'EURO' ? 20 : 40;
+                if (gp < minGames) return 0;
                 const spg = (s.steals || 0) / gp;
                 const bpg = (s.blocks || 0) / gp;
                 const rpg = (s.rebounds || 0) / gp;
@@ -3350,6 +3363,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const simulateDay = (prev: GameState): GameState => {
         const nextDate = new Date(prev.date.getTime() + 86400000);
+        
+        // Refresh NBA-to-Euro pool monthly (1st of month)
+        let currentNbaEuroPool = [...(prev.nbaToEuroPool || [])];
+        if (nextDate.getDate() === 1) {
+            currentNbaEuroPool = refreshNBAEuroPool(currentNbaEuroPool);
+        }
+
         let nextDayMatchups: { homeId: string, awayId: string }[] = [];
         let shouldShowMidSeasonModal = false;
 
@@ -3388,6 +3408,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         let currentCoaches = [...prev.coaches];
         let currentTradeHistory = [...(prev.tradeHistory || [])];
         let currentNews: NewsStory[] = [];
+        let currentTransactions: LeagueTransaction[] = [...(prev.transactions || [])];
         let results: MatchResult[] = [];
 
         // SEASON PHASE 1: REGULAR SEASON
@@ -3399,7 +3420,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             if (gamesPlayed >= regularSeasonGames && (!prev.dailyMatchups || prev.dailyMatchups.length === 0)) {
                 // ... award logic ...
                 const currentYear = prev.date.getFullYear();
-                const awards = calculateRegularSeasonAwards(currentPlayers, currentTeams, currentYear);
+                const awards = calculateRegularSeasonAwards(currentPlayers, currentTeams, currentYear, gameState.leagueType);
 
                 // Trigger Playoffs Transition
                 const isEuro = prev.leagueType === 'EURO';
@@ -3439,120 +3460,131 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     date: nextDate,
                     awardsHistory: [...prev.awardsHistory, awards],
                     players: currentPlayers,
-                    teams: currentTeams,
-                    dailyMatchups: [],
-                    pendingUserResult: null
+                    teams: currentTeams
                 };
             }
 
-            // --- AI ROSTER MANAGEMENT (Mid-Season Signings & Cuts) ---
-            // Occurs periodically (e.g., every 5 days) to avoid excessive processing
-            if (prev.seasonGamesPlayed % 5 === 0) {
-                const freeAgents = currentPlayers.filter(p => !p.teamId);
-                const sortedFAs = [...freeAgents].sort((a, b) => calculateOverall(b) - calculateOverall(a));
-
-                currentTeams.forEach(team => {
-                    if (team.id === prev.userTeamId) return;
-
-                    const teamRoster = currentPlayers.filter(p => p.teamId === team.id);
-                    const needsPlayer = teamRoster.length < 13;
-                    const canUpgrade = teamRoster.length < 15 && sortedFAs.length > 0 && calculateOverall(sortedFAs[0]) > 70;
-
-                    if (needsPlayer || (canUpgrade && Math.random() < 0.1)) {
-                        const targetPlayer = sortedFAs.find(fa => {
-                            // Can they afford them? (Using a simple 1-2M check for FA)
-                            return team.cash > 2000000;
-                        });
-
-                        if (targetPlayer) {
-                            // Find player to cut if roster is full (15)
-                            if (teamRoster.length >= 15) {
-                                // Logic: Cut least used player. If multiple, lower OVR.
-                                const sortedByUsage = [...teamRoster].sort((a, b) => {
-                                    const gamesA = a.seasonStats?.gamesPlayed || 0;
-                                    const gamesB = b.seasonStats?.gamesPlayed || 0;
-                                    if (gamesA !== gamesB) return gamesA - gamesB;
-                                    return calculateOverall(a) - calculateOverall(b);
-                                });
-                                
-                                const playerToCut = sortedByUsage[0];
-                                console.log(`[AI Management] ${team.city} cutting ${playerToCut.firstName} ${playerToCut.lastName} (Usage: ${playerToCut.seasonStats?.gamesPlayed || 0})`);
-                                
-                                // Apply Cut
-                                currentPlayers = currentPlayers.map(p => 
-                                    p.id === playerToCut.id ? { ...p, teamId: null, minutes: 0, isStarter: false, rotationIndex: undefined } : p
-                                );
-                                currentContracts = currentContracts.filter(c => c.playerId !== playerToCut.id);
-                                
-                                // Update team rosterIds
-                                team.rosterIds = team.rosterIds.filter(id => id !== playerToCut.id);
-                            }
-
-                            // Apply Sign
-                            console.log(`[AI Management] ${team.city} signing ${targetPlayer.firstName} ${targetPlayer.lastName} (OVR: ${calculateOverall(targetPlayer)})`);
-                            currentPlayers = currentPlayers.map(p => 
-                                p.id === targetPlayer.id ? { ...p, teamId: team.id } : p
-                            );
-                            
-                            const newContract: Contract = {
-                                id: generateUUID(),
-                                playerId: targetPlayer.id,
-                                teamId: team.id,
-                                amount: 1000000 + Math.floor(Math.random() * 1000000),
-                                yearsLeft: 1,
-                                startYear: prev.date.getFullYear(),
-                                role: 'Bench'
-                            };
-                            currentContracts.push(newContract);
-                            team.rosterIds.push(targetPlayer.id);
-                            team.cash -= 1000000; // Simplified signing bonus/cost
-
-                            // Remove from local FA pool to avoid double-signing in same iteration
-                            const faIdx = sortedFAs.findIndex(f => f.id === targetPlayer.id);
-                            if (faIdx > -1) sortedFAs.splice(faIdx, 1);
-                        }
-                    }
-                });
-            }
-
-            // --- AI TRADING LOGIC (Restored & Improved) ---
-            if (prev.seasonGamesPlayed < 40) {
+            // --- AI TRADING & TRANSFER LOGIC (NBA Trades / EURO Transfers) ---
+            if (prev.seasonGamesPlayed < (prev.leagueType === 'EURO' ? 22 : 40)) {
                 const seasonStart = new Date(prev.date.getFullYear() - (prev.date.getMonth() < 6 ? 1 : 0), 9, 1);
 
-                const tradeProposal = simulateDailyTrades(
-                    currentTeams,
-                    currentPlayers,
-                    currentContracts,
-                    prev.date.getFullYear(),
-                    prev.salaryCap,
-                    currentTradeHistory,
-                    prev.date,
-                    seasonStart,
-                    prev.userTeamId
-                );
+                let tradeProposal: any = null;
+                
+                if (prev.leagueType === 'NBA') {
+                    tradeProposal = simulateDailyTrades(
+                        currentTeams,
+                        currentPlayers,
+                        currentContracts,
+                        prev.date.getFullYear(),
+                        prev.salaryCap,
+                        currentTradeHistory,
+                        prev.date,
+                        seasonStart,
+                        prev.userTeamId,
+                        prev.aiGms
+                    );
+                } else if (prev.leagueType === 'EURO') {
+                    tradeProposal = simulateEuroDailyTransfers(
+                        currentTeams,
+                        currentPlayers,
+                        currentContracts,
+                        prev.date,
+                        seasonStart,
+                        prev.userTeamId,
+                        prev.aiGms,
+                        currentPlayers.filter(p => !p.teamId),
+                        currentNbaEuroPool
+                    );
+                }
 
                 if (tradeProposal) {
                     const t1 = currentTeams.find(t => t.id === tradeProposal.proposerId)!;
-                    const t2 = currentTeams.find(t => t.id === tradeProposal.targetTeamId)!;
+                    const transferFee = tradeProposal.transferFee || 0;
+                    const targetPlayer = tradeProposal.targetAssets.players[0];
 
-                    const p1Ids = tradeProposal.proposerAssets.players.map(p => p.id);
-                    const p2Ids = tradeProposal.targetAssets.players.map(p => p.id);
-                    const pick1Ids = tradeProposal.proposerAssets.picks.map(p => p.id);
-                    const pick2Ids = tradeProposal.targetAssets.picks.map(p => p.id);
+                    if (tradeProposal.isSigning) {
+                        // AI Signing from FA or NBA Pool
+                        console.log(`[AI Transfer Engine] ${t1.name} signing ${targetPlayer.firstName} ${targetPlayer.lastName} (isSigning)`);
+                        
+                        // Update Players
+                        currentPlayers = currentPlayers.map(p => p.id === targetPlayer.id ? { ...p, teamId: t1.id } : p);
+                        
+                        // Update Contracts
+                        const salary = 1200000 + Math.floor(Math.random() * 800000);
+                        currentContracts.push({
+                            id: generateUUID(),
+                            playerId: targetPlayer.id,
+                            teamId: t1.id,
+                            amount: salary,
+                            yearsLeft: 1,
+                            startYear: prev.date.getFullYear(),
+                            role: 'Rotation'
+                        });
 
-                    // Update Teams
-                    currentTeams = currentTeams.map(t => {
-                        let updatedT = { ...t };
-                        if (t.id === t1.id) {
-                            updatedT.rosterIds = t.rosterIds.filter(id => !p1Ids.includes(id)).concat(p2Ids);
-                            updatedT.draftPicks = (t.draftPicks || []).filter(pk => !pick1Ids.includes(pk.id)).concat(tradeProposal.targetAssets.picks);
+                        // Update Team
+                        currentTeams = currentTeams.map(t => {
+                            if (t.id === t1.id) {
+                                return { 
+                                    ...t, 
+                                    rosterIds: [...t.rosterIds, targetPlayer.id],
+                                    cash: t.cash - 1000000 // Simple signing bonus
+                                };
+                            }
+                            return t;
+                        });
+
+                        // Remove from NBA Pool if applicable
+                        if (prev.nbaToEuroPool?.some(p => p.id === targetPlayer.id)) {
+                            currentNbaEuroPool = currentNbaEuroPool.filter(p => p.id !== targetPlayer.id);
                         }
-                        if (t.id === t2.id) {
-                            updatedT.rosterIds = t.rosterIds.filter(id => !p2Ids.includes(id)).concat(p1Ids);
-                            updatedT.draftPicks = (t.draftPicks || []).filter(pk => !pick2Ids.includes(pk.id)).concat(tradeProposal.proposerAssets.picks);
-                        }
-                        return updatedT;
-                    });
+
+                        // Record Transaction
+                        currentTransactions.push({
+                            date: nextDate,
+                            type: 'SIGNING',
+                            description: `${t1.name} signed free agent ${targetPlayer.firstName} ${targetPlayer.lastName} mid-season`,
+                            teamId: t1.id,
+                            fromTeamId: 'FREE_AGENCY',
+                            playerId: targetPlayer.id,
+                            playerName: `${targetPlayer.firstName} ${targetPlayer.lastName}`,
+                            amount: salary,
+                            years: 1
+                        });
+
+                        currentNews.push({
+                            id: generateUUID(),
+                            date: nextDate,
+                            headline: `${t1.abbreviation} sign ${targetPlayer.lastName}`,
+                            content: `The ${t1.name} have reinforced their roster by signing free agent ${targetPlayer.firstName} ${targetPlayer.lastName}${tradeProposal.reason ? ` ${tradeProposal.reason}` : ''}.`,
+                            type: 'TRANSACTION',
+                            relatedTeamId: t1.id,
+                            priority: 2
+                        });
+
+                    } else {
+                        // CLUB-TO-CLUB TRANSFER
+                        const t2 = currentTeams.find(t => t.id === tradeProposal.targetTeamId)!;
+
+                        const p1Ids = tradeProposal.proposerAssets.players.map((p: any) => p.id);
+                        const p2Ids = tradeProposal.targetAssets.players.map((p: any) => p.id);
+                        const pick1Ids = tradeProposal.proposerAssets.picks.map((pk: any) => pk.id);
+                        const pick2Ids = tradeProposal.targetAssets.picks.map((pk: any) => pk.id);
+
+                        // Update Teams
+                        currentTeams = currentTeams.map(t => {
+                            let updatedT = { ...t };
+                            if (t.id === t1.id) {
+                                updatedT.rosterIds = t.rosterIds.filter(id => !p1Ids.includes(id)).concat(p2Ids);
+                                updatedT.draftPicks = (t.draftPicks || []).filter(pk => !pick1Ids.includes(pk.id)).concat(tradeProposal.targetAssets.picks);
+                                if (transferFee > 0) updatedT.cash -= transferFee; // Proposer pays
+                            }
+                            if (t.id === t2.id) {
+                                updatedT.rosterIds = t.rosterIds.filter(id => !p2Ids.includes(id)).concat(p1Ids);
+                                updatedT.draftPicks = (t.draftPicks || []).filter(pk => !pick2Ids.includes(pk.id)).concat(tradeProposal.proposerAssets.picks);
+                                if (transferFee > 0) updatedT.cash += transferFee; // Target receives
+                            }
+                            return updatedT;
+                        });
 
                     // Update Players
                     currentPlayers = currentPlayers.map(p => {
@@ -3568,56 +3600,87 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         return c;
                     });
 
-                    const createItems = (playersArr: Player[], picksArr: DraftPick[], teamId: string) => {
-                        const teamBaseline = calculateTeamBaseline(currentPlayers.filter(p => p.teamId === teamId));
-                        return [
-                            ...playersArr.map(p => ({
-                                type: 'player' as const, id: p.id, description: `${p.firstName} ${p.lastName}`, subText: getStarString(calculateStars(calculateOverall(p), teamBaseline)), color: '#22c55e'
-                            })),
-                        ...picksArr.map(pk => {
-                            const originalTeam = currentTeams.find(t => t.id === pk.originalTeamId);
-                            const owner = currentTeams.find(t => t.id === teamId);
-                            return {
-                                type: 'pick' as const,
-                                id: pk.id,
-                                description: `${pk.year} | ${pk.round === 1 ? '1st' : '2nd'} Round | ${owner?.abbreviation || 'TBD'} | ${originalTeam?.abbreviation || pk.originalTeamName || 'Unknown'}®`,
-                                subText: `Original: ${pk.originalTeamName}`,
-                                color: '#eab308',
-                                originalTeamId: pk.originalTeamId
-                            };
-                        })
-                        ];
-                    };
+                    if (prev.leagueType === 'NBA') {
+                        const createItems = (playersArr: Player[], picksArr: DraftPick[], teamId: string) => {
+                            const teamBaseline = calculateTeamBaseline(currentPlayers.filter(p => p.teamId === teamId));
+                            return [
+                                ...playersArr.map(p => ({
+                                    type: 'player' as const, id: p.id, description: `${p.firstName} ${p.lastName}`, subText: getStarString(calculateStars(calculateOverall(p), teamBaseline)), color: '#22c55e'
+                                })),
+                            ...picksArr.map(pk => {
+                                const originalTeam = currentTeams.find(t => t.id === pk.originalTeamId);
+                                const owner = currentTeams.find(t => t.id === teamId);
+                                return {
+                                    type: 'pick' as const,
+                                    id: pk.id,
+                                    description: `${pk.year} | ${pk.round === 1 ? '1st' : '2nd'} Round | ${owner?.abbreviation || 'TBD'} | ${originalTeam?.abbreviation || pk.originalTeamName || 'Unknown'}®`,
+                                    subText: `Original: ${pk.originalTeamName}`,
+                                    color: '#eab308',
+                                    originalTeamId: pk.originalTeamId
+                                };
+                            })
+                            ];
+                        };
 
-                    const t1Items = createItems(tradeProposal.proposerAssets.players, tradeProposal.proposerAssets.picks, t1.id);
-                    const t2Items = createItems(tradeProposal.targetAssets.players, tradeProposal.targetAssets.picks, t2.id);
+                        const t1Items = createItems(tradeProposal.proposerAssets.players, tradeProposal.proposerAssets.picks, t1.id);
+                        const t2Items = createItems(tradeProposal.targetAssets.players, tradeProposal.targetAssets.picks, t2.id);
 
-                    const tradeRecord: CompletedTrade = {
-                        id: generateUUID(),
-                        date: nextDate,
-                        team1Id: t1.id,
-                        team2Id: t2.id,
-                        team1Assets: t1Items.map(i => i.description),
-                        team2Assets: t2Items.map(i => i.description),
-                        team1Items: t1Items,
-                        team2Items: t2Items
-                    };
+                        const tradeRecord: CompletedTrade = {
+                            id: generateUUID(),
+                            date: nextDate,
+                            team1Id: t1.id,
+                            team2Id: t2.id,
+                            team1Assets: t1Items.map(i => i.description),
+                            team2Assets: t2Items.map(i => i.description),
+                            team1Items: t1Items,
+                            team2Items: t2Items
+                        };
 
-                    currentTradeHistory.push(tradeRecord);
-                    currentNews.push({
-                        id: generateUUID(),
-                        date: nextDate,
-                        headline: "League Trade Executed",
-                        content: `${t1.abbreviation} and ${t2.abbreviation} have agreed to a deal involving ${t1Items.map(i => i.description).join(', ')}.`,
-                        type: 'TRANSACTION',
-                        relatedTeamId: t1.id,
-                        priority: 3
-                    });
+                        currentTradeHistory.push(tradeRecord);
+                        currentNews.push({
+                            id: generateUUID(),
+                            date: nextDate,
+                            headline: "League Trade Executed",
+                            content: `${t1.abbreviation} and ${t2.abbreviation} have agreed to a deal involving ${t1Items.map(i => i.description).join(', ')}.`,
+                            type: 'TRANSACTION',
+                            relatedTeamId: t1.id,
+                            priority: 3
+                        });
+                    } else {
+                        // EURO: Record Transfer instead of Trade
+                        const targetPlayer = tradeProposal.targetAssets.players[0];
+                        const playerContract = currentContracts.find(c => c.playerId === targetPlayer.id)!;
+                        
+                        currentTransactions.push({
+                            date: nextDate,
+                            type: 'TRANSFER',
+                            description: `${t1.name} bought ${targetPlayer.firstName} ${targetPlayer.lastName} from ${t2.name}`,
+                            teamId: t1.id,
+                            fromTeamId: t2.id,
+                            playerId: targetPlayer.id,
+                            playerName: `${targetPlayer.firstName} ${targetPlayer.lastName}`,
+                            amount: playerContract.amount,
+                            years: playerContract.yearsLeft,
+                            fee: transferFee
+                        });
+
+                        currentNews.push({
+                            id: generateUUID(),
+                            date: nextDate,
+                            headline: "Major European Transfer",
+                            content: `${t1.name} have completed the acquisition of ${targetPlayer.firstName} ${targetPlayer.lastName} from ${t2.name} for a €${(transferFee / 1000000).toFixed(1)}M buyout fee. The player will continue on his existing €${(playerContract.amount / 1000).toFixed(0)}k/year contract.`,
+                            type: 'TRANSACTION',
+                            relatedTeamId: t1.id,
+                            priority: 4
+                        });
+                    }
                 }
             }
+        }
 
-            // O4: Mid-Season GM Firing (Check exactly at 40 games played)
-            if (prev.seasonGamesPlayed === 40) {
+            // O4: Mid-Season GM Firing (Check halfway point)
+            const firingCheckPoint = prev.leagueType === 'EURO' ? 19 : 40;
+            if (prev.seasonGamesPlayed === firingCheckPoint) {
                 const { updatedGms, newsItems } = processGMDismissals(currentTeams, prev.aiGms, prev.userTeamId, currentPlayers, true);
                 // Update teams with new GMs if fired
                 currentTeams = currentTeams.map(team => {
@@ -3643,7 +3706,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 // We will assign this back to the returned state.
                 prev.aiGms = updatedGms; 
 
-                // Process in-season progression for all players exactly at 40 games
+                // Process in-season progression for all players exactly at halfway point
                 currentPlayers = currentPlayers.map(p => {
                     const teamCoach = currentCoaches.find(c => c.teamId === p.teamId);
                     return calculateInSeasonProgression(p, teamCoach?.rating.talentDevelopment);
@@ -3653,7 +3716,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             }
 
             // --- AI IN-SEASON ROSTER MANAGEMENT ---
-            if (prev.seasonGamesPlayed % 7 === 0) { // Check weekly
+            if (prev.seasonGamesPlayed > 0 && prev.seasonGamesPlayed % 7 === 0) { // Check weekly
                 const bestFAs = [...currentPlayers]
                     .filter(p => !p.teamId)
                     .sort((a, b) => calculateOverall(b) - calculateOverall(a));
@@ -3666,21 +3729,34 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     const capSpace = prev.salaryCap - payroll;
 
                     // 1. Fill Roster if < 14 players
-                    if (roster.length < 14 && bestFAs.length > 0 && capSpace > 2000000) {
+                    if (roster.length < 14 && bestFAs.length > 0 && (prev.leagueType === 'EURO' ? team.cash > 2000000 : capSpace > 2000000)) {
                         const target = bestFAs[0];
                         if (calculateOverall(target) > 70) {
                             bestFAs.shift();
                             currentPlayers = currentPlayers.map(p => p.id === target.id ? { ...p, teamId: team.id } : p);
+                            const salary = 1500000;
                             currentContracts.push({
                                 id: generateUUID(),
                                 playerId: target.id,
                                 teamId: team.id,
-                                amount: 1500000,
+                                amount: salary,
                                 yearsLeft: 1,
                                 startYear: prev.date.getFullYear(),
                                 role: 'Rotation'
                             });
                             team.rosterIds.push(target.id);
+
+                            // Record Transaction
+                            currentTransactions.push({
+                                date: nextDate,
+                                type: 'SIGNING',
+                                description: `${team.name} signed free agent ${target.firstName} ${target.lastName}`,
+                                teamId: team.id,
+                                playerId: target.id,
+                                playerName: `${target.firstName} ${target.lastName}`,
+                                amount: salary
+                            });
+
                             currentNews.push({
                                 id: generateUUID(),
                                 date: nextDate,
@@ -3704,18 +3780,40 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             currentContracts = currentContracts.filter(c => c.playerId !== worstPlayer.id);
                             team.rosterIds = team.rosterIds.filter(id => id !== worstPlayer.id);
 
+                            // Record Cut Transaction
+                            currentTransactions.push({
+                                date: nextDate,
+                                type: 'RELEASE',
+                                description: `${team.name} released ${worstPlayer.firstName} ${worstPlayer.lastName}`,
+                                teamId: team.id,
+                                playerId: worstPlayer.id,
+                                playerName: `${worstPlayer.firstName} ${worstPlayer.lastName}`
+                            });
+
                             bestFAs.shift();
                             currentPlayers = currentPlayers.map(p => p.id === bestFA.id ? { ...p, teamId: team.id } : p);
+                            const salary = 1000000;
                             currentContracts.push({
                                 id: generateUUID(),
                                 playerId: bestFA.id,
                                 teamId: team.id,
-                                amount: 1000000,
+                                amount: salary,
                                 yearsLeft: 1,
                                 startYear: prev.date.getFullYear(),
                                 role: 'Rotation'
                             });
                             team.rosterIds.push(bestFA.id);
+
+                            // Record Signing Transaction
+                            currentTransactions.push({
+                                date: nextDate,
+                                type: 'SIGNING',
+                                description: `${team.name} signed free agent ${bestFA.firstName} ${bestFA.lastName}`,
+                                teamId: team.id,
+                                playerId: bestFA.id,
+                                playerName: `${bestFA.firstName} ${bestFA.lastName}`,
+                                amount: salary
+                            });
 
                             currentNews.push({
                                 id: generateUUID(),
@@ -3776,6 +3874,43 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 
 
+
+
+            // --- ROSTER RECALIBRATION (AI & User Fallback) ---
+            // Before simulating matches, we optimize rotations to account for trades, signings, and injuries.
+            const teamsWithGames = new Set(prev.dailyMatchups.flatMap(m => [m.homeId, m.awayId]));
+            const playerUpdates = new Map<string, Player>();
+
+            teamsWithGames.forEach(teamId => {
+                const isUser = teamId === prev.userTeamId;
+                const team = currentTeams.find(t => t.id === teamId);
+                if (!team) return;
+                
+                const teamPlayers = currentPlayers.filter(p => p.teamId === teamId);
+                const totalMins = teamPlayers.reduce((sum, p) => sum + (p.minutes || 0), 0);
+                const targetMins = prev.leagueType === 'EURO' ? 200 : 240;
+                
+                // Trigger recalibration if:
+                // 1. It's an AI team
+                // 2. It's the User team AND they have Auto-Manage ON
+                // 3. It's the User team AND the rotation is broken (minutes don't match target)
+                if (!isUser || team.autoRotation || totalMins !== targetMins) {
+                    const healthyPlayers = teamPlayers.filter(p => !p.injury);
+                    if (healthyPlayers.length >= 5) {
+                        const strategy = team.rotationStrategy || (prev.leagueType === 'EURO' ? 'Standard' : 'Heavy Starters');
+                        const optimizedHealthy = optimizeRotation(healthyPlayers, strategy as any, targetMins);
+                        
+                        optimizedHealthy.forEach(p => playerUpdates.set(p.id, p));
+                        teamPlayers.filter(p => p.injury).forEach(p => {
+                            playerUpdates.set(p.id, { ...p, minutes: 0, isStarter: false, rotationIndex: 999 });
+                        });
+                    }
+                }
+            });
+
+            if (playerUpdates.size > 0) {
+                currentPlayers = currentPlayers.map(p => playerUpdates.get(p.id) || p);
+            }
 
             // Use pre-generated daily matchups
             prev.dailyMatchups.forEach(matchup => {
@@ -4041,6 +4176,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 games: [...prev.games, ...results],
                 date: nextDate,
                 news: [...currentNews, ...prev.news].slice(0, 100),
+                transactions: currentTransactions.slice(-200), // Keep last 200 transactions
                 dailyMatchups: nextDayMatchups,
                 seasonGamesPlayed: totalGamesPlayed,
                 pendingUserResult: null,
@@ -4051,6 +4187,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 teamAllTimeLeaders: teamLeaders,
                 showMidSeasonProgressionModal: shouldShowMidSeasonModal ? true : prev.showMidSeasonProgressionModal,
                 isSimulating: nextDayMatchups.length > 0 && prev.isSimulating,
+                nbaToEuroPool: currentNbaEuroPool,
             };
         }
         else if (prev.seasonPhase.startsWith('playoffs')) {
@@ -4280,7 +4417,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     if (historyIndex !== -1) {
                         updatedAwardsHistory[historyIndex] = { ...updatedAwardsHistory[historyIndex], champion: championInfo, finalsMvp: finalsMvp };
                     } else {
-                        const regularSeasonAwards = calculateRegularSeasonAwards(prev.players, prev.teams, finishedSeasonYear);
+                        const regularSeasonAwards = calculateRegularSeasonAwards(prev.players, prev.teams, finishedSeasonYear, prev.leagueType);
                         updatedAwardsHistory.push({ ...regularSeasonAwards, champion: championInfo, finalsMvp: finalsMvp });
                     }
 
@@ -4463,6 +4600,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             ownerPatience: performanceUpdate.newOwnerPatience,
                             debt: (finalNewCash < 0) ? Math.abs(finalNewCash) : 0,
                             salaryCapSpace: calculateTeamCapSpace(t, aiUpdatedContracts, finalSalaryCap),
+                            titles: result === 'CHAMPION' ? (t.titles || 0) + 1 : (t.titles || 0),
                             financials: {
                                 totalIncome: 0,
                                 totalExpenses: 0,
@@ -5147,7 +5285,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         if (historyIndex !== -1) {
                             updatedAwardsHistory[historyIndex] = { ...updatedAwardsHistory[historyIndex], champion: championInfo, finalsMvp };
                         } else {
-                            const regularSeasonAwards = calculateRegularSeasonAwards(statePlayers, stateTeams, finishedSeasonYear);
+                            const regularSeasonAwards = calculateRegularSeasonAwards(statePlayers, stateTeams, finishedSeasonYear, prev.leagueType);
                             updatedAwardsHistory.push({ ...regularSeasonAwards, champion: championInfo, finalsMvp });
                         }
 
@@ -5217,6 +5355,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                                 ownerPatience: performanceUpdate.newOwnerPatience,
                                 debt: newCash < 0 ? Math.abs(newCash) : 0,
                                 salaryCapSpace: calculateTeamCapSpace(t, aiUpdatedContracts, finalSalaryCap),
+                                titles: result === 'CHAMPION' ? (t.titles || 0) + 1 : (t.titles || 0),
                                 financials: {
                                     totalIncome: 0, totalExpenses: 0, dailyIncome: 0, dailyExpenses: 0,
                                     seasonHistory: [...(t.financials?.seasonHistory || []), { year: finishedSeasonYear, profit: cashChange, revenue: report.totalRevenue, payroll: report.payroll, luxuryTax: report.luxuryTaxPaid }]
@@ -5371,9 +5510,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
         }));
     };
 
-    const updateRotation = (updates: { id: string, minutes: number, isStarter: boolean, rotationIndex?: number }[]) => {
+    const updateRotation = (updates: { id: string, minutes: number, isStarter: boolean, rotationIndex?: number }[], teamId?: string, autoRotation?: boolean, strategy?: number | string) => {
         setGameState(prev => ({
             ...prev,
+            teams: teamId ? prev.teams.map(t => t.id === teamId ? { ...t, autoRotation, rotationStrategy: strategy } : t) : prev.teams,
             players: prev.players.map(p => {
                 const update = updates.find(u => u.id === p.id);
                 if (update) {
@@ -5710,13 +5850,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
             const aiPlayerIds = proposerAssets.players.map((p: any) => p.id);
             const aiPickIds = proposerAssets.picks.map((p: any) => p.id);
 
-            executeTrade(userPlayerIds, userPickIds, aiPlayerIds, aiPickIds, proposerId);
+            executeTrade(userPlayerIds, userPickIds, aiPlayerIds, aiPickIds, proposerId, offer.transferFee || 0);
         } else {
             // Standard TradeProposal (already has IDs)
             // Assuming TradeProposal has userPlayerIds etc. based on previous context, 
             // but 'models/TradeProposal' only had IDs.
             const offer = gameState.tradeOffer;
-            executeTrade(offer.userPlayerIds, offer.userPickIds, offer.aiPlayerIds, offer.aiPickIds, offer.aiTeamId);
+            executeTrade(offer.userPlayerIds, offer.userPickIds, offer.aiPlayerIds, offer.aiPickIds, offer.aiTeamId, offer.transferFee || 0);
         }
 
         setGameState(prev => ({ ...prev, tradeOffer: null }));

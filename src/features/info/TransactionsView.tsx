@@ -81,7 +81,7 @@ export const TransactionsView: React.FC<{ onBack: () => void }> = ({ onBack }) =
                     {combinedEvents
                         .filter(event => {
                             if (activeTab === 'trades') return event.eventType === 'TRADE';
-                            if (activeTab === 'signings') return ['SIGNING', 'NBA SIGNING', 'ACADEMY', 'TRANSFER'].includes(event.eventType);
+                            if (activeTab === 'signings') return ['SIGNING', 'NBA SIGNING', 'ACADEMY', 'TRANSFER', 'RELEASE'].includes(event.eventType);
                             return true;
                         })
                         .map((event: any, idx) => {
@@ -113,6 +113,9 @@ export const TransactionsView: React.FC<{ onBack: () => void }> = ({ onBack }) =
                         } else if (event.eventType === 'NBA SIGNING') {
                             icon = <ArrowRightLeft size={18} />;
                             badgeColor = '#9b59b6';
+                        } else if (event.eventType === 'RELEASE') {
+                            icon = <UserPlus size={18} style={{ transform: 'rotate(180deg)' }} />;
+                            badgeColor = '#e74c3c';
                         }
 
                         return (
@@ -144,23 +147,36 @@ export const TransactionsView: React.FC<{ onBack: () => void }> = ({ onBack }) =
                                             {event.playerName}
                                         </span>
                                         <span style={{ color: 'var(--text-dim)', fontSize: '0.9rem' }}>
-                                            {event.eventType === 'TRANSFER' ? 'transferred to' : 'signed with'}
+                                            {event.eventType === 'TRANSFER' ? 'transferred to' : 
+                                             event.eventType === 'RELEASE' ? 'released by' : 'signed with'}
                                         </span>
-                                        <span 
-                                            style={{ fontWeight: 700, color: team?.colors?.primary || 'var(--text-main)', cursor: 'pointer' }}
+                                        <div 
+                                            style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
                                             onClick={() => team && setSelectedTeamId(team.id)}
                                         >
-                                            {team?.name}
-                                        </span>
+                                            {team?.logo ? (
+                                                <img src={team.logo} alt={team.abbreviation} style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                                            ) : (
+                                                <span style={{ fontSize: '0.7rem', fontWeight: 800, background: team?.colors?.primary || '#333', color: '#fff', padding: '2px 4px', borderRadius: '4px' }}>
+                                                    {team?.abbreviation}
+                                                </span>
+                                            )}
+                                        </div>
                                         {fromTeam && (
                                             <>
                                                 <span style={{ color: 'var(--text-dim)', fontSize: '0.9rem' }}>from</span>
-                                                <span 
-                                                    style={{ fontWeight: 700, color: fromTeam.colors.primary, cursor: 'pointer' }}
+                                                <div 
+                                                    style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
                                                     onClick={() => setSelectedTeamId(fromTeam.id)}
                                                 >
-                                                    {fromTeam.name}
-                                                </span>
+                                                    {fromTeam.logo ? (
+                                                        <img src={fromTeam.logo} alt={fromTeam.abbreviation} style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                                                    ) : (
+                                                        <span style={{ fontSize: '0.7rem', fontWeight: 800, background: fromTeam.colors?.primary || '#333', color: '#fff', padding: '2px 4px', borderRadius: '4px' }}>
+                                                            {fromTeam.abbreviation}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </>
                                         )}
                                         {event.eventType === 'NBA SIGNING' && (

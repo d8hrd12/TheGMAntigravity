@@ -82,7 +82,7 @@ export const LeagueHistoryView: React.FC<{ onBack: () => void }> = ({ onBack }) 
                                                 {team?.logo ? (
                                                     <img src={team.logo} alt={team.name} style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
                                                 ) : (
-                                                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: team?.colors?.primary || '#ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800 }}>
+                                                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: team?.colors?.primary || 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800 }}>
                                                         {team?.name.charAt(0)}
                                                     </div>
                                                 )}

@@ -539,8 +539,9 @@ function AppContent() {
         return <PlayerCompareView onBack={() => setView('dashboard')} />;
       case 'trade': 
         if (!userTeam) return null;
-        if (leagueType === 'EURO' && !prefilledTrade) {
-          return <EuroTransferMarketView initialPlayerId={initialAiPlayerId} onBack={() => { setView('dashboard'); setInitialAiPlayerId(null); }} />;
+        // EURO leagues use transfers exclusively — trades are forbidden regardless of how we got here
+        if (leagueType === 'EURO') {
+          return <EuroTransferMarketView initialPlayerId={initialAiPlayerId} onBack={() => { setView('dashboard'); setInitialAiPlayerId(undefined); setPrefilledTrade(null); }} />;
         }
         return <TradeCenterView 
           userTeam={userTeam} 
@@ -646,30 +647,32 @@ function AppContent() {
       {/* SIDEBAR */}
       <div className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`} onClick={() => setIsSidebarOpen(false)} />
       <aside className={`sidebar ${isSidebarOpen ? 'expanded' : ''}`}>
-        <div style={{ marginBottom: '40px', padding: '0 16px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        <div style={{ marginBottom: '40px', padding: '0 16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <h2 style={{ 
-            fontSize: '1.4rem', 
-            color: '#111111', 
+            fontSize: '1.6rem', 
+            color: '#1c1c1e', 
             margin: 0, 
-            fontFamily: "'SF TransRobotics', sans-serif",
-            fontWeight: 800,
-            letterSpacing: '-0.04em',
+            fontWeight: 900,
+            letterSpacing: '-0.05em',
             whiteSpace: 'nowrap',
             lineHeight: 1,
             textAlign: 'left'
           }}>
-            THE GM <span style={{ color: '#007aff' }}>2026</span>
+            THE <span style={{ color: 'var(--team-primary)' }}>GM</span>
           </h2>
-          <span style={{ 
-            fontSize: '0.65rem', 
-            color: '#8e8e93', 
-            textTransform: 'uppercase', 
-            letterSpacing: '2px', 
-            fontWeight: 700,
-            paddingLeft: '1px'
-          }}>
-            VERSION 5.7.0
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ 
+              fontSize: '0.6rem', 
+              color: '#8e8e93', 
+              textTransform: 'uppercase', 
+              letterSpacing: '0.15em', 
+              fontWeight: 800,
+            }}>
+              BASKETBALL OS
+            </span>
+            <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#d1d1d6' }}></div>
+            <span style={{ fontSize: '0.6rem', color: '#c7c7cc', fontWeight: 700 }}>v5.8</span>
+          </div>
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px', opacity: isNavLocked ? 0.5 : 1, pointerEvents: isNavLocked ? 'none' : 'auto' }}>
@@ -743,39 +746,46 @@ function AppContent() {
         {isInitialized && !liveGameData && (
           <header className="app-header" style={{ 
             display: 'grid', 
-            gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', 
+            gridTemplateColumns: '1fr auto 1fr', 
             alignItems: 'center', 
-            minHeight: '64px', 
-            gap: '12px',
-            background: 'rgba(255, 255, 255, 0.8)',
-            borderBottom: '1px solid #f0f0f0',
-            backdropFilter: 'blur(20px)',
+            minHeight: '72px', 
+            gap: '20px',
+            background: 'rgba(255, 255, 255, 0.9)',
+            borderBottom: '1px solid #f2f2f7',
+            backdropFilter: 'blur(30px)',
             zIndex: 1100,
             position: 'sticky',
-            top: 0
+            top: 0,
+            padding: '0 20px'
           }}>
-            {/* Left: Menu & Session Context */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+            {/* Left: Menu */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               {!isNavLocked && (
                 <button className="menu-trigger" 
                   onClick={() => { setIsSidebarOpen(true); setExpandedCategory(null); }}
                   style={{ 
                     background: '#ffffff', 
-                    border: '1px solid #eeeeee', 
+                    border: '1px solid #e5e5ea', 
                     borderRadius: '50%', 
-                    width: '40px',
-                    height: '40px',
+                    width: '42px',
+                    height: '42px',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    transition: 'all 0.2s ease',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.06)'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = '#f9f9f9'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = '#ffffff'}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#f2f2f7';
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#ffffff';
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
                 >
-                  <Menu size={20} color="#111111" />
+                  <Menu size={20} color="#1c1c1e" strokeWidth={2.5} />
                 </button>
               )}
             </div>
@@ -788,27 +798,29 @@ function AppContent() {
                   style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: '10px', 
-                    padding: '6px 14px', 
+                    gap: '12px', 
+                    padding: '8px 20px', 
                     background: '#ffffff', 
-                    borderRadius: '30px', 
-                    border: '1px solid #eeeeee',
-                    boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
-                    transition: 'all 0.2s ease',
+                    borderRadius: '24px', 
+                    border: '1px solid #e5e5ea',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+                    transition: 'all 0.3s ease',
                     cursor: 'pointer'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                    e.currentTarget.style.background = '#f9f9f9';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.08)';
+                    e.currentTarget.style.borderColor = 'var(--team-primary)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.background = '#ffffff';
+                    e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.05)';
+                    e.currentTarget.style.borderColor = '#e5e5ea';
                   }}
                 >
                   <div style={{ 
-                    width: '24px', 
-                    height: '24px', 
+                    width: '28px', 
+                    height: '28px', 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center'
@@ -816,82 +828,62 @@ function AppContent() {
                     <img src={userTeam.logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                   </div>
                   
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ 
-                        fontWeight: '900', 
-                        fontSize: '0.85rem', 
-                        color: 'var(--text-main)', 
-                        letterSpacing: '-0.01em',
-                        textTransform: 'uppercase'
-                      }}>
-                        {userTeam.name}
-                      </span>
-                      <div style={{ 
-                        height: '14px', 
-                        width: '1px', 
-                        background: 'var(--border-color)' 
-                      }}></div>
-                      <span style={{
-                        fontSize: '0.7rem',
-                        fontWeight: 800,
-                        color: 'var(--team-primary)'
-                      }}>
-                        {date.getFullYear()}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Championship Bubble */}
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '3px',
-                    background: 'rgba(218, 165, 32, 0.1)',
-                    padding: '2px 8px',
-                    borderRadius: '10px',
-                    border: '1px solid rgba(218, 165, 32, 0.2)',
-                    marginLeft: '2px'
+                  <span style={{ 
+                    fontWeight: '900', 
+                    fontSize: '0.9rem', 
+                    color: '#1c1c1e', 
+                    letterSpacing: '-0.02em',
+                    textTransform: 'uppercase'
                   }}>
-                    <Trophy size={9} color="#DAA520" fill="#DAA520" />
-                    <span style={{ 
-                      fontSize: '0.65rem', 
-                      color: '#DAA520', 
-                      fontWeight: 900,
-                      letterSpacing: '0.05em'
+                    {userTeam.name}
+                  </span>
+
+                  {userTeam.titles !== undefined && userTeam.titles > 0 && (
+                    <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '4px',
+                        marginLeft: '4px',
+                        padding: '2px 8px',
+                        background: 'rgba(212, 175, 55, 0.1)',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(212, 175, 55, 0.3)'
                     }}>
-                      X{awardsHistory.filter(h => h.champion?.teamId === userTeam.id).length}
-                    </span>
-                  </div>
+                        <Trophy size={12} color="#D4AF37" />
+                        <span style={{ 
+                            fontSize: '0.65rem', 
+                            fontWeight: '900', 
+                            color: '#D4AF37',
+                            letterSpacing: '0.05em'
+                        }}>
+                            {userTeam.titles}x
+                        </span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
 
-            {/* Right: Record & Global Stats */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', minWidth: 0 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-                <div style={{ 
-                  padding: '2px 6px', 
-                  background: 'var(--team-primary)', 
-                  borderRadius: '4px',
-                  color: '#fff',
-                  fontSize: '0.75rem',
-                  fontWeight: 900,
-                  boxShadow: '0 2px 6px rgba(var(--team-primary-rgb), 0.2)',
-                  whiteSpace: 'nowrap'
-                }}>
-                  {userTeam?.wins ?? 0}-{userTeam?.losses ?? 0}
+            {/* Right: Record display */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+              <div style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '6px 14px',
+                background: '#ffffff',
+                borderRadius: '16px',
+                border: '1px solid #e5e5ea',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1 }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 900, color: '#2ecc71' }}>{userTeam?.wins ?? 0}</span>
+                    <span style={{ fontSize: '0.5rem', fontWeight: 800, color: '#2ecc71', opacity: 0.6, marginTop: '2px' }}>W</span>
                 </div>
-                <div style={{ 
-                  fontSize: '0.55rem', 
-                  color: 'var(--text-muted)', 
-                  textTransform: 'uppercase', 
-                  fontWeight: 800, 
-                  letterSpacing: '0.05em',
-                  whiteSpace: 'nowrap',
-                  textAlign: 'right'
-                }}>
-                  {seasonPhase.replace('_', ' ')}
+                <div style={{ width: '1px', height: '12px', background: '#e5e5ea' }}></div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1 }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 900, color: '#e74c3c' }}>{userTeam?.losses ?? 0}</span>
+                    <span style={{ fontSize: '0.5rem', fontWeight: 800, color: '#e74c3c', opacity: 0.6, marginTop: '2px' }}>L</span>
                 </div>
               </div>
             </div>
@@ -963,7 +955,8 @@ function AppContent() {
         </div>
       )}
 
-      {tradeOffer && (
+      {/* EURO leagues never have trade offers — only transfers. Modal is fully suppressed. */}
+      {tradeOffer && leagueType !== 'EURO' && (
         <TradeProposalModal
           offer={tradeOffer as any}
           teams={teams}

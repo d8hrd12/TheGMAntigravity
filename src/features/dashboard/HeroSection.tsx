@@ -50,10 +50,20 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onEnterPlayoffs, onSta
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                        {userTeam.wins}-{userTeam.losses}
+                    <div style={{ 
+                        fontSize: '1.4rem', 
+                        fontWeight: 900, 
+                        color: 'var(--text-main)',
+                        letterSpacing: '-0.02em',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        justifyContent: 'flex-end'
+                    }}>
+                        <span style={{ color: '#2ecc71' }}>{userTeam.wins}</span>
+                        <span style={{ opacity: 0.2, fontWeight: 400 }}>-</span>
+                        <span style={{ color: '#e74c3c' }}>{userTeam.losses}</span>
                     </div>
-                    <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Record</div>
                 </div>
             </div>
 

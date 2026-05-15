@@ -354,7 +354,7 @@ export const MatchView: React.FC<MatchViewProps> = ({ matchResult, homeTeam, awa
                         <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: isPlaying ? '#e74c3c' : '#666', boxShadow: isPlaying ? '0 0 10px #e74c3c' : 'none' }}></div>
                         <div style={{ fontSize: '2.5rem', fontFamily: 'monospace', fontWeight: 700, lineHeight: 1 }}>{formatTime(currentTime)}</div>
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: '#888' }}>Q4 - REGULAR SEASON</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-dim)' }}>Q4 - REGULAR SEASON</div>
                 </div>
             </div>
 
@@ -396,7 +396,7 @@ export const MatchView: React.FC<MatchViewProps> = ({ matchResult, homeTeam, awa
                             style={{
                                 padding: '8px 16px',
                                 background: speed === s ? '#444' : 'transparent',
-                                color: speed === s ? '#fff' : '#888',
+                                color: speed === s ? '#fff' : 'var(--text-dim)',
                                 border: 'none',
                                 borderRadius: '6px',
                                 cursor: 'pointer',

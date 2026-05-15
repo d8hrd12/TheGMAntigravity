@@ -27,7 +27,7 @@ export const TeamLogo: React.FC<TeamLogoProps> = ({ teamId, size = 40, className
                 color: '#fff',
                 fontSize: size * 0.4,
                 fontWeight: 'bold',
-                border: `2px solid ${team.colors?.secondary || '#ccc'}`
+                border: `2px solid ${team.colors?.secondary || 'var(--text-muted)'}`
             }}
         >
             {team.abbreviation.substring(0, 2)}

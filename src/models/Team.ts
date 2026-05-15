@@ -83,4 +83,6 @@ export interface Team {
     };
     tactics?: import('../features/simulation/TacticsTypes').TeamStrategy;
     hierarchy?: Record<string, number>; // Maps playerId to Tier (1, 2, 3, 4)
+    autoRotation?: boolean; // If true, the rotation is automatically recalibrated daily
+    rotationStrategy?: number | string; // The strategy value used for auto-calibration (0-100 or string name)
 }

@@ -25,7 +25,7 @@ export const TeamHistoryView: React.FC<TeamHistoryViewProps> = ({ team, onBack, 
                 title={`${team.name} History`} 
                 subtitle="Historical Career Records"
                 onBack={onBack} 
-                teamColor={team.colors.primary}
+                teamColor={team.colors?.primary}
             />
             <div style={{ padding: '20px' }}>
 

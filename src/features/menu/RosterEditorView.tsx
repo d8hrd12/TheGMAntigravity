@@ -247,8 +247,8 @@ export const RosterEditorView: React.FC<RosterEditorViewProps> = ({ onBack }) =>
                                     <div style={{ flex: 1 }}>
                                         <label style={{ display: 'block', fontSize: '0.6rem', fontWeight: 900, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginBottom: '5px' }}>Current Team</label>
                                         <select 
-                                            value={editValues.teamId} 
-                                            onChange={(e) => setEditValues({ ...editValues, teamId: e.target.value })}
+                                            value={editValues.teamId || ""} 
+                                            onChange={(e) => setEditValues({ ...editValues, teamId: e.target.value || null })}
                                             style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '12px', color: '#fff', fontWeight: 700, outline: 'none' }}
                                         >
                                             {teams.sort((a,b) => a.name.localeCompare(b.name)).map(t => (

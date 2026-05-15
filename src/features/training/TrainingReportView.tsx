@@ -92,16 +92,38 @@ export const TrainingReportView: React.FC<{ onBack: () => void }> = ({ onBack })
 
     const columns = ['FIN', 'MID', '3PT', 'FT', 'PLY', 'HND', 'IQ', 'IDEF', 'PDEF', 'STL', 'BLK', 'ORB', 'DRB', 'ATH'];
 
-    const filteredReport = useMemo(() => {
+    const groupedReport = useMemo(() => {
         if (!trainingReport) return [];
-        let r = [...trainingReport].sort((a, b) => b.overallChange - a.overallChange);
-        if (teamFilter === 'MyTeam') {
-            r = r.filter(entry => players.find(p => p.id === entry.playerId)?.teamId === userTeamId);
-        }
+        
+        let r = [...trainingReport];
+        
         if (selectedFocus !== 'All') {
             r = r.filter(p => p.focus === selectedFocus);
         }
-        return r;
+
+        if (teamFilter === 'MyTeam') {
+            const userPlayers = r.filter(entry => players.find(p => p.id === entry.playerId)?.teamId === userTeamId);
+            return [{ teamId: userTeamId, entries: userPlayers.sort((a, b) => b.overallChange - a.overallChange) }];
+        }
+
+        // Group by team for 'AllTeams'
+        const groups: { teamId: string, entries: ProgressionResult[] }[] = [];
+        const teamIds = Array.from(new Set(r.map(entry => players.find(p => p.id === entry.playerId)?.teamId).filter(Boolean))) as string[];
+        
+        // Put user team first
+        const sortedTeamIds = [userTeamId, ...teamIds.filter(id => id !== userTeamId)];
+
+        sortedTeamIds.forEach(tId => {
+            const teamEntries = r.filter(entry => players.find(p => p.id === entry.playerId)?.teamId === tId);
+            if (teamEntries.length > 0) {
+                groups.push({
+                    teamId: tId,
+                    entries: teamEntries.sort((a, b) => b.overallChange - a.overallChange)
+                });
+            }
+        });
+
+        return groups;
     }, [trainingReport, selectedFocus, teamFilter, players, userTeamId]);
 
     const stats = useMemo(() => {
@@ -128,7 +150,7 @@ export const TrainingReportView: React.FC<{ onBack: () => void }> = ({ onBack })
         <div style={{ padding: '16px', height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--background)', overflowY: 'auto', paddingBottom: '90px' }}>
             <PageHeader 
                 title={`Training Report ${date.getFullYear()}`} 
-                onBack={onBack} 
+                onBack={onBack || (() => {})} 
                 teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
             />
 
@@ -206,43 +228,55 @@ export const TrainingReportView: React.FC<{ onBack: () => void }> = ({ onBack })
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredReport.map((entry, idx) => {
-                            const player = players.find(p => p.id === entry.playerId);
-                            if (!player) return null;
-                            const isUserPlayer = player.teamId === userTeamId;
-                            
+                        {groupedReport.map((group) => {
+                            const team = teams.find(t => t.id === group.teamId);
                             return (
-                                <tr key={entry.playerId} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', background: idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)' }}>
-                                    <td style={{ padding: '12px 16px' }}>
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: isUserPlayer ? 'var(--text)' : 'var(--text-secondary)' }}>
-                                                {player.firstName} {player.lastName}
-                                            </div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                                                <Target size={10} style={{ color: 'var(--text-main)', opacity: 0.7 }} />
-                                                <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', opacity: 0.6 }}>{entry.focus}</span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>{player.position}</td>
-                                    <td style={{ textAlign: 'center', color: 'var(--text-secondary)', opacity: 0.7, fontSize: '0.8rem' }}>{player.age}</td>
-                                    <td style={{ textAlign: 'center' }}>
-                                        <StarCellDisplay 
-                                            player={player} 
-                                            delta={entry.overallChange} 
-                                            baseline={calculateTeamBaseline(players.filter(p => p.teamId === player.teamId))} 
-                                        />
-                                    </td>
-                                    {columns.map(col => (
-                                        <td key={col} style={{ padding: '8px 4px' }}>
-                                            <StatCell 
-                                                label={col} 
-                                                value={(player.attributes as any)[mapAttribute(col)]} 
-                                                changes={entry.changes} 
-                                            />
+                                <React.Fragment key={group.teamId}>
+                                    <tr style={{ background: 'var(--bg-card-hover)', borderBottom: '1px solid var(--border)' }}>
+                                        <td colSpan={columns.length + 4} style={{ padding: '8px 16px', fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                                            {team?.name || 'Unknown Team'} {group.teamId === userTeamId ? '(My Team)' : ''}
                                         </td>
-                                    ))}
-                                </tr>
+                                    </tr>
+                                    {group.entries.map((entry, idx) => {
+                                        const player = players.find(p => p.id === entry.playerId);
+                                        if (!player) return null;
+                                        const isUserPlayer = player.teamId === userTeamId;
+                                        
+                                        return (
+                                            <tr key={entry.playerId} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', background: idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)' }}>
+                                                <td style={{ padding: '12px 16px' }}>
+                                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: isUserPlayer ? 'var(--text)' : 'var(--text-secondary)' }}>
+                                                            {player.firstName} {player.lastName}
+                                                        </div>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                                                            <Target size={10} style={{ color: 'var(--text-main)', opacity: 0.7 }} />
+                                                            <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', opacity: 0.6 }}>{entry.focus}</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>{player.position}</td>
+                                                <td style={{ textAlign: 'center', color: 'var(--text-secondary)', opacity: 0.7, fontSize: '0.8rem' }}>{player.age}</td>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    <StarCellDisplay 
+                                                        player={player} 
+                                                        delta={entry.overallChange} 
+                                                        baseline={calculateTeamBaseline(players.filter(p => p.teamId === player.teamId))} 
+                                                    />
+                                                </td>
+                                                {columns.map(col => (
+                                                    <td key={col} style={{ padding: '8px 4px' }}>
+                                                        <StatCell 
+                                                            label={col} 
+                                                            value={(player.attributes as any)[mapAttribute(col)]} 
+                                                            changes={entry.changes} 
+                                                        />
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                        );
+                                    })}
+                                </React.Fragment>
                             );
                         })}
                     </tbody>

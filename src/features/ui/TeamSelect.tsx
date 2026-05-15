@@ -48,7 +48,7 @@ export const TeamSelect: React.FC<TeamSelectProps> = ({ teams, selectedTeamId, o
                 {hasEuro ? (
                     <>
                         {euroLeagueTeams.length > 0 && (
-                            <optgroup label="EuroLeague" style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase' }}>
+                            <optgroup label="EuroLeague" style={{ color: 'var(--text-dim)', fontSize: '0.75rem', textTransform: 'uppercase' }}>
                                 {euroLeagueTeams.map(t => (
                                     <option key={t.id} value={t.id} style={{ color: '#000', fontSize: '1rem' }}>
                                         {t.city} {t.name}
@@ -57,7 +57,7 @@ export const TeamSelect: React.FC<TeamSelectProps> = ({ teams, selectedTeamId, o
                             </optgroup>
                         )}
                         {euroCupTeams.length > 0 && (
-                            <optgroup label="EuroCup" style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase' }}>
+                            <optgroup label="EuroCup" style={{ color: 'var(--text-dim)', fontSize: '0.75rem', textTransform: 'uppercase' }}>
                                 {euroCupTeams.map(t => (
                                     <option key={t.id} value={t.id} style={{ color: '#000', fontSize: '1rem' }}>
                                         {t.city} {t.name}
@@ -92,7 +92,7 @@ export const TeamSelect: React.FC<TeamSelectProps> = ({ teams, selectedTeamId, o
                 right: '15px',
                 transform: 'translateY(-50%)',
                 pointerEvents: 'none',
-                color: '#888',
+                color: 'var(--text-dim)',
                 fontSize: '0.7rem'
             }}>
                 ▼

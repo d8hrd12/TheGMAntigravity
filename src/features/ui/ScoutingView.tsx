@@ -222,7 +222,7 @@ const ScoutingView: React.FC = () => {
                                                 </div>
                                             </div>
                                             <div style={{ textAlign: 'right' }}>
-                                                <div style={{ fontWeight: 'bold', fontSize: '1.1em', color: visibility.showTruePotential ? '#2c3e50' : '#888' }}>
+                                                <div style={{ fontWeight: 'bold', fontSize: '1.1em', color: visibility.showTruePotential ? '#2c3e50' : 'var(--text-dim)' }}>
                                                     {getFuzzyPotential(p.potential || 70, visibility.spent)}
                                                 </div>
                                                 {visibility.spent > 0 && (
@@ -292,7 +292,7 @@ const ScoutingView: React.FC = () => {
                                         </div>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontSize: '0.9em', color: '#888' }}>Projected Potential</div>
+                                        <div style={{ fontSize: '0.9em', color: 'var(--text-dim)' }}>Projected Potential</div>
                                         <div style={{ fontSize: '2em', fontWeight: 'bold', color: '#2c3e50' }}>
                                             {getFuzzyPotential(selectedProspect.potential || 70, pointsSpent)}
                                         </div>
@@ -393,7 +393,7 @@ const AttributeList: React.FC<{ player: any, category: 'offense' | 'defense' }> 
                 return (
                     <div key={key} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9em' }}>
                         <span style={{ color: 'black', fontWeight: '600' }}>{label}</span>
-                        <span style={{ fontWeight: 'bold', color: fuzzyVal === "??" ? '#ccc' : getRatingColor(colorVal) }}>
+                        <span style={{ fontWeight: 'bold', color: fuzzyVal === "??" ? 'var(--text-muted)' : getRatingColor(colorVal) }}>
                             {fuzzyVal}
                         </span>
                     </div>
@@ -407,7 +407,7 @@ const getRatingColor = (rating: number) => {
     if (rating >= 85) return '#27ae60'; // Green
     if (rating >= 70) return '#2980b9'; // Blue
     if (rating >= 50) return '#f39c12'; // Orange
-    if (rating < 20) return '#ccc'; // Gray/Unknown
+    if (rating < 20) return 'var(--text-muted)'; // Gray/Unknown
     return '#c0392b'; // Red
 };
 

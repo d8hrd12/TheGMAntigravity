@@ -17,14 +17,14 @@ import { PageHeader } from '../ui/PageHeader';
 
 const StatItem = ({ label, value }: { label: string; value: string | number }) => (
     <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '0.65rem', color: '#888', fontWeight: 600, marginBottom: '2px', textTransform: 'uppercase' }}>{label}</div>
+        <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)', fontWeight: 600, marginBottom: '2px', textTransform: 'uppercase' }}>{label}</div>
         <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'white' }}>{value}</div>
     </div>
 );
 
 const RatingBar = ({ label, value, color }: { label: string; value: number; color: string }) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <div style={{ width: '36px', fontSize: '0.7rem', color: '#888', fontWeight: 600, textTransform: 'uppercase', flexShrink: 0 }}>{label}</div>
+        <div style={{ width: '36px', fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 600, textTransform: 'uppercase', flexShrink: 0 }}>{label}</div>
         <div style={{ flex: 1, height: '6px', background: '#333', borderRadius: '3px', overflow: 'hidden' }}>
             <div style={{ width: `${value}%`, height: '100%', background: color, borderRadius: '3px' }} />
         </div>
@@ -229,7 +229,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                         style={{
                             padding: '10px 28px', borderRadius: '10px', border: 'none', fontWeight: 700, fontSize: '0.95rem',
                             background: activeTab === 'players' ? '#0ea5e9' : 'transparent',
-                            color: activeTab === 'players' ? 'white' : '#888',
+                            color: activeTab === 'players' ? 'white' : 'var(--text-dim)',
                             cursor: 'pointer', transition: 'all 0.2s'
                         }}
                     >
@@ -240,7 +240,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                         style={{
                             padding: '10px 28px', borderRadius: '10px', border: 'none', fontWeight: 700, fontSize: '0.95rem',
                             background: activeTab === 'coaches' ? '#8b5cf6' : 'transparent',
-                            color: activeTab === 'coaches' ? 'white' : '#888',
+                            color: activeTab === 'coaches' ? 'white' : 'var(--text-dim)',
                             cursor: 'pointer', transition: 'all 0.2s',
                             display: 'flex', alignItems: 'center', gap: '6px'
                         }}
@@ -248,7 +248,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                         🎽 Coaches
                         <span style={{
                             background: activeTab === 'coaches' ? 'rgba(255,255,255,0.25)' : '#333',
-                            color: activeTab === 'coaches' ? 'white' : '#aaa',
+                            color: activeTab === 'coaches' ? 'white' : 'var(--text-secondary)',
                             fontSize: '0.75rem', fontWeight: 700, padding: '1px 7px', borderRadius: '20px'
                         }}>{freeAgentCoaches.length}</span>
                     </button>
@@ -272,7 +272,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                                 <button key={pos} onClick={() => setFilterPos(pos as any)} style={{
                                     padding: '10px 20px', borderRadius: '12px', border: 'none', fontWeight: 600,
                                     background: filterPos === pos ? '#0ea5e9' : '#2c2c2e',
-                                    color: filterPos === pos ? 'white' : '#888', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0
+                                    color: filterPos === pos ? 'white' : 'var(--text-dim)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0
                                 }}>{pos}</button>
                             ))}
                         </div>
@@ -319,7 +319,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                                             <div style={{ fontWeight: 800, fontSize: '1.25rem', color: 'white', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
                                                 {player.firstName} {player.lastName}
                                             </div>
-                                            <div style={{ fontSize: '0.85rem', color: '#888', fontWeight: 500, marginTop: '2px' }}>
+                                            <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)', fontWeight: 500, marginTop: '2px' }}>
                                                 {player.position} • {player.age}yo
                                             </div>
                                         </div>
@@ -354,19 +354,19 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                                                     <span style={{ fontSize: '1rem', fontWeight: 700, color: 'white' }}>{formatMoney(existingOffer.amount)}</span>
                                                 </div>
                                                 <button onClick={(e) => { e.stopPropagation(); setSelectedPlayerForBids(player); }}
-                                                    style={{ fontSize: '0.8rem', background: '#333', color: '#ccc', border: 'none', padding: '6px 12px', borderRadius: '8px' }}>
+                                                    style={{ fontSize: '0.8rem', background: '#333', color: 'var(--text-muted)', border: 'none', padding: '6px 12px', borderRadius: '8px' }}>
                                                     Bids
                                                 </button>
                                             </div>
                                         ) : (
                                             <>
                                                 <div>
-                                                    <div style={{ fontSize: '0.75rem', color: '#888' }}>Asking</div>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Asking</div>
                                                     <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white' }}>{formatMoney(askAmount)}</div>
                                                 </div>
                                                 <div style={{ display: 'flex', gap: '8px' }}>
                                                     <button onClick={(e) => { e.stopPropagation(); setSelectedPlayerForBids(player); }}
-                                                        style={{ padding: '8px 12px', background: '#333', color: '#ccc', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}>
+                                                        style={{ padding: '8px 12px', background: '#333', color: 'var(--text-muted)', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}>
                                                         Bids
                                                     </button>
                                                     <button onClick={(e) => { e.stopPropagation(); setSelectedPlayerForOffer(player); }}
@@ -397,7 +397,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                             <div>
                                 <div style={{ fontSize: '0.7rem', color: '#8b5cf6', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>Your Head Coach</div>
                                 <div style={{ fontWeight: 800, fontSize: '1.2rem', color: 'white' }}>{userCoach.firstName} {userCoach.lastName}</div>
-                                <div style={{ fontSize: '0.85rem', color: '#aaa', marginTop: '2px' }}>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
                                     {STYLE_ICONS[userCoach.style] || '🏀'} {userCoach.style} • {userCoach.contract.yearsRemaining} yr{userCoach.contract.yearsRemaining !== 1 ? 's' : ''} left • {formatMoney(userCoach.contract.salary)}/yr
                                 </div>
                             </div>
@@ -410,7 +410,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                                     ].map(r => (
                                         <div key={r.label} style={{ textAlign: 'center' }}>
                                             <div style={{ fontSize: '1.4rem', fontWeight: 800, color: r.color }}>{r.value}</div>
-                                            <div style={{ fontSize: '0.65rem', color: '#888', fontWeight: 600, textTransform: 'uppercase' }}>{r.label}</div>
+                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)', fontWeight: 600, textTransform: 'uppercase' }}>{r.label}</div>
                                         </div>
                                     ))}
                                 </div>
@@ -445,7 +445,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                                 <button key={s} onClick={() => setCoachSortBy(s)} style={{
                                     padding: '10px 16px', borderRadius: '10px', border: 'none', fontWeight: 700, fontSize: '0.85rem',
                                     background: coachSortBy === s ? '#8b5cf6' : '#2c2c2e',
-                                    color: coachSortBy === s ? 'white' : '#888', cursor: 'pointer', whiteSpace: 'nowrap'
+                                    color: coachSortBy === s ? 'white' : 'var(--text-dim)', cursor: 'pointer', whiteSpace: 'nowrap'
                                 }}>{s}</button>
                             ))}
                         </div>
@@ -475,7 +475,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                                             <div style={{ fontWeight: 800, fontSize: '1.2rem', color: 'white', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                 {coach.firstName} {coach.lastName}
                                             </div>
-                                            <div style={{ fontSize: '0.85rem', color: '#aaa', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                 <span style={{ fontSize: '1rem' }}>{STYLE_ICONS[coach.style] || '🏀'}</span>
                                                 <span style={{ fontWeight: 600 }}>{coach.style}</span>
                                             </div>
@@ -493,7 +493,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                                                     display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '42px'
                                                 }}>
                                                     <span style={{ fontSize: '1rem', fontWeight: 800, color: r.color }}>{r.value}</span>
-                                                    <span style={{ fontSize: '0.6rem', color: '#888', fontWeight: 600, textTransform: 'uppercase' }}>{r.label}</span>
+                                                    <span style={{ fontSize: '0.6rem', color: 'var(--text-dim)', fontWeight: 600, textTransform: 'uppercase' }}>{r.label}</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -525,7 +525,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); setSelectedCoachForBids(coach); }}
                                                 style={{
-                                                    padding: '4px 10px', background: 'var(--bg-card-hover)', color: '#aaa',
+                                                    padding: '4px 10px', background: 'var(--bg-card-hover)', color: 'var(--text-secondary)',
                                                     border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '0.7rem',
                                                     fontWeight: 600, cursor: 'pointer'
                                                 }}
@@ -551,7 +551,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                                                         <RatingBar label="DEV" value={coach.rating.talentDevelopment} color="#f59e0b" />
                                                         <div style={{
                                                             marginTop: '6px', background: '#252528', borderRadius: '10px', padding: '12px',
-                                                            fontSize: '0.85rem', color: '#aaa', lineHeight: 1.5
+                                                            fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5
                                                         }}>
                                                             <span style={{ color: '#8b5cf6', fontWeight: 700 }}>{STYLE_ICONS[coach.style]} {coach.style}: </span>
                                                             {STYLE_DESCRIPTIONS[coach.style]}
@@ -632,20 +632,24 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                                                 }}>
                                                     <div>
                                                         <div style={{ fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                            {offeringTeam?.name || 'Unknown Team'}
+                                                            {offeringTeam?.logo ? (
+                                                                <img src={offeringTeam.logo} alt={offeringTeam.abbreviation} style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                                                            ) : (
+                                                                offeringTeam?.abbreviation || '???'
+                                                            )}
                                                             {offer.score === bestScore && <span style={{ fontSize: '0.7rem', background: '#2ecc71', color: 'black', padding: '2px 6px', borderRadius: '4px' }}>FAVORITE</span>}
                                                         </div>
-                                                        <div style={{ fontSize: '0.85rem', color: '#888' }}>{isUser ? 'Your Offer' : 'AI Offer'} • {chance}% Match</div>
+                                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>{isUser ? 'Your Offer' : 'AI Offer'} • {chance}% Match</div>
                                                     </div>
                                                     <div style={{ textAlign: 'right' }}>
                                                         <div style={{ fontWeight: 700, color: '#2ecc71', fontSize: '1.1rem' }}>{formatMoney(offer.amount)}</div>
-                                                        <div style={{ fontSize: '0.85rem', color: '#aaa' }}>{offer.years} years • Day {offer.dayOffered}</div>
+                                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{offer.years} years • Day {offer.dayOffered}</div>
                                                     </div>
                                                 </div>
                                             );
                                         })
                                 ) : (
-                                    <div style={{ padding: '40px', textAlign: 'center', color: '#888' }}>No active bids found.</div>
+                                    <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-dim)' }}>No active bids found.</div>
                                 )}
                             </div>
                             <button onClick={() => setSelectedPlayerForBids(null)}
@@ -690,11 +694,11 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                             <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                                 <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🎽</div>
                                 <h3 style={{ margin: 0, fontSize: '1.5rem', color: 'white' }}>Hire Coach</h3>
-                                <p style={{ color: '#888', margin: '5px 0' }}>{selectedCoachForOffer.firstName} {selectedCoachForOffer.lastName}</p>
+                                <p style={{ color: 'var(--text-dim)', margin: '5px 0' }}>{selectedCoachForOffer.firstName} {selectedCoachForOffer.lastName}</p>
                             </div>
 
                             <div style={{ marginBottom: '20px' }}>
-                                <label style={{ display: 'block', fontSize: '0.9rem', color: '#aaa', marginBottom: '8px', fontWeight: 600 }}>ANNUAL SALARY</label>
+                                <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '8px', fontWeight: 600 }}>ANNUAL SALARY</label>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                                     <input
                                         type="range" min="1000000" max="15000000" step="100000"
@@ -707,7 +711,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                             </div>
 
                             <div style={{ marginBottom: '30px' }}>
-                                <label style={{ display: 'block', fontSize: '0.9rem', color: '#aaa', marginBottom: '8px', fontWeight: 600 }}>CONTRACT YEARS</label>
+                                <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '8px', fontWeight: 600 }}>CONTRACT YEARS</label>
                                 <div style={{ display: 'flex', gap: '8px' }}>
                                     {[1, 2, 3, 4, 5].map(y => (
                                         <button
@@ -716,7 +720,7 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                                             style={{
                                                 flex: 1, padding: '10px', borderRadius: '10px', fontWeight: 700,
                                                 background: selectedCoachForOffer.contract.yearsRemaining === y ? '#8b5cf6' : '#2a2a2e',
-                                                color: selectedCoachForOffer.contract.yearsRemaining === y ? 'white' : '#888',
+                                                color: selectedCoachForOffer.contract.yearsRemaining === y ? 'white' : 'var(--text-dim)',
                                                 border: 'none', cursor: 'pointer'
                                             }}
                                         >
@@ -774,18 +778,24 @@ export const FreeAgencyView: React.FC<FreeAgencyViewProps> = ({ onBack, onComple
                                                     borderLeft: isUser ? '4px solid #8b5cf6' : '4px solid #666'
                                                 }}>
                                                     <div>
-                                                        <div style={{ fontWeight: 700, color: 'white' }}>{offeringTeam?.name || 'Unknown Team'}</div>
-                                                        <div style={{ fontSize: '0.85rem', color: '#888' }}>{isUser ? 'Your Bid' : 'AI Team Bid'}</div>
+                                                        <div style={{ fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                            {offeringTeam?.logo ? (
+                                                                <img src={offeringTeam.logo} alt={offeringTeam.abbreviation} style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                                                            ) : (
+                                                                offeringTeam?.abbreviation || '???'
+                                                            )}
+                                                        </div>
+                                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>{isUser ? 'Your Bid' : 'AI Team Bid'}</div>
                                                     </div>
                                                     <div style={{ textAlign: 'right' }}>
                                                         <div style={{ fontWeight: 700, color: '#8b5cf6', fontSize: '1.1rem' }}>{formatMoney(offer.amount)}</div>
-                                                        <div style={{ fontSize: '0.85rem', color: '#aaa' }}>{offer.years} years</div>
+                                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{offer.years} years</div>
                                                     </div>
                                                 </div>
                                             );
                                         })
                                 ) : (
-                                    <div style={{ padding: '40px', textAlign: 'center', color: '#888' }}>No active bids found. AI teams haven't placed offers yet.</div>
+                                    <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-dim)' }}>No active bids found. AI teams haven't placed offers yet.</div>
                                 )}
                             </div>
                             <button onClick={() => setSelectedCoachForBids(null)}

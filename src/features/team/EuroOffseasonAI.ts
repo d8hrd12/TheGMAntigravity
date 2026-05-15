@@ -99,8 +99,8 @@ function determineContract(
     }
 
     if (playerType === 'NBA_VET') {
-        // Short deals — they're at the end of their career
-        const amount = ovr >= 87 ? 4_500_000 : ovr >= 83 ? 3_200_000 : 2_200_000;
+        // Short deals — they're at the end of their career. Reduced amounts to match talent.
+        const amount = ovr >= 87 ? 3_500_000 : ovr >= 83 ? 2_600_000 : 1_800_000;
         return { amount, years: 2, role: ovr >= 85 ? 'Star' : 'Starter' };
     }
 
@@ -144,7 +144,7 @@ function signPlayer(
         ...player,
         teamId: team.id,
         acquisition: {
-            type: playerType === 'NBA_VET' ? 'trade' : 'free_agency',
+            type: playerType === 'NBA_VET' ? 'trade' : 'free_agent',
             year: currentYear,
             details: playerType === 'NBA_VET'
                 ? 'Signed from NBA'
@@ -349,13 +349,37 @@ export function simulateEuroAIOffseason(params: {
                     position: yt.position,
                     height: yt.height ?? 195,
                     weight: yt.weight ?? 90,
-                    nationality: yt.nationality,
+                    personality: 'Professional',
                     overall: calculateOverall(yt),
                     potential: yt.potential ?? 80,
                     attributes: yt.attributes,
+                    tendencies: {
+                        shooting: 50,
+                        passing: 50,
+                        inside: 50,
+                        outside: 50,
+                        defensiveAggression: 50,
+                        foulTendency: 50
+                    },
                     teamId: team.id,
+                    morale: 80,
+                    fatigue: 0,
+                    stamina: 100,
+                    seasonStats: {
+                        gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0,
+                        steals: 0, blocks: 0, turnovers: 0, fouls: 0, offensiveRebounds: 0,
+                        defensiveRebounds: 0, fgMade: 0, fgAttempted: 0, threeMade: 0,
+                        threeAttempted: 0, ftMade: 0, ftAttempted: 0, rimMade: 0,
+                        rimAttempted: 0, rimAssisted: 0, midRangeMade: 0, midRangeAttempted: 0,
+                        midRangeAssisted: 0, threePointAssisted: 0, plusMinus: 0
+                    },
                     careerStats: [],
-                    acquisition: { type: 'free_agency', year: gameYear, details: 'Academy Graduate' }
+                    jerseyNumber: Math.floor(Math.random() * 50),
+                    minutes: 0,
+                    isStarter: false,
+                    loveForTheGame: 10,
+                    yearsOfService: 0,
+                    acquisition: { type: 'free_agent', year: gameYear, details: 'Academy Graduate' }
                 };
 
                 const result = signPlayer(youngAsPlayer, team, archetype, 'YOUNGLING', updatedPlayers, updatedContracts, gameYear);

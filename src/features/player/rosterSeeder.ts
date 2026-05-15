@@ -408,7 +408,7 @@ export function seedRealRosters(teams: Team[], leagueType: 'NBA' | 'EURO' = 'NBA
                 archetype: deriveArchetypeName(attrs, tendencies, position),
                 tendencies: tendencies,
                 morale: 90, fatigue: 0, stamina: 100,
-                teamId: undefined,
+                teamId: null,
                 yearsOfService: Math.max(0, (def.age || 25) - 19),
                 isStarter: false,
                 minutes: 0,
@@ -427,7 +427,7 @@ export function seedRealRosters(teams: Team[], leagueType: 'NBA' | 'EURO' = 'NBA
                 badges: def.badges,
                 overall: (def as any).stars ? Math.round((def as any).stars * 20) : calculateOverall(attrs, position),
                 jerseyNumber: Math.floor(Math.random() * 100),
-                acquisition: { type: 'free_agency', year: 2024 }
+                acquisition: { type: 'free_agent', year: 2024 }
             };
             allPlayers.push(player);
         });

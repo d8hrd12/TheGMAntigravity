@@ -40,7 +40,7 @@ const FOCUS_WEIGHTS: Record<TrainingFocus, Partial<Record<keyof PlayerAttributes
 export const calculateProgression = (player: Player, focus: TrainingFocus, coachDevRating?: number): { updatedPlayer: Player; report: ProgressionResult } => {
     const changes: AttributeChange[] = [];
     const oldAttributes = { ...player.attributes };
-    const oldOverall = player.overall; // Assuming it is up to date
+    const oldOverall = calculateOverall(player); // Recalculate to ensure accurate delta regardless of cached state
 
     // 1. Determine Growth Potential
     // Age Curves:

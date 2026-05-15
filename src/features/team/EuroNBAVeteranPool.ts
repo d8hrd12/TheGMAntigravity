@@ -27,9 +27,9 @@ const RAND_LAST = [
 
 function applyAgingDecay(attrs: any, baseOvr: number, currentAge: number) {
     const yearsOverPrime = Math.max(0, currentAge - 30);
-    const athleticScale = Math.max(0.60, 1 - yearsOverPrime * 0.025);
-    const skillScale    = Math.max(0.82, 1 - yearsOverPrime * 0.010);
-    const iqBonus       = Math.min(8, Math.floor(yearsOverPrime * 0.5));
+    const athleticScale = Math.max(0.70, 1 - yearsOverPrime * 0.020); // softer physical drop
+    const skillScale    = Math.max(0.88, 1 - yearsOverPrime * 0.008); // slower skill drop
+    const iqBonus       = Math.min(10, Math.floor(yearsOverPrime * 0.6));
     const s = (v: number, scale: number) => Math.max(30, Math.round((v || baseOvr) * scale));
     return {
         finishing: s(attrs.finishing, athleticScale), athleticism: s(attrs.athleticism, athleticScale),
@@ -48,7 +48,7 @@ function applyAgingDecay(attrs: any, baseOvr: number, currentAge: number) {
         offensiveConsistency: s(attrs.offensiveConsistency, skillScale),
         defensiveConsistency: s(attrs.defensiveConsistency, skillScale),
         strength: attrs.strength || 70,
-        stamina: Math.max(65, (attrs.stamina || 85) - yearsOverPrime * 1.5),
+        stamina: Math.max(70, (attrs.stamina || 85) - yearsOverPrime * 1.2),
     };
 }
 
@@ -66,8 +66,10 @@ function extractFromRosters(
             const contractYearsLeft = (def.contract?.years || 0) - yearsElapsed;
             if (contractYearsLeft !== 1) continue;
             if (currentAge <= 31) continue;
-            const ageDrop = Math.max(0, currentAge - 33);
-            const currentOvr = Math.max(65, (def.ovr || 75) - ageDrop);
+            
+            // Softer age drop: starts at 34 and slower slope
+            const ageDrop = Math.max(0, (currentAge - 34) * 0.4);
+            const currentOvr = Math.max(70, (def.ovr || 75) - ageDrop);
             if (currentOvr <= 76) continue;
 
             const attrs = applyAgingDecay(def.attributes || {}, def.ovr || 75, currentAge);
@@ -86,8 +88,15 @@ function extractFromRosters(
                 overall: currentOvr,
                 potential: currentOvr,
                 attributes: attrs,
-                tendencies: { shootsThrees: 50, drivesToBasket: 50, postUp: 50, passFirst: 50, foulDrawer: 50, helperDefender: 50, highPressurePlayer: 50, clutchFactor: 50 },
-                personality: 'Veteran Leader',
+                tendencies: {
+                    shooting: 50,
+                    passing: 50,
+                    inside: 50,
+                    outside: 50,
+                    defensiveAggression: 50,
+                    foulTendency: 50
+                },
+                personality: 'Silent Leader',
                 archetype: def.archetype || 'Veteran',
                 morale: 80, fatigue: 0, stamina: 100,
                 yearsOfService: Math.max(1, currentAge - 19),

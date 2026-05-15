@@ -139,7 +139,7 @@ export const TeamChemistryView: React.FC<TeamChemistryViewProps> = ({ team, play
                 title="Team Chemistry"
                 subtitle="Social Dynamic & Hierarchy"
                 onBack={onBack}
-                teamColor={team.colors.primary}
+                teamColor={team.colors?.primary}
             />
 
             <div style={{ padding: '0 20px', flex: 1, overflowY: 'auto' }}>

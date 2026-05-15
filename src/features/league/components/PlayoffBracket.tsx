@@ -24,7 +24,7 @@ export const PlayoffBracket: React.FC<PlayoffBracketProps> = ({ seriesList, curr
 
     const getTeamColor = (id: string) => {
         const t = teams.find(team => team.id === id);
-        return t?.colors?.primary || '#ccc';
+        return t?.colors?.primary || 'var(--text-muted)';
     };
 
     const isUserTeam = (id: string) => id === userTeamId;

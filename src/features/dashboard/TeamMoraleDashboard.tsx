@@ -48,61 +48,64 @@ export const TeamMoraleDashboard: React.FC<TeamMoraleProps> = ({ players, team, 
         .slice(0, 3);
 
     return (
-        <div onClick={onNavigate} style={{ cursor: 'pointer', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
-            <DashboardCard variant="primary" title="TEAM CHEMISTRY" icon={<Icon size={16} />} action={<ChevronRight size={16} color="var(--text-muted)" />}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: unhappyPlayers.length > 0 ? '16px' : '0' }}>
-                    <div className="gauge-container" style={{ width: '70px', height: '70px', position: 'relative' }}>
+        <div onClick={onNavigate} style={{ cursor: 'pointer', transition: 'transform 0.3s ease' }}>
+            <DashboardCard variant="default" title="TEAM CHEMISTRY" icon={<Icon size={16} color={color} />} action={<ChevronRight size={16} color="#8e8e93" />}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '24px', padding: '4px' }}>
+                    <div className="gauge-container" style={{ width: '80px', height: '80px', position: 'relative' }}>
                         <svg className="gauge-svg" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)', width: '100%', height: '100%' }}>
-                            <circle cx="50" cy="50" r="45" fill="none" stroke="var(--border-color)" strokeWidth="10" />
+                            <circle cx="50" cy="50" r="42" fill="none" stroke="#f2f2f7" strokeWidth="12" />
                             <circle 
-                                cx="50" cy="50" r="45" 
+                                cx="50" cy="50" r="42" 
                                 fill="none" 
                                 stroke={color} 
-                                strokeWidth="10"
+                                strokeWidth="12"
                                 strokeLinecap="round"
                                 style={{ 
-                                    strokeDasharray: '283', 
-                                    strokeDashoffset: (283 - (283 * avgMorale) / 100),
-                                    transition: 'stroke-dashoffset 1s ease-in-out'
+                                    strokeDasharray: '264', 
+                                    strokeDashoffset: (264 - (264 * avgMorale) / 100),
+                                    transition: 'stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1)'
                                 }} 
                             />
                         </svg>
                         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <span style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--text-main)' }}>{avgMorale}</span>
+                            <span style={{ fontSize: '1.4rem', fontWeight: 900, color: '#1c1c1e', letterSpacing: '-0.02em' }}>{avgMorale}</span>
                         </div>
                     </div>
 
                     <div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 900, color }}>{status}</div>
-                        <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em' }}>Locker Room Atmosphere</div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 900, color, letterSpacing: '-0.01em' }}>{status}</div>
+                        <div style={{ fontSize: '0.65rem', color: '#8e8e93', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em', marginTop: '2px' }}>Atmosphere</div>
                     </div>
                 </div>
 
                 {unhappyPlayers.length > 0 && (
-                    <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '12px' }}>
-                        <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 800, marginBottom: '8px' }}>UNHAPPY PLAYERS</div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ fontSize: '0.55rem', color: '#8e8e93', fontWeight: 800, letterSpacing: '0.1em' }}>CONCERNS</div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                             {unhappyPlayers.map(p => (
                                 <div 
                                     key={p.id}
                                     onClick={(e) => { e.stopPropagation(); onSelectPlayer(p.id); }}
                                     style={{
                                         display: 'flex',
-                                        justifyContent: 'space-between',
                                         alignItems: 'center',
-                                        background: 'var(--bg-body)',
-                                        padding: '6px 10px',
-                                        borderRadius: '6px',
+                                        gap: '8px',
+                                        background: '#fef2f2',
+                                        padding: '6px 12px',
+                                        borderRadius: '20px',
+                                        border: '1px solid #fee2e2',
                                         cursor: 'pointer',
-                                        border: '1px solid var(--border-color)'
+                                        transition: 'all 0.2s ease'
                                     }}
+                                    onMouseEnter={(e) => e.currentTarget.style.background = '#fee2e2'}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = '#fef2f2'}
                                 >
-                                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                                        {p.firstName[0]}. {p.lastName}
-                                    </div>
-                                    <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#e74c3c' }}>
-                                        {p.morale ?? 50}
-                                    </div>
+                                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#991b1b' }}>
+                                        {p.lastName.toUpperCase()}
+                                    </span>
+                                    <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#ef4444' }}>
+                                        {p.morale}
+                                    </span>
                                 </div>
                             ))}
                         </div>

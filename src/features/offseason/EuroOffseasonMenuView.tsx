@@ -166,6 +166,7 @@ export const EuroOffseasonMenuView: React.FC = () => {
             <PageHeader
                 title={`Offseason ${currentYear}`}
                 subtitle="Euro Management Center"
+                onBack={() => setView('dashboard')}
                 teamColor={userTeam?.colors?.primary}
             />
 

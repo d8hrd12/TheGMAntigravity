@@ -7,9 +7,10 @@ interface PageHeaderProps {
     onBack: () => void;
     children?: React.ReactNode; 
     teamColor?: string;
+    backLabel?: string;
 }
 
-export const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, onBack, children, teamColor }) => {
+export const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, onBack, children, teamColor, backLabel }) => {
     return (
         <div style={{ 
             padding: '32px 20px', 
@@ -29,9 +30,9 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, onBack,
                 <button
                     onClick={onBack}
                     style={{
-                        padding: '0',
-                        width: '48px',
+                        width: backLabel ? 'auto' : '48px',
                         height: '48px',
+                        padding: backLabel ? '0 16px' : '0',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -55,6 +56,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, onBack,
                     }}
                 >
                     <ArrowLeft size={20} strokeWidth={2.5} />
+                    {backLabel && <span style={{ marginLeft: '8px', fontWeight: 600 }}>{backLabel}</span>}
                 </button>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0px', textAlign: 'left', zIndex: 1 }}>
@@ -71,7 +73,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, onBack,
                     {subtitle && (
                         <h2 style={{
                             margin: 0,
-                            color: '#888888',
+                            color: 'var(--text-dim)',
                             fontSize: '0.9rem',
                             fontWeight: 500,
                             letterSpacing: '-0.01em',

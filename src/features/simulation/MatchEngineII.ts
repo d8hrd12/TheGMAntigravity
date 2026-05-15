@@ -310,7 +310,7 @@ export function simulateMatchII(input: MatchInput): MatchResult {
         overrides: Map<string, string>
     ): Player[] => {
         // A. Remove Overrides if Recovered
-        for (const [originalId, replacementId] of overrides.entries()) {
+        for (const [originalId, replacementId] of Array.from(overrides.entries())) {
             const original = teamRoster.find(p => p.id === originalId);
             if (original && original.stamina > 80) {
                 overrides.delete(originalId);

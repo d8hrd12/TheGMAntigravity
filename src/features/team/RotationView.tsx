@@ -14,7 +14,7 @@ interface RotationViewProps {
     players: Player[];
     team: Team;
     onBack: () => void;
-    onSave: (updates: { id: string, minutes: number, isStarter: boolean, rotationIndex?: number }[]) => void;
+    onSave: (updates: { id: string, minutes: number, isStarter: boolean, rotationIndex?: number }[], teamId: string, autoRotation: boolean, strategy: RotationStrategy) => void;
     onSelectPlayer: (playerId: string) => void;
 }
 
@@ -24,7 +24,8 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
     const MAX_PLAYER_MINS = leagueType === 'EURO' ? 40 : 48;
     const [roster, setRoster] = useState<Player[]>([]);
     const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
-    const [selectedStrategy, setSelectedStrategy] = useState<RotationStrategy>(50);
+    const [autoRotation, setAutoRotation] = useState<boolean>(team.autoRotation || false);
+    const [selectedStrategy, setSelectedStrategy] = useState<RotationStrategy>((team.rotationStrategy as RotationStrategy) || 50);
     const isFirstRun = React.useRef(true);
     const lastSavedRoster = React.useRef<string>('');
     const teamBaseline = React.useMemo(() => calculateTeamBaseline(players.filter(p => p.teamId === team.id)), [players, team.id]);
@@ -58,10 +59,12 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
             const bench = sorted.slice(5);
 
             setRoster([...starters, ...bench]);
-            setSelectedStrategy('Custom'); // Assuming it's already customized
+            if (team.rotationStrategy === undefined) {
+                setSelectedStrategy('Custom'); 
+            }
         } else {
             // Apply initial optimization only if no valid state
-            const optimized = optimizeRotation(teamPlayers, 50, TOTAL_TARGET);
+            const optimized = optimizeRotation(teamPlayers, (team.rotationStrategy as RotationStrategy) || 50, TOTAL_TARGET);
             
             // CUSTOM SORT FOR STARTERS (Top 5)
             const posOrder: Record<string, number> = { 'C': 1, 'PF': 2, 'SF': 3, 'SG': 4, 'PG': 5 };
@@ -87,13 +90,21 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
             rotationIndex: index // SAVE THE ORDER
         }));
 
-        onSave(updates);
+        onSave(updates, team.id, autoRotation, selectedStrategy);
     };
 
     const applyStrategy = (strategy: RotationStrategy) => {
         if (strategy === 'Custom') return; // Should not happen via button
-        const optimized = optimizeRotation(roster, strategy);
-        setRoster(optimized);
+        const optimized = optimizeRotation(roster, strategy, TOTAL_TARGET);
+        
+        // CUSTOM SORT FOR STARTERS (Top 5)
+        const posOrder: Record<string, number> = { 'C': 1, 'PF': 2, 'SF': 3, 'SG': 4, 'PG': 5 };
+        const starters = optimized.slice(0, 5).sort((a, b) => {
+            return (posOrder[a.position] || 99) - (posOrder[b.position] || 99);
+        });
+        const bench = optimized.slice(5);
+
+        setRoster([...starters, ...bench]);
         setSelectedStrategy(strategy);
     };
 
@@ -152,7 +163,7 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                 title="Active Rotation"
                 subtitle="Manage minutes & playing time"
                 onBack={onBack}
-                teamColor={team.colors.primary}
+                teamColor={team.colors?.primary}
             />
             {/* Save Button */}
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
@@ -172,6 +183,38 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                 >
                     SAVE ROTATION
                 </button>
+            </div>
+
+            {/* Auto-Manage Toggle */}
+            <div className="modern-card" style={{ marginBottom: '15px', padding: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ color: 'var(--text-main)', fontSize: '0.9rem', fontWeight: 'bold' }}>Auto-Manage Rotation</span>
+                    <span style={{ color: 'var(--text-dim)', fontSize: '0.7rem' }}>AI will optimize minutes before every game.</span>
+                </div>
+                <div 
+                    onClick={() => setAutoRotation(!autoRotation)}
+                    style={{
+                        width: '50px',
+                        height: '26px',
+                        background: autoRotation ? 'var(--team-primary)' : '#ddd',
+                        borderRadius: '13px',
+                        position: 'relative',
+                        cursor: 'pointer',
+                        transition: 'background 0.3s ease'
+                    }}
+                >
+                    <div style={{
+                        position: 'absolute',
+                        top: '3px',
+                        left: autoRotation ? '27px' : '3px',
+                        width: '20px',
+                        height: '20px',
+                        background: '#fff',
+                        borderRadius: '50%',
+                        transition: 'left 0.3s ease',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                    }} />
+                </div>
             </div>
 
             {/* Rotation Strategy Slider */}
@@ -200,7 +243,7 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                     }}
                 />
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#888' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-dim)' }}>
                     <span>Deep Bench (0)</span>
                     <span>Standard (50)</span>
                     <span>Heavy Starters (100)</span>
@@ -226,7 +269,7 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                         <tr>
                             <th style={{ padding: '12px 16px', textAlign: 'left', color: 'var(--text-muted)' }}>Player</th>
                             <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-muted)' }}>Pos</th>
-                            <th style={{ padding: '8px', textAlign: 'center', color: '#888' }}>Stars</th>
+                            <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-dim)' }}>Stars</th>
                             <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-muted)' }}>Min</th>
                         </tr>
                     </thead>

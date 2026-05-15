@@ -30,22 +30,33 @@ export const SimControls: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '8px',
-                padding: '12px',
-                fontSize: '0.65rem',
-                fontWeight: 800,
-                background: variant === 'primary' ? 'var(--team-primary)' : 'var(--bg-card)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '12px',
-                color: variant === 'primary' ? '#fff' : 'var(--text-main)',
+                gap: '10px',
+                padding: '14px 16px',
+                fontSize: '0.75rem',
+                fontWeight: 900,
+                background: variant === 'primary' ? 'var(--team-primary)' : '#ffffff',
+                border: variant === 'primary' ? 'none' : '1px solid #e5e5ea',
+                borderRadius: '30px',
+                color: variant === 'primary' ? '#fff' : '#1c1c1e',
                 textTransform: 'uppercase',
-                letterSpacing: '1px',
+                letterSpacing: '0.05em',
                 cursor: isSimulating ? 'not-allowed' : 'pointer',
-                boxShadow: 'var(--shadow-sm)',
-                opacity: isSimulating ? 0.7 : 1
+                boxShadow: variant === 'primary' ? '0 8px 20px rgba(var(--primary-rgb), 0.3)' : '0 2px 8px rgba(0,0,0,0.05)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                opacity: isSimulating ? 0.6 : 1
+            }}
+            onMouseEnter={(e) => {
+                if (!isSimulating) {
+                    e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+                    if (variant !== 'primary') e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.1)';
+                }
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                if (variant !== 'primary') e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
             }}
         >
-            <Icon size={14} style={{ color: variant === 'primary' ? '#fff' : 'var(--team-primary)' }} />
+            <Icon size={16} style={{ color: variant === 'primary' ? '#fff' : 'var(--team-primary)' }} />
             {label}
         </button>
     );
@@ -54,23 +65,23 @@ export const SimControls: React.FC = () => {
     const regularSeasonLength = leagueType === 'EURO' ? 38 : 82;
     const isSeasonComplete = seasonPhase === 'regular_season' && seasonGamesPlayed >= regularSeasonLength;
 
-
     const wrapperStyle: React.CSSProperties = {
         position: 'fixed',
-        bottom: '20px',
+        bottom: '30px',
         left: '50%',
         transform: 'translateX(-50%)',
-        width: 'calc(100% - 40px)',
-        maxWidth: '500px',
-        zIndex: 100,
+        width: 'calc(100% - 32px)',
+        maxWidth: '480px',
+        zIndex: 1000,
         display: 'flex',
         flexDirection: 'column',
-        gap: '8px',
-        padding: '12px',
-        background: 'var(--bg-card)',
-        borderRadius: '20px',
-        border: '1px solid var(--border-color)',
-        boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
+        gap: '10px',
+        padding: '16px',
+        background: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(30px) saturate(180%)',
+        borderRadius: '28px',
+        border: '1px solid rgba(255, 255, 255, 0.3)',
+        boxShadow: '0 20px 50px rgba(0,0,0,0.15)',
     };
 
     if (

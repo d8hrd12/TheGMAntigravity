@@ -107,7 +107,7 @@ export const LeaguePlayersView: React.FC<LeaguePlayersViewProps> = ({ players, t
                                         <StarRating stars={calculateStars(ovr, baseline)} size={14} />
                                     </td>
                                     {ATTRIBUTE_KEYS.map(key => (
-                                        <td key={key} style={{ padding: '10px', textAlign: 'center', fontSize: '0.9rem', color: '#aaa' }}>
+                                        <td key={key} style={{ padding: '10px', textAlign: 'center', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                                             {p.attributes[key]}
                                             {renderDiff(getAttributeDiff(p, key))}
                                         </td>
@@ -117,7 +117,7 @@ export const LeaguePlayersView: React.FC<LeaguePlayersViewProps> = ({ players, t
                         })}
                     </tbody>
                 </table>
-                {sortedPlayers.length > 100 && <div style={{ padding: '10px', textAlign: 'center', fontStyle: 'italic', color: '#888' }}>... and {sortedPlayers.length - 100} more</div>}
+                {sortedPlayers.length > 100 && <div style={{ padding: '10px', textAlign: 'center', fontStyle: 'italic', color: 'var(--text-dim)' }}>... and {sortedPlayers.length - 100} more</div>}
             </div>
             </div>
         </div>

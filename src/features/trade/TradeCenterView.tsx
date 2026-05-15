@@ -279,7 +279,7 @@ export const TradeCenterView: React.FC<TradeCenterViewProps> = ({
                     />
                 )}
                 {activeTab === 'injuries' && (
-                    <InjuryReportView />
+                    <InjuryReportView onBack={() => setActiveTab('new')} />
                 )}
                 {activeTab === 'log' && (
                     <TradesSummaryView

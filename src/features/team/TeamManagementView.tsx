@@ -77,7 +77,7 @@ export const TeamManagementView: React.FC<TeamManagementViewProps> = ({
                     title={getTitle()}
                     subtitle={activeTab === 'rotation' ? "Manage minutes & playing time" : "Tactics & coaching staff"}
                     onBack={onBack}
-                    teamColor={team.colors.primary}
+                    teamColor={team.colors?.primary}
                 />
 
                 <div style={{ padding: '0 20px', marginBottom: '20px' }}>

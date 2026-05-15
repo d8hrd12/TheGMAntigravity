@@ -46,7 +46,7 @@ export const PlayerDetailView: React.FC<PlayerDetailViewProps> = ({ player, team
     );
 
     const getRatingColor = (value: number | string) => {
-        if (typeof value === 'string') return value === '??' ? '#ccc' : '#f1c40f'; // simplistic for fuzzy
+        if (typeof value === 'string') return value === '??' ? 'var(--text-muted)' : '#f1c40f'; // simplistic for fuzzy
         if (value >= 90) return '#2ecc71'; // Elite - Green
         if (value >= 80) return '#3498db'; // Good - Blue
         if (value >= 70) return '#f1c40f'; // Average - Yellow

@@ -86,7 +86,7 @@ export const TeamFinancialsView: React.FC<TeamFinancialsViewProps> = ({ onBack, 
                     "Merchandise & revenue streams"
                 }
                 onBack={onBack}
-                teamColor={team.colors.primary}
+                teamColor={team.colors?.primary}
             />
 
             {/* Info Button and Tab Switcher */}

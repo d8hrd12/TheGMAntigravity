@@ -232,15 +232,15 @@ export const ResigningView: React.FC<ResigningViewProps> = ({ onSelectPlayer, on
                                         marginBottom: '20px'
                                     }}>
                                         <div style={{ background: 'rgba(0,0,0,0.02)', padding: '12px', textAlign: 'center' }}>
-                                            <div style={{ fontSize: '0.6rem', color: '#888', textTransform: 'uppercase', fontWeight: 800 }}>Points</div>
+                                            <div style={{ fontSize: '0.6rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 800 }}>Points</div>
                                             <div style={{ fontWeight: 900, fontSize: '1.2rem', color: '#111' }}>{(lastS.points / gp).toFixed(1)}</div>
                                         </div>
                                         <div style={{ background: 'rgba(0,0,0,0.02)', padding: '12px', textAlign: 'center' }}>
-                                            <div style={{ fontSize: '0.6rem', color: '#888', textTransform: 'uppercase', fontWeight: 800 }}>Rebounds</div>
+                                            <div style={{ fontSize: '0.6rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 800 }}>Rebounds</div>
                                             <div style={{ fontWeight: 900, fontSize: '1.2rem', color: '#111' }}>{(lastS.rebounds / gp).toFixed(1)}</div>
                                         </div>
                                         <div style={{ background: 'rgba(0,0,0,0.02)', padding: '12px', textAlign: 'center' }}>
-                                            <div style={{ fontSize: '0.6rem', color: '#888', textTransform: 'uppercase', fontWeight: 800 }}>Assists</div>
+                                            <div style={{ fontSize: '0.6rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 800 }}>Assists</div>
                                             <div style={{ fontWeight: 900, fontSize: '1.2rem', color: '#111' }}>{(lastS.assists / gp).toFixed(1)}</div>
                                         </div>
                                     </div>
