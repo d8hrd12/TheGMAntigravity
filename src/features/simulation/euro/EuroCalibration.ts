@@ -100,11 +100,11 @@ export const EURO_BASE_USAGE: Record<string, number> = {
  * Position caps.
  */
 export const EURO_USAGE_CAP: Record<string, number> = {
-  PG: 0.22, 
-  SG: 0.21,
-  SF: 0.20,
-  PF: 0.19,
-  C:  0.19,
+  PG: 0.36, 
+  SG: 0.34,
+  SF: 0.32,
+  PF: 0.30,
+  C:  0.30,
 };
 
 /**
