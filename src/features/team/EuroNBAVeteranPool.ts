@@ -26,29 +26,26 @@ const RAND_LAST = [
 ];
 
 function applyAgingDecay(attrs: any, baseOvr: number, currentAge: number) {
-    const yearsOverPrime = Math.max(0, currentAge - 30);
-    const athleticScale = Math.max(0.70, 1 - yearsOverPrime * 0.020); // softer physical drop
-    const skillScale    = Math.max(0.88, 1 - yearsOverPrime * 0.008); // slower skill drop
-    const iqBonus       = Math.min(10, Math.floor(yearsOverPrime * 0.6));
-    const s = (v: number, scale: number) => Math.max(30, Math.round((v || baseOvr) * scale));
+    // NO DECAY: Return original stats as requested (Gems)
+    const s = (v: number) => Math.max(30, Math.round(v || baseOvr));
     return {
-        finishing: s(attrs.finishing, athleticScale), athleticism: s(attrs.athleticism, athleticScale),
-        speed: s(attrs.speed, athleticScale), agility: s(attrs.agility, athleticScale),
-        vertical: s(attrs.vertical, athleticScale), ballHandling: s(attrs.ballHandling, athleticScale),
-        drivingDunk: s(attrs.drivingDunk, athleticScale), offensiveRebound: s(attrs.offensiveRebound, athleticScale),
-        defensiveRebound: s(attrs.defensiveRebound, athleticScale), blocking: s(attrs.blocking, athleticScale),
-        midRange: s(attrs.midRange, skillScale), threePointShot: s(attrs.threePointShot, skillScale),
-        freeThrow: s(attrs.freeThrow, skillScale), playmaking: s(attrs.playmaking, skillScale),
-        interiorDefense: s(attrs.interiorDefense, skillScale), perimeterDefense: s(attrs.perimeterDefense, skillScale),
-        stealing: s(attrs.stealing, skillScale), postControl: s(attrs.postControl, skillScale),
-        drawFoul: s(attrs.drawFoul, skillScale), standingDunk: s(attrs.standingDunk, skillScale),
-        layup: s(attrs.layup, skillScale),
-        basketballIQ: Math.min(99, (attrs.basketballIQ || baseOvr) + iqBonus),
-        workEthic: Math.min(99, (attrs.workEthic || 80) + Math.floor(iqBonus * 0.5)),
-        offensiveConsistency: s(attrs.offensiveConsistency, skillScale),
-        defensiveConsistency: s(attrs.defensiveConsistency, skillScale),
-        strength: attrs.strength || 70,
-        stamina: Math.max(70, (attrs.stamina || 85) - yearsOverPrime * 1.2),
+        finishing: s(attrs.finishing), athleticism: s(attrs.athleticism),
+        speed: s(attrs.speed), agility: s(attrs.agility),
+        vertical: s(attrs.vertical), ballHandling: s(attrs.ballHandling),
+        drivingDunk: s(attrs.drivingDunk), offensiveRebound: s(attrs.offensiveRebound),
+        defensiveRebound: s(attrs.defensiveRebound), blocking: s(attrs.blocking),
+        midRange: s(attrs.midRange), threePointShot: s(attrs.threePointShot),
+        freeThrow: s(attrs.freeThrow), playmaking: s(attrs.playmaking),
+        interiorDefense: s(attrs.interiorDefense), perimeterDefense: s(attrs.perimeterDefense),
+        stealing: s(attrs.stealing), postControl: s(attrs.postControl),
+        drawFoul: s(attrs.drawFoul), standingDunk: s(attrs.standingDunk),
+        layup: s(attrs.layup),
+        basketballIQ: s(attrs.basketballIQ),
+        workEthic: s(attrs.workEthic || 85),
+        offensiveConsistency: s(attrs.offensiveConsistency),
+        defensiveConsistency: s(attrs.defensiveConsistency),
+        strength: attrs.strength || 75,
+        stamina: attrs.stamina || 90,
     };
 }
 
@@ -66,12 +63,11 @@ function extractFromRosters(
             const contractYearsLeft = (def.contract?.years || 0) - yearsElapsed;
             // Include players expiring this year OR recently expired (Free Agents)
             if (contractYearsLeft > 1 || contractYearsLeft < 0) continue;
-            if (currentAge <= 31) continue;
+            if (currentAge < 30) continue;
             
-            // Softer age drop: starts at 34 and slower slope
-            const ageDrop = Math.max(0, (currentAge - 34) * 0.4);
-            const currentOvr = Math.max(70, (def.ovr || 75) - ageDrop);
-            if (currentOvr <= 76) continue;
+            // NO AGE DROP: Contenders want these as gems (user request)
+            const currentOvr = def.ovr || 75;
+            if (currentOvr <= 74) continue;
 
             const attrs = applyAgingDecay(def.attributes || {}, def.ovr || 75, currentAge);
             const nameIdx = pool.length;
