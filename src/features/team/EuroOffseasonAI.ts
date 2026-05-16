@@ -92,9 +92,9 @@ function determineContract(
     }
 
     if (playerType === 'NBA_VET') {
-        // Short deals — they're at the end of their career. Reduced amounts to match talent.
-        const amount = ovr >= 87 ? 3_500_000 : ovr >= 83 ? 2_600_000 : 1_800_000;
-        return { amount, years: 2, role: ovr >= 85 ? 'Star' : 'Starter' };
+        // Reduced amounts to make them 'Gems' for contenders (User Request)
+        const amount = ovr >= 90 ? 3_000_000 : ovr >= 85 ? 2_200_000 : 1_500_000;
+        return { amount, years: 2, role: ovr >= 84 ? 'Star' : 'Starter' };
     }
 
     // Free Agent — based on archetype and player quality

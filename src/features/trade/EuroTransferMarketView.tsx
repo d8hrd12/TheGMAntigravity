@@ -153,12 +153,11 @@ function extractPoolForYear(gameYear: number, nameSuffix?: string): Player[] {
             const contractYearsLeft = (def.contract?.years || 0) - yearsElapsed;
             // Include players expiring this year OR recently expired (Free Agents)
             if (contractYearsLeft > 1 || contractYearsLeft < 0) continue;
-            if (currentAge <= 31) continue;
+            if (currentAge < 30) continue;
             
-            // Softer age drop: starts at 34 and slower slope
-            const ageDrop = Math.max(0, (currentAge - 34) * 0.4);
-            const currentOvr = Math.max(70, (def.ovr || 75) - ageDrop);
-            if (currentOvr <= 76) continue;
+            // NO AGE DROP: Contenders want these as gems (user request)
+            const currentOvr = def.ovr || 75;
+            if (currentOvr <= 74) continue;
             pool.push(makeNBAVeteranPlayer(def, abbr, team, currentAge, currentOvr, gameYear));
         }
     }
@@ -187,7 +186,7 @@ const buildNBATargetPool = (gameYear: number): Player[] => {
             id: `nba_cycled_${gameYear}_${i}`,
             firstName: pick(RAND_FIRST, i),
             lastName:  pick(RAND_LAST,  i + 13),
-            overall:   Math.max(77, p.overall - 1),
+            overall:   Math.max(80, p.overall), // No penalty for cycled gems
         }));
 
     return [...realPool, ...cyclePool]
