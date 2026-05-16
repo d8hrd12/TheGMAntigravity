@@ -4988,10 +4988,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         salaryCap: finalSalaryCap,
                         teams: finalTeams,
                         awardsHistory: updatedAwardsHistory,
-                        retiredPlayersHistory: [
-                            ...(prev.retiredPlayersHistory || []),
-                            { year: finishedSeasonYear, players: retiredPlayers }
-                        ],
+                        retiredPlayersHistory: (() => {
+                            const history = prev.retiredPlayersHistory || [];
+                            const index = history.findIndex(h => h.year === finishedSeasonYear);
+                            const newEntry = { year: finishedSeasonYear, players: retiredPlayers };
+                            if (index !== -1) {
+                                const newHistory = [...history];
+                                newHistory[index] = newEntry;
+                                return newHistory;
+                            }
+                            return [...history, newEntry];
+                        })(),
                         draftClass,
                         draftOrder,
                         scoutingPoints,
@@ -5624,7 +5631,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             view: 'offseason_menu',
                             showAwardsModal: 'finals',
                             awardsHistory: updatedAwardsHistory,
-                            retiredPlayersHistory: [...(prev.retiredPlayersHistory || []), { year: finishedSeasonYear, players: retiredPlayers }],
+                            retiredPlayersHistory: (() => {
+                                const history = prev.retiredPlayersHistory || [];
+                                const index = history.findIndex(h => h.year === finishedSeasonYear);
+                                const newEntry = { year: finishedSeasonYear, players: retiredPlayers };
+                                if (index !== -1) {
+                                    const newHistory = [...history];
+                                    newHistory[index] = newEntry;
+                                    return newHistory;
+                                }
+                                return [...history, newEntry];
+                            })(),
                             draftClass,
                             draftOrder: doubleDraftOrder,
                             offseasonTasks: { retirements: false, scouting: false, coaching: false, draft: false, resigning: false, freeAgency: false, localTalent: false, financials: false, training: false, trainingResults: false, paySalaries: false },

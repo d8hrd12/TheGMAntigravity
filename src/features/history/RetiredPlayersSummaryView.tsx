@@ -10,9 +10,9 @@ interface RetiredPlayersSummaryViewProps {
 export const RetiredPlayersSummaryView: React.FC<RetiredPlayersSummaryViewProps> = ({ onSelectPlayer }) => {
     const { retiredPlayersHistory, continueFromRetirements, date, teams } = useGame();
 
-    // Get latest year
-    const currentYear = date.getFullYear();
-    const latestRetirements = retiredPlayersHistory.find((h: any) => h.year === currentYear);
+    // Get latest year from history for the ceremony
+    const latestRetirements = retiredPlayersHistory.length > 0 ? retiredPlayersHistory[retiredPlayersHistory.length - 1] : null;
+    const currentYear = latestRetirements ? latestRetirements.year : date.getFullYear();
     const retiredList = latestRetirements ? [...latestRetirements.players] : [];
 
     return (
