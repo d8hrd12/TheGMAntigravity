@@ -5578,6 +5578,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
                                 debt: newCash < 0 ? Math.abs(newCash) : 0,
                                 salaryCapSpace: calculateTeamCapSpace(t, aiUpdatedContracts, finalSalaryCap),
                                 titles: result === 'CHAMPION' ? (t.titles || 0) + 1 : (t.titles || 0),
+                                history: [...(t.history || []), { year: finishedSeasonYear, wins: t.wins, losses: t.losses }],
+                                wins: 0,
+                                losses: 0,
                                 financials: {
                                     totalIncome: 0, totalExpenses: 0, dailyIncome: 0, dailyExpenses: 0,
                                     seasonHistory: [...(t.financials?.seasonHistory || []), { year: finishedSeasonYear, profit: cashChange, revenue: report.totalRevenue, payroll: report.payroll, luxuryTax: report.luxuryTaxPaid }]
@@ -5602,13 +5605,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         const draftClass: Player[] = [];
                         while (draftClass.length < 80) draftClass.push(generatePlayer(undefined, Math.random() > 0.8 ? 'star' : 'prospect'));
 
-                        const finalTeams = updatedTeams.map(t => ({ ...t, rosterIds: t.rosterIds.filter(id => !retiredIds.includes(id)) }));
+                        const draftOrder = [...updatedTeams].sort((a, b) => a.wins - b.wins).map(t => t.id);
+                        const doubleDraftOrder = [...draftOrder, ...draftOrder];
+
+                        const finalTeams = updatedTeams.map(t => ({
+                            ...t,
+                            rosterIds: t.rosterIds.filter(id => !retiredIds.includes(id))
+                        }));
 
                         return {
                             ...prev,
                             players: playersAfterRetirement,
                             contracts: prev.contracts.filter(c => !retiredIds.includes(c.playerId)),
-                            teams: finalTeams,
+                            teams: finalTeams, 
                             games: stateGames,
                             playoffs: currentPlayoffs,
                             seasonPhase: 'offseason',
@@ -5617,7 +5626,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             awardsHistory: updatedAwardsHistory,
                             retiredPlayersHistory: [...(prev.retiredPlayersHistory || []), { year: finishedSeasonYear, players: retiredPlayers }],
                             draftClass,
-                            draftOrder: [...finalTeams].sort((a, b) => a.wins - b.wins).map(t => t.id).concat([...finalTeams].sort((a, b) => a.wins - b.wins).map(t => t.id)),
+                            draftOrder: doubleDraftOrder,
                             offseasonTasks: { retirements: false, scouting: false, coaching: false, draft: false, resigning: false, freeAgency: false, localTalent: false, financials: false, training: false, trainingResults: false, paySalaries: false },
                             isTrainingCampComplete: false,
                             trainingReport: null,
