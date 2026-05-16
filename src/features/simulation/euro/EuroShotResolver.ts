@@ -108,9 +108,9 @@ export function resolveEuroShot(
   const defenderAttr = getDefenderAttr(defender, zone);
   const base = getBasePct(zone);
 
-  // Skill edge: each 1-point attribute gap = ~0.85% shot% change (Increased from 0.50)
-  // This ensures elite players CRUSH weaker leagues (EuroCup)
-  const skillEdge = (shooterAttr - defenderAttr) / 100 * 0.85;
+  // Skill edge: each 1-point attribute gap = ~1.20% shot% change (Increased from 0.85)
+  // MASSIVE TIER SEPARATION: Luka tier players will now shoot ~70-75% against EuroCup defenses
+  const skillEdge = (shooterAttr - defenderAttr) / 100 * 1.2;
 
   // Fatigue penalty (only kicks in below 50 stamina)
   const fatiguePenalty = stamina < 50 ? (50 - stamina) * 0.0010 : 0;

@@ -54,12 +54,13 @@ export function calculateEuroUsageWeights(lineup: Player[]): Map<string, number>
     const cap = EURO_USAGE_CAP[p.position] ?? 0.22;
     // Elite EL creators (Sloukas, Shane Larkin types) — high IQ + playmaking
     const isCreator = p.attributes.playmaking >= 88 && p.attributes.basketballIQ >= 88;
-    const base = isCreator ? 0.24 : (EURO_BASE_USAGE[p.position] ?? 0.18);
+    const base = isCreator ? 0.26 : (EURO_BASE_USAGE[p.position] ?? 0.18);
     // Superstars get significantly more volume if OVR > 85
     const ovr = calculateOverall(p);
-    const starPower = ovr >= 90 ? 1.6 : ovr >= 85 ? 1.3 : 1.0;
-    // Sharper power law (1.5) ensures Luka takes 2-3x shots of role players
-    const w = Math.min(base * Math.pow(sk / 75, 1.5) * starPower, cap);
+    const starPower = ovr >= 95 ? 2.2 : ovr >= 90 ? 1.8 : ovr >= 85 ? 1.4 : 1.0;
+    // Sharper power law (1.8) + Cap bypass for 95+ OVR (Luka tier)
+    const effectiveCap = ovr >= 95 ? 0.48 : cap;
+    const w = Math.min(base * Math.pow(sk / 70, 1.8) * starPower, effectiveCap);
     weights.set(p.id, w);
     total += w;
   });
@@ -144,7 +145,7 @@ export function selectEuroPlayType(
   const isCreator = a.playmaking >= 88 && a.basketballIQ >= 88;
   
   const passChance = (isCreator && !isScorer) ? 0.82
-    : (isCreator && isScorer) ? 0.62 // Elite creators who can score are more aggressive
+    : (isCreator && isScorer) ? 0.40 // Superstars now have "Green Light" (60% chance to shoot)
     : isGuard ? 0.65
     : isBig   ? 0.50
     : 0.58;  // SF/Wing
