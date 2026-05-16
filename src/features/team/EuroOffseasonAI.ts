@@ -144,7 +144,7 @@ function signPlayer(
     if (team.cash < contract.amount) return { success: false };
 
     // Check roster size
-    if (team.rosterIds.length >= 15) return { success: false };
+    if ((team.rosterIds || []).length >= 15) return { success: false };
 
     // Clone player with new team assignment
     const signedPlayer: Player = {
@@ -186,6 +186,7 @@ function signPlayer(
 
     // Update team financials & roster
     team.cash -= contract.amount;
+    if (!team.rosterIds) team.rosterIds = [];
     if (!team.rosterIds.includes(player.id)) {
         team.rosterIds.push(player.id);
     }
@@ -216,7 +217,7 @@ export function performFinancialCleanup(
 ): { updatedPlayers: Player[], updatedContracts: Contract[], updatedTeams: Team[] } {
     let updatedPlayers = [...players];
     let updatedContracts = [...contracts];
-    const updatedTeams = teams.map(t => ({ ...t, rosterIds: [...t.rosterIds] }));
+    const updatedTeams = teams.map(t => ({ ...t, rosterIds: [...(t.rosterIds || [])] }));
 
     updatedTeams.forEach(team => {
         if (team.id === userTeamId) return;
@@ -352,7 +353,7 @@ export function simulateEuroAIOffseason(params: {
         const archetype = classifyTeamArchetype(team, teamRoster);
         const budget = getArchetypeBudget(archetype);
         const needs = detectRosterNeeds(teamRoster);
-        const openSlots = 15 - team.rosterIds.length;
+        const openSlots = 15 - (team.rosterIds || []).length;
 
         if (openSlots <= 0) continue;
 
@@ -405,7 +406,7 @@ export function simulateEuroAIOffseason(params: {
             let faSignCount = 0;
             for (const fa of freeAgents) {
                 if (faSignCount >= budget.freeAgentSlots) break;
-                if (team.rosterIds.length >= 15) break;
+                if ((team.rosterIds || []).length >= 15) break;
                 const result = signPlayer(fa, team, archetype, 'FREE_AGENT', updatedPlayers, updatedContracts, gameYear);
                 if (result.success) {
                     claimedFAIds.add(fa.id);
@@ -436,7 +437,7 @@ export function simulateEuroAIOffseason(params: {
             let youngSignCount = 0;
             for (const yt of younglings) {
                 if (youngSignCount >= budget.younglingSlots) break;
-                if (team.rosterIds.length >= 15) break;
+                if ((team.rosterIds || []).length >= 15) break;
 
                 const youngAsPlayer: Player = {
                     id: yt.id,
@@ -531,7 +532,7 @@ export function simulateEuroAIOffseason(params: {
             let vetSignCount = 0;
             for (const vet of availableVets) {
                 if (vetSignCount >= budget.nbaVetSlots) break;
-                if (team.rosterIds.length >= 15) break;
+                if ((team.rosterIds || []).length >= 15) break;
 
                 // NBA vets are not in updatedPlayers yet — add them
                 const result = signPlayer(vet, team, archetype, 'NBA_VET', updatedPlayers, updatedContracts, gameYear);

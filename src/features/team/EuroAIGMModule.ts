@@ -108,7 +108,7 @@ export function simulateEuroAI_LocalTalentDraft(
 ) {
     let updatedPlayers = [...currentPlayers];
     let updatedContracts = [...currentContracts];
-    let updatedTeams = teams.map(t => ({ ...t, rosterIds: [...t.rosterIds] }));
+    let updatedTeams = teams.map(t => ({ ...t, rosterIds: [...(t.rosterIds || [])] }));
     let remainingPool = [...localTalentPool];
 
     // Teams take turns evaluating the pool.
@@ -124,7 +124,7 @@ export function simulateEuroAI_LocalTalentDraft(
         const target = determineEuroTeamTarget(team, teamRoster);
         
         // Count current roster size
-        if (team.rosterIds.length >= 15) return; 
+        if ((team.rosterIds || []).length >= 15) return; 
 
         // Filter the pool based on team standards
         const interestedTalents = remainingPool.filter(talent => {
@@ -160,7 +160,7 @@ export function simulateEuroAI_LocalTalentDraft(
         else maxToSign = 1;
 
         let signed = 0;
-        while (signed < maxToSign && interestedTalents.length > 0 && team.rosterIds.length < 15) {
+        while (signed < maxToSign && interestedTalents.length > 0 && (team.rosterIds || []).length < 15) {
             const pick = interestedTalents.shift();
             if (!pick) break;
 
@@ -241,6 +241,7 @@ export function simulateEuroAI_LocalTalentDraft(
 
             updatedPlayers.push(newPlayer);
             updatedContracts.push(contract);
+            if (!team.rosterIds) team.rosterIds = [];
             team.rosterIds.push(newPlayer.id);
             team.cash -= 300000;
             if (team.salaryCapSpace !== undefined) {
