@@ -3565,8 +3565,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         // AI Signing from FA or NBA Pool
                         console.log(`[AI Transfer Engine] ${t1.name} signing ${targetPlayer.firstName} ${targetPlayer.lastName} (isSigning)`);
                         
-                        // Update Players
-                        currentPlayers = currentPlayers.map(p => p.id === targetPlayer.id ? { ...p, teamId: t1.id } : p);
+                        // Update Players (Ensure player is added to league if coming from NBA pool)
+                        const playerExists = currentPlayers.some(p => p.id === targetPlayer.id);
+                        if (playerExists) {
+                            currentPlayers = currentPlayers.map(p => p.id === targetPlayer.id ? { ...p, teamId: t1.id } : p);
+                        } else {
+                            currentPlayers = [...currentPlayers, { ...targetPlayer, teamId: t1.id }];
+                        }
                         
                         // Update Contracts
                         const salary = 1200000 + Math.floor(Math.random() * 800000);
