@@ -10,7 +10,7 @@
  */
 
 import type { Player }         from '../../../models/Player';
-import type { MatchInput, MatchResult, PlayerStats, BoxScore, GameEvent } from '../SimulationTypes';
+import type { MatchInput, MatchResult, PlayerStats, BoxScore, GameEvent, InjuryReport } from '../SimulationTypes';
 import { calculateOverall }    from '../../../utils/playerUtils';
 import { NBA, MINUTES_BY_RANK } from './Calibration';
 import { calculateUsageWeights, selectPlayType } from './PlayTypeEngine';
@@ -21,6 +21,8 @@ import { getTacticsForStyle } from '../../team/coachGenerator';
 import { PACE_MULTIPLIERS } from '../TacticsTypes';
 import type { PaceType } from '../TacticsTypes';
 import { optimizeRotation } from '../../../utils/rotationUtils';
+import { checkInGameInjury } from '../InjurySystem';
+import type { InjuryInstance } from '../InjurySystem';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -65,8 +67,8 @@ class TeamRotationTracker {
 
     constructor(roster: Player[], isPlayoffs: boolean = false) {
         assignMinutes(roster, isPlayoffs);
-        this.roster = roster.filter(p => !p.isRetired && p.minutes && p.minutes > 0);
-        if (this.roster.length < 5) this.roster = roster.filter(p => !p.isRetired);
+        this.roster = roster.filter(p => !p.isRetired && p.minutes && p.minutes > 0 && !p.injury);
+        if (this.roster.length < 5) this.roster = roster.filter(p => !p.isRetired && !p.injury);
         
         this.trackers = new Map();
         const totalMins = this.roster.reduce((sum, p) => sum + (p.minutes || 0), 0);
@@ -112,15 +114,22 @@ class TeamRotationTracker {
         lineup.forEach(p => this.trackers.get(p.id)!.played += 1);
         return lineup;
     }
+
+    handleInjury(playerId: string) {
+        this.roster = this.roster.filter(p => p.id !== playerId);
+        this.trackers.delete(playerId);
+    }
 }
 
 /** Assign minutes based on role rank — only for players without pre-set minutes */
 function assignMinutes(roster: Player[], isPlayoffs?: boolean): void {
   const active = roster.filter(p => !p.isRetired);
   
-  // Check if this roster already has exactly 240 minutes assigned
+  // Check if this roster already has exactly 240 minutes assigned AND no injured player has minutes
   const totalMinutes = active.reduce((sum, p) => sum + (p.minutes || 0), 0);
-  if (totalMinutes === 240) {
+  const anyInjuredWithMinutes = active.some(p => p.injury && (p.minutes || 0) > 0);
+  
+  if (totalMinutes === 240 && !anyInjuredWithMinutes) {
     // Minutes are already set perfectly, respect them
     return;
   }
@@ -191,6 +200,10 @@ export function simulateMatchV3(input: MatchInput): MatchResult {
     { home: 0, away: 0 },
     { home: 0, away: 0 },
   ];
+  
+  // Injury tracking
+  const matchInjuries: InjuryReport[] = [];
+  const injuredThisGame = new Set<string>();
 
   // Team foul counters (reset each quarter)
   let homeFouls = 0;
@@ -198,6 +211,10 @@ export function simulateMatchV3(input: MatchInput): MatchResult {
 
   // PlusMinus tracking: who is on court during each point swing
   const onCourt = { home: [] as string[], away: [] as string[] };
+  
+  // Track stamina per player (starts at 100, drains with activity)
+  const stamina = new Map<string, number>();
+  [...homeRoster, ...awayRoster].forEach(p => stamina.set(p.id, p.stamina ?? 100));
 
   // ---------------------------------------------------------------------------
   // GAME LOOP: 4 quarters × possessions
@@ -225,8 +242,6 @@ export function simulateMatchV3(input: MatchInput): MatchResult {
     const isBlowout = quarter === 4 && Math.abs(homeScore - awayScore) >= 25 && !input.isPlayoffs;
 
     // Track stamina per player this quarter (starts at 100, drains with activity)
-    const stamina = new Map<string, number>();
-    [...homeRoster, ...awayRoster].forEach(p => stamina.set(p.id, p.stamina ?? 100));
 
     for (let poss = 0; poss < POSS_PER_QUARTER * 2; poss++) {
       const isHome = poss % 2 === 0;
@@ -369,6 +384,37 @@ export function simulateMatchV3(input: MatchInput): MatchResult {
       // Drain stamina
       stamina.set(shooter.id, Math.max(0, (stamina.get(shooter.id) ?? 100) - 1.2));
       stamina.set(handler.id, Math.max(0, (stamina.get(handler.id) ?? 100) - 0.8));
+
+      // ---- In-Game Injury Roll ----
+      const possibleInjured = [handler, shooter];
+      for (const p of possibleInjured) {
+          if (injuredThisGame.has(p.id)) continue;
+          const currentStamina = stamina.get(p.id) ?? 100;
+          const injuryInstance = checkInGameInjury(p, 100 - currentStamina);
+          if (injuryInstance) {
+              injuredThisGame.add(p.id);
+              const returnDate = new Date(date || new Date());
+              returnDate.setDate(returnDate.getDate() + (injuryInstance.gamesRemaining * 3));
+              
+              matchInjuries.push({
+                  playerId: p.id,
+                  type: injuryInstance.type,
+                  severity: injuryInstance.severity,
+                  returnDate,
+                  gamesRemaining: injuryInstance.gamesRemaining
+              });
+
+              p.injury = {
+                  type: injuryInstance.type,
+                  severity: injuryInstance.severity,
+                  returnDate,
+                  gamesRemaining: injuryInstance.gamesRemaining
+              };
+
+              if (isHome) homeTracker.handleInjury(p.id);
+              else awayTracker.handleInjury(p.id);
+          }
+      }
     }
 
     // Halftime recovery
@@ -479,7 +525,7 @@ export function simulateMatchV3(input: MatchInput): MatchResult {
     homeScore,
     awayScore,
     boxScore,
-    injuries: [],
+    injuries: matchInjuries,
     events: [], // Play-by-play removed per user request
   };
 }

@@ -2,95 +2,145 @@ import type { Player, Position } from '../models/Player';
 
 const posNum: Record<Position, number> = { 'PG': 1, 'SG': 2, 'SF': 3, 'PF': 4, 'C': 5 };
 
-export function canPlayPosition(naturalPos: Position, targetPos: Position): boolean {
-    const diff = Math.abs(posNum[naturalPos] - posNum[targetPos]);
+/**
+ * Checks if a player can play a specific target position.
+ * Logic: Natural position, secondary position, or adjacent position (diff <= 1).
+ */
+export function canPlayPosition(player: Player, targetPos: Position): boolean {
+    if (player.position === targetPos) return true;
+    if (player.secondaryPosition === targetPos) return true;
+    
+    // Tightened: Only allow adjacent if it's within 1 slot.
+    // This allows PG to play SG, C to play PF, etc.
+    const diff = Math.abs(posNum[player.position] - posNum[targetPos]);
     return diff <= 1;
 }
 
+/**
+ * Validates if a group of 5 players can cover all 5 standard basketball positions.
+ * Returns the valid assignment if found.
+ */
+export function validateLineup(players: Player[]): { valid: boolean; assignment: Player[] | null; missing: Position[] } {
+    if (players.length !== 5) return { valid: false, assignment: null, missing: [] };
+    
+    const positions: Position[] = ['PG', 'SG', 'SF', 'PF', 'C'];
+    const assignment = new Array(5).fill(null);
+    const used = new Array(5).fill(false);
+
+    function canAssign(idx: number): boolean {
+        if (idx === 5) return true;
+        
+        for (let i = 0; i < 5; i++) {
+            if (!used[i] && canPlayPosition(players[idx], positions[i])) {
+                used[i] = true;
+                assignment[i] = players[idx];
+                if (canAssign(idx + 1)) return true;
+                used[i] = false;
+                assignment[i] = null;
+            }
+        }
+        return false;
+    }
+
+    const valid = canAssign(0);
+    if (!valid) {
+        return { valid: false, assignment: null, missing: positions };
+    }
+
+    return { valid: true, assignment, missing: [] };
+}
+
+/**
+ * Finds the best 5 players that can form a valid starting lineup (PG, SG, SF, PF, C).
+ * Returns the players in that specific order.
+ */
 export function findValidStartingLineup(playersWithOvr: any[]): any[] {
-    // playersWithOvr is sorted by OVR descending
-    // We want to find the highest total OVR lineup of 5 players that can fill PG, SG, SF, PF, C
-    
-    // We can use a simple recursive search. Since we want highest OVR, we try picking the best players first.
-    // Actually, just loop through all combinations of 5 players? N choose 5 is large if N=15. 15C5 = 3003 combinations.
-    // That's tiny! We can just generate all combinations, filter valid ones, and take the one with max OVR.
-    
     const validPositions = ['PG', 'SG', 'SF', 'PF', 'C'] as Position[];
     
-    // Check if a group of 5 players can cover all 5 positions
-    function canCover(group: any[]): boolean {
-        const used = [false, false, false, false, false]; // PG, SG, SF, PF, C
-        
+    function getAssignment(group: any[]): any[] | null {
+        const assignment = new Array(5).fill(null);
+        const used = new Array(5).fill(false);
+
         function backtrack(idx: number): boolean {
             if (idx === 5) return true;
             const player = group[idx];
             for (let i = 0; i < 5; i++) {
-                if (!used[i] && canPlayPosition(player.position, validPositions[i])) {
+                if (!used[i] && canPlayPosition(player, validPositions[i])) {
                     used[i] = true;
+                    assignment[i] = player;
                     if (backtrack(idx + 1)) return true;
                     used[i] = false;
+                    assignment[i] = null;
                 }
             }
             return false;
         }
-        return backtrack(0);
+
+        if (backtrack(0)) return assignment;
+        return null;
     }
 
-    let bestLineup: any[] = [];
+    let bestAssignment: any[] | null = null;
     let bestOvr = -1;
 
-    // Fast check: Can the top 5 cover it?
-    if (playersWithOvr.length >= 5 && canCover(playersWithOvr.slice(0, 5))) {
-        return playersWithOvr.slice(0, 5);
+    // 1. Try top 5 first
+    if (playersWithOvr.length >= 5) {
+        const top5 = playersWithOvr.slice(0, 5);
+        const assignment = getAssignment(top5);
+        if (assignment) return assignment;
     }
 
-    // Generate combinations of 5 from the top 10 (usually enough to find a valid lineup)
-    // to keep it fast. If we can't find in top 10, try all 15.
+    // 2. Search combinations in top 12 for best OVR (widen pool slightly for flexibility)
     const searchPool = playersWithOvr.slice(0, 12);
-    
-    function getCombinations(arr: any[], k: number): any[][] {
-        const results: any[][] = [];
-        function helper(start: number, combo: any[]) {
-            if (combo.length === k) {
-                results.push([...combo]);
-                return;
-            }
-            for (let i = start; i < arr.length; i++) {
-                combo.push(arr[i]);
-                helper(i + 1, combo);
-                combo.pop();
-            }
-        }
-        helper(0, []);
-        return results;
-    }
-
     const combos = getCombinations(searchPool, 5);
+    
     for (const combo of combos) {
-        if (canCover(combo)) {
-            const totalOvr = combo.reduce((sum, p) => sum + p.calculatedOvr, 0);
+        const assignment = getAssignment(combo);
+        if (assignment) {
+            const totalOvr = combo.reduce((sum, p) => sum + (p.calculatedOvr || p.overall), 0);
             if (totalOvr > bestOvr) {
                 bestOvr = totalOvr;
-                bestLineup = combo;
+                bestAssignment = assignment;
             }
         }
     }
 
-    // Fallback if no valid combo found (extremely rare, e.g. team has 12 centers)
-    if (bestLineup.length === 0) {
-        // Just take the best player per position rigidly
-        const fallback: any[] = [];
+    // 3. Fallback: pick best per position strictly
+    if (!bestAssignment) {
+        const fallback = new Array(5).fill(null);
         const usedIds = new Set();
-        for (const pos of validPositions) {
+        
+        validPositions.forEach((pos, i) => {
             let p = playersWithOvr.find(p => p.position === pos && !usedIds.has(p.id));
-            if (!p) p = playersWithOvr.find(p => !usedIds.has(p.id)); // absolute fallback
+            if (!p) p = playersWithOvr.find(p => p.secondaryPosition === pos && !usedIds.has(p.id));
+            if (!p) p = playersWithOvr.find(p => canPlayPosition(p, pos) && !usedIds.has(p.id));
+            if (!p) p = playersWithOvr.find(p => !usedIds.has(p.id));
+            
             if (p) {
-                fallback.push(p);
+                fallback[i] = p;
                 usedIds.add(p.id);
             }
-        }
-        return fallback;
+        });
+        return fallback.filter(p => p !== null);
     }
 
-    return bestLineup;
+    return bestAssignment;
 }
+
+function getCombinations(arr: any[], k: number): any[][] {
+    const results: any[][] = [];
+    function helper(start: number, combo: any[]) {
+        if (combo.length === k) {
+            results.push([...combo]);
+            return;
+        }
+        for (let i = start; i < arr.length; i++) {
+            combo.push(arr[i]);
+            helper(i + 1, combo);
+            combo.pop();
+        }
+    }
+    helper(0, []);
+    return results;
+}
+

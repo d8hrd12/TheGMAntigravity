@@ -135,6 +135,15 @@ export interface Player {
     injury?: {
         type: string;
         returnDate: Date;
+        duration?: number;        // Legacy: days (kept for backward compat)
+        gamesRemaining?: number;  // New: games left on IR
         severity: 'Low' | 'Medium' | 'High';
     };
+
+    injuryHistory?: {
+        type: string;
+        severity: 'Low' | 'Medium' | 'High';
+        season: number;      // Year the injury occurred
+        gamesOut: number;    // Games missed
+    }[];
 }

@@ -389,12 +389,7 @@ export const TradeView: React.FC<TradeViewProps> = ({ userTeam, teams, players, 
             maxWidth: '1400px', 
             margin: '0 auto' 
         }}>
-            <PageHeader 
-                title="Trade Center" 
-                subtitle="Roster Transactions & Draft Pick Exchange"
-                onBack={onBack}
-                teamColor="#111111"
-            />
+
 
             <div style={{ padding: '0 24px 40px 24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <div style={{ 

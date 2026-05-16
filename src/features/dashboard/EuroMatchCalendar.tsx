@@ -367,29 +367,62 @@ export const EuroMatchCalendar: React.FC = () => {
 
             {/* Progress bar */}
             <div style={{ padding: '16px 20px', background: '#f9f9fb' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '0.6rem', color: '#8e8e93', fontWeight: 800, letterSpacing: '0.05em' }}>SEASON PROGRESS</span>
-                    <span style={{ fontSize: '0.6rem', color: '#1c1c1e', fontWeight: 900 }}>
-                        {totalMatchDays > 0 ? Math.round((seasonGamesPlayed / totalMatchDays) * 100) : 0}%
-                    </span>
-                </div>
                 <div style={{
-                    height: '10px',
+                    height: '32px',
                     background: '#e5e5ea',
-                    borderRadius: '5px',
+                    borderRadius: '16px',
                     overflow: 'hidden',
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)'
                 }}>
                     <div 
-                        className="progress-shine"
+                        className="progress-shine progress-active"
                         style={{
                             width: `${totalMatchDays > 0 ? (seasonGamesPlayed / totalMatchDays) * 100 : 0}%`,
                             height: '100%',
                             background: 'var(--team-primary)',
-                            borderRadius: '5px',
+                            borderRadius: '16px',
                             transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)',
-                            position: 'relative'
+                            position: 'relative',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 2
                         }} 
                     />
+                    
+                    {/* Progress text centered over the bar */}
+                    <div style={{
+                        position: 'absolute',
+                        width: '100%',
+                        textAlign: 'center',
+                        zIndex: 3,
+                        pointerEvents: 'none',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '8px'
+                    }}>
+                        <span style={{ 
+                            fontSize: '0.65rem', 
+                            color: (seasonGamesPlayed / totalMatchDays) > 0.5 ? '#ffffff' : '#8e8e93', 
+                            fontWeight: 900, 
+                            letterSpacing: '0.1em',
+                            textShadow: (seasonGamesPlayed / totalMatchDays) > 0.5 ? '0 1px 2px rgba(0,0,0,0.2)' : 'none'
+                        }}>
+                            SEASON PROGRESS
+                        </span>
+                        <span style={{ 
+                            fontSize: '0.8rem', 
+                            color: (seasonGamesPlayed / totalMatchDays) > 0.5 ? '#ffffff' : '#1c1c1e', 
+                            fontWeight: 900,
+                            textShadow: (seasonGamesPlayed / totalMatchDays) > 0.5 ? '0 1px 2px rgba(0,0,0,0.2)' : 'none'
+                        }}>
+                            {totalMatchDays > 0 ? Math.round((seasonGamesPlayed / totalMatchDays) * 100) : 0}%
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>

@@ -41,11 +41,21 @@ export const optimizeRotation = (roster: Player[], strategy: RotationStrategy = 
         rotationIndex: 999
     }));
 
-    // Calculate OVR for everyone once
-    const playersWithOvr = players.map(p => ({
-        ...p,
-        calculatedOvr: calculateOverall(p)
-    })).sort((a, b) => b.calculatedOvr - a.calculatedOvr);
+    // Calculate OVR for everyone once, but ONLY for healthy players for rotation planning
+    const playersWithOvr = players
+        .filter(p => !p.injury)
+        .map(p => ({
+            ...p,
+            calculatedOvr: calculateOverall(p)
+        })).sort((a, b) => b.calculatedOvr - a.calculatedOvr);
+
+    // Also identify injured players to ensure they are explicitly set to 0 mins
+    const injuredPlayers = players.filter(p => !!p.injury);
+    injuredPlayers.forEach(p => {
+        p.minutes = 0;
+        p.isStarter = false;
+        p.rotationIndex = 999;
+    });
 
     // Identify Stars (90+ OVR) OR Generational Rookies
     let stars = playersWithOvr.filter(p => 

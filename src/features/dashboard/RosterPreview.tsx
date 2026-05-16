@@ -104,7 +104,20 @@ export const RosterPreview: React.FC<RosterPreviewProps> = ({ onSelectPlayer }) 
                             </div>
 
                             <div style={{ flex: 1 }}>
-                                <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{player.firstName} {player.lastName}</div>
+                                <div style={{ fontWeight: 600, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    {player.firstName} {player.lastName}
+                                    {player.injury && (
+                                        <span style={{ 
+                                            fontSize: '0.6rem', 
+                                            background: 'rgba(231, 76, 60, 0.15)', 
+                                            color: '#e74c3c', 
+                                            padding: '2px 6px', 
+                                            borderRadius: '4px',
+                                            fontWeight: 800,
+                                            letterSpacing: '0.02em'
+                                        }}>INJURED</span>
+                                    )}
+                                </div>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', gap: '8px' }}>
                                     <span style={{ color: 'var(--text)' }}>
                                         {stats.gamesPlayed > 0 ? (stats.points / stats.gamesPlayed).toFixed(1) : '0.0'} PPG

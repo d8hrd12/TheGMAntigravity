@@ -4,7 +4,7 @@ import { PageHeader } from '../ui/PageHeader';
 import { Trophy, Play, ChevronRight, Zap, Target, Shield } from 'lucide-react';
 import { calculateOverall } from '../../utils/playerUtils';
 import type { MatchResult } from '../simulation/SimulationTypes';
-import { simulateMatchV3 as simulateMatch } from '../simulation/v3/MatchEngineV3';
+import { simulateEuroMatch as simulateMatch } from '../simulation/euro/EuroMatchEngine';
 
 const EuroPlayInView: React.FC = () => {
     const { setGameState, euroPlayIn, teams, players, userTeamId, competitionType, date } = useGame();
@@ -153,7 +153,11 @@ const EuroPlayInView: React.FC = () => {
                 border: isUserMatch ? '2px solid var(--team-primary)' : '1px solid var(--border-color)',
                 boxShadow: 'var(--shadow-md)',
                 position: 'relative',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                minHeight: '160px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between'
             }}>
                 {isUserMatch && (
                     <div style={{ position: 'absolute', top: 0, right: 0, background: 'var(--team-primary)', color: '#fff', fontSize: '0.6rem', padding: '2px 8px', borderRadius: '0 0 0 8px', fontWeight: 900 }}>
@@ -262,37 +266,75 @@ const EuroPlayInView: React.FC = () => {
                 teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
             />
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '24px' }}>
                 {/* EUROLEAGUE SECTION */}
-                <section>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: '#f39c12' }}>
+                <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', color: '#f39c12', paddingLeft: '8px' }}>
                         <Trophy size={16} />
                         <h2 style={{ fontSize: '1rem', fontWeight: 900, margin: 0 }}>EUROLEAGUE</h2>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {elMatchups.map((m: PlayInMatchup) => <MatchupCard key={m.id} matchup={m} />)}
-                        {elMatchups.length < 3 && (
-                            <div style={{ padding: '24px', borderRadius: '16px', border: '2px dashed var(--border-color)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                                Awaiting Round 1 Results...
-                            </div>
-                        )}
-                    </div>
+                    
+                    {/* Slot 1: 7vs8 */}
+                    <MatchupCard matchup={elMatchups.find(m => m.type === '7vs8')!} />
+                    
+                    {/* Slot 2: 9vs10 */}
+                    <MatchupCard matchup={elMatchups.find(m => m.type === '9vs10')!} />
+                    
+                    {/* Slot 3: Final */}
+                    {elMatchups.find(m => m.type === 'Loser78vsWinner910') ? (
+                        <MatchupCard matchup={elMatchups.find(m => m.type === 'Loser78vsWinner910')!} />
+                    ) : (
+                        <div style={{ 
+                            height: '160px', 
+                            borderRadius: '16px', 
+                            border: '2px dashed #f2f2f7', 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            color: '#c7c7cc',
+                            padding: '20px'
+                        }}>
+                            <Target size={24} style={{ marginBottom: '8px', opacity: 0.5 }} />
+                            <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase' }}>FINAL SEED DECIDER</div>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 600 }}>Awaiting R1 Results</div>
+                        </div>
+                    )}
                 </section>
 
                 {/* EUROCUP SECTION */}
-                <section>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: '#3498db' }}>
+                <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', color: '#3498db', paddingLeft: '8px' }}>
                         <Trophy size={16} />
                         <h2 style={{ fontSize: '1rem', fontWeight: 900, margin: 0 }}>EUROCUP</h2>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {ecMatchups.map((m: PlayInMatchup) => <MatchupCard key={m.id} matchup={m} />)}
-                        {ecMatchups.length < 3 && (
-                            <div style={{ padding: '24px', borderRadius: '16px', border: '2px dashed var(--border-color)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                                Awaiting Round 1 Results...
-                            </div>
-                        )}
-                    </div>
+                    
+                    {/* Slot 1: 7vs8 */}
+                    <MatchupCard matchup={ecMatchups.find(m => m.type === '7vs8')!} />
+                    
+                    {/* Slot 2: 9vs10 */}
+                    <MatchupCard matchup={ecMatchups.find(m => m.type === '9vs10')!} />
+                    
+                    {/* Slot 3: Final */}
+                    {ecMatchups.find(m => m.type === 'Loser78vsWinner910') ? (
+                        <MatchupCard matchup={ecMatchups.find(m => m.type === 'Loser78vsWinner910')!} />
+                    ) : (
+                        <div style={{ 
+                            height: '160px', 
+                            borderRadius: '16px', 
+                            border: '2px dashed #f2f2f7', 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            color: '#c7c7cc',
+                            padding: '20px'
+                        }}>
+                            <Target size={24} style={{ marginBottom: '8px', opacity: 0.5 }} />
+                            <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase' }}>FINAL SEED DECIDER</div>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 600 }}>Awaiting R1 Results</div>
+                        </div>
+                    )}
                 </section>
             </div>
 

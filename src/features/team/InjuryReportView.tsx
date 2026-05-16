@@ -5,9 +5,9 @@ import { Activity, ShieldAlert, HeartPulse } from 'lucide-react';
 
 import { PageHeader } from '../ui/PageHeader';
 
-export const InjuryReportView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+export const InjuryReportView: React.FC<{ onBack: () => void, initialFilter?: 'all' | 'my_team', hideHeader?: boolean }> = ({ onBack, initialFilter = 'all', hideHeader = false }) => {
     const { players, teams, userTeamId, date } = useGame();
-    const [filter, setFilter] = useState<'all' | 'my_team'>('all');
+    const [filter, setFilter] = useState<'all' | 'my_team'>(initialFilter);
 
     const injuredPlayers = useMemo(() => {
         return players.filter(p => p.injury).sort((a, b) => {
@@ -26,12 +26,14 @@ export const InjuryReportView: React.FC<{ onBack: () => void }> = ({ onBack }) =
 
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '0', padding: '0 0 env(safe-area-inset-bottom) 0' }}>
-            <PageHeader 
-                title="Injury Report"
-                subtitle="League-wide health tracking"
-                onBack={onBack}
-                teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
-            />
+            {!hideHeader && (
+                <PageHeader 
+                    title="Injury Report"
+                    subtitle="League-wide health tracking"
+                    onBack={onBack}
+                    teamColor={teams.find(t => t.id === userTeamId)?.colors?.primary}
+                />
+            )}
             
             <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', flex: 1, overflow: 'hidden' }}>
             {/* Filter */}

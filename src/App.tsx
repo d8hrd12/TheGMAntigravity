@@ -77,6 +77,8 @@ import { EuroFinancialsView } from './features/offseason/EuroFinancialsView';
 import { EuroLocalTalentView } from './features/offseason/EuroLocalTalentView';
 import { PlayerCompareView } from './features/player/PlayerCompareView';
 import { EuroSeasonReviewModal } from './features/ui/EuroSeasonReviewModal';
+import { InjuryReportView } from './features/team/InjuryReportView';
+import { InjuryInterruptModal } from './features/ui/InjuryInterruptModal';
 import { App as CapApp } from '@capacitor/app';
 
 function AppContent() {
@@ -142,6 +144,7 @@ function AppContent() {
     showAwardsModal,
     showMidSeasonProgressionModal,
     pendingSeasonReview,
+    injuryInterrupt, resolveInjuryInterrupt,
     setGameState
   } = gameData;
 
@@ -267,7 +270,7 @@ function AppContent() {
     }
   }, [view, selectedPlayerId, selectedGame, currentNegotiation]);
 
-  // SWIPE GESTURE HANDLER
+  // SWIPE GESTURE HANDLER - Open Side Menu
   useEffect(() => {
     let touchStartX = 0;
     let touchStartY = 0;
@@ -283,12 +286,12 @@ function AppContent() {
       const deltaX = touchEndX - touchStartX;
       const deltaY = Math.abs(touchEndY - touchStartY);
 
-      // Only trigger if:
-      // 1. Swipe is to the right (deltaX > 100)
-      // 2. Swipe is mostly horizontal (deltaY < 50)
-      // 3. Swipe starts from the left edge (touchStartX < 60) - avoids conflict with tables
-      if (deltaX > 100 && deltaY < 50 && touchStartX < 60) {
-        handleBack();
+      // Trigger Sidebar if:
+      // 1. Swipe is to the right (deltaX > 80)
+      // 2. Swipe is mostly horizontal (deltaY < 60)
+      // 3. Swipe starts from the very left edge (touchStartX < 40)
+      if (deltaX > 80 && deltaY < 60 && touchStartX < 40) {
+        setIsSidebarOpen(true);
       }
     };
 
@@ -298,7 +301,7 @@ function AppContent() {
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [view, selectedPlayerId, selectedTeamId, selectedGame]);
+  }, [setIsSidebarOpen]);
 
   const userTeam = teams.find(t => t.id === userTeamId);
 
@@ -318,6 +321,7 @@ function AppContent() {
         { id: 'league_gms', label: 'GMs' },
         { id: 'season_leaders', label: 'Season Leaders' },
         { id: 'league_all_time', label: 'All-Time Leaders' },
+        { id: 'league_injuries', label: 'Injuries' },
       ]
     },
     { 
@@ -331,6 +335,7 @@ function AppContent() {
         { id: 'financials', label: 'Finances' },
         { id: 'team_records', label: 'Records' },
         { id: 'team_all_time', label: 'All-Time Leaders' },
+        { id: 'team_injuries', label: 'Injuries' },
       ]
     },
     { 
@@ -522,6 +527,10 @@ function AppContent() {
         return <TeamRecordsView onBack={() => setView('dashboard')} />;
       case 'team_all_time':
         return <AllTimeLeadersView mode="team" teamId={userTeamId} onBack={() => setView('dashboard')} />;
+      case 'league_injuries':
+        return <InjuryReportView onBack={() => setView('dashboard')} initialFilter="all" />;
+      case 'team_injuries':
+        return <InjuryReportView onBack={() => setView('dashboard')} initialFilter="my_team" />;
       case 'team_chemistry':
         return userTeam ? <TeamChemistryView 
           team={userTeam} 
@@ -692,8 +701,8 @@ function AppContent() {
             className={`nav-link ${view === 'dashboard' ? 'active' : ''}`}
             onClick={() => { setView('dashboard'); setIsSidebarOpen(false); }}
           >
-            <LayoutDashboard size={20} />
-            <span>Dashboard</span>
+            <Home size={20} />
+            <span>Home</span>
           </button>
 
           {navCategories.map(cat => (
@@ -1097,6 +1106,15 @@ function AppContent() {
         <EuroSeasonReviewModal 
             review={activeSeasonReview} 
             onClose={() => setActiveSeasonReview(null)} 
+        />
+      )}
+
+      {injuryInterrupt && (
+        <InjuryInterruptModal 
+          interrupt={injuryInterrupt}
+          onManualAdjust={() => resolveInjuryInterrupt('manual')}
+          onAIOptimize={() => resolveInjuryInterrupt('ai')}
+          onDismiss={() => resolveInjuryInterrupt('dismiss')}
         />
       )}
     </div>

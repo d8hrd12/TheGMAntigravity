@@ -97,6 +97,7 @@ export interface InjuryReport {
     type: string;
     severity: 'Low' | 'Medium' | 'High';
     returnDate: Date;
+    gamesRemaining?: number;
 }
 
 export interface MatchResult {

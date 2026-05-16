@@ -167,7 +167,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }, [players, contracts, userTeamId, teamBaseline]);
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px', paddingTop: 'calc(20px + env(safe-area-inset-top))' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '120px', paddingTop: '0' }}>
             <SimControls />
 
             {/* EURO MATCH CALENDAR — only visible in Euro mode */}

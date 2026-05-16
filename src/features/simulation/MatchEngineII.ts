@@ -4,6 +4,8 @@ import type { Coach } from '../../models/Coach';
 import type { MatchResult, MatchInput, TeamRotationData, GameEvent } from './SimulationTypes';
 import type { TeamStrategy, PaceType, OffensiveFocus, DefensiveStrategy } from './TacticsTypes';
 import { calculateOverall } from '../../utils/playerUtils';
+import { checkInGameInjury } from './InjurySystem';
+import type { InjuryReport } from './SimulationTypes';
 
 // --- Configuration ---
 export const ENGINE_VERSION = "2.0.0-PossessionBased";
@@ -286,6 +288,10 @@ export function simulateMatchII(input: MatchInput): MatchResult {
     const allEvents: GameEvent[] = [];
     let currentQuarter = 1;
 
+    // Injury tracking
+    const matchInjuries: InjuryReport[] = [];
+    const injuredThisGame = new Set<string>();
+
     // 2. Game Loop
     // --- INITIALIZE HIGH-FIDELITY STATE ---
     const gameVariance = (Math.random() * 0.1) - 0.05; // -0.05 to +0.05 (Point 21)
@@ -505,6 +511,44 @@ export function simulateMatchII(input: MatchInput): MatchResult {
             if (result.defensivePoints) homeScore += result.defensivePoints;
         }
 
+        // --- IN-GAME INJURY CHECK ---
+        // We check the 10 players on court (plus any overrides)
+        const onCourt = [...ctx.offenseLineup, ...ctx.defenseLineup];
+        for (const p of onCourt) {
+            if (injuredThisGame.has(p.id)) continue;
+            
+            // Fatigue/Stamina impact on injury risk
+            const staminaVal = p.stamina || 100;
+            const inGameInj = checkInGameInjury(p, staminaVal, 'NBA');
+            
+            if (inGameInj) {
+                injuredThisGame.add(p.id);
+                const returnDate = new Date(date);
+                // For NBA, we treat gamesRemaining as approximately 1 game = 3 days for calendar fallback
+                returnDate.setDate(returnDate.getDate() + (inGameInj.gamesRemaining * 3));
+                
+                const report: InjuryReport = {
+                    playerId: p.id,
+                    type: inGameInj.type,
+                    severity: inGameInj.severity,
+                    returnDate: returnDate,
+                    gamesRemaining: inGameInj.gamesRemaining
+                };
+                
+                matchInjuries.push(report);
+                
+                allEvents.push({
+                    type: 'foul' as any, // Closest match for interruptive events in old UI
+                    text: `TIMEOUT: ${p.lastName} has sustained an injury (${inGameInj.type}) and will not return.`,
+                    gameTime: timeRemaining,
+                    possessionId: timeRemaining,
+                    teamId: p.teamId || '',
+                    playerId: p.id,
+                    data: { injury: report }
+                });
+            }
+        }
+
         // FAST BREAK: Athletic teams punish turnovers with run-out possessions
         if (result.endType === 'TURNOVER' && timeRemaining > 60) {
             const newOffenseLineup = isHomeOffense ? awayLineup : homeLineup;
@@ -598,6 +642,6 @@ export function simulateMatchII(input: MatchInput): MatchResult {
         awayScore,
         boxScore,
         events: allEvents,
-        injuries: []
+        injuries: matchInjuries
     };
 }

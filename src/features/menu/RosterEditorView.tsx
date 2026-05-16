@@ -379,8 +379,18 @@ const PlayerItem = ({ player, onClick, isMobile }: any) => (
     >
         <div>
             <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 900, textTransform: 'uppercase', color: '#fff' }}>{player.firstName} {player.lastName}</h4>
-            <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', fontWeight: 800, marginTop: '4px' }}>
+            <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', fontWeight: 800, marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 {player.position} • AGE {player.age} • OVR {calculateOverall(player)}
+                {player.injury && (
+                    <span style={{ 
+                        fontSize: '0.6rem', 
+                        background: 'rgba(231, 76, 60, 0.2)', 
+                        color: '#e74c3c', 
+                        padding: '1px 5px', 
+                        borderRadius: '4px',
+                        fontWeight: 900
+                    }}>INJ</span>
+                )}
             </div>
         </div>
         <Edit2 size={18} color="#FF5F1F" />

@@ -353,8 +353,6 @@ export const simulateFreeAgencyDay = (
         // Update Player
         const pIdx = finalPlayers.findIndex(p => p.id === sign.playerId);
         if (pIdx > -1) {
-
-
             // We need to capture previous ID before overwrite.
             const oldTeamId = finalPlayers[pIdx].teamId;
             finalPlayers[pIdx].teamId = sign.teamId;
@@ -364,6 +362,20 @@ export const simulateFreeAgencyDay = (
                 previousTeamId: oldTeamId || undefined
             };
             // Contract is stored in separate state, not on player object
+        } else {
+            // Check if it's an NBA player interested in Europe
+            const nbaPlayer = (nextState.nbaToEuroPool || []).find(p => p.id === sign.playerId);
+            if (nbaPlayer) {
+                finalPlayers.push({
+                    ...nbaPlayer,
+                    teamId: sign.teamId,
+                    acquisition: {
+                        type: 'free_agent',
+                        year: nextState.date.getFullYear(),
+                        details: 'Signed from NBA-to-Euro pool'
+                    }
+                });
+            }
         }
 
         // Update Team
@@ -386,6 +398,10 @@ export const simulateFreeAgencyDay = (
             });
         }
     });
+
+    // Remove signed players from NBA pool
+    const signedPlayerIds = signings.map(s => s.playerId);
+    const finalNbaPool = (nextState.nbaToEuroPool || []).filter(p => !signedPlayerIds.includes(p.id));
 
     // --- COACH NEGOTIATIONS ---
     const coachSignings: { coachId: string; teamId: string; amount: number; years: number }[] = [];
@@ -469,7 +485,8 @@ export const simulateFreeAgencyDay = (
             contracts: updatedContracts,
             activeOffers: allOffers,
             activeCoachOffers: updatedCoachOffers,
-            freeAgencyDay: day
+            freeAgencyDay: day,
+            nbaToEuroPool: finalNbaPool
         },
         result
     };

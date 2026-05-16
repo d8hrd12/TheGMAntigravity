@@ -56,6 +56,7 @@ import { calculateProgression, calculateInSeasonProgression } from '../features/
 import { importNbaPlayers } from '../features/league/CsvImporter';
 import { applyRealWorldTrades } from '../data/tradeUpdates';
 import { calculateEuroTeamNeeds, calculatePlayerFitScore, determineEuroTeamTarget } from '../features/team/EuroAIGMModule';
+import { calculateFatigueIncrease, calculateDailyRecovery, rollForInjury, processDailyHealing, processGameHealing, type InjuryInstance } from '../features/simulation/InjurySystem';
 
 
 
@@ -246,6 +247,8 @@ export interface GameState {
         seedsLocked: Record<string, string[]>; // conf -> array of top 6 IDs
     };
     nbaToEuroPool: NBAEuroProspect[];
+    injuryInterrupt: { player: Player, type: 'injury' | 'recovery' } | null;
+    lastSimTarget: 'none' | 'deadline' | 'playoffs' | 'playoffs_end' | 'round';
     view: string;
 }
 
@@ -356,6 +359,7 @@ interface GameContextType extends GameState {
     setSimSpeed: (speed: number) => void;
     updatePlayerAttribute: (id: string, attr: string, val: any) => void;
     setGameState: (state: GameState | ((prev: GameState) => GameState)) => void;
+    setInjuryInterrupt: (interrupt: { player: Player, type: 'injury' | 'recovery' } | null) => void;
     // UI State in Context for deep access
     selectedPlayerId: string | null;
     setSelectedPlayerId: (id: string | null) => void;
@@ -399,6 +403,7 @@ interface GameContextType extends GameState {
     sellPlayerToTeam: (playerId: string, targetTeamId: string) => { success: boolean, message: string };
     placeCoachOffer: (coachId: string, amount: number, years: number) => void;
     seedDefaultRosters: () => void;
+    resolveInjuryInterrupt: (decision: 'manual' | 'ai' | 'dismiss') => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -496,6 +501,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         activeCoachOffers: [],
         aiGms: [],
         nbaToEuroPool: [],
+        injuryInterrupt: null,
+        lastSimTarget: 'none',
         view: 'dashboard'
     });
 
@@ -1199,6 +1206,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 nbaToEuroPool: [],
                 leagueType: gameState.leagueType,
                 competitionType: gameState.competitionType,
+                injuryInterrupt: null,
+                lastSimTarget: 'none',
                 view: "dashboard"
             });
 
@@ -1362,6 +1371,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 nbaToEuroPool: [],
                 leagueType: gameState.leagueType,
                 competitionType: gameState.competitionType,
+                injuryInterrupt: null,
+                lastSimTarget: 'none',
                 view: "dashboard"
             });
 
@@ -3373,13 +3384,42 @@ export function GameProvider({ children }: { children: ReactNode }) {
         let nextDayMatchups: { homeId: string, awayId: string }[] = [];
         let shouldShowMidSeasonModal = false;
 
-        // 1. HEALING LOGIC
-        // Create a healed version of players first
+        // 1. HEALING & FATIGUE RECOVERY LOGIC
+        // Create a healed version of players and recover fatigue
+        let userRecoveryInterrupt: { player: Player, type: 'recovery' } | null = null;
+        let userInjuryInterrupt: { player: Player, type: 'injury' } | null = null;
+
         const healedPlayers = prev.players.map(p => {
-            if (p.injury && new Date(prev.date) >= new Date(p.injury.returnDate)) {
-                return { ...p, injury: undefined };
+            const wasInjured = !!p.injury;
+
+            // Injury Healing:
+            // On a game day (dailyMatchups has games), use games-based healing.
+            // On a rest day, fall back to date-based healing for legacy saves.
+            let updated: typeof p;
+            const hasGame = (prev.dailyMatchups || []).length > 0;
+
+            if (wasInjured) {
+                if (p.injury!.gamesRemaining !== undefined && hasGame) {
+                    // New system: decrement games counter on game days only
+                    updated = processGameHealing(p, prev.date.getFullYear());
+                } else {
+                    // Legacy: date-based healing
+                    updated = processDailyHealing(p, prev.date);
+                }
+            } else {
+                updated = p;
             }
-            return p;
+
+            // Fatigue Recovery (daily, regardless of game)
+            const recovery = calculateDailyRecovery(updated);
+            updated = { ...updated, fatigue: Math.max(0, (updated.fatigue || 0) - recovery) };
+
+            // Check if user team player recovered today
+            if (wasInjured && !updated.injury && p.teamId === prev.userTeamId) {
+                userRecoveryInterrupt = { player: updated, type: 'recovery' };
+            }
+
+            return updated;
         });
 
         // 3. MORALE UPDATE (Daily) - Before Games
@@ -3962,12 +4002,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 const gameStory = NewsEngine.generateGameNews(result, home, away, currentPlayers.filter(p => !p.injury));
                 if (gameStory) currentNews.push(gameStory);
 
+
                 result.injuries.forEach(inj => {
                     const player = currentPlayers.find(p => p.id === inj.playerId);
                     const team = player ? (player.teamId === home.id ? home : away) : null;
                     if (player && team) {
                         const injuryStory = NewsEngine.generateInjuryNews(player, team, inj.type, 14, nextDate);
                         currentNews.push(injuryStory);
+
+                        // Detect user team injury
+                        if (player.teamId === prev.userTeamId) {
+                            userInjuryInterrupt = { player, type: 'injury' };
+                        }
                     }
                 });
                 // --- NEWS GENERATION END ---
@@ -4006,7 +4052,54 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         const team = currentTeams.find(t => t.id === mp.teamId)!;
                         const won = mp.teamId === winnerId;
                         const opponentId = mp.teamId === result.homeTeamId ? result.awayTeamId : result.homeTeamId;
-                        const updated = updatePlayerMorale(player, team, won, mp.minutes, opponentId, prev.salaryCap);
+                        
+                        // Morale
+                        let updated = updatePlayerMorale(player, team, won, mp.minutes, opponentId, prev.salaryCap);
+                        
+                        // Fatigue Increase
+                        const fatigueGain = calculateFatigueIncrease(mp.minutes);
+                        updated.fatigue = Math.min(100, (updated.fatigue || 0) + fatigueGain);
+
+                        // Injury Check
+                        const inGameInjury = result.injuries.find(ij => ij.playerId === updated.id);
+                        if (inGameInjury) {
+                            updated.injury = {
+                                type: inGameInjury.type,
+                                severity: inGameInjury.severity as any,
+                                returnDate: inGameInjury.returnDate,
+                                gamesRemaining: inGameInjury.gamesRemaining || 1,
+                                duration: inGameInjury.gamesRemaining || 1 // legacy UI compat
+                            };
+                        } else if (mp.minutes > 0) {
+                            // Roll for post-game fatigue injury
+                            const newInjury = rollForInjury(updated, mp.minutes, prev.leagueType === 'EURO' ? 'EURO' : 'NBA');
+                            if (newInjury) {
+                                const returnDate = new Date(nextDate);
+                                returnDate.setDate(returnDate.getDate() + newInjury.gamesRemaining);
+
+                                updated.injury = {
+                                    type: newInjury.type,
+                                    severity: newInjury.severity as any,
+                                    returnDate: returnDate,
+                                    duration: newInjury.gamesRemaining,
+                                    gamesRemaining: newInjury.gamesRemaining,
+                                };
+
+                                // Add to match result for display if not already there
+                                result.injuries.push({
+                                    playerId: updated.id,
+                                    type: newInjury.type,
+                                    severity: newInjury.severity,
+                                    returnDate: returnDate,
+                                });
+
+                                // Interrupt user if their player was just injured
+                                if (updated.teamId === prev.userTeamId && !userInjuryInterrupt) {
+                                    userInjuryInterrupt = { player: updated, type: 'injury' };
+                                }
+                            }
+                        }
+
                         currentPlayers[playerIndex] = updated;
                     }
                 });
@@ -4188,6 +4281,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 showMidSeasonProgressionModal: shouldShowMidSeasonModal ? true : prev.showMidSeasonProgressionModal,
                 isSimulating: nextDayMatchups.length > 0 && prev.isSimulating,
                 nbaToEuroPool: currentNbaEuroPool,
+                injuryInterrupt: userInjuryInterrupt || userRecoveryInterrupt || null,
             };
         }
         else if (prev.seasonPhase.startsWith('playoffs')) {
@@ -4259,14 +4353,42 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         series.awayWins++;
                     }
                 } else {
+                    // --- PLAYOFF ROTATION RECALIBRATION ---
+                    const teamsToRecalibrate = [series.homeTeamId, series.awayTeamId];
+                    teamsToRecalibrate.forEach(teamId => {
+                        const isUser = teamId === prev.userTeamId;
+                        const team = currentTeams.find(t => t.id === teamId);
+                        if (!team) return;
+
+                        const teamPlayers = currentPlayers.filter(p => p.teamId === teamId);
+                        const totalMins = teamPlayers.reduce((sum, p) => sum + (p.minutes || 0), 0);
+                        const targetMins = prev.leagueType === 'EURO' ? 200 : 240;
+
+                        if (!isUser || team.autoRotation || totalMins !== targetMins) {
+                            const healthyPlayers = teamPlayers.filter(p => !p.injury);
+                            if (healthyPlayers.length >= 5) {
+                                const optimizedHealthy = optimizeRotation(healthyPlayers, 'Playoffs', targetMins);
+                                optimizedHealthy.forEach(p => {
+                                    const idx = currentPlayers.findIndex(cp => cp.id === p.id);
+                                    if (idx !== -1) currentPlayers[idx] = p;
+                                });
+                                teamPlayers.filter(p => p.injury).forEach(p => {
+                                    const idx = currentPlayers.findIndex(cp => cp.id === p.id);
+                                    if (idx !== -1) currentPlayers[idx] = { ...p, minutes: 0, isStarter: false, rotationIndex: 999 };
+                                });
+                            }
+                        }
+                    });
+
                     const gameNum = series.homeWins + series.awayWins;
                     const isHomeCourt = [0, 1, 4, 6].includes(gameNum);
 
-                    const homeTeam = prev.teams.find(t => t.id === (isHomeCourt ? series.homeTeamId : series.awayTeamId))!;
-                    const awayTeam = prev.teams.find(t => t.id === (isHomeCourt ? series.awayTeamId : series.homeTeamId))!;
+                    const homeTeam = currentTeams.find(t => t.id === (isHomeCourt ? series.homeTeamId : series.awayTeamId))!;
+                    const awayTeam = currentTeams.find(t => t.id === (isHomeCourt ? series.awayTeamId : series.homeTeamId))!;
 
-                    const homeRoster = activePlayers.filter(p => p.teamId === homeTeam.id);
-                    const awayRoster = activePlayers.filter(p => p.teamId === awayTeam.id);
+                    // Use updated currentPlayers (post-recalibration) for rosters
+                    const homeRoster = currentPlayers.filter(p => p.teamId === homeTeam.id && !p.injury);
+                    const awayRoster = currentPlayers.filter(p => p.teamId === awayTeam.id && !p.injury);
 
                     const playoffInput = {
                         homeTeam,
@@ -4310,40 +4432,81 @@ export function GameProvider({ children }: { children: ReactNode }) {
             const roundComplete = activeSeries.every(s => s.winnerId);
 
             if (!roundComplete) {
-                // Update players with injuries from today's games
-                const playoffUpdatedPlayers = healedPlayers.map(p => {
-                    const injuryGame = newGames.find(g => g.injuries.some(i => i.playerId === p.id));
-                    if (injuryGame) {
-                        const injury = injuryGame.injuries.find(i => i.playerId === p.id);
-                        return { ...p, injury };
-                    }
-                    return p;
-                });
+                // Initialize playoffUpdatedPlayers from currentPlayers (which has recalibrated minutes)
+                let playoffUpdatedPlayers = [...currentPlayers];
 
-                // --- AGGREGATE PLAYOFF STATS from today's games ---
-                newGames.forEach(game => {
-                    const allStats = [
-                        ...Object.values(game.boxScore.homeStats),
-                        ...Object.values(game.boxScore.awayStats)
+                newGames.forEach(result => {
+                    const winnerId = result.winnerId;
+                    const matchPlayers = [
+                        ...Object.values(result.boxScore.homeStats).map(s => ({ id: s.playerId, minutes: s.minutes, teamId: result.homeTeamId, stats: s })),
+                        ...Object.values(result.boxScore.awayStats).map(s => ({ id: s.playerId, minutes: s.minutes, teamId: result.awayTeamId, stats: s }))
                     ];
-                    allStats.forEach(stat => {
-                        if (stat.minutes === 0) return;
-                        const pIdx = playoffUpdatedPlayers.findIndex(p => p.id === stat.playerId);
-                        if (pIdx !== -1) {
-                            const p = playoffUpdatedPlayers[pIdx];
-                            const cur = p.playoffStats || {
-                                gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0,
-                                steals: 0, blocks: 0, turnovers: 0, fouls: 0, plusMinus: 0,
-                                offensiveRebounds: 0, defensiveRebounds: 0,
-                                fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0,
-                                ftMade: 0, ftAttempted: 0,
-                                rimMade: 0, rimAttempted: 0, rimAssisted: 0,
-                                midRangeMade: 0, midRangeAttempted: 0, midRangeAssisted: 0,
-                                threePointAssisted: 0
-                            };
-                            playoffUpdatedPlayers[pIdx] = {
-                                ...p,
-                                playoffStats: {
+
+                    matchPlayers.forEach(mp => {
+                        const playerIndex = playoffUpdatedPlayers.findIndex(p => p.id === mp.id);
+                        if (playerIndex !== -1) {
+                            let player = playoffUpdatedPlayers[playerIndex];
+                            const team = currentTeams.find(t => t.id === mp.teamId)!;
+                            const won = mp.teamId === winnerId;
+                            const opponentId = mp.teamId === result.homeTeamId ? result.awayTeamId : result.homeTeamId;
+
+                            // 1. UPDATE MORALE & FATIGUE
+                            let updated = updatePlayerMorale(player, team, won, mp.minutes, opponentId, prev.salaryCap);
+                            const fatigueGain = calculateFatigueIncrease(mp.minutes);
+                            updated.fatigue = Math.min(100, (updated.fatigue || 0) + fatigueGain);
+
+                            // 2. INJURY CHECK
+                            const inGameInjury = result.injuries.find(ij => ij.playerId === updated.id);
+                            if (inGameInjury) {
+                                updated.injury = {
+                                    type: inGameInjury.type,
+                                    severity: inGameInjury.severity as any,
+                                    returnDate: inGameInjury.returnDate,
+                                    gamesRemaining: inGameInjury.gamesRemaining || 1,
+                                    duration: inGameInjury.gamesRemaining || 1 // legacy UI compat
+                                };
+                            } else if (mp.minutes > 0) {
+                                // Roll for post-game fatigue injury (playoffs)
+                                const newInjury = rollForInjury(updated, mp.minutes, prev.leagueType === 'EURO' ? 'EURO' : 'NBA');
+                                if (newInjury) {
+                                    const returnDate = new Date(nextDate);
+                                    returnDate.setDate(returnDate.getDate() + newInjury.gamesRemaining);
+                                    updated.injury = {
+                                        type: newInjury.type,
+                                        severity: newInjury.severity as any,
+                                        returnDate: returnDate,
+                                        duration: newInjury.gamesRemaining,
+                                        gamesRemaining: newInjury.gamesRemaining,
+                                    };
+                                    // Add to match result for display
+                                    result.injuries.push({
+                                        playerId: updated.id,
+                                        type: newInjury.type,
+                                        severity: newInjury.severity,
+                                        returnDate: returnDate,
+                                    });
+
+                                    // Interrupt user if their player was just injured
+                                    if (updated.teamId === prev.userTeamId && !userInjuryInterrupt) {
+                                        userInjuryInterrupt = { player: updated, type: 'injury' };
+                                    }
+                                }
+                            }
+
+                            // 3. AGGREGATE PLAYOFF STATS
+                            const stat = mp.stats;
+                            if (stat.minutes > 0) {
+                                const cur = updated.playoffStats || {
+                                    gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0,
+                                    steals: 0, blocks: 0, turnovers: 0, fouls: 0, plusMinus: 0,
+                                    offensiveRebounds: 0, defensiveRebounds: 0,
+                                    fgMade: 0, fgAttempted: 0, threeMade: 0, threeAttempted: 0,
+                                    ftMade: 0, ftAttempted: 0,
+                                    rimMade: 0, rimAttempted: 0, rimAssisted: 0,
+                                    midRangeMade: 0, midRangeAttempted: 0, midRangeAssisted: 0,
+                                    threePointAssisted: 0
+                                };
+                                updated.playoffStats = {
                                     ...cur,
                                     gamesPlayed: cur.gamesPlayed + 1,
                                     minutes: cur.minutes + stat.minutes,
@@ -4370,8 +4533,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
                                     midRangeAttempted: cur.midRangeAttempted + (stat.midRangeAttempted || 0),
                                     midRangeAssisted: cur.midRangeAssisted + (stat.midRangeAssisted || 0),
                                     threePointAssisted: cur.threePointAssisted + (stat.threePointAssisted || 0),
-                                }
-                            };
+                                };
+                            }
+
+                            playoffUpdatedPlayers[playerIndex] = updated;
                         }
                     });
                 });
@@ -4383,7 +4548,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     playoffs: updatedPlayoffs,
                     players: playoffUpdatedPlayers,
                     pendingUserResult: null,
-                    dailyMatchups: []
+                    dailyMatchups: [],
+                    injuryInterrupt: userInjuryInterrupt || userRecoveryInterrupt || null,
                 };
 
             }
@@ -4855,6 +5021,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 players: playoffUpdatedPlayers,
                 pendingUserResult: null, // Reset after processing
                 dailyMatchups: nextDayMatchups, // Update for next day
+                injuryInterrupt: userInjuryInterrupt || userRecoveryInterrupt || null,
             };
         }
 
@@ -5444,6 +5611,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 // STOP CONDITIONS — use simTargetRef.current to avoid stale closure
                 const currentTarget = simTargetRef.current;
 
+                // Stop if there is an injury interrupt
+                if (prev.injuryInterrupt) {
+                    setSimTarget('none');
+                    return { ...prev, lastSimTarget: currentTarget };
+                }
+
                 if (currentTarget === 'deadline') {
                     // Stop at trade deadline (half-season: 19 for Euro, 40 for NBA)
                     const deadlineGame = prev.leagueType === 'EURO' ? 19 : 40;
@@ -5928,13 +6101,37 @@ export function GameProvider({ children }: { children: ReactNode }) {
             };
 
             const updatedPlayers = [...prev.players];
-            updatedPlayers[playerIndex] = { ...player, teamId: prev.userTeamId };
+            let signingPlayer = player;
+            let playerFound = false;
+            
+            if (playerIndex > -1) {
+                updatedPlayers[playerIndex] = { ...player, teamId: prev.userTeamId };
+                playerFound = true;
+            } else {
+                // Check NBA Pool
+                const nbaPlayer = (prev.nbaToEuroPool || []).find(p => p.id === playerId);
+                if (nbaPlayer) {
+                    signingPlayer = { 
+                        ...nbaPlayer, 
+                        teamId: prev.userTeamId,
+                        acquisition: {
+                            type: 'free_agent',
+                            year: prev.date.getFullYear(),
+                            details: 'Signed from NBA Pool (Mid-season)'
+                        }
+                    };
+                    updatedPlayers.push(signingPlayer);
+                    playerFound = true;
+                }
+            }
+
+            if (!playerFound || !signingPlayer) return prev;
 
             const updatedTeams = prev.teams.map(t => {
                 if (t.id === prev.userTeamId) {
                     return {
                         ...t,
-                        rosterIds: [...t.rosterIds, player.id],
+                        rosterIds: [...t.rosterIds, signingPlayer!.id],
                         salaryCapSpace: t.salaryCapSpace - offer.amount,
                         cash: t.cash - offer.amount
                     };
@@ -5946,7 +6143,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 ...prev,
                 players: updatedPlayers,
                 teams: updatedTeams,
-                contracts: [...prev.contracts, newContract]
+                contracts: [...prev.contracts, newContract],
+                nbaToEuroPool: (prev.nbaToEuroPool || []).filter(p => p.id !== playerId)
             };
         });
     };
@@ -6007,6 +6205,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const placeOffer = (playerId: string, amount: number, years: number) => {
         setGameState(prev => {
+            // Prevent duplicate offers
+            const existing = (prev.activeOffers || []).find(o => o.playerId === playerId && o.teamId === prev.userTeamId);
+            if (existing) return prev;
+
             const newOffer: FreeAgencyOffer = {
                 id: Date.now().toString(),
                 playerId,
@@ -6197,6 +6399,63 @@ export function GameProvider({ children }: { children: ReactNode }) {
             };
         });
     };
+    const setInjuryInterrupt = (interrupt: { player: Player, type: 'injury' | 'recovery' } | null) => {
+        setGameState(prev => ({ ...prev, injuryInterrupt: interrupt }));
+    };
+
+    const resolveInjuryInterrupt = (decision: 'manual' | 'ai' | 'dismiss') => {
+        setGameState(prev => {
+            if (!prev.injuryInterrupt) return prev;
+            
+            const newState = { ...prev, injuryInterrupt: null };
+            
+            if (decision === 'ai') {
+                const userTeam = prev.teams.find(t => t.id === prev.userTeamId);
+                if (userTeam) {
+                    const teamPlayers = prev.players.filter(p => p.teamId === userTeam.id);
+                    const strategy = userTeam.rotationStrategy || (prev.seasonPhase.startsWith('playoffs') ? 'Playoffs' : 'Balanced');
+                    
+                    // Filter for healthy players
+                    const healthyPlayers = teamPlayers.filter(p => !p.injury || (p.injury.duration || 0) <= 0);
+                    
+                    const targetMins = prev.leagueType === 'EURO' ? 200 : 240;
+                    const optimized = optimizeRotation(healthyPlayers, strategy as any, targetMins);
+                    
+                    newState.players = prev.players.map(p => {
+                        const update = optimized.find(u => u.id === p.id);
+                        if (update) {
+                            return { ...p, minutes: update.minutes, isStarter: update.isStarter, rotationIndex: update.rotationIndex };
+                        }
+                        if (p.teamId === userTeam.id) {
+                            // Clear minutes for those not in optimized list (injured or cut from rotation)
+                            return { ...p, minutes: 0, isStarter: false, rotationIndex: undefined };
+                        }
+                        return p;
+                    });
+                }
+            }
+            
+            return newState;
+        });
+
+        if (decision === 'manual') {
+            setView('team_roster');
+        } else {
+            // Check for multi-day simulation resume
+            setGameState(prev => {
+                if (prev.lastSimTarget !== 'none') {
+                    const targetToResume = prev.lastSimTarget;
+                    // Reset lastSimTarget to avoid loops
+                    const updated = { ...prev, lastSimTarget: 'none' as const };
+                    // We need to trigger the simulation resume AFTER this state update
+                    setTimeout(() => setSimTarget(targetToResume), 100);
+                    return updated;
+                }
+                return prev;
+            });
+        }
+    };
+
 
     return (
         <GameContext.Provider value={{
@@ -6243,6 +6502,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
             userHireCoach,
             userFireCoach,
             setView,
+            setInjuryInterrupt,
+            resolveInjuryInterrupt,
 
             simSpeed,
             setSimSpeed,

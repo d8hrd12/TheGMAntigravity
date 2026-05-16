@@ -77,8 +77,8 @@ export const NewsEngine = {
         return {
             id: crypto.randomUUID(),
             date: new Date(date),
-            headline: `${player.lastName} Out ${duration} Days`,
-            content: `${team.city} ${team.name} star ${player.firstName} ${player.lastName} has suffered a ${injuryName} and is expected to miss ${duration} days.`,
+            headline: `${player.lastName} Out ${duration} Games`,
+            content: `${team.city} ${team.name} star ${player.firstName} ${player.lastName} has suffered a ${injuryName} and is expected to miss ${duration} games.`,
             type: 'INJURY',
             priority,
             relatedPlayerId: player.id,

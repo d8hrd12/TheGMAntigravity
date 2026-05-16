@@ -24,6 +24,8 @@ import { getTacticsForStyle } from '../../team/coachGenerator';
 import { PACE_MULTIPLIERS }   from '../TacticsTypes';
 import type { PaceType }      from '../TacticsTypes';
 import { optimizeRotation }   from '../../../utils/rotationUtils';
+import { checkInGameInjury }  from '../InjurySystem';
+import type { InjuryReport }  from '../SimulationTypes';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -198,6 +200,10 @@ export function simulateEuroMatch(input: MatchInput): MatchResult {
     const s = statsMap.get(id);
     if (s) (s as any)[field] += val;
   };
+
+  // Injury tracking
+  const matchInjuries: InjuryReport[] = [];
+  const injuredThisGame = new Set<string>();
 
   // Score tracking
   let homeScore = 0, awayScore = 0;
@@ -374,6 +380,26 @@ export function simulateEuroMatch(input: MatchInput): MatchResult {
       // Drain stamina (EL 10-min quarters → slightly less drain per poss)
       stamina.set(shooter.id, Math.max(0, (stamina.get(shooter.id) ?? 100) - 1.0));
       stamina.set(handler.id, Math.max(0, (stamina.get(handler.id) ?? 100) - 0.7));
+
+      // ---- In-game injury check (very rare, ~0.008% per possession) ----
+      // Only check shooter and handler to keep it fast
+      for (const candidate of [shooter, handler]) {
+        if (injuredThisGame.has(candidate.id)) continue;
+        const inj = checkInGameInjury(candidate, stamina.get(candidate.id) ?? 100, 'EURO');
+        if (inj) {
+          injuredThisGame.add(candidate.id);
+          const returnDate = new Date(date ?? new Date());
+          returnDate.setDate(returnDate.getDate() + inj.gamesRemaining);
+          matchInjuries.push({
+            playerId: candidate.id,
+            type: inj.type,
+            severity: inj.severity,
+            returnDate,
+            gamesRemaining: inj.gamesRemaining,
+          });
+          break; // one in-game injury per possession max
+        }
+      }
     }
 
     // Halftime recovery (after Q2)
@@ -499,7 +525,7 @@ export function simulateEuroMatch(input: MatchInput): MatchResult {
     winnerId: homeScore >= awayScore ? homeTeam.id : awayTeam.id,
     homeScore, awayScore,
     boxScore,
-    injuries: [],
+    injuries: matchInjuries,
     events: [],
   };
 }

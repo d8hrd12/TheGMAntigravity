@@ -44,46 +44,43 @@ const RAND_LAST = [
  * - Skill stats (shooting, playmaking, IQ) decay gently: -1% per year over 30
  * - IQ actually improves slightly — veterans get smarter
  */
+/**
+ * Build attributes for a veteran player.
+ * USER REQUEST: Give them their original stats (no decay).
+ */
 function applyAgingDecay(attrs: any, baseOvr: number, currentAge: number) {
-    const yearsOverPrime = Math.max(0, currentAge - 30);
-    const athleticScale = Math.max(0.70, 1 - yearsOverPrime * 0.020); // softer physical drop
-    const skillScale    = Math.max(0.88, 1 - yearsOverPrime * 0.008); // slower skill drop
-    const iqBonus       = Math.min(10, Math.floor(yearsOverPrime * 0.6)); // vets get smarter
-
-    const s = (v: number, scale: number) => Math.max(30, Math.round((v || baseOvr) * scale));
+    // We now return original stats as requested by user ("no factors" previously)
+    const s = (v: number) => Math.max(30, Math.round(v || baseOvr));
 
     return {
-        // Athletic — decay hard
-        finishing:        s(attrs.finishing,        athleticScale),
-        athleticism:      s(attrs.athleticism,       athleticScale),
-        speed:            s(attrs.speed,             athleticScale),
-        agility:          s(attrs.agility,           athleticScale),
-        vertical:         s(attrs.vertical,          athleticScale),
-        ballHandling:     s(attrs.ballHandling,      athleticScale),
-        drivingDunk:      s(attrs.drivingDunk,       athleticScale),
-        offensiveRebound: s(attrs.offensiveRebound,  athleticScale),
-        defensiveRebound: s(attrs.defensiveRebound,  athleticScale),
-        blocking:         s(attrs.blocking,          athleticScale),
-        // Skill — decay gently
-        midRange:         s(attrs.midRange,          skillScale),
-        threePointShot:   s(attrs.threePointShot,   skillScale),
-        freeThrow:        s(attrs.freeThrow,         skillScale),
-        playmaking:       s(attrs.playmaking,        skillScale),
-        interiorDefense:  s(attrs.interiorDefense,   skillScale),
-        perimeterDefense: s(attrs.perimeterDefense,  skillScale),
-        stealing:         s(attrs.stealing,          skillScale),
-        postControl:      s(attrs.postControl,       skillScale),
-        drawFoul:         s(attrs.drawFoul,          skillScale),
-        standingDunk:     s(attrs.standingDunk,      skillScale),
-        layup:            s(attrs.layup,             skillScale),
-        // IQ & character — improves / stable
-        basketballIQ:     Math.min(99, (attrs.basketballIQ || baseOvr) + iqBonus),
-        workEthic:        Math.min(99, (attrs.workEthic || 80) + Math.floor(iqBonus * 0.5)),
-        offensiveConsistency: s(attrs.offensiveConsistency, skillScale),
-        defensiveConsistency: s(attrs.defensiveConsistency, skillScale),
-        // Physical — largely fixed
-        strength:         attrs.strength || 70,
-        stamina:          Math.max(70, (attrs.stamina || 85) - yearsOverPrime * 1.2),
+        // Use original values
+        finishing:        s(attrs.finishing),
+        athleticism:      s(attrs.athleticism),
+        speed:            s(attrs.speed),
+        agility:          s(attrs.agility),
+        vertical:         s(attrs.vertical),
+        ballHandling:     s(attrs.ballHandling),
+        drivingDunk:      s(attrs.drivingDunk),
+        offensiveRebound: s(attrs.offensiveRebound),
+        defensiveRebound: s(attrs.defensiveRebound),
+        blocking:         s(attrs.blocking),
+        midRange:         s(attrs.midRange),
+        threePointShot:   s(attrs.threePointShot),
+        freeThrow:        s(attrs.freeThrow),
+        playmaking:       s(attrs.playmaking),
+        interiorDefense:  s(attrs.interiorDefense),
+        perimeterDefense: s(attrs.perimeterDefense),
+        stealing:         s(attrs.stealing),
+        postControl:      s(attrs.postControl),
+        drawFoul:         s(attrs.drawFoul),
+        standingDunk:     s(attrs.standingDunk),
+        layup:            s(attrs.layup),
+        basketballIQ:     s(attrs.basketballIQ),
+        workEthic:        s(attrs.workEthic || 85),
+        offensiveConsistency: s(attrs.offensiveConsistency),
+        defensiveConsistency: s(attrs.defensiveConsistency),
+        strength:         attrs.strength || 75,
+        stamina:          attrs.stamina || 90,
     };
 }
 
@@ -96,6 +93,10 @@ function makeNBAVeteranPlayer(
     const attrs = applyAgingDecay(def.attributes || {}, def.ovr || 75, currentAge);
     const firstName = overrideName?.firstName ?? def.firstName;
     const lastName  = overrideName?.lastName  ?? def.lastName;
+    
+    // Ensure overall is high (no factors fix)
+    const finalOvr = Math.max(currentOvr, def.ovr || 75);
+
     return {
         id: `nba_target_${gameYear}_${abbr}_${firstName}_${lastName}`.replace(/[\s.]+/g, '_'),
         firstName,
@@ -105,8 +106,8 @@ function makeNBAVeteranPlayer(
         height: 200,
         weight: 100,
         teamId: team?.id || abbr,
-        overall: currentOvr,
-        potential: currentOvr,
+        overall: finalOvr,
+        potential: finalOvr,
         attributes: attrs,
         tendencies: {
             shooting: 50,
@@ -202,8 +203,9 @@ const PlayerListItem: React.FC<{
     allContracts: Contract[],
     userTeam: Team,
     isSelected: boolean, 
-    onClick: () => void 
-}> = ({ player, owningTeam, allPlayers, allContracts, userTeam, isSelected, onClick }) => {
+    onClick: () => void,
+    onOpenDetails: (id: string) => void
+}> = ({ player, owningTeam, allPlayers, allContracts, userTeam, isSelected, onClick, onOpenDetails }) => {
     const ovr = calculateOverall(player);
     const stats = player.seasonStats;
     const gp = stats?.gamesPlayed || 0;
@@ -260,7 +262,10 @@ const PlayerListItem: React.FC<{
                 </div>
                 <div style={{ flex: 1, overflow: 'hidden' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div style={{ fontWeight: 900, fontSize: '1rem', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div 
+                            onClick={(e) => { e.stopPropagation(); onOpenDetails(player.id); }}
+                            style={{ fontWeight: 900, fontSize: '1rem', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'underline', textDecorationColor: 'rgba(255,255,255,0.2)', textUnderlineOffset: '2px' }}
+                        >
                             {player.firstName} {player.lastName.toUpperCase()}
                             {untouchableInfo.untouchable && <ShieldAlert size={14} color="#e74c3c" />}
                         </div>
@@ -312,13 +317,23 @@ const PlayerListItem: React.FC<{
     );
 };
 
+/** Calculate demand for NBA veterans in Europe (4M down based on OVR) */
+function calculateNBAVeteranDemand(player: Player): number {
+    const ovr = calculateOverall(player);
+    // 90+ OVR -> 4M
+    // 80 OVR -> 2M
+    // 70 OVR -> 600k
+    const ratio = Math.max(0, (ovr - 68) / 22); // 0 at 68, 1.0 at 90
+    return Math.round(600000 + ratio * 3400000); 
+}
+
 interface Props {
     onBack: () => void;
     initialPlayerId?: string | null;
 }
 
 export const EuroTransferMarketView: React.FC<Props> = ({ onBack, initialPlayerId }) => {
-    const { players, teams, userTeamId, contracts, setGameState, salaryCap, date } = useGame();
+    const { players, teams, userTeamId, contracts, setGameState, salaryCap, date, nbaToEuroPool, setSelectedPlayerId } = useGame();
     
     const userTeam = teams.find(t => t.id === userTeamId);
     if (!userTeam) return null;
@@ -385,14 +400,19 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack, initialPlayerI
 
 
     const filteredNBAPool = useMemo(() => {
-        // Rebuild every year — shows a fresh cohort of veterans each season
+        // 1. Use the state-managed pool if it has been populated by the engine, 
+        // otherwise fallback to the dynamic generator (mostly for early season/start)
         const gameYear = date instanceof Date ? date.getFullYear() : new Date(date).getFullYear();
-        const pool = buildNBATargetPool(gameYear);
-        return pool
+        const basePool = (nbaToEuroPool && nbaToEuroPool.length > 0) 
+            ? nbaToEuroPool 
+            : buildNBATargetPool(gameYear);
+
+        return basePool
+            .filter(p => !players.some(gp => gp.id === p.id)) // Filter out already signed players
             .filter(p => (`${p.firstName} ${p.lastName}`).toLowerCase().includes(searchTerm.toLowerCase()))
             .filter(p => positionFilter === 'All' || p.position === positionFilter)
             .sort((a, b) => b.overall - a.overall);
-    }, [date, searchTerm, positionFilter]);
+    }, [date, searchTerm, positionFilter, players, nbaToEuroPool]);
 
 
     const handleSelectPlayer = (p: Player) => {
@@ -401,8 +421,13 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack, initialPlayerI
         if (searchMode === 'NBA' || !p.teamId || p.teamId === 'FA') {
             // NBA players or Free Agents are free for Europe (no buyout)
             setTransferPhase('PLAYER_NEGOTIATION');
-            const market = calculateContractAmount(p, salaryCap);
-            setPlayerDemand(market.amount);
+            
+            // SPECIAL DEMAND FOR NBA VETERANS (4M cap fix)
+            const demand = p.id.startsWith('nba_') 
+                ? calculateNBAVeteranDemand(p) 
+                : calculateContractAmount(p, salaryCap).amount;
+                
+            setPlayerDemand(demand);
             setNegotiationRound(1);
         } else {
             setTransferPhase('TEAM_NEGOTIATION');
@@ -499,8 +524,10 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack, initialPlayerI
             });
 
             // 2. Update Player
-            const updatedPlayers = prev.players.map(p => {
+            let playerFound = false;
+            let updatedPlayers = prev.players.map(p => {
                 if (p.id === selectedPlayer.id) {
+                    playerFound = true;
                     return {
                         ...p,
                         teamId: userTeamId,
@@ -513,6 +540,19 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack, initialPlayerI
                 }
                 return p;
             });
+
+            // If player was not in main players array (e.g. from NBA pool), add them now
+            if (!playerFound) {
+                updatedPlayers.push({
+                    ...selectedPlayer,
+                    teamId: userTeamId,
+                    acquisition: {
+                        type: 'trade' as const,
+                        year: prev.date.getFullYear(),
+                        details: `Signed from NBA Market`
+                    }
+                });
+            }
 
             // 3. Remove old contract, add new
             const filteredContracts = prev.contracts.filter(c => c.playerId !== selectedPlayer.id);
@@ -545,7 +585,8 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack, initialPlayerI
                 teams: updatedTeams,
                 players: updatedPlayers,
                 contracts: [...filteredContracts, newContract],
-                transactions: [transaction, ...prev.transactions]
+                transactions: [transaction, ...prev.transactions],
+                nbaToEuroPool: (prev.nbaToEuroPool || []).filter(p => p.id !== selectedPlayer.id)
             };
         });
 
@@ -757,6 +798,7 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack, initialPlayerI
                                         userTeam={userTeam}
                                         isSelected={selectedPlayer?.id === player.id}
                                         onClick={() => handleSelectPlayer(player)}
+                                        onOpenDetails={setSelectedPlayerId}
                                     />
                                 ))
                             ) : searchMode === 'PLAYERS' ? (
@@ -770,6 +812,7 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack, initialPlayerI
                                         userTeam={userTeam}
                                         isSelected={selectedPlayer?.id === player.id}
                                         onClick={() => handleSelectPlayer(player)}
+                                        onOpenDetails={setSelectedPlayerId}
                                     />
                                 ))
                             ) : searchMode === 'NBA' ? (
@@ -783,6 +826,7 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack, initialPlayerI
                                         userTeam={userTeam}
                                         isSelected={selectedPlayer?.id === player.id}
                                         onClick={() => handleSelectPlayer(player)}
+                                        onOpenDetails={setSelectedPlayerId}
                                     />
                                 ))
                             ) : !browsingTeamId ? (
@@ -815,6 +859,7 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack, initialPlayerI
                                         userTeam={userTeam}
                                         isSelected={selectedPlayer?.id === player.id}
                                         onClick={() => handleSelectPlayer(player)}
+                                        onOpenDetails={setSelectedPlayerId}
                                     />
                                 ))
                             )}

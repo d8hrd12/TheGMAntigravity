@@ -6,7 +6,7 @@ import { calculateOverall } from '../../utils/playerUtils';
 import { calculateStars, calculateTeamBaseline } from '../../utils/starUtils';
 import { StarRating } from '../../components/StarRating';
 import { optimizeRotation, type RotationStrategy } from '../../utils/rotationUtils';
-import { Info, Play, Users, BarChart2, Plus, Minus } from 'lucide-react';
+import { Info, Play, Users, BarChart2, Plus, Minus, BatteryLow, Battery, AlertCircle } from 'lucide-react';
 import { useGame } from '../../store/GameContext';
 import { PageHeader } from '../ui/PageHeader';
 
@@ -58,7 +58,10 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
             });
             const bench = sorted.slice(5);
 
-            setRoster([...starters, ...bench]);
+            setRoster([...starters, ...bench].map(p => {
+                if (p.injury) return { ...p, minutes: 0, isStarter: false };
+                return p;
+            }));
             if (team.rotationStrategy === undefined) {
                 setSelectedStrategy('Custom'); 
             }
@@ -73,7 +76,10 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
             });
             const bench = optimized.slice(5);
 
-            setRoster([...starters, ...bench]);
+            setRoster([...starters, ...bench].map(p => {
+                if (p.injury) return { ...p, minutes: 0, isStarter: false };
+                return p;
+            }));
         }
 
         isFirstRun.current = false;
@@ -119,6 +125,9 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
 
             // 1. Bounds check
             if (newMinutes < 0 || newMinutes > MAX_PLAYER_MINS) return prev;
+
+            // 1b. Injury check - can't add minutes to injured players
+            if (player.injury) return prev;
 
             // 2. Cap check (only if adding)
             if (delta > 0) {
@@ -282,6 +291,7 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                         {roster.map((player, index) => {
                             const isStarter = index < 5;
                             const isSelected = selectedPlayerId === player.id;
+                            const isInjured = !!player.injury;
 
                             // Selection Glow Logic
                             let rowBackground = isStarter ? 'rgba(var(--primary-rgb), 0.03)' : 'transparent';
@@ -341,7 +351,9 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                                             boxShadow: rowBoxShadow,
                                             cursor: 'pointer',
                                             transition: 'all 0.2s',
-                                            position: 'relative'
+                                            position: 'relative',
+                                            opacity: isInjured ? 0.6 : 1,
+                                            filter: isInjured ? 'grayscale(0.5)' : 'none'
                                         }}
                                     >
                                         <td style={{ padding: '12px 16px', textAlign: 'left' }}>
@@ -369,6 +381,9 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                                                         lineHeight: 1.1
                                                     }}>
                                                         {player.firstName.charAt(0)}. {player.lastName}
+                                                        {(player.fatigue ?? 0) > 70 && (
+                                                            <BatteryLow size={14} style={{ color: '#e74c3c' }} />
+                                                        )}
                                                         <Info 
                                                             size={13} 
                                                             style={{ color: 'var(--team-primary)', cursor: 'pointer', opacity: 0.6 }} 
@@ -377,8 +392,26 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                                                     </div>
                                                     
                                                     {/* Badge Container with Fixed Height to prevent jumping */}
-                                                    <div style={{ height: '14px', display: 'flex', alignItems: 'center' }}>
-                                                        {isStarter ? (
+                                                    <div style={{ height: '14px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        {isInjured ? (
+                                                            <span style={{ 
+                                                                fontSize: '0.55rem', 
+                                                                color: '#e74c3c', 
+                                                                fontWeight: 900, 
+                                                                letterSpacing: '0.08em',
+                                                                textTransform: 'uppercase',
+                                                                background: 'rgba(231, 76, 60, 0.12)',
+                                                                padding: '1px 5px',
+                                                                borderRadius: '3px',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: '2px',
+                                                                lineHeight: '1',
+                                                                boxShadow: '0 0 4px rgba(231, 76, 60, 0.1)'
+                                                            }}>
+                                                                <AlertCircle size={8} /> INJURED
+                                                            </span>
+                                                        ) : isStarter ? (
                                                             <span style={{ 
                                                                 fontSize: '0.55rem', 
                                                                 color: 'var(--team-primary)', 
@@ -407,6 +440,7 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', width: '100%' }}>
                                                 <button
                                                     onClick={(e) => changeMinutes(e, index, -1)}
+                                                    disabled={isInjured}
                                                     style={{
                                                         background: 'rgba(0,0,0,0.05)',
                                                         border: 'none',
@@ -417,14 +451,16 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
-                                                        cursor: 'pointer'
+                                                        cursor: isInjured ? 'not-allowed' : 'pointer',
+                                                        opacity: isInjured ? 0.3 : 1
                                                     }}
                                                 >
                                                     <Minus size={12} />
                                                 </button>
-                                                <span style={{ color: 'var(--text-main)', width: '25px', textAlign: 'center', fontWeight: 'bold', fontSize: '0.9rem' }}>{player.minutes}</span>
+                                                <span style={{ color: isInjured ? '#e74c3c' : 'var(--text-main)', width: '25px', textAlign: 'center', fontWeight: 'bold', fontSize: '0.9rem' }}>{player.minutes}</span>
                                                 <button
                                                     onClick={(e) => changeMinutes(e, index, 1)}
+                                                    disabled={isInjured}
                                                     style={{
                                                         background: 'rgba(0,0,0,0.05)',
                                                         border: 'none',
@@ -435,7 +471,8 @@ export const RotationView: React.FC<RotationViewProps> = ({ players, team, onBac
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
-                                                        cursor: 'pointer'
+                                                        cursor: isInjured ? 'not-allowed' : 'pointer',
+                                                        opacity: isInjured ? 0.3 : 1
                                                     }}
                                                 >
                                                     <Plus size={12} />
