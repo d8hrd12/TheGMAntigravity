@@ -4699,12 +4699,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
                     mapTeamsForSimulation(prev.teams).forEach(t => {
                         const teamContracts = aiUpdatedContracts.filter(c => c.teamId === t.id);
-                        // EURO MODE: Use conference-specific caps for financials
+                        // EURO MODE: Use conference-specific prestige-based caps for financials
                         let activeCap = prev.salaryCap;
                         let activeThreshold = LUXURY_TAX_THRESHOLD;
                         
                         if (prev.leagueType === 'EURO') {
-                            activeCap = t.conference === 'EuroLeague' ? 30000000 : 15000000;
+                            activeCap = 5000000;
+                            if (t.conference === 'EuroLeague') {
+                                const prestige = t.prestige || 50;
+                                activeCap = 15000000 + ((prestige / 100) * 15000000);
+                            }
+                            if (t.isRelegatedParachute) activeCap += 5000000;
                             activeThreshold = activeCap * 1.5;
                         }
 

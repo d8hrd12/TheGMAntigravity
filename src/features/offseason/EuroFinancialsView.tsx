@@ -14,16 +14,17 @@ export const EuroFinancialsView: React.FC = () => {
     const hype = useMemo(() => {
         if (!userTeam) return 0.5;
         
-        // Simpler calculation: wins + playoff depth
-        const wins = userTeam.wins || 0;
-        const totalGames = 38; // EuroLeague regular season
+        // Use history for wins if we are in the offseason (wins reset to 0)
+        const lastSeason = userTeam.history?.[userTeam.history.length - 1];
+        const wins = (userTeam.wins === 0 && lastSeason) ? lastSeason.wins : userTeam.wins;
+        
+        const totalGames = userTeam.conference === 'EuroLeague' ? 34 : 18; // Regular season rounds
         const winRatio = wins / totalGames;
         
-        // Check playoff success from team history or awards (simplified here)
-        // If they have many wins, they probably did well
+        // Check playoff success
         let playoffBonus = 0;
-        if (wins > 25) playoffBonus = 0.3;
-        else if (wins > 20) playoffBonus = 0.15;
+        if (wins > (totalGames * 0.7)) playoffBonus = 0.3;
+        else if (wins > (totalGames * 0.5)) playoffBonus = 0.15;
         
         return Math.min(1.0, 0.2 + winRatio + playoffBonus);
     }, [userTeam]);
@@ -151,7 +152,7 @@ export const EuroFinancialsView: React.FC = () => {
                             />
                         </div>
                         <div style={{ fontSize: '0.75rem', color: '#8898a8', textTransform: 'uppercase', marginTop: '12px', fontWeight: 800, letterSpacing: '1px' }}>
-                            Performance Factor: Based on last season's {userTeam?.wins} wins
+                            Performance Factor: Based on {userTeam?.wins === 0 ? 'Last Season\'s' : 'current'} {((userTeam?.wins === 0 && userTeam?.history?.[userTeam.history.length - 1]) ? userTeam.history[userTeam.history.length - 1].wins : userTeam?.wins)} wins
                         </div>
                     </div>
                 </div>
