@@ -4983,6 +4983,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             localTalent: false,
                             financials: false
                         },
+                        isTrainingCampComplete: false,
+                        trainingReport: null,
                         salaryCap: finalSalaryCap,
                         teams: finalTeams,
                         awardsHistory: updatedAwardsHistory,
@@ -5617,6 +5619,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             draftClass,
                             draftOrder: [...finalTeams].sort((a, b) => a.wins - b.wins).map(t => t.id).concat([...finalTeams].sort((a, b) => a.wins - b.wins).map(t => t.id)),
                             offseasonTasks: { retirements: false, scouting: false, coaching: false, draft: false, resigning: false, freeAgency: false, localTalent: false, financials: false, training: false, trainingResults: false, paySalaries: false },
+                            isTrainingCampComplete: false,
+                            trainingReport: null,
                             date: date,
                             isProcessing: false
                         };
