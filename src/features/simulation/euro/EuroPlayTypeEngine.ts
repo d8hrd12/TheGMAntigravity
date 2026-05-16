@@ -57,8 +57,9 @@ export function calculateEuroUsageWeights(lineup: Player[]): Map<string, number>
     const base = isCreator ? 0.24 : (EURO_BASE_USAGE[p.position] ?? 0.18);
     // Superstars get significantly more volume if OVR > 85
     const ovr = calculateOverall(p);
-    const starPower = ovr >= 90 ? 1.4 : ovr >= 85 ? 1.2 : 1.0;
-    const w = Math.min(base * Math.pow(sk / 75, 0.9) * starPower, cap);
+    const starPower = ovr >= 90 ? 1.6 : ovr >= 85 ? 1.3 : 1.0;
+    // Sharper power law (1.5) ensures Luka takes 2-3x shots of role players
+    const w = Math.min(base * Math.pow(sk / 75, 1.5) * starPower, cap);
     weights.set(p.id, w);
     total += w;
   });
