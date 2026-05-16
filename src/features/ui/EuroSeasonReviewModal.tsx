@@ -73,48 +73,48 @@ export const EuroSeasonReviewModal: React.FC<EuroSeasonReviewModalProps> = ({ re
                 {/* Header Decoration */}
                 <div style={{ height: '6px', background: 'linear-gradient(90deg, #f1c40f, #e67e22, #f39c12)' }} />
                 
-                <div style={{ padding: '40px' }}>
-                    <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', background: 'rgba(241, 196, 15, 0.1)', padding: '10px 24px', borderRadius: '40px', color: '#f1c40f', marginBottom: '16px' }}>
-                            <Trophy size={20} />
-                            <span style={{ fontWeight: 900, letterSpacing: '1px', fontSize: '0.8rem' }}>EUROPEAN FINALS REVIEW</span>
+                <div style={{ padding: '24px', maxHeight: '90vh', overflowY: 'auto' }}>
+                    <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', background: 'rgba(241, 196, 15, 0.1)', padding: '8px 20px', borderRadius: '40px', color: '#f1c40f', marginBottom: '12px' }}>
+                            <Trophy size={18} />
+                            <span style={{ fontWeight: 900, letterSpacing: '1px', fontSize: '0.7rem' }}>EUROPEAN FINALS REVIEW</span>
                         </div>
-                        <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 900, color: 'var(--text-main)', letterSpacing: '-1px' }}>Season Champions</h1>
+                        <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 900, color: 'var(--text-main)', letterSpacing: '-0.5px' }}>Season Champions</h1>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', marginBottom: '40px' }}>
+                    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '24px' }}>
                         <TeamDisplay 
                             label="EuroLeague Champion" 
                             teamName={review.euroLeagueWinner} 
-                            icon={<Trophy size={100} />} 
+                            icon={<Trophy size={80} />} 
                             primaryColor="#f1c40f" 
                         />
                         <TeamDisplay 
                             label="EuroCup Champion" 
                             teamName={review.euroCupWinner} 
-                            icon={<Star size={100} />} 
+                            icon={<Star size={80} />} 
                             primaryColor="#3498db" 
                         />
                     </div>
 
-                    <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginBottom: '40px' }}>
-                        <div style={{ flex: 1, background: 'rgba(46, 204, 113, 0.05)', borderRadius: '24px', padding: '24px', border: '1px solid rgba(46, 204, 113, 0.2)', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                            <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(46, 204, 113, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2ecc71' }}>
-                                <TrendingUp size={24} />
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '24px' }}>
+                        <div style={{ flex: 1, minWidth: '200px', background: 'rgba(46, 204, 113, 0.05)', borderRadius: '20px', padding: '16px', border: '1px solid rgba(46, 204, 113, 0.2)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(46, 204, 113, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2ecc71' }}>
+                                <TrendingUp size={20} />
                             </div>
                             <div>
-                                <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#2ecc71', textTransform: 'uppercase', letterSpacing: '1px' }}>Promoted to EuroLeague</div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>{review.promoted}</div>
+                                <div style={{ fontSize: '0.6rem', fontWeight: 900, color: '#2ecc71', textTransform: 'uppercase', letterSpacing: '1px' }}>Promoted to EuroLeague</div>
+                                <div style={{ fontSize: '1rem', fontWeight: 800 }}>{review.promoted}</div>
                             </div>
                         </div>
 
-                        <div style={{ flex: 1, background: 'rgba(231, 76, 60, 0.05)', borderRadius: '24px', padding: '24px', border: '1px solid rgba(231, 76, 60, 0.2)', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                            <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(231, 76, 60, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e74c3c' }}>
-                                <TrendingDown size={24} />
+                        <div style={{ flex: 1, minWidth: '200px', background: 'rgba(231, 76, 60, 0.05)', borderRadius: '20px', padding: '16px', border: '1px solid rgba(231, 76, 60, 0.2)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(231, 76, 60, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e74c3c' }}>
+                                <TrendingDown size={20} />
                             </div>
                             <div>
-                                <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#e74c3c', textTransform: 'uppercase', letterSpacing: '1px' }}>Relegated to EuroCup</div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>{review.relegated}</div>
+                                <div style={{ fontSize: '0.6rem', fontWeight: 900, color: '#e74c3c', textTransform: 'uppercase', letterSpacing: '1px' }}>Relegated to EuroCup</div>
+                                <div style={{ fontSize: '1rem', fontWeight: 800 }}>{review.relegated}</div>
                             </div>
                         </div>
                     </div>
@@ -122,16 +122,17 @@ export const EuroSeasonReviewModal: React.FC<EuroSeasonReviewModalProps> = ({ re
                     <button
                         onClick={onClose}
                         style={{
-                            width: '100%', padding: '20px', borderRadius: '18px',
+                            width: '100%', padding: '16px', borderRadius: '16px',
                             background: 'var(--text-main)', color: 'var(--bg-main)', border: 'none',
-                            fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px',
-                            transition: 'transform 0.2s'
+                            fontWeight: 900, fontSize: '1rem', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                            transition: 'transform 0.2s',
+                            marginBottom: '10px'
                         }}
                         onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
                         onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                     >
-                        <CheckCircle2 size={24} />
+                        <CheckCircle2 size={22} />
                         CONTINUE TO OFFSEASON
                     </button>
                 </div>
