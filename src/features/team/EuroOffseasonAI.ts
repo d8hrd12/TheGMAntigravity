@@ -59,7 +59,6 @@ export function classifyTeamArchetype(team: Team, roster: Player[]): TeamArchety
 // ─────────────────────────────────────────────────────────────────────────────
 // Step 2: Determine what the team NEEDS (positional needs)
 // ─────────────────────────────────────────────────────────────────────────────
-
 function detectRosterNeeds(roster: Player[]): { position: string; priority: 'HIGH' | 'MEDIUM' | 'LOW' }[] {
     const positions = ['PG', 'SG', 'SF', 'PF', 'C'];
     const needs: { position: string; priority: 'HIGH' | 'MEDIUM' | 'LOW' }[] = [];
@@ -67,19 +66,13 @@ function detectRosterNeeds(roster: Player[]): { position: string; priority: 'HIG
     for (const pos of positions) {
         const playersAtPos = roster.filter(p => p.position === pos);
         const count = playersAtPos.length;
-        const bestOvr = playersAtPos.length > 0
-            ? Math.max(...playersAtPos.map(p => calculateOverall(p)))
-            : 0;
-
-        if (count === 0) needs.push({ position: pos, priority: 'HIGH' });
-        else if (count === 1 || bestOvr < 72) needs.push({ position: pos, priority: 'MEDIUM' });
-        else needs.push({ position: pos, priority: 'LOW' });
+        if (count === 0) needs.push({ position: pos, priority: 'HIGH' }); // CRITICAL need
+        else if (count === 1) needs.push({ position: pos, priority: 'MEDIUM' }); // Needs backup
+        else if (count >= 3) needs.push({ position: pos, priority: 'LOW' }); // Surplus risk
+        else needs.push({ position: pos, priority: 'LOW' }); 
     }
 
-    return needs.sort((a, b) => {
-        const order = { HIGH: 0, MEDIUM: 1, LOW: 2 };
-        return order[a.priority] - order[b.priority];
-    });
+    return needs;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -297,14 +290,39 @@ export function simulateEuroAIOffseason(params: {
                     calculateOverall(p) >= budget.minOvrFreeAgent
                 )
                 .sort((a, b) => {
-                    // Prefer positions team needs
-                    const aNeed = needs.find(n => n.position === a.position)?.priority ?? 'LOW';
-                    const bNeed = needs.find(n => n.position === b.position)?.priority ?? 'LOW';
-                    const priorityScore = { HIGH: 100, MEDIUM: 50, LOW: 0 };
-                    return (
-                        (calculateOverall(b) + priorityScore[bNeed]) -
-                        (calculateOverall(a) + priorityScore[aNeed])
-                    );
+                    const aCount = teamRoster.filter(p => p.position === a.position).length;
+                    const bCount = teamRoster.filter(p => p.position === b.position).length;
+                    
+                    const aOvr = calculateOverall(a);
+                    const bOvr = calculateOverall(b);
+
+                    // 1. STAR CLASHING: If we have a 90+ star, don't sign another 82+ at same spot
+                    const hasStarA = teamRoster.some(p => p.position === a.position && calculateOverall(p) >= 88);
+                    const hasStarB = teamRoster.some(p => p.position === b.position && calculateOverall(p) >= 88);
+                    
+                    const starPenaltyA = (hasStarA && aOvr >= 80) ? -40 : 0;
+                    const starPenaltyB = (hasStarB && bOvr >= 80) ? -40 : 0;
+
+                    // 2. TOP 5 IMPROVEMENT: If player doesn't beat our current starter, reduce value
+                    const bestAtPosA = teamRoster.filter(p => p.position === a.position).reduce((max, p) => Math.max(max, calculateOverall(p)), 0);
+                    const bestAtPosB = teamRoster.filter(p => p.position === b.position).reduce((max, p) => Math.max(max, calculateOverall(p)), 0);
+                    
+                    const improvementA = aOvr > bestAtPosA ? 15 : -10;
+                    const improvementB = bOvr > bestAtPosB ? 15 : -10;
+
+                    // 3. ROSTER SYMMETRY
+                    const getPosWeight = (count: number) => {
+                        if (count === 0) return 60; // Desperate
+                        if (count === 1) return 30; // Need backup
+                        if (count === 2) return 0;  // Standard
+                        if (count >= 3) return -50; // Surplus (Avoid)
+                        return 0;
+                    };
+
+                    const aScore = aOvr + getPosWeight(aCount) + starPenaltyA + improvementA;
+                    const bScore = bOvr + getPosWeight(bCount) + starPenaltyB + improvementB;
+                    
+                    return bScore - aScore;
                 });
 
             let faSignCount = 0;
@@ -401,7 +419,37 @@ export function simulateEuroAIOffseason(params: {
                     !claimedNBAIds.has(p.id) &&
                     calculateOverall(p) >= budget.minOvrNBAVet
                 )
-                .sort((a, b) => calculateOverall(b) - calculateOverall(a));
+                .sort((a, b) => {
+                    const aCount = teamRoster.filter(p => p.position === a.position).length;
+                    const bCount = teamRoster.filter(p => p.position === b.position).length;
+                    
+                    const aOvr = calculateOverall(a);
+                    const bOvr = calculateOverall(b);
+
+                    const hasStarA = teamRoster.some(p => p.position === a.position && calculateOverall(p) >= 88);
+                    const hasStarB = teamRoster.some(p => p.position === b.position && calculateOverall(p) >= 88);
+                    
+                    const starPenaltyA = (hasStarA && aOvr >= 80) ? -40 : 0;
+                    const starPenaltyB = (hasStarB && bOvr >= 80) ? -40 : 0;
+
+                    const bestAtPosA = teamRoster.filter(p => p.position === a.position).reduce((max, p) => Math.max(max, calculateOverall(p)), 0);
+                    const bestAtPosB = teamRoster.filter(p => p.position === b.position).reduce((max, p) => Math.max(max, calculateOverall(p)), 0);
+                    
+                    const improvementA = aOvr > bestAtPosA ? 15 : -10;
+                    const improvementB = bOvr > bestAtPosB ? 15 : -10;
+
+                    const getPosWeight = (count: number) => {
+                        if (count === 0) return 60;
+                        if (count === 1) return 30;
+                        if (count >= 3) return -50;
+                        return 0;
+                    };
+
+                    const aScore = aOvr + getPosWeight(aCount) + starPenaltyA + improvementA;
+                    const bScore = bOvr + getPosWeight(bCount) + starPenaltyB + improvementB;
+                    
+                    return bScore - aScore;
+                });
 
             let vetSignCount = 0;
             for (const vet of availableVets) {

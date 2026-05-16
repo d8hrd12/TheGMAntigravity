@@ -2969,12 +2969,27 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     candidates.sort((a, b) => {
                         const aOvr = calculateOverall(a);
                         const bOvr = calculateOverall(b);
+
+                        // 1. STAR CLASHING
+                        const hasStarA = teamRoster.some(p => p.position === a.position && calculateOverall(p) >= 88);
+                        const hasStarB = teamRoster.some(p => p.position === b.position && calculateOverall(p) >= 88);
+                        const starPenaltyA = (hasStarA && aOvr >= 80) ? -40 : 0;
+                        const starPenaltyB = (hasStarB && bOvr >= 80) ? -40 : 0;
+
+                        // 2. TOP 5 IMPROVEMENT
+                        const bestAtPosA = teamRoster.filter(p => p.position === a.position).reduce((max, p) => Math.max(max, calculateOverall(p)), 0);
+                        const bestAtPosB = teamRoster.filter(p => p.position === b.position).reduce((max, p) => Math.max(max, calculateOverall(p)), 0);
+                        const improvementA = aOvr > bestAtPosA ? 15 : -10;
+                        const improvementB = bOvr > bestAtPosB ? 15 : -10;
+
                         const aScore = aOvr +
-                            (neededPositions.includes(a.position) ? 25 : 0) -
-                            (overstackedPositions.includes(a.position) ? 20 : 0);
+                            (neededPositions.includes(a.position) ? 35 : 0) -
+                            (overstackedPositions.includes(a.position) ? 50 : 0) +
+                            starPenaltyA + improvementA;
                         const bScore = bOvr +
-                            (neededPositions.includes(b.position) ? 25 : 0) -
-                            (overstackedPositions.includes(b.position) ? 20 : 0);
+                            (neededPositions.includes(b.position) ? 35 : 0) -
+                            (overstackedPositions.includes(b.position) ? 50 : 0) +
+                            starPenaltyB + improvementB;
                         return bScore - aScore;
                     });
                 }
