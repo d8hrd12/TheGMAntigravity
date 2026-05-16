@@ -240,11 +240,13 @@ export function simulateEuroAIOffseason(params: {
     localTalentPool: any[];   // LocalTalent[]
     userTeamId: string;
     gameYear: number;
+    nbaPool?: Player[];
 }): {
     updatedTeams: Team[];
     updatedPlayers: Player[];
     updatedContracts: Contract[];
     remainingLocalTalentPool: any[];
+    remainingNBAPool: Player[];
     signingLog: string[];
     transactions: any[];
 } {
@@ -257,7 +259,7 @@ export function simulateEuroAIOffseason(params: {
     const transactions: any[] = [];
 
     // Build NBA veteran pool for this year (available to all AI teams)
-    const nbaPool = buildNBATargetPoolForAI(gameYear);
+    const nbaPool = params.nbaPool || buildNBATargetPoolForAI(gameYear);
 
     // Track which free agents / younglings / nba vets have been claimed
     const claimedFAIds = new Set<string>();
@@ -423,6 +425,7 @@ export function simulateEuroAIOffseason(params: {
         updatedPlayers,
         updatedContracts,
         remainingLocalTalentPool,
+        remainingNBAPool: nbaPool.filter(p => !claimedNBAIds.has(p.id)),
         signingLog,
         transactions
     };

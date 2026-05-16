@@ -64,8 +64,9 @@ export function generateNBAEuroPool(count: number): NBAEuroProspect[] {
  * and adding new "NBA castoffs".
  */
 export function refreshNBAEuroPool(currentPool: NBAEuroProspect[]): NBAEuroProspect[] {
-    // 1. Remove 20-40% of existing players (simulating they signed in China, G-League, or retired)
-    const survivors = currentPool.filter(() => Math.random() > 0.3);
+    // 1. Remove 20-40% of fictional players (simulating they signed in China, G-League, or retired)
+    // NEVER remove real NBA veterans (IDs starting with 'nba_target_')
+    const survivors = currentPool.filter(p => p.id.startsWith('nba_target_') || Math.random() > 0.3);
     
     // 2. Add 3-6 new players
     const newArrivals = generateNBAEuroPool(Math.floor(Math.random() * 4) + 3);

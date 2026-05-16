@@ -25,6 +25,7 @@ export interface DaySimulationResult {
     offersMade: FreeAgencyOffer[];
     signings: { playerId: string; teamId: string; amount: number; years: number }[];
     news: string[];
+    transactions: any[];
 }
 
 // 3. Simulate Day
@@ -33,7 +34,7 @@ export const simulateFreeAgencyDay = (
     day: number
 ): { newState: GameState; result: DaySimulationResult } => {
 
-    const result: DaySimulationResult = { offersMade: [], signings: [], news: [] };
+    const result: DaySimulationResult = { offersMade: [], signings: [], news: [], transactions: [] };
     let nextState = { ...gameState };
 
     // Logic split:
@@ -344,6 +345,19 @@ export const simulateFreeAgencyDay = (
                 // News
                 const t = nextState.teams.find(x => x.id === signingTeamId);
                 result.news.push(`${player.firstName} ${player.lastName} has agreed to sign with the ${t?.name}!`);
+
+                // Transaction
+                result.transactions.push({
+                    date: nextState.date,
+                    type: 'SIGNING',
+                    description: `SIGNING: ${player.firstName} ${player.lastName} signed with ${t?.city} ${t?.name}.`,
+                    teamId: signingTeamId,
+                    playerId: player.id,
+                    playerName: `${player.firstName} ${player.lastName}`,
+                    amount: signingAmount,
+                    years: signingYears,
+                    fee: 0
+                });
             }
         }
     });
@@ -489,7 +503,8 @@ export const simulateFreeAgencyDay = (
             activeOffers: allOffers,
             activeCoachOffers: updatedCoachOffers,
             freeAgencyDay: day,
-            nbaToEuroPool: finalNbaPool
+            nbaToEuroPool: finalNbaPool,
+            transactions: [...result.transactions, ...(nextState.transactions || [])]
         },
         result
     };

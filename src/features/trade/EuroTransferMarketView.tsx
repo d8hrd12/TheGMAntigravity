@@ -151,7 +151,8 @@ function extractPoolForYear(gameYear: number, nameSuffix?: string): Player[] {
         for (const def of roster as any[]) {
             const currentAge = def.age + yearsElapsed;
             const contractYearsLeft = (def.contract?.years || 0) - yearsElapsed;
-            if (contractYearsLeft !== 1) continue;
+            // Include players expiring this year OR recently expired (Free Agents)
+            if (contractYearsLeft > 1 || contractYearsLeft < 0) continue;
             if (currentAge <= 31) continue;
             
             // Softer age drop: starts at 34 and slower slope
@@ -567,15 +568,18 @@ export const EuroTransferMarketView: React.FC<Props> = ({ onBack, initialPlayerI
             };
 
             // 4. Log Transaction
+            const isNBASigning = selectedPlayer.id.startsWith('nba_');
             const transaction = {
                 date: prev.date,
-                type: 'TRANSFER',
-                description: `TRANSFER: Signed ${selectedPlayer.firstName} ${selectedPlayer.lastName} for ${selectedPlayer.teamId ? `€${(cashOffer / 1000000).toFixed(1)}M fee. ` : ''}Contract: €${(contractOffer.amount / 1000000).toFixed(1)}M / ${contractOffer.years} yrs.`,
+                type: isNBASigning ? 'NBA SIGNING' : 'TRANSFER',
+                description: isNBASigning 
+                    ? `NBA SIGNING: Signed ${selectedPlayer.firstName} ${selectedPlayer.lastName} from NBA Market. Contract: €${(contractOffer.amount / 1000000).toFixed(1)}M / ${contractOffer.years} yrs.`
+                    : `TRANSFER: Signed ${selectedPlayer.firstName} ${selectedPlayer.lastName} for ${selectedPlayer.teamId ? `€${(cashOffer / 1000000).toFixed(1)}M fee. ` : ''}Contract: €${(contractOffer.amount / 1000000).toFixed(1)}M / ${contractOffer.years} yrs.`,
                 teamId: prev.userTeamId,
-                fromTeamId: selectedPlayer.teamId || undefined,
+                fromTeamId: isNBASigning ? undefined : (selectedPlayer.teamId || undefined),
                 playerId: selectedPlayer.id,
                 playerName: `${selectedPlayer.firstName} ${selectedPlayer.lastName}`,
-                fee: selectedPlayer.teamId ? cashOffer : 0,
+                fee: isNBASigning ? 0 : (selectedPlayer.teamId ? cashOffer : 0),
                 amount: contractOffer.amount,
                 years: contractOffer.years
             };

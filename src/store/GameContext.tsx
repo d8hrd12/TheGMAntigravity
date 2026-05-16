@@ -32,6 +32,7 @@ import { simulateDailyTrades, simulateEuroDailyTransfers, generateAiTradeProposa
 import { getTeamDirection } from '../features/trade/TradeLogic';
 import { updatePlayerMorale, applyTeamDynamics, checkTradeRequests, checkProveItDemands } from '../features/simulation/MoraleSystem';
 // TradeProposalModal import removed (unused and caused potential cycle)
+import { buildNBATargetPoolForAI } from '../features/team/EuroNBAVeteranPool';
 import { optimizeRotation } from '../utils/rotationUtils';
 import { formatDate } from '../utils/dateUtils';
 
@@ -1132,6 +1133,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     localTalent: false,
                     financials: false
                 },
+                nbaToEuroPool: difficulty === 'Draft' ? [] : (gameState.leagueType === 'EURO' ? buildNBATargetPoolForAI(2025) : []),
                 localTalentPool: generateLocalTalentPool(30),
                 seasonPhase: currentSeasonPhase,
                 playoffs: [],
@@ -1203,7 +1205,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 showMidSeasonProgressionModal: false,
                 currentHallOfFame: [],
                 pendingSeasonReview: null,
-                nbaToEuroPool: [],
+                nbaToEuroPool: gameState.leagueType === 'EURO' ? buildNBATargetPoolForAI(2025) : [],
                 leagueType: gameState.leagueType,
                 competitionType: gameState.competitionType,
                 injuryInterrupt: null,
@@ -1368,7 +1370,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 showMidSeasonProgressionModal: false,
                 currentHallOfFame: [],
                 pendingSeasonReview: null,
-                nbaToEuroPool: [],
+                nbaToEuroPool: gameState.leagueType === 'EURO' ? buildNBATargetPoolForAI(2025) : [],
                 leagueType: gameState.leagueType,
                 competitionType: gameState.competitionType,
                 injuryInterrupt: null,
@@ -2839,7 +2841,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 contracts: nextState.contracts,
                 localTalentPool: nextState.localTalentPool || [],
                 userTeamId: nextState.userTeamId,
-                gameYear: nextState.date.getFullYear()
+                gameYear: nextState.date.getFullYear(),
+                nbaPool: nextState.nbaToEuroPool
             });
             nextState = {
                 ...nextState,
@@ -2847,6 +2850,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 players: euroResult.updatedPlayers,
                 contracts: euroResult.updatedContracts,
                 localTalentPool: euroResult.remainingLocalTalentPool,
+                nbaToEuroPool: euroResult.remainingNBAPool,
                 transactions: [
                     ...(nextState.transactions || []),
                     ...euroResult.transactions.map(t => ({ ...t, date: nextState.date }))
@@ -6139,11 +6143,28 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 return t;
             });
 
+            // Log Transaction
+            const isNBASigning = signingPlayer.id.startsWith('nba_');
+            const transaction = {
+                date: prev.date,
+                type: isNBASigning ? 'NBA SIGNING' : 'SIGNING',
+                description: isNBASigning 
+                    ? `NBA SIGNING: Signed ${signingPlayer.firstName} ${signingPlayer.lastName} from NBA Pool.`
+                    : `SIGNING: Signed ${signingPlayer.firstName} ${signingPlayer.lastName} to a ${offer.years}y deal.`,
+                teamId: prev.userTeamId,
+                playerId: signingPlayer.id,
+                playerName: `${signingPlayer.firstName} ${signingPlayer.lastName}`,
+                amount: offer.amount,
+                years: offer.years,
+                fee: 0
+            };
+
             return {
                 ...prev,
                 players: updatedPlayers,
                 teams: updatedTeams,
                 contracts: [...prev.contracts, newContract],
+                transactions: [transaction, ...(prev.transactions || [])],
                 nbaToEuroPool: (prev.nbaToEuroPool || []).filter(p => p.id !== playerId)
             };
         });

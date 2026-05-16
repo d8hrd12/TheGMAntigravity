@@ -64,7 +64,8 @@ function extractFromRosters(
         for (const def of roster as any[]) {
             const currentAge = def.age + yearsElapsed;
             const contractYearsLeft = (def.contract?.years || 0) - yearsElapsed;
-            if (contractYearsLeft !== 1) continue;
+            // Include players expiring this year OR recently expired (Free Agents)
+            if (contractYearsLeft > 1 || contractYearsLeft < 0) continue;
             if (currentAge <= 31) continue;
             
             // Softer age drop: starts at 34 and slower slope

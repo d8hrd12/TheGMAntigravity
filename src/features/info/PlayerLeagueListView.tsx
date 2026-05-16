@@ -9,17 +9,37 @@ type ViewMode = 'list' | 'stats' | 'history';
 
 export const PlayerLeagueListView: React.FC<{ onBack: () => void, onSelectPlayer: (id: string) => void, initialMode?: ViewMode }> = ({ onBack, onSelectPlayer, initialMode = 'list' }) => {
     const { players, teams, leagueRecords, leagueType } = useGame();
-    const [selectedLeague, setSelectedLeague] = useState<'EuroLeague' | 'EuroCup'>('EuroLeague');
+    const [selectedLeague, setSelectedLeague] = useState<'EuroLeague' | 'EuroCup' | 'Free Agents'>('EuroLeague');
     const [search, setSearch] = useState('');
     const [sortKey, setSortKey] = useState<string>(initialMode === 'stats' ? 'stats.points' : 'ovr');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
     const [highlightedRow, setHighlightedRow] = useState<string | null>(null);
 
+    const { nbaToEuroPool, localTalentPool } = useGame();
+
     const filteredPlayers = useMemo(() => {
         const searchLower = search.toLowerCase();
         
-        return players.filter(p => {
+        let pool = [...players];
+        if (leagueType === 'EURO' && selectedLeague === 'Free Agents') {
+            // Include NBA pool and local talent in the "Free Agents" view
+            const nbaVets = (nbaToEuroPool || []).map(p => ({ ...p, isNBAPool: true }));
+            const localTalent = (localTalentPool || []).map(p => ({ 
+                ...p, 
+                firstName: p.firstName, 
+                lastName: p.lastName,
+                overall: calculateOverall(p),
+                isLocalTalent: true 
+            }));
+            pool = [...players.filter(p => !p.teamId), ...nbaVets as any, ...localTalent as any];
+        }
+
+        return pool.filter(p => {
             if (leagueType === 'EURO') {
+                if (selectedLeague === 'Free Agents') {
+                    // Already filtered pool above
+                    return true;
+                }
                 const leagueTeamIds = new Set(teams.filter(t => t.conference === selectedLeague).map(t => t.id));
                 if (!p.teamId || !leagueTeamIds.has(p.teamId)) return false;
             } else {
@@ -27,13 +47,13 @@ export const PlayerLeagueListView: React.FC<{ onBack: () => void, onSelectPlayer
             }
 
             const team = teams.find(t => t.id === p.teamId);
-            const teamName = team?.name || 'Free Agent';
+            const teamName = team?.name || (p.isNBAPool ? 'NBA Market' : p.isLocalTalent ? 'Youth Academy' : 'Free Agent');
             const playerName = `${p.firstName} ${p.lastName}`;
             return playerName.toLowerCase().includes(searchLower) ||
                    teamName.toLowerCase().includes(searchLower);
         }).map(p => ({
             ...p,
-            ovr: calculateOverall(p)
+            ovr: p.ovr || calculateOverall(p)
         })).sort((a, b) => {
             const getVal = (p: any, key: string) => {
                 const stats = p.seasonStats || { gamesPlayed: 0, points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0 };
@@ -153,7 +173,7 @@ export const PlayerLeagueListView: React.FC<{ onBack: () => void, onSelectPlayer
                             border: '1px solid var(--border-color)',
                             width: 'fit-content'
                         }}>
-                            {(['EuroLeague', 'EuroCup'] as const).map(league => (
+                            {(['EuroLeague', 'EuroCup', 'Free Agents'] as const).map(league => (
                                 <button
                                     key={league}
                                     onClick={() => setSelectedLeague(league)}
