@@ -122,9 +122,9 @@ export const EuroNegotiationView: React.FC<EuroNegotiationViewProps> = ({ player
                         onChange={(e) => setSalary(Number(e.target.value))}
                         style={{ width: '100%', accentColor: 'var(--team-primary)' }}
                     />
-                    {salary > team.salaryCapSpace && (
+                    {salary > team.cash && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#e74c3c', fontSize: '0.75rem', fontWeight: 700, marginTop: '8px' }}>
-                            <AlertCircle size={14} /> EXCEEDS BUDGET SPACE
+                            <AlertCircle size={14} /> EXCEEDS AVAILABLE CASH
                         </div>
                     )}
                 </div>
@@ -222,7 +222,7 @@ export const EuroNegotiationView: React.FC<EuroNegotiationViewProps> = ({ player
                 ) : (
                     <button
                         onClick={handleOffer}
-                        disabled={lastDecision === 'INSULTED' || salary > team.salaryCapSpace}
+                        disabled={lastDecision === 'INSULTED' || salary > team.cash}
                         style={{ 
                             flex: 1, 
                             padding: '18px', 
@@ -232,9 +232,9 @@ export const EuroNegotiationView: React.FC<EuroNegotiationViewProps> = ({ player
                             border: 'none', 
                             fontWeight: 900, 
                             fontSize: '1.1rem', 
-                            cursor: (lastDecision === 'INSULTED' || salary > team.salaryCapSpace) ? 'not-allowed' : 'pointer',
+                            cursor: (lastDecision === 'INSULTED' || salary > team.cash) ? 'not-allowed' : 'pointer',
                             boxShadow: '0 8px 25px rgba(var(--team-primary-rgb), 0.3)',
-                            opacity: (lastDecision === 'INSULTED' || salary > team.salaryCapSpace) ? 0.5 : 1
+                            opacity: (lastDecision === 'INSULTED' || salary > team.cash) ? 0.5 : 1
                         }}
                     >
                         MAKE OFFER

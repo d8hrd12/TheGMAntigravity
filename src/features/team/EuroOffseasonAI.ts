@@ -12,11 +12,13 @@
  */
 
 import { generateUUID } from '../../utils/uuid';
+import type { NBAEuroProspect } from '../league/NBAEuroPoolModule';
 import type { Team } from '../../models/Team';
 import type { Player } from '../../models/Player';
 import type { Contract } from '../../models/Contract';
 import { calculateOverall } from '../../utils/playerUtils';
 import { buildNBATargetPoolForAI } from './EuroNBAVeteranPool';
+import { calculateTeamPrestige } from './EuroAIGMModule';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -81,6 +83,7 @@ function detectRosterNeeds(roster: Player[]): { position: string; priority: 'HIG
 
 function determineContract(
     player: Player,
+    team: Team,
     archetype: TeamArchetype,
     playerType: 'FREE_AGENT' | 'YOUNGLING' | 'NBA_VET',
     currentYear: number
@@ -100,10 +103,13 @@ function determineContract(
     // Free Agent — based on archetype and player quality
     if (ovr >= 82) {
         const amount = archetype === 'CONTENDER' ? 4_000_000 : 3_000_000;
-        return { amount, years: archetype === 'CONTENDER' ? 3 : 2, role: 'Star' };
+        // EuroCup teams must pay a 50% "Tier Premium" to attract stars
+        const tierMultiplier = team.conference === 'EuroCup' ? 1.5 : 1.0;
+        return { amount: amount * tierMultiplier, years: archetype === 'CONTENDER' ? 3 : 2, role: 'Star' };
     } else if (ovr >= 76) {
         const amount = archetype === 'CONTENDER' ? 2_500_000 : 1_800_000;
-        return { amount, years: 2, role: 'Starter' };
+        const tierMultiplier = team.conference === 'EuroCup' ? 1.3 : 1.0;
+        return { amount: amount * tierMultiplier, years: 2, role: 'Starter' };
     } else if (ovr >= 70) {
         return { amount: 1_200_000, years: 2, role: 'Rotation' };
     } else {
@@ -124,7 +130,15 @@ function signPlayer(
     updatedContracts: Contract[],
     currentYear: number
 ): { success: boolean, transaction?: any } {
-    const contract = determineContract(player, archetype, playerType, currentYear);
+    const contract = determineContract(player, team, archetype, playerType, currentYear);
+
+    // PRESTIGE GUARDRAIL: Top talent won't sign for low prestige teams
+    // A 84+ OVR player won't sign for a < 60 prestige team unless it's a relegated giant with a parachute
+    const teamPrestige = calculateTeamPrestige(team);
+    const ovr = calculateOverall(player);
+    if (ovr >= 84 && teamPrestige < 60 && !team.isRelegatedParachute) {
+        return { success: false };
+    }
 
     // Check if team can afford it
     if (team.cash < contract.amount) return { success: false };
@@ -190,6 +204,63 @@ function signPlayer(
     return { success: true, transaction };
 }
 
+/**
+ * Force teams to release players if they exceed their conference budget.
+ */
+export function performFinancialCleanup(
+    teams: Team[],
+    players: Player[],
+    contracts: Contract[],
+    userTeamId: string,
+    signingLog?: string[]
+): { updatedPlayers: Player[], updatedContracts: Contract[], updatedTeams: Team[] } {
+    let updatedPlayers = [...players];
+    let updatedContracts = [...contracts];
+    const updatedTeams = teams.map(t => ({ ...t, rosterIds: [...t.rosterIds] }));
+
+    updatedTeams.forEach(team => {
+        if (team.id === userTeamId) return;
+        
+        let conferenceCap = 5_000_000;
+        if (team.conference === 'EuroLeague') {
+            const prestige = team.prestige || 50;
+            conferenceCap = 15_000_000 + ((prestige / 100) * 15_000_000);
+        }
+
+        // Parachute bonus: relegated teams get +5M leeway for 1 year
+        const effectiveCap = team.isRelegatedParachute ? (conferenceCap + 5_000_000) : conferenceCap;
+
+        let teamContracts = updatedContracts.filter(c => c.teamId === team.id);
+        let currentPayroll = teamContracts.reduce((sum, c) => sum + c.amount, 0);
+
+        if (currentPayroll > effectiveCap * 1.1) { // 10% tolerance
+            // Sort by (Salary / OVR) descending - dump the worst value players
+            const dumpCandidates = teamContracts
+                .map(c => ({ contract: c, player: updatedPlayers.find(p => p.id === c.playerId) }))
+                .filter(x => x.player)
+                .sort((a, b) => {
+                    const valA = a.contract.amount / Math.max(1, a.player?.overall || 1);
+                    const valB = b.contract.amount / Math.max(1, b.player?.overall || 1);
+                    return valB - valA;
+                });
+
+            for (const item of dumpCandidates) {
+                if (currentPayroll <= effectiveCap * 1.1) break;
+                
+                // Release player
+                updatedPlayers = updatedPlayers.map(p => p.id === item.player?.id ? { ...p, teamId: null, minutes: 0, isStarter: false } : p);
+                updatedContracts = updatedContracts.filter(c => c.id !== item.contract.id);
+
+                currentPayroll -= item.contract.amount;
+                team.rosterIds = team.rosterIds.filter(id => id !== item.player?.id);
+                if (signingLog) signingLog.push(`[Financial Cleanup] ${team.name} released ${item.player?.firstName} ${item.player?.lastName} to fit ${team.conference} budget.`);
+            }
+        }
+    });
+
+    return { updatedPlayers, updatedContracts, updatedTeams };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Step 5: Per-archetype signing strategy
 // ─────────────────────────────────────────────────────────────────────────────
@@ -233,23 +304,29 @@ export function simulateEuroAIOffseason(params: {
     localTalentPool: any[];   // LocalTalent[]
     userTeamId: string;
     gameYear: number;
-    nbaPool?: Player[];
+    difficulty?: 'Easy' | 'Medium' | 'Hard';
+    nbaPool?: NBAEuroProspect[];
 }): {
     updatedTeams: Team[];
     updatedPlayers: Player[];
     updatedContracts: Contract[];
     remainingLocalTalentPool: any[];
-    remainingNBAPool: Player[];
+    remainingNBAPool: NBAEuroProspect[];
     signingLog: string[];
     transactions: any[];
 } {
     const { teams, userTeamId, gameYear } = params;
-    const updatedPlayers = [...params.players];
-    const updatedContracts = [...params.contracts];
-    const updatedTeams = teams.map(t => ({ ...t, rosterIds: [...t.rosterIds] }));
+    
+    // 0. PRE-OFFSEASON: Financial Cleanup
+    const cleanupResult = performFinancialCleanup(teams, params.players, params.contracts, userTeamId);
+    let updatedPlayers = cleanupResult.updatedPlayers;
+    let updatedContracts = cleanupResult.updatedContracts;
+    const updatedTeams = cleanupResult.updatedTeams;
+
     let remainingLocalTalentPool = [...params.localTalentPool];
     const signingLog: string[] = [];
     const transactions: any[] = [];
+    const remainingNBAPool = params.nbaPool ? [...params.nbaPool] : [];
 
     // Build NBA veteran pool for this year (available to all AI teams)
     const nbaPool = params.nbaPool || buildNBATargetPoolForAI(gameYear);

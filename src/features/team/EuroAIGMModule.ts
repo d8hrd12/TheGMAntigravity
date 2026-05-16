@@ -11,6 +11,34 @@ export type EuroTeamTarget =
     | 'EuroCup Promotion Chaser'
     | 'EuroCup Talent Farm';
 
+/**
+ * Calculates a team's prestige (0-100) based on league, performance, and market.
+ * Used by players to decide where to sign.
+ */
+export function calculateTeamPrestige(team: Team): number {
+    // 1. Base by League
+    let p = team.conference === 'EuroLeague' ? 75 : 35;
+
+    // 2. Performance Bonus (Last Season)
+    const lastSeason = team.history?.[team.history.length - 1];
+    if (lastSeason) {
+        if (lastSeason.playoffResult === 'Champion') p += 15;
+        else if (lastSeason.playoffResult === 'Finalist') p += 10;
+        else if (lastSeason.playoffResult === 'Final Four') p += 7;
+        else if (lastSeason.playoffResult === 'Playoffs') p += 4;
+        
+        // Promotion/Relegation feel
+        if (team.conference === 'EuroLeague' && lastSeason.wins < 10) p -= 10;
+        if (team.conference === 'EuroCup' && lastSeason.wins > 20) p += 10;
+    }
+
+    // 3. Market Factor
+    if (team.marketSize === 'Large') p += 5;
+    if (team.marketSize === 'Small') p -= 5;
+
+    return Math.max(0, Math.min(100, p));
+}
+
 export interface TeamNeeds {
     scoring: number;    // 0-10 (Importance)
     defense: number;
@@ -60,7 +88,7 @@ export function determineEuroTeamTarget(team: Team, roster: Player[]): EuroTeamT
         }
     } else {
         // EuroCup
-        if (top5Avg >= 74 || team.cash >= 8000000) {
+        if (team.isRelegatedParachute || top5Avg >= 74 || team.cash >= 8000000) {
             return 'EuroCup Promotion Chaser';
         } else {
             return 'EuroCup Talent Farm';

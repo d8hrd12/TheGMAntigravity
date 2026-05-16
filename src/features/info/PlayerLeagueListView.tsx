@@ -47,13 +47,13 @@ export const PlayerLeagueListView: React.FC<{ onBack: () => void, onSelectPlayer
             }
 
             const team = teams.find(t => t.id === p.teamId);
-            const teamName = team?.name || (p.isNBAPool ? 'NBA Market' : p.isLocalTalent ? 'Youth Academy' : 'Free Agent');
+            const teamName = team?.name || (p.id.startsWith('nba_') ? 'NBA Market' : (p as any).isLocalTalent ? 'Youth Academy' : 'Free Agent');
             const playerName = `${p.firstName} ${p.lastName}`;
             return playerName.toLowerCase().includes(searchLower) ||
                    teamName.toLowerCase().includes(searchLower);
         }).map(p => ({
             ...p,
-            ovr: p.ovr || calculateOverall(p)
+            ovr: p.overall || calculateOverall(p)
         })).sort((a, b) => {
             const getVal = (p: any, key: string) => {
                 const stats = p.seasonStats || { gamesPlayed: 0, points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0 };

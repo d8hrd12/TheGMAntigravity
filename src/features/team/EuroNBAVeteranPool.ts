@@ -6,6 +6,7 @@
  */
 
 import type { Player } from '../../models/Player';
+import type { NBAEuroProspect } from '../league/NBAEuroPoolModule';
 import { REAL_ROSTERS } from '../../data/realRosters';
 import { NBA_TEAMS } from '../../data/teams';
 
@@ -52,9 +53,9 @@ function applyAgingDecay(attrs: any, baseOvr: number, currentAge: number) {
 function extractFromRosters(
     gameYear: number,
     overrideName?: (i: number) => { firstName: string; lastName: string }
-): Player[] {
+): NBAEuroProspect[] {
     const yearsElapsed = Math.max(0, gameYear - BASE_YEAR);
-    const pool: Player[] = [];
+    const pool: NBAEuroProspect[] = [];
 
     for (const [abbr, roster] of Object.entries(REAL_ROSTERS)) {
         const team = NBA_TEAMS.find(t => t.abbreviation === abbr);
@@ -109,8 +110,9 @@ function extractFromRosters(
                 },
                 careerStats: [],
                 jerseyNumber: Math.floor(Math.random() * 50),
-                acquisition: { type: 'initial', year: gameYear - 1, details: 'NBA Contract Expiring' }
-            } as Player);
+                acquisition: { type: 'initial', year: gameYear - 1, details: 'NBA Contract Expiring' },
+                nbaStatus: 'Veteran'
+            } as NBAEuroProspect);
         }
     }
 
@@ -121,7 +123,7 @@ function extractFromRosters(
  * Builds the full available NBA veteran pool for a given game year.
  * Used by the UI (transfer market tab) AND the AI GM (offseason signing).
  */
-export function buildNBATargetPoolForAI(gameYear: number): Player[] {
+export function buildNBATargetPoolForAI(gameYear: number): NBAEuroProspect[] {
     const realPool = extractFromRosters(gameYear);
     if (realPool.length >= 10) return realPool;
 
@@ -138,7 +140,7 @@ export function buildNBATargetPoolForAI(gameYear: number): Player[] {
         .map((p, i) => ({
             ...p,
             id: `nba_cycled_${gameYear}_${i}`,
-            overall: Math.max(77, p.overall - 1)
+            overall: Math.max(80, p.overall) // No penalty for cycled gems (User request)
         }));
 
     return [...realPool, ...cyclePool]

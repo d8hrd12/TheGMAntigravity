@@ -10,7 +10,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Greece',
         logo: 'https://media-cdn.incrowdsports.com/e3dff28a-9ec6-4faf-9d96-ecbc68f75780.png',
         colors: { primary: '#007A33', secondary: '#ffffff', accent: '#007A33' },
-        wins: 0, losses: 0, cash: 25000000, fanInterest: 1.5, marketSize: 'Large', ownerPatience: 80,
+        wins: 0, losses: 0, cash: 25000000, fanInterest: 1.5, marketSize: 'Large', ownerPatience: 80, prestige: 95,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 7, history: [], retiredNumbers: []
     },
     {
@@ -22,7 +22,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Greece',
         logo: 'https://media-cdn.incrowdsports.com/789423ac-3cdf-4b89-b11c-b458aa5f59a6.png',
         colors: { primary: '#E31E24', secondary: '#ffffff', accent: '#E31E24' },
-        wins: 0, losses: 0, cash: 22000000, fanInterest: 1.4, marketSize: 'Large', ownerPatience: 75,
+        wins: 0, losses: 0, cash: 22000000, fanInterest: 1.4, marketSize: 'Large', ownerPatience: 75, prestige: 94,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 3, history: [], retiredNumbers: []
     },
     {
@@ -34,7 +34,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Spain',
         logo: 'https://media-cdn.incrowdsports.com/371b0d9b-9250-4c09-bda7-0686cf024657.png',
         colors: { primary: '#004A99', secondary: '#ffffff', accent: '#eeac1d' },
-        wins: 0, losses: 0, cash: 30000000, fanInterest: 1.8, marketSize: 'Large', ownerPatience: 90,
+        wins: 0, losses: 0, cash: 30000000, fanInterest: 1.8, marketSize: 'Large', ownerPatience: 90, prestige: 98,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 11, history: [], retiredNumbers: []
     },
     {
@@ -46,7 +46,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Spain',
         logo: 'https://media-cdn.incrowdsports.com/35dfa503-e417-481f-963a-bdf6f013763e.png',
         colors: { primary: '#004D98', secondary: '#A50044', accent: '#EDBB00' },
-        wins: 0, losses: 0, cash: 28000000, fanInterest: 1.7, marketSize: 'Large', ownerPatience: 85,
+        wins: 0, losses: 0, cash: 28000000, fanInterest: 1.7, marketSize: 'Large', ownerPatience: 85, prestige: 92,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 2, history: [], retiredNumbers: []
     },
     {
@@ -58,7 +58,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Turkey',
         logo: 'https://media-cdn.cortextech.io/9a463aa2-ceb2-481c-9a95-1cddee0a248e.png',
         colors: { primary: '#004A99', secondary: '#ffffff', accent: '#D2122E' },
-        wins: 0, losses: 0, cash: 26000000, fanInterest: 1.3, marketSize: 'Large', ownerPatience: 80,
+        wins: 0, losses: 0, cash: 26000000, fanInterest: 1.3, marketSize: 'Large', ownerPatience: 80, prestige: 90,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 2, history: [], retiredNumbers: []
     },
     {
@@ -70,7 +70,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Turkey',
         logo: 'https://media-cdn.cortextech.io/3b7f020e-5b39-49a1-b4b2-efea918edab7.png',
         colors: { primary: '#003366', secondary: '#ffff00', accent: '#003366' },
-        wins: 0, losses: 0, cash: 27000000, fanInterest: 1.6, marketSize: 'Large', ownerPatience: 85,
+        wins: 0, losses: 0, cash: 27000000, fanInterest: 1.6, marketSize: 'Large', ownerPatience: 85, prestige: 91,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 1, history: [], retiredNumbers: []
     },
     {
@@ -82,7 +82,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Monaco',
         logo: 'https://media-cdn.incrowdsports.com/89ed276a-2ba3-413f-8ea2-b3be209ca129.png',
         colors: { primary: '#D2122E', secondary: '#ffffff', accent: '#DAA520' },
-        wins: 0, losses: 0, cash: 24000000, fanInterest: 1.1, marketSize: 'Small', ownerPatience: 70,
+        wins: 0, losses: 0, cash: 24000000, fanInterest: 1.1, marketSize: 'Small', ownerPatience: 70, prestige: 88,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -94,7 +94,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Serbia',
         logo: 'https://media-cdn.incrowdsports.com/d2eef4a8-62df-4fdd-9076-276004268515.png',
         colors: { primary: '#E31E24', secondary: '#ffffff', accent: '#E31E24' },
-        wins: 0, losses: 0, cash: 15000000, fanInterest: 1.9, marketSize: 'Medium', ownerPatience: 60,
+        wins: 0, losses: 0, cash: 15000000, fanInterest: 1.9, marketSize: 'Medium', ownerPatience: 60, prestige: 82,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -106,7 +106,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Serbia',
         logo: 'https://media-cdn.incrowdsports.com/2681304e-77dd-4331-88b1-683078c0fb49.png',
         colors: { primary: '#000000', secondary: '#ffffff', accent: '#000000' },
-        wins: 0, losses: 0, cash: 16000000, fanInterest: 2.0, marketSize: 'Medium', ownerPatience: 65,
+        wins: 0, losses: 0, cash: 16000000, fanInterest: 2.0, marketSize: 'Medium', ownerPatience: 65, prestige: 85,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 1, history: [], retiredNumbers: []
     },
     {
@@ -118,7 +118,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Germany',
         logo: 'https://media-cdn.incrowdsports.com/817b0e58-d595-4b09-ab0b-1e7cc26249ff.png',
         colors: { primary: '#DC052D', secondary: '#ffffff', accent: '#DC052D' },
-        wins: 0, losses: 0, cash: 20000000, fanInterest: 1.0, marketSize: 'Large', ownerPatience: 80,
+        wins: 0, losses: 0, cash: 20000000, fanInterest: 1.0, marketSize: 'Large', ownerPatience: 80, prestige: 84,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -130,7 +130,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Italy',
         logo: 'https://media-cdn.cortextech.io/9512ee73-a0f1-4647-a01e-3c2938aba6b8.png',
         colors: { primary: '#E31E24', secondary: '#ffffff', accent: '#E31E24' },
-        wins: 0, losses: 0, cash: 23000000, fanInterest: 1.2, marketSize: 'Large', ownerPatience: 75,
+        wins: 0, losses: 0, cash: 23000000, fanInterest: 1.2, marketSize: 'Large', ownerPatience: 75, prestige: 86,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 3, history: [], retiredNumbers: []
     },
     {
@@ -142,7 +142,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Israel',
         logo: 'https://media-cdn.cortextech.io/1b533342-78f5-4932-b714-a7d80b5826b5.png',
         colors: { primary: '#F6EB16', secondary: '#004A99', accent: '#F6EB16' },
-        wins: 0, losses: 0, cash: 22000000, fanInterest: 1.7, marketSize: 'Large', ownerPatience: 85,
+        wins: 0, losses: 0, cash: 22000000, fanInterest: 1.7, marketSize: 'Large', ownerPatience: 85, prestige: 87,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 6, history: [], retiredNumbers: []
     },
     {
@@ -154,7 +154,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Spain',
         logo: 'https://media-cdn.cortextech.io/cbc49cb0-99ce-4462-bdb7-56983ee03cf4.png',
         colors: { primary: '#002B5C', secondary: '#D2122E', accent: '#002B5C' },
-        wins: 0, losses: 0, cash: 18000000, fanInterest: 1.4, marketSize: 'Small', ownerPatience: 70,
+        wins: 0, losses: 0, cash: 18000000, fanInterest: 1.4, marketSize: 'Small', ownerPatience: 70, prestige: 80,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -166,7 +166,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'France',
         logo: 'https://media-cdn.incrowdsports.com/e33c6d1a-95ca-4dbc-b8cb-0201812104cc.png',
         colors: { primary: '#000000', secondary: '#ffffff', accent: '#000000' },
-        wins: 0, losses: 0, cash: 14000000, fanInterest: 0.9, marketSize: 'Medium', ownerPatience: 75,
+        wins: 0, losses: 0, cash: 14000000, fanInterest: 0.9, marketSize: 'Medium', ownerPatience: 75, prestige: 75,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -178,7 +178,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'France',
         logo: 'https://media-cdn.incrowdsports.com/a033e5b3-0de7-48a3-98d9-d9a4b9df1f39.png',
         colors: { primary: '#000000', secondary: '#ffffff', accent: '#000000' },
-        wins: 0, losses: 0, cash: 12000000, fanInterest: 0.8, marketSize: 'Large', ownerPatience: 80,
+        wins: 0, losses: 0, cash: 12000000, fanInterest: 0.8, marketSize: 'Large', ownerPatience: 80, prestige: 78,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -190,7 +190,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Lithuania',
         logo: 'https://media-cdn.incrowdsports.com/0aa09358-3847-4c4e-b228-3582ee4e536d.png',
         colors: { primary: '#006B35', secondary: '#ffffff', accent: '#006B35' },
-        wins: 0, losses: 0, cash: 13000000, fanInterest: 2.0, marketSize: 'Medium', ownerPatience: 70,
+        wins: 0, losses: 0, cash: 13000000, fanInterest: 2.0, marketSize: 'Medium', ownerPatience: 70, prestige: 85,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 1, history: [], retiredNumbers: []
     },
     {
@@ -202,7 +202,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Italy',
         logo: 'https://media-cdn.cortextech.io/1362801d-dd09-4fd0-932d-ead56063ab77.png',
         colors: { primary: '#000000', secondary: '#ffffff', accent: '#000000' },
-        wins: 0, losses: 0, cash: 19000000, fanInterest: 1.3, marketSize: 'Medium', ownerPatience: 75,
+        wins: 0, losses: 0, cash: 19000000, fanInterest: 1.3, marketSize: 'Medium', ownerPatience: 75, prestige: 83,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 2, history: [], retiredNumbers: []
     },
     {
@@ -214,7 +214,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'UAE',
         logo: 'https://media-cdn.incrowdsports.com/1efae090-16e2-4963-ae47-4b94f249c244.png',
         colors: { primary: '#DAA520', secondary: '#ffffff', accent: '#DAA520' },
-        wins: 0, losses: 0, cash: 50000000, fanInterest: 0.7, marketSize: 'Large', ownerPatience: 95,
+        wins: 0, losses: 0, cash: 50000000, fanInterest: 0.7, marketSize: 'Large', ownerPatience: 95, prestige: 70,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -226,7 +226,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Israel',
         logo: 'https://media-cdn.incrowdsports.com/cbb1c3ad-03d5-426a-b5ef-2832a4eee484.png',
         colors: { primary: '#E31E24', secondary: '#ffffff', accent: '#E31E24' },
-        wins: 0, losses: 0, cash: 15000000, fanInterest: 1.5, marketSize: 'Medium', ownerPatience: 65,
+        wins: 0, losses: 0, cash: 15000000, fanInterest: 1.5, marketSize: 'Medium', ownerPatience: 65, prestige: 85,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -238,7 +238,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Spain',
         logo: 'https://media-cdn.cortextech.io/d88f3c71-1519-4b19-8cfb-99e26a4c008e.png',
         colors: { primary: '#FF6600', secondary: '#ffffff', accent: '#FF6600' },
-        wins: 0, losses: 0, cash: 17000000, fanInterest: 1.2, marketSize: 'Medium', ownerPatience: 75,
+        wins: 0, losses: 0, cash: 17000000, fanInterest: 1.2, marketSize: 'Medium', ownerPatience: 75, prestige: 81,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     // EuroCup Teams
@@ -251,7 +251,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Greece',
         logo: 'https://media-cdn.cortextech.io/28be84d9-ad7e-43b3-8d8c-822bb76b8a9e.png',
         colors: { primary: '#F6EB16', secondary: '#000000', accent: '#F6EB16' },
-        wins: 0, losses: 0, cash: 5000000, fanInterest: 1.8, marketSize: 'Medium', ownerPatience: 60,
+        wins: 0, losses: 0, cash: 5000000, fanInterest: 1.8, marketSize: 'Medium', ownerPatience: 60, prestige: 60,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -263,7 +263,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Turkey',
         logo: 'https://media-cdn.incrowdsports.com/1d3274d8-da86-4d21-9e97-6810ab88babe.png',
         colors: { primary: '#004A99', secondary: '#ffffff', accent: '#D2122E' },
-        wins: 0, losses: 0, cash: 8000000, fanInterest: 0.9, marketSize: 'Large', ownerPatience: 75,
+        wins: 0, losses: 0, cash: 8000000, fanInterest: 0.9, marketSize: 'Large', ownerPatience: 75, prestige: 55,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -275,7 +275,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Spain',
         logo: 'https://media-cdn.cortextech.io/a28053c7-ada4-47de-ae4c-888c1b3996b6.png',
         colors: { primary: '#E31E24', secondary: '#ffffff', accent: '#E31E24' },
-        wins: 0, losses: 0, cash: 6000000, fanInterest: 1.3, marketSize: 'Small', ownerPatience: 70,
+        wins: 0, losses: 0, cash: 6000000, fanInterest: 1.3, marketSize: 'Small', ownerPatience: 70, prestige: 50,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -287,7 +287,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Turkey',
         logo: 'https://media-cdn.cortextech.io/7d37b2d0-2a4a-4a86-bf2c-266bd8da7cac.png',
         colors: { primary: '#000000', secondary: '#ffffff', accent: '#000000' },
-        wins: 0, losses: 0, cash: 7500000, fanInterest: 1.7, marketSize: 'Large', ownerPatience: 65,
+        wins: 0, losses: 0, cash: 7500000, fanInterest: 1.7, marketSize: 'Large', ownerPatience: 65, prestige: 65,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -299,7 +299,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Montenegro',
         logo: 'https://media-cdn.incrowdsports.com/e943f735-03e1-4637-ab54-2f07ba71ded9.png',
         colors: { primary: '#004A99', secondary: '#ffffff', accent: '#004A99' },
-        wins: 0, losses: 0, cash: 4000000, fanInterest: 1.6, marketSize: 'Small', ownerPatience: 70,
+        wins: 0, losses: 0, cash: 4000000, fanInterest: 1.6, marketSize: 'Small', ownerPatience: 70, prestige: 58,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -311,7 +311,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Slovenia',
         logo: 'https://media-cdn.incrowdsports.com/73b33d13-570e-4e49-a9cb-fe806831eaa7.png',
         colors: { primary: '#009540', secondary: '#ffffff', accent: '#F6EB16' },
-        wins: 0, losses: 0, cash: 4500000, fanInterest: 1.2, marketSize: 'Medium', ownerPatience: 75,
+        wins: 0, losses: 0, cash: 4500000, fanInterest: 1.2, marketSize: 'Medium', ownerPatience: 75, prestige: 55,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -323,7 +323,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'France',
         logo: 'https://media-cdn.incrowdsports.com/d4225e1b-7c1b-4382-98d4-ca8511c64441.png',
         colors: { primary: '#E31E24', secondary: '#ffffff', accent: '#E31E24' },
-        wins: 0, losses: 0, cash: 5500000, fanInterest: 1.0, marketSize: 'Small', ownerPatience: 80,
+        wins: 0, losses: 0, cash: 5500000, fanInterest: 1.0, marketSize: 'Small', ownerPatience: 80, prestige: 55,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -335,7 +335,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Italy',
         logo: 'https://www.aquilabasket.it/wp-content/uploads/2025/08/Khalif-Battle-e1772700788878.png',
         colors: { primary: '#000000', secondary: '#ffffff', accent: '#000000' },
-        wins: 0, losses: 0, cash: 3500000, fanInterest: 0.9, marketSize: 'Small', ownerPatience: 75,
+        wins: 0, losses: 0, cash: 3500000, fanInterest: 0.9, marketSize: 'Small', ownerPatience: 75, prestige: 48,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -347,7 +347,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Israel',
         logo: 'https://media-cdn.incrowdsports.com/8058e0c5-3042-45e1-9423-f93f33c54576.png',
         colors: { primary: '#E31E24', secondary: '#ffffff', accent: '#000000' },
-        wins: 0, losses: 0, cash: 9000000, fanInterest: 1.7, marketSize: 'Medium', ownerPatience: 70,
+        wins: 0, losses: 0, cash: 9000000, fanInterest: 1.7, marketSize: 'Medium', ownerPatience: 70, prestige: 60,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -359,7 +359,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Lithuania',
         logo: 'https://media-cdn.cortextech.io/ffcb6e37-31f4-48f6-91c2-a8c9a6f791a9.png',
         colors: { primary: '#722F37', secondary: '#ffffff', accent: '#722F37' },
-        wins: 0, losses: 0, cash: 3000000, fanInterest: 1.4, marketSize: 'Small', ownerPatience: 70,
+        wins: 0, losses: 0, cash: 3000000, fanInterest: 1.4, marketSize: 'Small', ownerPatience: 70, prestige: 45,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -371,7 +371,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'United Kingdom',
         logo: 'https://media-cdn.cortextech.io/102de468-9e41-4b8e-b44d-23bebb9e916f.png',
         colors: { primary: '#000000', secondary: '#DAA520', accent: '#ffffff' },
-        wins: 0, losses: 0, cash: 12000000, fanInterest: 0.8, marketSize: 'Large', ownerPatience: 85,
+        wins: 0, losses: 0, cash: 12000000, fanInterest: 0.8, marketSize: 'Large', ownerPatience: 85, prestige: 60,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -383,7 +383,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Lithuania',
         logo: 'https://media-cdn.cortextech.io/ed0df5cd-c9e4-4387-bcd4-3606270cd255.png',
         colors: { primary: '#004A99', secondary: '#ffffff', accent: '#004A99' },
-        wins: 0, losses: 0, cash: 2500000, fanInterest: 1.1, marketSize: 'Small', ownerPatience: 65,
+        wins: 0, losses: 0, cash: 2500000, fanInterest: 1.1, marketSize: 'Small', ownerPatience: 65, prestige: 42,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -395,7 +395,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Germany',
         logo: 'https://media-cdn.cortextech.io/75ae96be-69f9-4e48-b5bd-b1056842db57.png',
         colors: { primary: '#FF6600', secondary: '#000000', accent: '#FF6600' },
-        wins: 0, losses: 0, cash: 5000000, fanInterest: 1.4, marketSize: 'Medium', ownerPatience: 80,
+        wins: 0, losses: 0, cash: 5000000, fanInterest: 1.4, marketSize: 'Medium', ownerPatience: 80, prestige: 55,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -407,7 +407,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Greece',
         logo: 'https://media-cdn.cortextech.io/b29ffd81-917d-4cc9-bcbc-05d4a3b481c5.png',
         colors: { primary: '#004A99', secondary: '#ffffff', accent: '#E31E24' },
-        wins: 0, losses: 0, cash: 3500000, fanInterest: 1.5, marketSize: 'Medium', ownerPatience: 65,
+        wins: 0, losses: 0, cash: 3500000, fanInterest: 1.5, marketSize: 'Medium', ownerPatience: 65, prestige: 45,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -419,7 +419,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Germany',
         logo: 'https://media-cdn.cortextech.io/5750bc8b-dd63-48e4-8586-10d4e5e2b4e2.png',
         colors: { primary: '#FF6600', secondary: '#ffffff', accent: '#000000' },
-        wins: 0, losses: 0, cash: 6500000, fanInterest: 1.3, marketSize: 'Small', ownerPatience: 85,
+        wins: 0, losses: 0, cash: 6500000, fanInterest: 1.3, marketSize: 'Small', ownerPatience: 85, prestige: 52,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -431,7 +431,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Poland',
         logo: 'https://media-cdn.incrowdsports.com/4b38a10b-75bc-4416-9c97-ee71a4a6ec5e.png',
         colors: { primary: '#006B35', secondary: '#ffffff', accent: '#E31E24' },
-        wins: 0, losses: 0, cash: 2800000, fanInterest: 1.2, marketSize: 'Medium', ownerPatience: 70,
+        wins: 0, losses: 0, cash: 2800000, fanInterest: 1.2, marketSize: 'Medium', ownerPatience: 70, prestige: 40,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -443,7 +443,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Turkey',
         logo: 'https://media-cdn.incrowdsports.com/4ba35608-54ca-4800-a59c-f2571e6f8e13.png',
         colors: { primary: '#004A99', secondary: '#ffffff', accent: '#004A99' },
-        wins: 0, losses: 0, cash: 6000000, fanInterest: 1.1, marketSize: 'Large', ownerPatience: 70,
+        wins: 0, losses: 0, cash: 6000000, fanInterest: 1.1, marketSize: 'Large', ownerPatience: 70, prestige: 55,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -455,7 +455,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Romania',
         logo: 'https://media-cdn.incrowdsports.com/ae3e2844-0615-41bb-a788-a4f0d54b8d5e.png',
         colors: { primary: '#000000', secondary: '#ffffff', accent: '#000000' },
-        wins: 0, losses: 0, cash: 4000000, fanInterest: 1.8, marketSize: 'Medium', ownerPatience: 75,
+        wins: 0, losses: 0, cash: 4000000, fanInterest: 1.8, marketSize: 'Medium', ownerPatience: 75, prestige: 50,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -467,7 +467,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Italy',
         logo: 'https://media-cdn.incrowdsports.com/104f5074-9f23-47da-a21f-f2078db8244c.png',
         colors: { primary: '#722F37', secondary: '#DAA520', accent: '#722F37' },
-        wins: 0, losses: 0, cash: 7000000, fanInterest: 1.4, marketSize: 'Medium', ownerPatience: 80,
+        wins: 0, losses: 0, cash: 7000000, fanInterest: 1.4, marketSize: 'Medium', ownerPatience: 80, prestige: 58,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     },
     {
@@ -479,7 +479,7 @@ export const EURO_TEAMS: Team[] = [
         division: 'Germany',
         logo: 'https://media-cdn.incrowdsports.com/5ef8be01-ad71-42c2-aa02-d5c7a9495258.png',
         colors: { primary: '#000000', secondary: '#ffffff', accent: '#000000' },
-        wins: 0, losses: 0, cash: 3800000, fanInterest: 0.9, marketSize: 'Large', ownerPatience: 70,
+        wins: 0, losses: 0, cash: 3800000, fanInterest: 0.9, marketSize: 'Large', ownerPatience: 70, prestige: 45,
         preseasonWins: 0, preseasonLosses: 0, playoffWins: 0, playoffLosses: 0, titles: 0, history: [], retiredNumbers: []
     }
 ] as any;

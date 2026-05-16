@@ -57,7 +57,8 @@ import { calculateProgression, calculateInSeasonProgression } from '../features/
 import { importNbaPlayers } from '../features/league/CsvImporter';
 import { applyRealWorldTrades } from '../data/tradeUpdates';
 import { calculateEuroTeamNeeds, calculatePlayerFitScore, determineEuroTeamTarget } from '../features/team/EuroAIGMModule';
-import { calculateFatigueIncrease, calculateDailyRecovery, rollForInjury, processDailyHealing, processGameHealing, type InjuryInstance } from '../features/simulation/InjurySystem';
+import { calculateFatigueIncrease, calculateDailyRecovery, rollForInjury, processDailyHealing, processDailyHealing, processGameHealing, type InjuryInstance } from '../features/simulation/InjurySystem';
+import { performFinancialCleanup } from '../features/team/EuroOffseasonAI';
 
 
 
@@ -897,6 +898,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     const seeded = seedRealRosters(teams, gameState.leagueType);
                     players = seeded.players;
                     contracts = seeded.contracts;
+
+                    // INITIAL CLEANUP: Ensure real rosters fit the new tiered budgets immediately
+                    if (gameState.leagueType === 'EURO') {
+                        const cleanup = performFinancialCleanup(teams, players, contracts, userTeamId);
+                        players = cleanup.updatedPlayers;
+                        contracts = cleanup.updatedContracts;
+                    }
                 }
             }
 
@@ -920,7 +928,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             id: `cont_${p.id}`,
                             playerId: p.id,
                             teamId: t.id,
-                            amount: 1000000 + Math.floor(Math.random() * 2000000), // 1-3M
+                            amount: calculateFairSalary(p.overall, gameState.leagueType),
                             yearsLeft: 1 + Math.floor(Math.random() * 2), // 1-2 years
                             startYear: 2024,
                             role: 'Bench'
@@ -994,16 +1002,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 
                 if (gameState.leagueType === 'EURO') {
                     // EURO EXCLUSIVE FINANCIAL SYSTEM
-                    let teamSalaryCap = t.conference === 'EuroLeague' ? 25000000 : 8000000;
-                    
+                    let teamSalaryCap = 5000000;
                     if (t.conference === 'EuroLeague') {
-                        if (t.cash >= 25000000) teamSalaryCap = 35000000; // Powerhouses (Panathinaikos, Real Madrid, etc.)
-                        else if (t.cash >= 18000000) teamSalaryCap = 25000000; // Contenders (Olympiacos, Milan, etc.)
-                        else teamSalaryCap = 18000000; // Lower tier EL
-                    } else if (t.conference === 'EuroCup') {
-                        if (t.cash >= 8000000) teamSalaryCap = 15000000; // Top EuroCup (Hapoel Jerusalem, London)
-                        else teamSalaryCap = 8000000; // Standard EuroCup
+                        const prestige = t.prestige || 50;
+                        teamSalaryCap = 15000000 + ((prestige / 100) * 15000000);
                     }
+                    
+                    // Parachute bonus: relegated teams get +5M leeway for 1 year
+                    if (t.isRelegatedParachute) teamSalaryCap += 5000000;
                     
                     t.salaryCapSpace = teamSalaryCap - totalSalary;
                     // Note: t.cash is preserved from teams.ts for European teams
@@ -1133,7 +1139,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     localTalent: false,
                     financials: false
                 },
-                nbaToEuroPool: difficulty === 'Draft' ? [] : (gameState.leagueType === 'EURO' ? buildNBATargetPoolForAI(2025) : []),
+                nbaToEuroPool: (gameState.leagueType === 'EURO' ? buildNBATargetPoolForAI(2025) : []),
                 localTalentPool: generateLocalTalentPool(30),
                 seasonPhase: currentSeasonPhase,
                 playoffs: [],
@@ -1205,7 +1211,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 showMidSeasonProgressionModal: false,
                 currentHallOfFame: [],
                 pendingSeasonReview: null,
-                nbaToEuroPool: gameState.leagueType === 'EURO' ? buildNBATargetPoolForAI(2025) : [],
                 leagueType: gameState.leagueType,
                 competitionType: gameState.competitionType,
                 injuryInterrupt: null,
@@ -4694,7 +4699,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
                     mapTeamsForSimulation(prev.teams).forEach(t => {
                         const teamContracts = aiUpdatedContracts.filter(c => c.teamId === t.id);
-                        teamReportsMap[t.id] = calculateAnnualFinancials(t, teamContracts, prev.salaryCap, LUXURY_TAX_THRESHOLD, t.consecutiveTaxYears || 0);
+                        // EURO MODE: Use conference-specific caps for financials
+                        let activeCap = prev.salaryCap;
+                        let activeThreshold = LUXURY_TAX_THRESHOLD;
+                        
+                        if (prev.leagueType === 'EURO') {
+                            activeCap = t.conference === 'EuroLeague' ? 30000000 : 15000000;
+                            activeThreshold = activeCap * 1.5;
+                        }
+
+                        teamReportsMap[t.id] = calculateAnnualFinancials(t, teamContracts, activeCap, activeThreshold, t.consecutiveTaxYears || 0);
                     });
 
                     const leagueFinancials = calculateLeagueFinancials(prev.teams, prev.salaryCap, teamReportsMap);
@@ -4755,8 +4769,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
                         // Apply Promotion / Relegation conference swap
                         let newConference = t.conference;
-                        if (t.id === relegatedTeamId) newConference = 'EuroCup';
-                        if (t.id === promotedTeamId) newConference = 'EuroLeague';
+                        let parachuteFlag = false;
+                        
+                        if (t.id === relegatedTeamId) {
+                            newConference = 'EuroCup';
+                            cashChange += 5000000; // €5M Relegation Parachute
+                            parachuteFlag = true;
+                        }
+                        if (t.id === promotedTeamId) {
+                            newConference = 'EuroLeague';
+                            cashChange += 5000000; // €5M Promotion Bonus
+                        }
 
                         // --- NEW FINANCIAL FIX: Pick for Cash Bailout ---
                         // If a team is in extreme debt (-$100M+), they automatically "sell" their highest 1st round pick to the "League Office" (voided) for $15M.
@@ -4785,6 +4808,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             cash: finalNewCash,
                             draftPicks: updatedPicks,
                             conference: newConference,
+                            isRelegatedParachute: parachuteFlag,
                             // Update Fans/Owner based on success, not just financials
                             fanInterest: performanceUpdate.newFanInterest,
                             ownerPatience: performanceUpdate.newOwnerPatience,

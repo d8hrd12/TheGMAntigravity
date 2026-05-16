@@ -85,4 +85,8 @@ export interface Team {
     hierarchy?: Record<string, number>; // Maps playerId to Tier (1, 2, 3, 4)
     autoRotation?: boolean; // If true, the rotation is automatically recalibrated daily
     rotationStrategy?: number | string; // The strategy value used for auto-calibration (0-100 or string name)
+
+    // European System Enhancements
+    prestige?: number; // 0-100 (League tier + Results)
+    isRelegatedParachute?: boolean; // First year in EuroCup after relegation (+5M bonus)
 }

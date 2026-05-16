@@ -1,0 +1,8 @@
+src/features/team/InjuryDecisionModal.tsx(41,37): error TS2554: Expected 1 arguments, but got 4.
+src/features/team/RotationView.tsx(379,112): error TS2322: Type '{ size: number; style: { color: "#e74c3c"; }; title: string; }' is not assignable to type 'IntrinsicAttributes & Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>'.
+  Property 'title' does not exist on type 'IntrinsicAttributes & Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>'.
+src/models/Player.ts(84,5): error TS2300: Duplicate identifier 'fatigue'.
+src/models/Player.ts(84,5): error TS2687: All declarations of 'fatigue' must have identical modifiers.
+src/models/Player.ts(149,5): error TS2300: Duplicate identifier 'fatigue'.
+src/models/Player.ts(149,5): error TS2687: All declarations of 'fatigue' must have identical modifiers.
+src/models/Player.ts(149,5): error TS2717: Subsequent property declarations must have the same type.  Property 'fatigue' must be of type 'number', but here has type 'number | undefined'.
