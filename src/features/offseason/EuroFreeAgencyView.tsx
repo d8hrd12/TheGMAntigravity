@@ -76,30 +76,103 @@ export const EuroFreeAgencyView: React.FC<any> = ({ onBack, onComplete }) => {
                         <div style={{ fontSize: '1.8rem', fontWeight: 900, color: '#2ecc71', lineHeight: 1.1 }}>{formatMoney(team.salaryCapSpace)}</div>
                     </div>
                     
-                    {/* Finish Action */}
-                    <button 
-                        onClick={() => completeOffseasonTask('freeAgency')}
-                        style={{ 
-                            background: 'var(--team-primary)', 
-                            color: '#fff', 
-                            border: 'none', 
-                            borderRadius: '16px', 
-                            fontSize: '1.1rem', 
-                            fontWeight: 900, 
-                            cursor: 'pointer', 
-                            textTransform: 'uppercase',
-                            boxShadow: '0 8px 25px rgba(var(--team-primary-rgb), 0.25)', 
-                            transition: 'all 0.3s ease',
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center', 
-                            padding: '0 20px'
-                        }}
-                    >
-                        FINISH
-                    </button>
+                    {/* Action Buttons */}
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button 
+                            onClick={advanceFreeAgencyDay}
+                            style={{ 
+                                flex: 1,
+                                background: 'rgba(var(--team-primary-rgb), 0.1)', 
+                                color: 'var(--team-primary)', 
+                                border: '1px solid var(--team-primary)', 
+                                borderRadius: '16px', 
+                                fontSize: '0.9rem', 
+                                fontWeight: 900, 
+                                cursor: 'pointer', 
+                                textTransform: 'uppercase',
+                                transition: 'all 0.3s ease',
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                padding: '12px 16px',
+                                gap: '8px'
+                            }}
+                        >
+                            <Calendar size={18} />
+                            Next Day
+                        </button>
+
+                        <button 
+                            onClick={() => completeOffseasonTask('freeAgency')}
+                            style={{ 
+                                flex: 1,
+                                background: 'var(--team-primary)', 
+                                color: '#fff', 
+                                border: 'none', 
+                                borderRadius: '16px', 
+                                fontSize: '0.9rem', 
+                                fontWeight: 900, 
+                                cursor: 'pointer', 
+                                textTransform: 'uppercase',
+                                boxShadow: '0 8px 25px rgba(var(--team-primary-rgb), 0.25)', 
+                                transition: 'all 0.3s ease',
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                padding: '12px 16px'
+                            }}
+                        >
+                            Finish
+                        </button>
+                    </div>
                 </div>
             </PageHeader>
+
+            {/* Daily Recap Section */}
+            {lastFreeAgencyResult && lastFreeAgencyResult.day === freeAgencyDay && (
+                <motion.div 
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{ 
+                        background: 'rgba(46, 204, 113, 0.1)', 
+                        border: '1px solid #2ecc71', 
+                        borderRadius: '20px', 
+                        padding: '20px', 
+                        marginBottom: '32px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px'
+                    }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#2ecc71' }}>
+                        <Zap size={20} />
+                        <span style={{ fontWeight: 900, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Day {freeAgencyDay} Recap</span>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '10px' }}>
+                        {lastFreeAgencyResult.offersUpdated.map((offer: any) => {
+                            const p = players.find(x => x.id === offer.playerId);
+                            return (
+                                <div key={offer.id} style={{ fontSize: '0.85rem', color: 'var(--text-main)', background: 'rgba(255,255,255,0.05)', padding: '8px 12px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                    <span style={{ fontWeight: 800 }}>{p?.lastName}</span>: 
+                                    <span style={{ 
+                                        marginLeft: '6px', 
+                                        color: offer.status === 'accepted' ? '#2ecc71' : '#e74c3c',
+                                        fontWeight: 900,
+                                        textTransform: 'uppercase'
+                                    }}>
+                                        {offer.status}
+                                    </span>
+                                </div>
+                            );
+                        })}
+                        {lastFreeAgencyResult.leagueNews.slice(0, 3).map((news: string, i: number) => (
+                            <div key={i} style={{ fontSize: '0.85rem', color: 'var(--text-dim)', fontStyle: 'italic' }}>
+                                • {news}
+                            </div>
+                        ))}
+                    </div>
+                </motion.div>
+            )}
 
             {/* Search and Filters */}
             <div style={{ display: 'flex', gap: '16px', marginBottom: '32px' }}>
@@ -113,20 +186,37 @@ export const EuroFreeAgencyView: React.FC<any> = ({ onBack, onComplete }) => {
                         style={{ width: '100%', padding: '16px 16px 16px 52px', borderRadius: '20px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)', fontSize: '1.1rem', fontWeight: 500 }}
                     />
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ 
+                    display: 'flex', 
+                    gap: '8px', 
+                    overflowX: 'auto', 
+                    paddingBottom: '8px',
+                    whiteSpace: 'nowrap',
+                    msOverflowStyle: 'none',
+                    scrollbarWidth: 'none',
+                    WebkitOverflowScrolling: 'touch',
+                    maxWidth: '100%'
+                }}>
+                    <style>{`
+                        .no-scrollbar::-webkit-scrollbar {
+                            display: none;
+                        }
+                    `}</style>
                     {['All', 'PG', 'SG', 'SF', 'PF', 'C'].map(pos => (
                         <button 
                             key={pos}
                             onClick={() => setFilterPos(pos as any)}
                             style={{
-                                padding: '0 20px',
+                                padding: '0 24px',
+                                height: '48px',
                                 borderRadius: '16px',
                                 border: filterPos === pos ? '1px solid var(--team-primary)' : '1px solid var(--border-color)',
                                 background: filterPos === pos ? 'rgba(var(--team-primary-rgb), 0.1)' : 'var(--bg-card)',
                                 color: filterPos === pos ? 'var(--team-primary)' : 'var(--text-dim)',
                                 fontWeight: 800,
                                 cursor: 'pointer',
-                                transition: 'all 0.2s'
+                                transition: 'all 0.2s',
+                                flexShrink: 0
                             }}
                         >
                             {pos}

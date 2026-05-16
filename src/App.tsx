@@ -79,6 +79,7 @@ import { PlayerCompareView } from './features/player/PlayerCompareView';
 import { EuroSeasonReviewModal } from './features/ui/EuroSeasonReviewModal';
 import { InjuryReportView } from './features/team/InjuryReportView';
 import { InjuryInterruptModal } from './features/ui/InjuryInterruptModal';
+import { TeamRosterView } from './features/team/TeamRosterView';
 import { App as CapApp } from '@capacitor/app';
 
 function AppContent() {
@@ -329,7 +330,8 @@ function AppContent() {
       label: 'Team', 
       icon: <Trophy size={20} />,
       items: [
-        { id: 'team_roster', label: 'Roster' },
+        { id: 'team_roster', label: 'Rotation' },
+        { id: 'team_real_roster', label: 'Roster' },
         { id: 'team_stats', label: 'Stats' },
         { id: 'team_history', label: 'History' },
         { id: 'financials', label: 'Finances' },
@@ -508,6 +510,8 @@ function AppContent() {
           onSave={updateRotation} 
           onSelectPlayer={setSelectedPlayerId} 
         /> : null;
+      case 'team_real_roster':
+        return <TeamRosterView />;
       case 'team_stats':
         return userTeam ? <TeamStatsView 
           players={players} 

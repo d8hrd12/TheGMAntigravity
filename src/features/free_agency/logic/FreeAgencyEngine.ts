@@ -158,7 +158,10 @@ export const simulateFreeAgencyDay = (
             const isOwnPlayer = player.teamId === team.id || player.acquisition?.previousTeamId === team.id;
 
             // Check cap: Skip if over cap and not own player (unless it's minimum)
-            const VET_MINIMUM = 1100000;
+            const isEuro = nextState.leagueType === 'EURO';
+            const VET_MINIMUM = isEuro ? 400000 : 1100000;
+
+            // Check cap: Skip if over cap and not own player (unless it's minimum)
             if (effectiveBudget < offerAmount && !isOwnPlayer && offerAmount > VET_MINIMUM) continue;
 
             // --- FINANCIAL FIX: Debt Signing Ban ---

@@ -91,7 +91,6 @@ export const EuroResigningView: React.FC = () => {
                 title="Contract Renewals"
                 subtitle="Euro Day 2 • Resigning Phase"
                 onBack={endResigning}
-                backLabel="Finish"
                 teamColor={userTeam?.colors?.primary}
             >
                 <button 
