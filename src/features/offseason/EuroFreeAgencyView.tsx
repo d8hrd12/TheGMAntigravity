@@ -8,7 +8,7 @@ import { calculateStars, calculateTeamBaseline } from '../../utils/starUtils';
 import { StarRating } from '../../components/StarRating';
 import { EuroNegotiationView } from '../negotiation/EuroNegotiationView';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, DollarSign, Users, TrendingUp, BarChart2, Star, ChevronRight, X, ArrowLeft, Zap } from 'lucide-react';
+import { Search, Filter, DollarSign, Users, TrendingUp, BarChart2, Star, ChevronRight, X, ArrowLeft, Zap, Calendar } from 'lucide-react';
 import { PageHeader } from '../ui/PageHeader';
 
 
