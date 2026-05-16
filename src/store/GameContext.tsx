@@ -57,7 +57,7 @@ import { calculateProgression, calculateInSeasonProgression } from '../features/
 import { importNbaPlayers } from '../features/league/CsvImporter';
 import { applyRealWorldTrades } from '../data/tradeUpdates';
 import { calculateEuroTeamNeeds, calculatePlayerFitScore, determineEuroTeamTarget } from '../features/team/EuroAIGMModule';
-import { calculateFatigueIncrease, calculateDailyRecovery, rollForInjury, processDailyHealing, processDailyHealing, processGameHealing, type InjuryInstance } from '../features/simulation/InjurySystem';
+import { calculateFatigueIncrease, calculateDailyRecovery, rollForInjury, processDailyHealing, processGameHealing, type InjuryInstance } from '../features/simulation/InjurySystem';
 import { performFinancialCleanup } from '../features/team/EuroOffseasonAI';
 
 
