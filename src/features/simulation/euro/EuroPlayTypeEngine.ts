@@ -11,6 +11,7 @@
  */
 
 import type { Player } from '../../../models/Player';
+import { calculateOverall } from '../../../utils/playerUtils';
 import { EURO_BASE_USAGE, EURO_USAGE_CAP } from './EuroCalibration';
 import type { OffensiveFocus } from '../TacticsTypes';
 import { FOCUS_BONUSES } from '../TacticsTypes';
