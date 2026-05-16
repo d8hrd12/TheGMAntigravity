@@ -193,8 +193,10 @@ function signPlayer(
 
     const transaction = {
         date: new Date(), 
-        type: playerType === 'NBA_VET' ? 'NBA SIGNING' : playerType === 'YOUNGLING' ? 'ACADEMY' : 'SIGNING',
-        description: `${team.name} signed ${player.firstName} ${player.lastName} (${playerType}).`,
+        type: playerType === 'NBA_VET' ? 'NBA SIGNING' : playerType === 'YOUNGLING' ? 'LOCAL TALENT' : 'SIGNING',
+        description: playerType === 'YOUNGLING' 
+            ? `${team.name} signed ${player.firstName} ${player.lastName} from the Local Talent Pool.`
+            : `${team.name} signed ${player.firstName} ${player.lastName} (${playerType}).`,
         teamId: team.id,
         playerId: player.id,
         playerName: `${player.firstName} ${player.lastName}`,
@@ -423,10 +425,10 @@ export function simulateEuroAIOffseason(params: {
                 .filter(t => {
                     const ovr = calculateOverall(t);
                     const pot = t.potential ?? 75;
-                    if (archetype === 'CONTENDER') return pot >= 88 || ovr >= 72;
-                    if (archetype === 'PLAYOFF_PUSH') return pot >= 82 || ovr >= 68;
-                    if (archetype === 'REBUILDER' || archetype === 'TALENT_FARM') return pot >= 75;
-                    return pot >= 72; // BUDGET_CLUB
+                    if (archetype === 'CONTENDER') return pot >= 84 || ovr >= 72;
+                    if (archetype === 'PLAYOFF_PUSH') return pot >= 78 || ovr >= 68;
+                    if (archetype === 'REBUILDER' || archetype === 'TALENT_FARM') return pot >= 72;
+                    return pot >= 70; // BUDGET_CLUB
                 })
                 .sort((a, b) => {
                     const valA = (calculateOverall(a) * 0.4) + ((a.potential ?? 75) * 0.6);
