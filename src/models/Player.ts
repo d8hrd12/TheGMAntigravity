@@ -146,4 +146,7 @@ export interface Player {
         season: number;      // Year the injury occurred
         gamesOut: number;    // Games missed
     }[];
+
+    isAcademy?: boolean;
+    academyFunding?: number;
 }

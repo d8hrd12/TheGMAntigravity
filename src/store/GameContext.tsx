@@ -12,7 +12,7 @@ import { generatePlayer } from '../features/player/playerGenerator';
 import { generateCoach, getTacticsForStyle } from '../features/team/coachGenerator';
 import { shouldFireCoach, fireCoach, hireCoach } from '../features/team/CoachLogic';
 import { seedRealRosters } from '../features/player/rosterSeeder';
-import { generateLocalTalentPool, calculateOverall } from '../utils/playerUtils';
+import { generateLocalTalentPool, calculateOverall, generateYouthPlayer } from '../utils/playerUtils';
 import { generateNBAEuroPool, refreshNBAEuroPool, type NBAEuroProspect } from '../features/league/NBAEuroPoolModule';
 import { processGMDismissals, updateTeamStrategy } from '../features/team/GMManagement';
 import { initializeLeagueGMs } from '../features/team/gmGenerator';
@@ -1099,9 +1099,25 @@ export function GameProvider({ children }: { children: ReactNode }) {
             else if (!localStorage.getItem('save_slot_2')) assignedSlot = 2;
             else if (!localStorage.getItem('save_slot_3')) assignedSlot = 3;
 
+            // Generate initial academy players for user team if in Euro mode
+            let initialAcademyPlayers: Player[] = [];
+            if (gameState.leagueType === 'EURO') {
+                const numProspects = 3 + Math.floor(Math.random() * 2); // 3 or 4
+                for (let i = 0; i < numProspects; i++) {
+                    const age = 16 + Math.floor(Math.random() * 2); // 16 or 17
+                    const rawTalent = generateYouthPlayer(`academy_init_${Date.now()}_${i}`, age);
+                    initialAcademyPlayers.push({
+                        ...rawTalent,
+                        teamId: finalUserTeamId,
+                        isAcademy: true,
+                        academyFunding: 0
+                    });
+                }
+            }
+
             setGameState({
                 teams,
-                players: updatedPlayers,
+                players: [...updatedPlayers, ...initialAcademyPlayers],
                 userTeamId: finalUserTeamId,
                 contracts,
                 games: [],
@@ -1518,6 +1534,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         }
                     };
                 });
+
+                // Generate 3-4 raw prospects (aged 16-17) for the user's Youth Academy in Euro mode
+                if (prev.leagueType === 'EURO') {
+                    const numProspects = 3 + Math.floor(Math.random() * 2); // 3 or 4
+                    const currentYear = nextSeasonDate.getFullYear();
+                    for (let i = 0; i < numProspects; i++) {
+                        const age = 16 + Math.floor(Math.random() * 2); // 16 or 17
+                        const rawTalent = generateYouthPlayer(`academy_${currentYear}_${Date.now()}_${i}`, age);
+                        updatedPlayers.push({
+                            ...rawTalent,
+                            teamId: prev.userTeamId,
+                            isAcademy: true,
+                            academyFunding: 0
+                        });
+                    }
+                }
 
                 // 2. RESTORED AI FILLING & OPTIMIZATION
                 const MIN_ROSTER_SIZE = 12;
@@ -4650,13 +4682,45 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
                     // Offseason processing...
                     let archivedPlayers: Player[] = prev.players.map(p => {
-                        const newCareerStat: CareerStat = { ...p.seasonStats, season: finishedSeasonYear, teamId: p.teamId || 'FA', overall: p.overall };
-                        const newCareerStats: CareerStat[] = [...(p.careerStats || []), newCareerStat];
-                        if (p.playoffStats && p.playoffStats.gamesPlayed > 0) {
-                            newCareerStats.push({ ...p.playoffStats, season: finishedSeasonYear, teamId: p.teamId || 'FA', overall: p.overall, isPlayoffs: true });
+                        let updatedP = { ...p };
+                        if (p.isAcademy && p.teamId === prev.userTeamId) {
+                            const funding = p.academyFunding || 0;
+                            let boost = 0;
+                            if (funding >= 500000) {
+                                boost = 4 + Math.floor(Math.random() * 5); // +4 to +8
+                            } else if (funding >= 250000) {
+                                boost = 2 + Math.floor(Math.random() * 4); // +2 to +5
+                            } else if (funding >= 100000) {
+                                boost = 1 + Math.floor(Math.random() * 3); // +1 to +3
+                            } else {
+                                boost = Math.random() < 0.5 ? 1 : 0; // Natural (0 or 1)
+                            }
+
+                            // Apply boost to attributes
+                            const newAttrs = { ...p.attributes };
+                            (Object.keys(newAttrs) as Array<keyof PlayerAttributes>).forEach(key => {
+                                const k = key as keyof PlayerAttributes;
+                                if (typeof newAttrs[k] === 'number') {
+                                    newAttrs[k] = Math.min(99, newAttrs[k] + boost);
+                                }
+                            });
+
+                            const newOvr = calculateOverall(newAttrs, p.position);
+                            updatedP = {
+                                ...p,
+                                attributes: newAttrs,
+                                overall: newOvr,
+                                academyFunding: 0 // reset for next season
+                            };
+                        }
+
+                        const newCareerStat: CareerStat = { ...updatedP.seasonStats, season: finishedSeasonYear, teamId: updatedP.teamId || 'FA', overall: updatedP.overall };
+                        const newCareerStats: CareerStat[] = [...(updatedP.careerStats || []), newCareerStat];
+                        if (updatedP.playoffStats && updatedP.playoffStats.gamesPlayed > 0) {
+                            newCareerStats.push({ ...updatedP.playoffStats, season: finishedSeasonYear, teamId: updatedP.teamId || 'FA', overall: updatedP.overall, isPlayoffs: true });
                         }
                         return checkTradeRequests({
-                            ...p, careerStats: newCareerStats,
+                            ...updatedP, careerStats: newCareerStats,
                             seasonStats: {
                                 gamesPlayed: 0, minutes: 0, points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0,
                                 turnovers: 0, offensiveRebounds: 0, defensiveRebounds: 0, fouls: 0,
