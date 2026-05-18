@@ -276,7 +276,7 @@ export const EuroLocalTalentView: React.FC<Props> = ({ onBack }) => {
                     </div>
 
                     {/* Talent Grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '20px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
                         {filteredPool.map(talent => {
                             const ovr = calculateOverall(talent);
                             const isSuperstar = talent.growthTrend === 'generational';
@@ -387,7 +387,7 @@ export const EuroLocalTalentView: React.FC<Props> = ({ onBack }) => {
                             </p>
                         </div>
                     ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '24px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
                             {academyPlayers.map(prospect => {
                                 const ovr = calculateOverall(prospect);
                                 const currentFunding = prospect.academyFunding || 0;
