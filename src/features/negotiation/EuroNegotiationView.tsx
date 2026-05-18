@@ -20,13 +20,21 @@ interface EuroNegotiationViewProps {
 }
 
 export const EuroNegotiationView: React.FC<EuroNegotiationViewProps> = ({ player, team, onNegotiate, onSign, onCancel, salaryCap }) => {
-    const { players } = useGame();
+    const { players, activeOffers } = useGame();
     
     const ovr = calculateOverall(player);
     const teamBaseline = useMemo(() => {
         const teamPlayers = players.filter(p => p.teamId === team.id);
         return calculateTeamBaseline(teamPlayers);
     }, [players, team.id]);
+
+    const otherPendingOffersTotal = useMemo(() => {
+        return (activeOffers || [])
+            .filter(o => o.teamId === team.id && o.status === 'pending' && o.playerId !== player.id)
+            .reduce((sum, o) => sum + o.amount, 0);
+    }, [activeOffers, team.id, player.id]);
+
+    const projectedCashRemaining = team.cash - otherPendingOffersTotal;
 
     const asking = useMemo(() => calculateContractAmount(player, salaryCap), [player, salaryCap]);
 
@@ -122,11 +130,15 @@ export const EuroNegotiationView: React.FC<EuroNegotiationViewProps> = ({ player
                         onChange={(e) => setSalary(Number(e.target.value))}
                         style={{ width: '100%', accentColor: 'var(--team-primary)' }}
                     />
-                    {salary > team.cash && (
+                    {salary > team.cash ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#e74c3c', fontSize: '0.75rem', fontWeight: 700, marginTop: '8px' }}>
                             <AlertCircle size={14} /> EXCEEDS AVAILABLE CASH
                         </div>
-                    )}
+                    ) : salary > projectedCashRemaining ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#f39c12', fontSize: '0.75rem', fontWeight: 700, marginTop: '8px' }}>
+                            <AlertCircle size={14} /> EXCEEDS PROJECTED CASH (other pending offers: €{(otherPendingOffersTotal / 1000000).toFixed(1)}M)
+                        </div>
+                    ) : null}
                 </div>
 
                 {/* Years */}

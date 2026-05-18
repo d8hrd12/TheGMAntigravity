@@ -151,6 +151,62 @@ export const Dashboard: React.FC<DashboardProps> = ({
         };
     }, [players, userTeamId, contracts]);
 
+    // --- ESTIMATED FINISH PROJECTION ---
+    const estimatedFinish = useMemo(() => {
+        if (!userTeam) return { rankText: 'N/A', projection: 'N/A' };
+
+        const getTeamRosterStrength = (teamId: string) => {
+            const teamPlayers = players.filter(p => p.teamId === teamId);
+            if (teamPlayers.length === 0) return 0;
+            const sortedOvr = teamPlayers.map(p => calculateOverall(p)).sort((a, b) => b - a);
+            const top8 = sortedOvr.slice(0, 8);
+            return top8.reduce((sum, ovr) => sum + ovr, 0) / top8.length;
+        };
+
+        const userConf = userTeam.conference;
+        const confTeams = teams.filter(t => t.conference === userConf);
+        const strengths = confTeams.map(t => ({
+            id: t.id,
+            name: t.name,
+            strength: getTeamRosterStrength(t.id)
+        })).sort((a, b) => b.strength - a.strength);
+
+        const rank = strengths.findIndex(s => s.id === userTeamId) + 1;
+        const total = confTeams.length;
+
+        const suffix = (rank: number) => {
+            if (rank === 1) return 'st';
+            if (rank === 2) return 'nd';
+            if (rank === 3) return 'rd';
+            return 'th';
+        };
+
+        const rankText = `${rank}${suffix(rank)} of ${total} Teams`;
+
+        // Qualitative projection
+        let projection = 'Bubble';
+        if (userConf === 'EuroLeague') {
+            if (rank <= 2) projection = 'Title Favorite';
+            else if (rank <= 6) projection = 'Playoff Lock';
+            else if (rank <= 10) projection = 'Play-In Pool';
+            else if (rank <= 14) projection = 'Mid-Table';
+            else projection = 'Relegation Risk';
+        } else if (userConf === 'EuroCup') {
+            if (rank <= 2) projection = 'Promo Favorite';
+            else if (rank <= 4) projection = 'Playoff Lock';
+            else if (rank <= 8) projection = 'Playoff Bubble';
+            else projection = 'Rebuilding';
+        } else {
+            // NBA fallback
+            if (rank <= 4) projection = 'Contender';
+            else if (rank <= 6) projection = 'Playoff Bound';
+            else if (rank <= 10) projection = 'Play-In Team';
+            else projection = 'Lottery Bound';
+        }
+
+        return { rankText, projection };
+    }, [players, teams, userTeam, userTeamId]);
+
     // 4. EXPIRING CONTRACTS
     const expiringContracts = useMemo(() => {
         const teamContracts = contracts.filter(c => c.teamId === userTeamId && c.yearsLeft === 1);
@@ -327,6 +383,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             </div>
                             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#1c1c1e' }}>
                                 {evaluation.weaknesses[0]}
+                            </div>
+                        </div>
+                        <div style={{ background: 'rgba(52, 152, 219, 0.05)', padding: '12px', borderRadius: '12px' }}>
+                            <div style={{ fontSize: '0.55rem', color: '#3498db', fontWeight: 800, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <TrendingUp size={10} /> ESTIMATED FINISH
+                            </div>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#1c1c1e', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span>{estimatedFinish.rankText}</span>
+                                <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#3498db', background: 'rgba(52, 152, 219, 0.1)', padding: '2px 8px', borderRadius: '6px', textTransform: 'uppercase' }}>
+                                    {estimatedFinish.projection}
+                                </span>
                             </div>
                         </div>
                     </div>

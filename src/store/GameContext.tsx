@@ -4803,6 +4803,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
                         return {
                             ...t,
+                            history: [...(t.history || []), { year: finishedSeasonYear, wins: t.wins, losses: t.losses }],
                             wins: 0,
                             losses: 0,
                             preseasonWins: 0,

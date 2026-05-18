@@ -26,6 +26,14 @@ export const EuroFreeAgencyView: React.FC<any> = ({ onBack, onComplete }) => {
     const [filterPos, setFilterPos] = useState<'All' | 'PG' | 'SG' | 'SF' | 'PF' | 'C'>('All');
     const [selectedPlayerForOffer, setSelectedPlayerForOffer] = useState<Player | null>(null);
 
+    const userPendingOffersTotal = React.useMemo(() => {
+        return (activeOffers || [])
+            .filter(o => o.teamId === userTeamId && o.status === 'pending')
+            .reduce((sum, o) => sum + o.amount, 0);
+    }, [activeOffers, userTeamId]);
+
+    const projectedCash = team.cash - userPendingOffersTotal;
+
     const filteredAgents = players
         .filter(p => !p.teamId)
         .filter(p => filterPos === 'All' || p.position === filterPos)
@@ -71,9 +79,32 @@ export const EuroFreeAgencyView: React.FC<any> = ({ onBack, onComplete }) => {
             >
                 <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: '20px', alignItems: 'stretch' }}>
                     {/* Budget Section */}
-                    <div style={{ background: 'var(--bg-card-hover)', padding: '12px 20px', borderRadius: '16px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '2px', letterSpacing: '1px' }}>BUDGET</div>
-                        <div style={{ fontSize: '1.8rem', fontWeight: 900, color: '#2ecc71', lineHeight: 1.1 }}>{formatMoney(team.salaryCapSpace)}</div>
+                    <div style={{ 
+                        background: 'var(--bg-card-hover)', 
+                        padding: '10px 16px', 
+                        borderRadius: '16px', 
+                        border: '1px solid var(--border-color)', 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        justifyContent: 'center',
+                        gap: '2px'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>AVAILABLE CASH</span>
+                            <span style={{ fontSize: '1.2rem', fontWeight: 900, color: '#2ecc71' }}>{formatMoney(team.cash)}</span>
+                        </div>
+                        {userPendingOffersTotal > 0 && (
+                            <>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '2px' }}>
+                                    <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>PENDING OFFERS</span>
+                                    <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#e74c3c' }}>-{formatMoney(userPendingOffersTotal)}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '2px' }}>
+                                    <span style={{ fontSize: '0.65rem', color: 'var(--text-main)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>PROJECTED CASH</span>
+                                    <span style={{ fontSize: '1.2rem', fontWeight: 900, color: projectedCash >= 0 ? '#2ecc71' : '#e74c3c' }}>{formatMoney(projectedCash)}</span>
+                                </div>
+                            </>
+                        )}
                     </div>
                     
                     {/* Action Buttons */}

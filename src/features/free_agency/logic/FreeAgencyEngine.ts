@@ -305,6 +305,17 @@ export const simulateFreeAgencyDay = (
                     }
                 }
 
+                // --- European League Tier Prestige Penalty ---
+                // Quality EuroLeague starters/stars (OVR >= 76) heavily prefer playing in EuroLeague.
+                // EuroCup offers are penalized to reflect this lower prestige, forcing EuroCup teams to pay a premium.
+                if (team.conference === 'EuroCup') {
+                    if (ovr >= 82) {
+                        offerScore *= 0.60; // 40% prestige penalty for elite stars
+                    } else if (ovr >= 76) {
+                        offerScore *= 0.75; // 25% prestige penalty for solid starters
+                    }
+                }
+
                 if (offerScore > bestScore) {
                     bestScore = offerScore;
                     chosenOffer = offer;
