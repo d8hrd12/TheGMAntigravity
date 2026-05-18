@@ -222,7 +222,7 @@ export const EuroLocalTalentView: React.FC<Props> = ({ onBack }) => {
                 </div>
             </PageHeader>
 
-            <div style={{ padding: '0 24px 40px' }}>
+            <div style={{ padding: '0 24px 40px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
 
             {isOffseasonRecruit ? (
                 /* --- OFFSEASON SCOUTING/RECRUITING MODE --- */
@@ -353,8 +353,8 @@ export const EuroLocalTalentView: React.FC<Props> = ({ onBack }) => {
             ) : (
                 /* --- ACTIVE REGULAR SEASON YOUTH ACADEMY HUB --- */
                 <>
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '32px', marginBottom: '32px' }}>
-                        <div style={{ background: 'linear-gradient(135deg, rgba(46, 204, 113, 0.08) 0%, rgba(0,0,0,0.2) 100%)', borderRadius: '28px', padding: '28px', border: '1px solid rgba(46, 204, 113, 0.2)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
+                        <div style={{ background: 'linear-gradient(135deg, rgba(46, 204, 113, 0.08) 0%, rgba(0,0,0,0.2) 100%)', borderRadius: '28px', padding: '28px', border: '1px solid rgba(46, 204, 113, 0.2)', width: '100%' }}>
                             <h3 style={{ margin: '0 0 8px 0', fontSize: '1.4rem', fontWeight: 900, color: '#2ecc71', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Award size={22} /> Background Development
                             </h3>
@@ -364,13 +364,15 @@ export const EuroLocalTalentView: React.FC<Props> = ({ onBack }) => {
                             </p>
                         </div>
 
-                        <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '28px', padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 800 }}>ACADEMY SIZE</span>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--team-primary)', fontWeight: 900 }}>MAX 5 PLAYERS</span>
+                        <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '28px', padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                            <div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px' }}>Academy Capacity</div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 600 }}>Active Domestic Roster</div>
                             </div>
-                            <div style={{ fontSize: '2rem', fontWeight: 900 }}>{academyPlayers.length} / 5</div>
-                            <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', marginTop: '4px', fontWeight: 600 }}>Active Domestic Roster</div>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                                <span style={{ fontSize: '2.4rem', fontWeight: 900, color: 'var(--text-main)', lineHeight: 1 }}>{academyPlayers.length}</span>
+                                <span style={{ fontSize: '1.1rem', color: 'var(--text-dim)', fontWeight: 700 }}>/ 5 PLAYERS MAX</span>
+                            </div>
                         </div>
                     </div>
 
