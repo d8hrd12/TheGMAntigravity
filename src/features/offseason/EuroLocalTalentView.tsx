@@ -541,7 +541,7 @@ export const EuroLocalTalentView: React.FC<Props> = ({ onBack }) => {
                 {selectedTalent && (
                     <div style={{
                         position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                        background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)',
+                        background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
                     }} onClick={() => setSelectedTalent(null)}>
                         <motion.div
@@ -549,101 +549,142 @@ export const EuroLocalTalentView: React.FC<Props> = ({ onBack }) => {
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.9, opacity: 0, y: 30 }}
                             onClick={e => e.stopPropagation()}
-                            style={{ width: '100%', maxWidth: '600px', background: 'var(--bg-card)', borderRadius: '32px', overflow: 'hidden' }}
+                            style={{ 
+                                width: '95%', 
+                                maxWidth: '520px', 
+                                maxHeight: '85vh',
+                                background: 'var(--bg-card)', 
+                                borderRadius: '24px', 
+                                display: 'flex', 
+                                flexDirection: 'column', 
+                                overflow: 'hidden',
+                                border: '1px solid var(--border-color)' 
+                            }}
                         >
-                            <div style={{ padding: '32px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '32px' }}>
+                            {/* Scrollable Content Container */}
+                            <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                                     <div>
-                                        <h2 style={{ fontSize: '2rem', fontWeight: 900, margin: 0 }}>{selectedTalent.firstName} {selectedTalent.lastName}</h2>
-                                        <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                                            <span style={{ fontWeight: 800, color: 'var(--team-primary)' }}>{selectedTalent.position}</span>
-                                            <span style={{ color: 'var(--text-dim)', fontWeight: 700 }}>{selectedTalent.height}cm • {selectedTalent.weight}kg</span>
+                                        <h2 style={{ fontSize: '1.6rem', fontWeight: 900, margin: 0 }}>{selectedTalent.firstName} {selectedTalent.lastName}</h2>
+                                        <div style={{ display: 'flex', gap: '12px', marginTop: '6px' }}>
+                                            <span style={{ fontWeight: 800, color: 'var(--team-primary)', fontSize: '0.85rem' }}>{selectedTalent.position}</span>
+                                            <span style={{ color: 'var(--text-dim)', fontWeight: 700, fontSize: '0.85rem' }}>{selectedTalent.height}cm • {selectedTalent.weight}kg</span>
                                         </div>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontSize: '2.5rem', fontWeight: 900 }}>{calculateOverall(selectedTalent)}</div>
-                                        <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase' }}>Current Ability</div>
+                                        <div style={{ fontSize: '2rem', fontWeight: 900 }}>{calculateOverall(selectedTalent)}</div>
+                                        <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase' }}>Current Ability</div>
                                     </div>
                                 </div>
 
                                 {/* Scouting Report */}
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
-                                    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '24px', border: '1px solid var(--border-color)' }}>
-                                        <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>Development Trend</div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <TrendingUp color={(selectedTalent as any).growthTrend === 'stagnant' ? '#e74c3c' : '#2ecc71'} />
-                                            <span style={{ fontWeight: 900, fontSize: '1.2rem', textTransform: 'uppercase' }}>{(selectedTalent as any).growthTrend || 'Steady'}</span>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+                                    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '20px', border: '1px solid var(--border-color)' }}>
+                                        <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '6px' }}>Development Trend</div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <TrendingUp size={16} color={(selectedTalent as any).growthTrend === 'stagnant' ? '#e74c3c' : '#2ecc71'} />
+                                            <span style={{ fontWeight: 900, fontSize: '1rem', textTransform: 'uppercase' }}>{(selectedTalent as any).growthTrend || 'Steady'}</span>
                                         </div>
                                     </div>
-                                    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '24px', border: '1px solid var(--border-color)' }}>
-                                        <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>Potential Ceiling</div>
-                                        <StarRating stars={talentStars(selectedTalent.potential)} size={18} />
+                                    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '20px', border: '1px solid var(--border-color)' }}>
+                                        <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '6px' }}>Potential Ceiling</div>
+                                        <StarRating stars={talentStars(selectedTalent.potential)} size={16} />
                                     </div>
                                 </div>
  
                                 {/* Clues Section */}
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
-                                    <div style={{ background: 'rgba(46, 204, 113, 0.05)', padding: '20px', borderRadius: '24px', border: '1px solid rgba(46, 204, 113, 0.2)' }}>
-                                        <div style={{ fontSize: '0.7rem', color: '#2ecc71', fontWeight: 800, textTransform: 'uppercase', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <CheckCircle2 size={14} /> Key Strengths
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+                                    <div style={{ background: 'rgba(46, 204, 113, 0.04)', padding: '16px', borderRadius: '20px', border: '1px solid rgba(46, 204, 113, 0.15)' }}>
+                                        <div style={{ fontSize: '0.65rem', color: '#2ecc71', fontWeight: 800, textTransform: 'uppercase', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <CheckCircle2 size={12} /> Key Strengths
                                         </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                             {getTalentClues(selectedTalent).good.map((clue, i) => (
-                                                <div key={i} style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: '1.4' }}>• {clue}</div>
+                                                <div key={i} style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: '1.4' }}>• {clue}</div>
                                             ))}
                                         </div>
                                     </div>
-                                    <div style={{ background: 'rgba(231, 76, 60, 0.05)', padding: '20px', borderRadius: '24px', border: '1px solid rgba(231, 76, 60, 0.2)' }}>
-                                        <div style={{ fontSize: '0.7rem', color: '#e74c3c', fontWeight: 800, textTransform: 'uppercase', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <AlertCircle size={14} /> Areas to Improve
+                                    <div style={{ background: 'rgba(231, 76, 60, 0.04)', padding: '16px', borderRadius: '20px', border: '1px solid rgba(231, 76, 60, 0.15)' }}>
+                                        <div style={{ fontSize: '0.65rem', color: '#e74c3c', fontWeight: 800, textTransform: 'uppercase', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <AlertCircle size={12} /> Areas to Improve
                                         </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                             {getTalentClues(selectedTalent).bad.map((clue, i) => (
-                                                <div key={i} style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: '1.4' }}>• {clue}</div>
+                                                <div key={i} style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: '1.4' }}>• {clue}</div>
                                             ))}
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Last 10 Performance Chart */}
+                                {/* Last 10 Performance Table */}
                                 {(selectedTalent as any).youthStats?.last10 && (selectedTalent as any).youthStats.last10.length > 0 && (
-                                    <div style={{ marginBottom: '32px' }}>
-                                        <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '16px' }}>Last 10 Games (Efficiency)</div>
-                                        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', height: '100px' }}>
-                                            {(selectedTalent as any).youthStats.last10.map((game: any, i: number) => {
-                                                const height = (game.pts / 25) * 100;
-                                                return (
-                                                    <div key={i} style={{ flex: 1, background: 'var(--team-primary)', borderRadius: '4px 4px 0 0', height: `${height}%`, opacity: 0.3 + (i * 0.07) }} />
-                                                );
-                                            })}
+                                    <div style={{ marginBottom: '24px' }}>
+                                        <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '10px' }}>Last 10 Games Performance</div>
+                                        <div style={{ background: 'rgba(255, 255, 255, 0.02)', borderRadius: '16px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+                                            <div style={{ 
+                                                display: 'grid', 
+                                                gridTemplateColumns: '1.2fr 1fr 1fr 1fr 1.2fr', 
+                                                padding: '8px 12px', 
+                                                background: 'rgba(255, 255, 255, 0.03)', 
+                                                borderBottom: '1px solid var(--border-color)',
+                                                fontSize: '0.6rem', 
+                                                color: 'var(--text-dim)', 
+                                                fontWeight: 800, 
+                                                textTransform: 'uppercase' 
+                                            }}>
+                                                <div>Game</div>
+                                                <div style={{ textAlign: 'center' }}>PTS</div>
+                                                <div style={{ textAlign: 'center' }}>REB</div>
+                                                <div style={{ textAlign: 'center' }}>AST</div>
+                                                <div style={{ textAlign: 'right' }}>FG%</div>
+                                            </div>
+                                            <div style={{ maxHeight: '160px', overflowY: 'auto' }}>
+                                                {(selectedTalent as any).youthStats.last10.map((game: any, i: number) => (
+                                                    <div key={i} style={{ 
+                                                        display: 'grid', 
+                                                        gridTemplateColumns: '1.2fr 1fr 1fr 1fr 1.2fr', 
+                                                        padding: '8px 12px', 
+                                                        borderBottom: i === (selectedTalent as any).youthStats.last10.length - 1 ? 'none' : '1px solid var(--border-color)',
+                                                        fontSize: '0.75rem',
+                                                        alignItems: 'center'
+                                                    }}>
+                                                        <div style={{ fontWeight: 600, color: 'var(--text-dim)' }}>Game #{(selectedTalent as any).youthStats.last10.length - i}</div>
+                                                        <div style={{ textAlign: 'center', fontWeight: 700, color: 'var(--text-main)' }}>{game.pts.toFixed(1)}</div>
+                                                        <div style={{ textAlign: 'center', fontWeight: 600 }}>{game.reb.toFixed(1)}</div>
+                                                        <div style={{ textAlign: 'center', fontWeight: 600 }}>{game.ast.toFixed(1)}</div>
+                                                        <div style={{ textAlign: 'right', fontWeight: 700, color: '#2ecc71' }}>{game.fgp.toFixed(0)}%</div>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 )}
+                            </div>
 
-                                <div style={{ display: 'flex', gap: '16px' }}>
+                            {/* Footer Actions Container (Fixed bottom) */}
+                            <div style={{ padding: '16px 24px 24px', borderTop: '1px solid var(--border-color)', background: 'rgba(255, 255, 255, 0.01)', display: 'flex', gap: '12px' }}>
+                                <button 
+                                    onClick={() => setSelectedTalent(null)}
+                                    style={{ flex: 1, padding: '14px', borderRadius: '16px', background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-dim)', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}
+                                >
+                                    CLOSE
+                                </button>
+
+                                {isOffseasonRecruit ? (
                                     <button 
-                                        onClick={() => setSelectedTalent(null)}
-                                        style={{ flex: 1, padding: '18px', borderRadius: '20px', background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-dim)', fontWeight: 800, cursor: 'pointer' }}
+                                        onClick={() => handleSignToAcademy(selectedTalent as LocalTalent)}
+                                        style={{ flex: 2, padding: '14px', borderRadius: '16px', background: 'var(--team-primary)', color: '#fff', border: 'none', fontWeight: 900, fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 8px 25px rgba(var(--team-primary-rgb), 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                                     >
-                                        CLOSE
+                                        <Zap size={16} /> SIGN TO ACADEMY
                                     </button>
-
-                                    {isOffseasonRecruit ? (
-                                        <button 
-                                            onClick={() => handleSignToAcademy(selectedTalent as LocalTalent)}
-                                            style={{ flex: 2, padding: '18px', borderRadius: '20px', background: 'var(--team-primary)', color: '#fff', border: 'none', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer', boxShadow: '0 8px 25px rgba(var(--team-primary-rgb), 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}
-                                        >
-                                            <Zap size={20} /> SIGN TO ACADEMY
-                                        </button>
-                                    ) : selectedTalent.isAcademy && selectedTalent.age >= 18 ? (
-                                        <button 
-                                            onClick={() => handleSignToPro(selectedTalent as Player)}
-                                            style={{ flex: 2, padding: '18px', borderRadius: '20px', background: 'var(--team-primary)', color: '#fff', border: 'none', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer', boxShadow: '0 8px 25px rgba(var(--team-primary-rgb), 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}
-                                        >
-                                            <UserPlus size={20} /> SIGN TO ROSTER (€200k/Yr)
-                                        </button>
-                                    ) : null}
-                                </div>
+                                ) : selectedTalent.isAcademy && selectedTalent.age >= 18 ? (
+                                    <button 
+                                        onClick={() => handleSignToPro(selectedTalent as Player)}
+                                        style={{ flex: 2, padding: '14px', borderRadius: '16px', background: 'var(--team-primary)', color: '#fff', border: 'none', fontWeight: 900, fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 8px 25px rgba(var(--team-primary-rgb), 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                                    >
+                                        <UserPlus size={16} /> SIGN (€200k/Yr)
+                                    </button>
+                                ) : null}
                             </div>
                         </motion.div>
                     </div>
