@@ -3437,6 +3437,107 @@ export function GameProvider({ children }: { children: ReactNode }) {
             currentNbaEuroPool = refreshNBAEuroPool(currentNbaEuroPool);
         }
 
+        // --- SIMULATE YOUTH LEAGUE (Daily on game days) ---
+        let updatedLocalTalentPool = [...(prev.localTalentPool || [])];
+        let currentPlayersList = [...prev.players];
+        const hasGamesToday = (prev.dailyMatchups || []).length > 0;
+
+        if (hasGamesToday && updatedLocalTalentPool.length > 0) {
+            // 1. Sim for local talent pool
+            updatedLocalTalentPool = updatedLocalTalentPool.map(player => {
+                const ovr = calculateOverall(player);
+                const growthRate = player.growthTrend === 'generational' ? 0.35 : 
+                                  player.growthTrend === 'rapid' ? 0.18 : 
+                                  player.growthTrend === 'steady' ? 0.08 : 0.02;
+                
+                const newAttrs = { ...player.attributes };
+                Object.keys(newAttrs).forEach(key => {
+                    if (Math.random() < growthRate) {
+                        (newAttrs as any)[key] = Math.min(99, (newAttrs as any)[key] + (Math.random() * 0.4));
+                    }
+                });
+
+                const newGame = {
+                    pts: (ovr / 4) + (Math.random() * 12),
+                    reb: (ovr / 10) + (Math.random() * 6),
+                    ast: (ovr / 12) + (Math.random() * 5),
+                    fgp: 35 + (Math.random() * 25),
+                    date: new Date(prev.date)
+                };
+
+                const newLast10 = [newGame, ...player.youthStats?.last10 || []].slice(0, 10);
+                const performance = (newGame.pts + newGame.reb + newGame.ast);
+                const newHype = Math.min(100, Math.max(0, (player.hype || 0) + (performance > 25 ? 0.8 : -0.3)));
+
+                return {
+                    ...player,
+                    attributes: newAttrs,
+                    hype: newHype,
+                    youthStats: {
+                        last10: newLast10,
+                        seasonAvg: {
+                            pts: newLast10.reduce((s, g) => s + g.pts, 0) / newLast10.length,
+                            reb: newLast10.reduce((s, g) => s + g.reb, 0) / newLast10.length,
+                            ast: newLast10.reduce((s, g) => s + g.ast, 0) / newLast10.length
+                        }
+                    }
+                };
+            });
+
+            // Refill local talent pool if low
+            if (updatedLocalTalentPool.length < 30) {
+                const needed = 30 - updatedLocalTalentPool.length;
+                const additions = generateLocalTalentPool(needed);
+                updatedLocalTalentPool = [...updatedLocalTalentPool, ...additions];
+            }
+
+            // 2. Sim for user's academy players (isAcademy = true in currentPlayersList)
+            currentPlayersList = currentPlayersList.map(player => {
+                if (!player.isAcademy) return player;
+
+                const ovr = calculateOverall(player);
+                const growthRate = player.growthTrend === 'generational' ? 0.35 : 
+                                  player.growthTrend === 'rapid' ? 0.18 : 
+                                  player.growthTrend === 'steady' ? 0.08 : 0.02;
+                
+                const newAttrs = { ...player.attributes };
+                Object.keys(newAttrs).forEach(key => {
+                    if (Math.random() < growthRate) {
+                        (newAttrs as any)[key] = Math.min(99, (newAttrs as any)[key] + (Math.random() * 0.4));
+                    }
+                });
+
+                const newGame = {
+                    pts: (ovr / 4) + (Math.random() * 12),
+                    reb: (ovr / 10) + (Math.random() * 6),
+                    ast: (ovr / 12) + (Math.random() * 5),
+                    fgp: 35 + (Math.random() * 25),
+                    date: new Date(prev.date)
+                };
+
+                const newLast10 = [newGame, ...player.youthStats?.last10 || []].slice(0, 10);
+                const performance = (newGame.pts + newGame.reb + newGame.ast);
+                const newHype = Math.min(100, Math.max(0, (player.hype || 0) + (performance > 25 ? 0.8 : -0.3)));
+
+                const newOvr = calculateOverall(newAttrs, player.position);
+
+                return {
+                    ...player,
+                    attributes: newAttrs,
+                    overall: newOvr,
+                    hype: newHype,
+                    youthStats: {
+                        last10: newLast10,
+                        seasonAvg: {
+                            pts: newLast10.reduce((s, g) => s + g.pts, 0) / newLast10.length,
+                            reb: newLast10.reduce((s, g) => s + g.reb, 0) / newLast10.length,
+                            ast: newLast10.reduce((s, g) => s + g.ast, 0) / newLast10.length
+                        }
+                    }
+                };
+            });
+        }
+
         let nextDayMatchups: { homeId: string, awayId: string }[] = [];
         let shouldShowMidSeasonModal = false;
 
@@ -3445,7 +3546,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         let userRecoveryInterrupt: { player: Player, type: 'recovery' } | null = null;
         let userInjuryInterrupt: { player: Player, type: 'injury' } | null = null;
 
-        const healedPlayers = prev.players.map(p => {
+        const healedPlayers = currentPlayersList.map(p => {
             const wasInjured = !!p.injury;
 
             // Injury Healing:
@@ -3556,7 +3657,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     date: nextDate,
                     awardsHistory: [...prev.awardsHistory, awards],
                     players: currentPlayers,
-                    teams: currentTeams
+                    teams: currentTeams,
+                    localTalentPool: updatedLocalTalentPool
                 };
             }
 
@@ -4343,6 +4445,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 isSimulating: nextDayMatchups.length > 0 && prev.isSimulating,
                 nbaToEuroPool: currentNbaEuroPool,
                 injuryInterrupt: userInjuryInterrupt || userRecoveryInterrupt || null,
+                localTalentPool: updatedLocalTalentPool,
             };
         }
         else if (prev.seasonPhase.startsWith('playoffs')) {
@@ -4611,6 +4714,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     pendingUserResult: null,
                     dailyMatchups: [],
                     injuryInterrupt: userInjuryInterrupt || userRecoveryInterrupt || null,
+                    localTalentPool: updatedLocalTalentPool,
                 };
 
             }
@@ -5021,6 +5125,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         playoffs: updatedPlayoffs,
                         seasonPhase: 'offseason',
                         view: 'offseason_menu',
+                        localTalentPool: updatedLocalTalentPool,
                         showAwardsModal: prev.leagueType === 'EURO' ? null : 'finals',
                         pendingSeasonReview: seasonReviewData,
                         offseasonTasks: prev.leagueType === 'EURO' ? {
@@ -5149,6 +5254,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 pendingUserResult: null, // Reset after processing
                 dailyMatchups: nextDayMatchups, // Update for next day
                 injuryInterrupt: userInjuryInterrupt || userRecoveryInterrupt || null,
+                localTalentPool: updatedLocalTalentPool,
             };
         }
 

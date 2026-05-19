@@ -149,4 +149,14 @@ export interface Player {
 
     isAcademy?: boolean;
     academyFunding?: number;
+    growthTrend?: 'stagnant' | 'steady' | 'rapid' | 'generational';
+    hype?: number;
+    youthStats?: {
+        last10: any[];
+        seasonAvg: {
+            pts: number;
+            reb: number;
+            ast: number;
+        };
+    };
 }
