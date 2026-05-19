@@ -473,15 +473,15 @@ export const EuroLocalTalentView: React.FC<Props> = ({ onBack }) => {
                                         </div>
 
                                         {/* Actions Row */}
-                                        <div style={{ display: 'flex', gap: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
                                             <button 
                                                 onClick={() => handleReleaseTalent(prospect)}
                                                 style={{ 
-                                                    padding: '12px 16px', borderRadius: '16px', 
+                                                    flex: '1 1 auto', padding: '10px 12px', borderRadius: '16px', 
                                                     background: 'rgba(231, 76, 60, 0.05)', color: '#e74c3c', 
                                                     border: '1px solid rgba(231, 76, 60, 0.1)', cursor: 'pointer',
-                                                    fontWeight: 800, fontSize: '0.8rem', display: 'flex', 
-                                                    alignItems: 'center', gap: '8px'
+                                                    fontWeight: 800, fontSize: '0.75rem', display: 'flex', 
+                                                    alignItems: 'center', justifyContent: 'center', gap: '6px'
                                                 }}
                                             >
                                                 <Trash2 size={16} /> RELEASE
@@ -491,35 +491,38 @@ export const EuroLocalTalentView: React.FC<Props> = ({ onBack }) => {
                                                 <button 
                                                     onClick={() => handleSignToPro(prospect)}
                                                     style={{ 
-                                                        flex: 1, padding: '12px 16px', borderRadius: '16px', 
+                                                        flex: '2 1 auto', padding: '10px 12px', borderRadius: '16px', 
                                                         background: 'var(--team-primary)', color: '#fff', 
                                                         border: 'none', cursor: 'pointer',
-                                                        fontWeight: 900, fontSize: '0.8rem', display: 'flex', 
-                                                        alignItems: 'center', justifyContent: 'center', gap: '8px',
-                                                        boxShadow: '0 4px 15px rgba(var(--team-primary-rgb), 0.2)'
+                                                        fontWeight: 900, fontSize: '0.75rem', display: 'flex', 
+                                                        alignItems: 'center', justifyContent: 'center', gap: '6px',
+                                                        boxShadow: '0 4px 15px rgba(var(--team-primary-rgb), 0.2)',
+                                                        textAlign: 'center'
                                                     }}
                                                 >
-                                                    <UserPlus size={16} /> SIGN TO PRO CONTRACT (3Y)
+                                                    <UserPlus size={16} /> SIGN TO PRO (3Y)
                                                 </button>
                                             ) : (
                                                 <div style={{ 
-                                                    flex: 1, padding: '12px 16px', borderRadius: '16px', 
+                                                    flex: '2 1 auto', padding: '10px 12px', borderRadius: '16px', 
                                                     background: 'rgba(255,255,255,0.02)', color: 'var(--text-dim)', 
                                                     border: '1px solid var(--border-color)',
-                                                    fontWeight: 700, fontSize: '0.75rem', display: 'flex', 
-                                                    alignItems: 'center', justifyContent: 'center', gap: '6px'
+                                                    fontWeight: 700, fontSize: '0.7rem', display: 'flex', 
+                                                    alignItems: 'center', justifyContent: 'center', gap: '6px',
+                                                    textAlign: 'center'
                                                 }}>
-                                                    <ShieldAlert size={14} /> SIGN PRO CONTRACT AT AGE 18
+                                                    <ShieldAlert size={14} /> WAIT UNTIL 18
                                                 </div>
                                             )}
 
                                             <button
                                                 onClick={() => setSelectedTalent(prospect)}
                                                 style={{ 
-                                                    padding: '12px 16px', borderRadius: '16px', 
+                                                    flex: '1 1 auto', padding: '10px 12px', borderRadius: '16px', 
                                                     background: 'rgba(255,255,255,0.02)', color: 'var(--text-main)', 
                                                     border: '1px solid var(--border-color)', cursor: 'pointer',
-                                                    fontWeight: 800, fontSize: '0.8rem'
+                                                    fontWeight: 800, fontSize: '0.75rem', display: 'flex',
+                                                    alignItems: 'center', justifyContent: 'center'
                                                 }}
                                             >
                                                 PROFILE
